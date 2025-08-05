@@ -37,3 +37,16 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+
+# Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+
+# IDE files
+.vscode/
+.idea/
+
+# Local Android SDK path config
+android/local.properties
