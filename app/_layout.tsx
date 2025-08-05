@@ -1,5 +1,7 @@
-// app/_layout.tsx
+
 import { Drawer } from 'expo-router/drawer';
+import "../global.css";
+
 
 export default function Layout() {
   return (

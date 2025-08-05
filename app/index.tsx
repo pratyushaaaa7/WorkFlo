@@ -1,9 +1,15 @@
-import { View, Text } from 'react-native';
+import { View, Text } from "react-native";
 
-export default function Home() {
+
+export default function App() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Welcome to Home Pageee</Text>
+    <View className="flex-1 items-center justify-center bg-white">
+      <Text className="text-xl font-bold  text-green-300">
+        NativeWind is working!
+      </Text>
+      <Text className="text-3xl font-bold  text-green-300">
+        NativeWind is working!
+      </Text>
     </View>
   );
 }
