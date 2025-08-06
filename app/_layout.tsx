@@ -2,7 +2,7 @@ import '../global.css';  // For TailwindCSS (keep this)
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from '../context/AuthContext'; // Adjust path accordingly
 
 export default function RootLayout() {
@@ -32,7 +32,7 @@ function LayoutWithAuth() {
       if (!isAuthenticated && !inLogin) {
         router.replace('/login');
       } else if (isAuthenticated && !inDrawer) {
-        router.replace('/(drawer)');
+        router.replace('/(drawer)/profile');
       }
     }
   }, [loading, isAuthenticated, segments]);

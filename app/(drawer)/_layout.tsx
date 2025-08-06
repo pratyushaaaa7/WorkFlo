@@ -20,15 +20,7 @@ export default function DrawerLayout() {
 
   return (
     <Drawer>
-      <Drawer.Screen
-        name="index"
-        options={{
-          drawerLabel: 'Home',
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
+     
       <Drawer.Screen
         name="profile"
         options={{
@@ -38,6 +30,18 @@ export default function DrawerLayout() {
           ),
         }}
       />
+
+       <Drawer.Screen
+        name="ilrForm"
+        options={{
+          drawerLabel: 'ILR Form',
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="person-circle-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+
     </Drawer>
   );
 }
