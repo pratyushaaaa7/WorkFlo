@@ -6,23 +6,22 @@ import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 
 export default function DrawerLayout() {
-  const { isAuthenticated , loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, loading ]);
+  }, [isAuthenticated, loading]);
 
-    if (loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
-
 
   if (!isAuthenticated) return null;
 
@@ -32,7 +31,7 @@ export default function DrawerLayout() {
         name="profile"
         options={{
           drawerLabel: "Profile",
-            title: "User Profile", 
+          title: "User Profile",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="person-circle-outline" size={size} color={color} />
           ),
@@ -43,7 +42,7 @@ export default function DrawerLayout() {
         name="ilrForm"
         options={{
           drawerLabel: "ILR Form",
-           title: "ILR Form", 
+          title: "ILR Form",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size} color={color} />
           ),
@@ -52,26 +51,40 @@ export default function DrawerLayout() {
 
       <Drawer.Screen
         name="createProject"
-        
         options={{
           drawerLabel: "Create Project",
-           title: "Create Project", 
+          title: "Create Project",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="create-outline" size={size} color={color} />
           ),
         }}
       />
 
+     
+
       <Drawer.Screen
         name="registerUser"
         options={{
           drawerLabel: "Register User",
-           title: "Register User", 
+          title: "Register User",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="person-add-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+       <Drawer.Screen
+        name="projects"
+        options={{
+          drawerLabel: "Projects",
+          title: "Projects",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="person-add-outline" size={size} color={color} />
           ),
         }}
       />
     </Drawer>
+
+    
   );
 }
