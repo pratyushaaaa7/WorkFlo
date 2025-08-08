@@ -1,47 +1,79 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import {Ionicons, MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialIcons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-const cardItems = [
-  {
-    title: "Hobfit Activation",
-    icon: <MaterialCommunityIcons name="dots-grid" size={28} color="#E754E3" />,
-  },
-  {
-    title: "Pending Approval",
-    icon: <Ionicons name="notifications-outline" size={28} color="#F59E0B" />,
-  },
-  {
-    title: "My Activation",
-    icon: <MaterialIcons name="edit-document" size={28} color="#3B82F6" />,
-  },
-  {
-    title: "Hobit Activation",
-    icon: <MaterialCommunityIcons name="dots-grid" size={28} color="#6366F1" />,
-  },
-];
+const ProjectMain = () => {
+  const router = useRouter();
 
-const projectMain = () => {
   return (
-    <View className="flex-1 bg-gray-100 p-4">
-      {cardItems.map((item, index) => (
+    <>
+      {/* 🔙 Back Button */}
+      <View className="bg-white pt-10 px-5">
         <TouchableOpacity
-          key={index}
-          className="flex-row items-center justify-between bg-white rounded-xl p-4 mb-4 shadow-sm"
-          onPress={() => console.log(`${item.title} tapped`)}
+          onPress={() => router.push("/projectMain")}
+          className="flex-row items-center "
+        >
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Text className="ml-2 text-lg font-semibold text-[#1E293B]">
+            Back
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View className="flex-1 bg-white px-5 pt-5">
+        {/* 🟪 Project Directory Button */}
+        <TouchableOpacity
+          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
+          //   onPress={() => router.push("/project-directory")}
         >
           <View className="flex-row items-center space-x-4">
-            <View className="bg-gray-100 p-2 rounded-full">{item.icon}</View>
-            <Text className="text-base font-semibold text-gray-800">{item.title}</Text>
+            <MaterialCommunityIcons
+              name="dots-grid"
+              size={24}
+              color="#8B5CF6"
+            />
+            <Text className="pl-2 text-base font-medium text-gray-800">
+              Project Directory
+            </Text>
           </View>
-
-          <View className="bg-pink-100 p-2 rounded-full">
-            <Ionicons name="chevron-forward" size={20} color="#EF4444" />
-          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
         </TouchableOpacity>
-      ))}
-    </View>
+
+        {/* 🟨 ILR Button */}
+        <TouchableOpacity
+          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
+          //   onPress={() => router.push("/ilr")}
+        >
+          <View className="flex-row items-center space-x-4">
+            <Ionicons name="clipboard-outline" size={24} color="#F59E0B" />
+
+            <Text className=" pl-2 text-base font-medium text-gray-800">
+              ILR
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+        </TouchableOpacity>
+
+        {/* 🟦 Minutes of Meeting Button */}
+        <TouchableOpacity
+          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg"
+          //   onPress={() => router.push("/mom")}
+        >
+          <View className="flex-row items-center space-x-4">
+            <MaterialIcons name="edit-document" size={24} color="#3B82F6" />
+            <Text className="pl-2 text-base font-medium text-gray-800">
+              Minutes of Meeting
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+    </>
   );
 };
 
-export default projectMain;
+export default ProjectMain;

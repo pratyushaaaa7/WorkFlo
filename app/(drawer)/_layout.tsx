@@ -79,10 +79,22 @@ export default function DrawerLayout() {
           drawerLabel: "Projects",
           title: "Projects",
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="person-add-outline" size={size} color={color} />
+            <Ionicons name="briefcase-outline" size={size} color={color} />
           ),
         }}
       />
+
+       <Drawer.Screen
+        name="projectList"
+        options={{
+          drawerLabel: "Project List",
+          title: "Master Project List",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="list-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
     </Drawer>
 
     
