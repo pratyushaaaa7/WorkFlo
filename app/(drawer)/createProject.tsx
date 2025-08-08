@@ -20,8 +20,10 @@ const CreateProjectScreen = () => {
 
   // Dropdown Picker
   const [open, setOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  type DropdownUser = { label: string; value: string };
+
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [allUsers, setAllUsers] = useState<DropdownUser[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,7 +75,8 @@ const CreateProjectScreen = () => {
       setProjectName("");
       setSelectedUsers([]);
     } catch (err) {
-      console.error("Error creating project:", err.message);
+      const error = err as { message?: string };
+      console.error("Error creating project:", error.message);
       Alert.alert("Error", "Failed to create project");
     }
   };

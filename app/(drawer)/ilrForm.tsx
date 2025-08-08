@@ -286,13 +286,7 @@ export default function ILRForm() {
               placeholderTextColor="#999"
             />
 
-            {/* <TextInput
-              placeholder="Location"
-              value={issue.location}
-              onChangeText={text => updateIssue(index, 'location', text)}
-              className="border border-gray-200 rounded-lg px-3 py-2 mb-3 bg-gray-50 text-base"
-              placeholderTextColor="#999"
-            /> */}
+          
 
             {issues.length > 1 && (
               <Pressable onPress={() => removeIssue(index)} className="mt-2">
