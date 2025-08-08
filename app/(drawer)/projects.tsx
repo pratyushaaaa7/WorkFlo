@@ -21,7 +21,7 @@ const CompanyProjectSelectionScreen = () => {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companyOptions, setCompanyOptions] = useState([
     { label: "WP", value: "WP" },
-    { label: "WAL+", value: "WAL+" },
+    { label: "WAL+L", value: "WAL" },
   ]);
 
   // Project dropdown
