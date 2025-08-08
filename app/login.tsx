@@ -68,11 +68,7 @@ export default function LoginScreen() {
           className="mb-8 items-center"
         >
           <View className="bg-white rounded-full p-5 shadow-md shadow-black/10">
-            <Image
-              source={logoWP}
-              className="w-20 h-20"
-              resizeMode="contain"
-            />
+            <Image source={logoWP} className="w-20 h-20" resizeMode="contain" />
           </View>
           <Text className="text-white text-2xl mt-20 font-medium">
             Login to your account
@@ -133,6 +129,13 @@ export default function LoginScreen() {
               <Text className="text-white font-semibold text-lg">Login</Text>
             )}
           </Pressable>
+        </View>
+
+        {/* Footer Disclaimer */}
+        <View className="mt-10 items-center">
+          <Text className="text-white text-xs text-center">
+            © 2025 WTech. All rights reserved.
+          </Text>
         </View>
       </KeyboardAwareScrollView>
     </LinearGradient>
