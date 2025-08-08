@@ -89,44 +89,46 @@ const CreateProjectScreen = () => {
     fetchUsers();
   }, [token]);
 
-  const handleCreateProject = async () => {
-    if (!projectName.trim() || !companyName || !projectTypology) {
-      Alert.alert("Validation", "Please fill all required fields.");
-      return;
-    }
+ const handleCreateProject = async () => {
+  if (!projectName.trim() || !companyName || !projectTypology) {
+    Alert.alert("Validation", "Please fill all required fields.");
+    return;
+  }
 
-    try {
-      const res = await api.post(
-        "/projects",
-        {
-          companyName,
-          projectName,
-          projectCode,
-          projectLocation,
-          projectArea,
-          assignedUsers: selectedUsers,
-          startDate: startDate.toISOString(),
-          projectTypology,
-          scopeDescription: selectedScopes,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  try {
+    const res = await api.post(
+      "/projects",
+      {
+        company: companyName,
+        projectName: projectName,
+        projectCode,
+        location: projectLocation,
+        area: projectArea,
+        assignedUsers: selectedUsers,
+        startDate: startDate.toISOString(),
+        typology: projectTypology,
+        scopes: selectedScopes,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-      Alert.alert("Success", res.data.message);
-      setProjectName("");
-      setProjectCode("");
-      setProjectLocation("");
-      setProjectArea("");
-      setSelectedUsers([]);
-      setCompanyName(null);
-      setProjectTypology(null);
-    } catch (err) {
-      console.error("Error creating project:", err);
-      Alert.alert("Error", "Failed to create project");
-    }
-  };
+    Alert.alert("Success", res.data.message);
+    setProjectName("");
+    setProjectCode("");
+    setProjectLocation("");
+    setProjectArea("");
+    setSelectedUsers([]);
+    setCompanyName(null);
+    setProjectTypology(null);
+    setSelectedScopes([]);
+    setStartDate(new Date());
+  } catch (err) {
+    console.error("Error creating project:", err);
+    Alert.alert("Error", "Failed to create project");
+  }
+};
 
   return (
     <KeyboardAwareScrollView
