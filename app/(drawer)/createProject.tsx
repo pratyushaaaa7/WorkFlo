@@ -94,6 +94,7 @@ const CreateProjectScreen = () => {
         <TextInput
           className="border border-gray-300 rounded-md px-4 py-2"
           placeholder="Enter project name"
+          placeholderTextColor={"#999"}
           value={projectName}
           onChangeText={setProjectName}
         />
