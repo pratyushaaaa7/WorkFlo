@@ -15,7 +15,7 @@ const ProjectMain = () => {
       {/* 🔙 Back Button */}
       <View className="bg-white pt-10 px-5">
         <TouchableOpacity
-          onPress={() => router.push("/projectMain")}
+          onPress={() => router.push("/projects")}
           className="flex-row items-center "
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
