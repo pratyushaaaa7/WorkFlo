@@ -1,82 +1,80 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
+
+const { width } = Dimensions.get("window");
+const ITEMS_PER_ROW = 3;
+const ITEM_MARGIN = 12;
+const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 
 const ProjectMain = () => {
   const router = useRouter();
-  const { projectId, company } = useLocalSearchParams();
 
-  // console.log("Project ID:", projectId);
-  // console.log("Company:", company);
+  const menuItems = [
+    {
+      key: "directory",
+      label: "Project Directory",
+      icon: <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />,
+      onPress: () => {
+        // router.push("/project-directory");
+      },
+    },
+    {
+      key: "ilr",
+      label: "ILR",
+      icon: <Ionicons name="clipboard-outline" size={50} color="#F59E0B" />,
+      onPress: () => {
+        // router.push("/ilr");
+      },
+    },
+    {
+      key: "mom",
+      label: "Minutes of Meeting",
+      icon: <MaterialIcons name="edit-document" size={50} color="#3B82F6" />,
+      onPress: () => {
+        // router.push("/mom");
+      },
+    },
+  ];
 
   return (
     <View className="flex-1 bg-white">
-      {/* 🔙 Back Button Container with shadow */}
-      <View
-        className="pt-10 px-5 pb-6 bg-white"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
+      {/* Back button container with shadow */}
+      <View className="pt-16 px-4 pb-6 bg-white shadow-md">
         <TouchableOpacity
           onPress={() => router.push("/projects")}
           className="flex-row items-center"
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-2 text-lg font-semibold text-[#1E293B]">Back</Text>
+          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">Back</Text>
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 px-5 pt-5">
-        {/* 🟪 Project Directory Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
-          // onPress={() => router.push("/project-directory")}
-        >
-          <View className="flex-row items-center space-x-4">
-            <MaterialCommunityIcons name="dots-grid" size={24} color="#8B5CF6" />
-            <Text className="pl-2 text-base font-medium text-gray-800">
-              Project Directory
+      {/* Grid container */}
+      <View
+        className="flex-row flex-wrap pt-5 px-3 justify-between"
+        style={{ gap: ITEM_MARGIN }}
+      >
+        {menuItems.map(({ key, label, icon, onPress }) => (
+          <TouchableOpacity
+            key={key}
+            onPress={onPress}
+            className="items-center mb-6"
+            style={{ width: ITEM_WIDTH }}
+          >
+            <View className="w-20 h-20 rounded-full bg-gray-100 justify-center items-center shadow-md mb-2">
+              {icon}
+            </View>
+            <Text className="text-gray-700 font-semibold text-center text-base">
+              {label}
             </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
-        </TouchableOpacity>
-
-        {/* 🟨 ILR Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
-          // onPress={() => router.push("/ilr")}
-        >
-          <View className="flex-row items-center space-x-4">
-            <Ionicons name="clipboard-outline" size={24} color="#F59E0B" />
-            <Text className="pl-2 text-base font-medium text-gray-800">ILR</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
-        </TouchableOpacity>
-
-        {/* 🟦 Minutes of Meeting Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg"
-          // onPress={() => router.push("/mom")}
-        >
-          <View className="flex-row items-center space-x-4">
-            <MaterialIcons name="edit-document" size={24} color="#3B82F6" />
-            <Text className="pl-2 text-base font-medium text-gray-800">
-              Minutes of Meeting
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
-        </TouchableOpacity>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );

@@ -60,7 +60,7 @@ const ProjectList = () => {
     <View style={{ flex: 1 }}>
       {/* Back button container with shadow */}
       <View
-        className="bg-white  pt-10 pb-6 px-5"
+        className="bg-white  pt-16 pb-6 px-4"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
@@ -72,10 +72,10 @@ const ProjectList = () => {
       >
         <TouchableOpacity
           onPress={() => router.push("/masterProjectList")}
-          className="flex-row items-center"
+          className="flex-row items-center "
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-2 text-lg font-semibold text-[#1E293B]">
+          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
             Back
           </Text>
         </TouchableOpacity>
