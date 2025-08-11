@@ -83,7 +83,7 @@ export default function DrawerLayout() {
       />
 
       <Drawer.Screen
-        name="projectList"
+        name="masterProjectList"
         options={{
           drawerLabel: "Project List",
           title: "Master Project List",
