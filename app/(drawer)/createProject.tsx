@@ -40,26 +40,26 @@ const CreateProjectScreen = () => {
   const [openTypology, setOpenTypology] = useState(false);
   const [projectTypology, setProjectTypology] = useState<string | null>(null);
   const typologyOptions = [
-    { label: "RESIDENCE", value: "RESIDENCE" },
-    { label: "COMMERCIAL", value: "COMMERCIAL" },
-    { label: "HOSPITALITY", value: "HOSPITALITY" },
-    { label: "INDUSTRIAL", value: "INDUSTRIAL" },
-    { label: "HEALTHCARE", value: "HEALTHCARE" },
-    { label: "HOUSING", value: "HOUSING" },
-    { label: "MISC.", value: "MISC" },
+    { label: "RESIDENCE", value: "Residence" },
+    { label: "COMMERCIAL", value: "Commercial" },
+    { label: "HOSPITALITY", value: "Hospitality" },
+    { label: "INDUSTRIAL", value: "Industrial" },
+    { label: "HEALTHCARE", value: "Healthcare" },
+    { label: "HOUSING", value: "Housing" },
+    { label: "MISC.", value: "Misc" },
   ];
 
   const [openScope, setOpenScope] = useState(false);
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const scopeOptions = [
-    { label: "MASTER PLANNING", value: "MASTER PLANNING" },
-    { label: "ARCHITECTURE", value: "ARCHITECTURE" },
-    { label: "INTERIORS", value: "INTERIORS" },
-    { label: "DESIGN MANAGEMENT", value: "DESIGN MANAGEMENT" },
-    { label: "CONSTRUCTION MANAGEMENT", value: "CONSTRUCTION MANAGEMENT" },
-    { label: "PROJECT MANAGEMENT", value: "PROJECT MANAGEMENT" },
+    { label: "MASTER PLANNING", value: "Master Planning" },
+    { label: "ARCHITECTURE", value: "Architecture" },
+    { label: "INTERIORS", value: "Interiors" },
+    { label: "DESIGN MANAGEMENT", value: "Design Management" },
+    { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
+    { label: "PROJECT MANAGEMENT", value: "Project Management" },
     { label: "QS", value: "QS" },
-    { label: "AUDITORS", value: "AUDITORS" },
+    { label: "AUDITORS", value: "Auditors" },
   ];
 
   const [startDate, setStartDate] = useState<Date>(new Date());
