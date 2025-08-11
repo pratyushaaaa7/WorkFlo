@@ -19,7 +19,9 @@ const ProjectMain = () => {
     {
       key: "directory",
       label: "Project Directory",
-      icon: <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />,
+      icon: (
+        <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />
+      ),
       onPress: () => {
         // router.push("/project-directory");
       },
@@ -45,19 +47,31 @@ const ProjectMain = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Back button container with shadow */}
-      <View className="pt-16 px-4 pb-6 bg-white shadow-md">
+      <View
+        className="pt-16 px-4 pb-6 bg-white "
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
+      >
         <TouchableOpacity
           onPress={() => router.push("/projects")}
           className="flex-row items-center"
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">Back</Text>
+          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
+            Back
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Grid container */}
       <View
-        className="flex-row flex-wrap pt-5 px-3 justify-between"
+        className="flex-row flex-wrap pt-6 px-3 justify-between"
         style={{ gap: ITEM_MARGIN }}
       >
         {menuItems.map(({ key, label, icon, onPress }) => (
