@@ -24,7 +24,7 @@ const RegisterUserScreen = () => {
   const [roleItems, setRoleItems] = useState([
     { label: "User", value: "user" },
     { label: "Admin", value: "admin" },
-     { label: "Tech Lead", value: "techLead" },
+    { label: "Tech Lead", value: "techLead" },
   ]);
 
   const handleRegister = async () => {
@@ -48,13 +48,19 @@ const RegisterUserScreen = () => {
         }
       );
 
-      Alert.alert("Success", res.data.message || "User registered successfully!");
+      Alert.alert(
+        "Success",
+        res.data.message || "User registered successfully!"
+      );
       setUsername("");
       setPassword("");
       setSelectedRole("user");
     } catch (err: any) {
       console.error("Registration error:", err.response?.data || err.message);
-      Alert.alert("Error", err.response?.data?.message || "Registration failed.");
+      Alert.alert(
+        "Error",
+        err.response?.data?.message || "Registration failed."
+      );
     }
   };
 
@@ -67,7 +73,7 @@ const RegisterUserScreen = () => {
         value={username}
         onChangeText={setUsername}
         placeholder="Enter username"
-          placeholderTextColor="#999"
+        placeholderTextColor="#999"
         className="border border-gray-300 rounded-md px-4 py-2 mb-4"
       />
 
@@ -76,7 +82,7 @@ const RegisterUserScreen = () => {
         value={password}
         onChangeText={setPassword}
         placeholder="Enter password"
-          placeholderTextColor="#999"
+        placeholderTextColor="#999"
         // secureTextEntry
         className="border border-gray-300 rounded-md px-4 py-2 mb-4"
       />

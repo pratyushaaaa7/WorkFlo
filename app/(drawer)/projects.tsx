@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-} from "react-native";
+import { View, Text, TouchableOpacity, Alert, ScrollView } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
@@ -14,7 +8,7 @@ import { useRouter } from "expo-router";
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
- const router = useRouter();
+  const router = useRouter();
 
   // Company dropdown
   const [companyOpen, setCompanyOpen] = useState(false);
@@ -29,28 +23,38 @@ const CompanyProjectSelectionScreen = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [assignedProjects, setAssignedProjects] = useState<any[]>([]);
 
+  // Fetch projects filtered by selectedCompany from backend
   useEffect(() => {
-    if (!token) return;
+    if (!token || !selectedCompany) {
+      setAssignedProjects([]);
+      setSelectedProject(null);
+      return;
+    }
 
     const fetchProjects = async () => {
       try {
+        // Assuming your backend supports filtering by company via query param
         const res = await api.get("/projects", {
           headers: { Authorization: `Bearer ${token}` },
+          params: { company: selectedCompany }, // <-- send selected company here
         });
 
         const dropdownProjects = res.data.projects.map((project: any) => ({
-          label: project.name,
+          label: project.projectName,
           value: project._id,
         }));
 
         setAssignedProjects(dropdownProjects);
+        setSelectedProject(null); // reset project selection on company change
       } catch (err) {
         console.error("Failed to fetch projects", err.message);
+        setAssignedProjects([]);
+        setSelectedProject(null);
       }
     };
 
     fetchProjects();
-  }, [token]);
+  }, [token, selectedCompany]);
 
   const handleEnter = () => {
     if (!selectedCompany || !selectedProject) {
@@ -58,11 +62,15 @@ const CompanyProjectSelectionScreen = () => {
       return;
     }
 
-    // Alert.alert("Selected", `Company: ${selectedCompany}\nProject ID: ${selectedProject}`);
-    // You can now navigate or do something with the selected values
-
-     // 🔁 Route to dashboard screen
-    router.push("/projectMain"); // or `router.replace("/dashboard")` if you don’t want to go back
+    // Navigate to dashboard or project main page
+    // router.push("/projectMain");
+    router.push({
+      pathname: "/projectMain",
+      params: {
+        projectId: selectedProject,
+        company: selectedCompany, // optional
+      },
+    });
   };
 
   return (
@@ -98,6 +106,7 @@ const CompanyProjectSelectionScreen = () => {
           setValue={setSelectedProject}
           setItems={setAssignedProjects}
           placeholder="Choose project"
+          disabled={!selectedCompany} // disable project dropdown until company selected
         />
       </View>
 

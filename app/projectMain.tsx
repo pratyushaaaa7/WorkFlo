@@ -5,10 +5,14 @@ import {
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const ProjectMain = () => {
   const router = useRouter();
+  const { projectId, company } = useLocalSearchParams();
+
+  console.log("Project ID:", projectId);
+  console.log("Company:", company);
 
   return (
     <>

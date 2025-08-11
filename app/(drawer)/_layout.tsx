@@ -60,8 +60,6 @@ export default function DrawerLayout() {
         }}
       />
 
-     
-
       <Drawer.Screen
         name="registerUser"
         options={{
@@ -73,7 +71,7 @@ export default function DrawerLayout() {
         }}
       />
 
-       <Drawer.Screen
+      <Drawer.Screen
         name="projects"
         options={{
           drawerLabel: "Projects",
@@ -84,7 +82,7 @@ export default function DrawerLayout() {
         }}
       />
 
-       <Drawer.Screen
+      <Drawer.Screen
         name="projectList"
         options={{
           drawerLabel: "Project List",
@@ -94,9 +92,6 @@ export default function DrawerLayout() {
           ),
         }}
       />
-
     </Drawer>
-
-    
   );
 }

@@ -286,8 +286,6 @@ export default function ILRForm() {
               placeholderTextColor="#999"
             />
 
-          
-
             {issues.length > 1 && (
               <Pressable onPress={() => removeIssue(index)} className="mt-2">
                 <Text className="text-red-500 font-medium">Delete Issue</Text>

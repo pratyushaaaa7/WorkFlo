@@ -14,9 +14,7 @@ const ProjectMain = () => {
     <>
       <View className="flex-1 bg-white px-5 pt-5">
         {/* 🟪 Project Directory Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
-        >
+        <TouchableOpacity className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4">
           <View className="flex-row items-center space-x-4">
             <Text className="text-base font-medium text-gray-800">
               Projects of WP
@@ -26,9 +24,7 @@ const ProjectMain = () => {
         </TouchableOpacity>
 
         {/* 🟨 ILR Button */}
-        <TouchableOpacity
-          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
-        >
+        <TouchableOpacity className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4">
           <View className="flex-row items-center space-x-4">
             <Text className="text-base font-medium text-gray-800">
               Projects of WAL+L
