@@ -34,6 +34,20 @@ const AddUsers = () => {
   ]);
 
   const [roleOpenIndex, setRoleOpenIndex] = useState(null);
+    const [submitting, setSubmitting] = useState(false); // to disable button
+
+  // Validation helper - returns true if any user has empty required fields
+  const hasEmptyFields = () => {
+    return formUsers.some(user =>
+      !user.individualName.trim() ||
+      !user.designation.trim() ||
+      !user.role.trim() ||
+      !user.firmName.trim() ||
+      !user.email.trim()
+      // You can add more required fields here if needed
+    );
+  };
+
   const [roleItems] = useState([
     { label: "Contractor", value: "Contractor" },
     { label: "Vendor", value: "Vendor" },
@@ -71,11 +85,17 @@ const AddUsers = () => {
     }
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
+    if (hasEmptyFields()) {
+      Alert.alert("Validation Error", "Please fill all required fields for every user.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       for (const user of formUsers) {
         await api.post(
-          "/user-directory",
+          `/user-directory/${projectId}`,
           { projectId, ...user },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -85,8 +105,10 @@ const AddUsers = () => {
     } catch (error) {
       console.error("Error adding users:", error.response?.data || error);
       Alert.alert("Error", "Unable to add user(s).");
+      setSubmitting(false); // Re-enable on error
     }
   };
+
 
   return (
     <View className="flex-1 bg-gray-50">

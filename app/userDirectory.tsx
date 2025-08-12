@@ -45,7 +45,7 @@ const UserList = () => {
   const renderUserItem = ({ item, index }) => (
     <View
       key={index}
-      className="bg-white rounded-2xl p-4 mb-4 shadow-md"
+      className="bg-white rounded-2xl p-4 mb-4 "
     >
       <Text className="text-lg font-semibold text-blue-600">{item.individualName}</Text>
       <Text className="text-gray-700">{item.designation}</Text>
@@ -59,7 +59,7 @@ const UserList = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View
-        className="pt-16 px-4 pb-6 bg-white shadow-md"
+        className="pt-16 px-4 pb-6 bg-white "
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
