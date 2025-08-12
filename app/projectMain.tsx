@@ -18,7 +18,7 @@ const ProjectMain = () => {
   const menuItems = [
     {
       key: "directory",
-      label: "Project Directory",
+      label: "User Directory",
       icon: (
         <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />
       ),
