@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import api from "../lib/api";
+import { AuthContext } from "../context/AuthContext";
 
 const { width } = Dimensions.get("window");
 const ITEMS_PER_ROW = 3;
@@ -14,6 +16,37 @@ const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 
 const ProjectMain = () => {
   const router = useRouter();
+  const { company, projectId } = useLocalSearchParams();
+  const authContext = useContext(AuthContext);
+  const token = authContext?.token;
+
+  const [projectName, setProjectName] = useState("");
+
+  // Fetch project name by ID
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const res = await api.get(`/projects/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProjectName(res.data.project.projectName);
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error("Failed to fetch project name", err.message);
+        } else {
+          console.error("Failed to fetch project name", err);
+        }
+      }
+    };
+
+    if (projectId && token) {
+      fetchProject();
+    }
+  }, [projectId, token]);
+
+  console.log("Company:", company);
+  console.log("Project ID:", projectId);
+  console.log("Project Name:", projectName);
 
   const menuItems = [
     {
@@ -64,9 +97,17 @@ const ProjectMain = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-            Back
+           {/* {projectName || "Loading project..."} */}
+           Back
           </Text>
         </TouchableOpacity>
+        
+      </View>
+
+      <View>
+        <Text className=" px-6 mt-6 text-2xl font-bold text-[#1E293B]">
+          {projectName || "Loading project..."}
+        </Text>
       </View>
 
       {/* Grid container */}

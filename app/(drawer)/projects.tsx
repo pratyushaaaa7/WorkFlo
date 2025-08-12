@@ -62,6 +62,11 @@ const CompanyProjectSelectionScreen = () => {
       return;
     }
 
+    // console.log("Selected Company:", selectedCompany);
+    // console.log("Selected Project:", selectedProject);
+
+    // console.log("dropdrownprojects", dropdownProjects)
+
     // Navigate to dashboard or project main page
     // router.push("/projectMain");
     router.push({
@@ -69,6 +74,7 @@ const CompanyProjectSelectionScreen = () => {
       params: {
         projectId: selectedProject,
         company: selectedCompany, // optional
+        // projectName: projectName,
       },
     });
   };
