@@ -50,7 +50,7 @@ const UserList = () => {
       const res = await api.get(`/user-directory/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Fetched users:", res.data); // <-- log user details here
+      // console.log("Fetched users:", res.data); // <-- log user details here
       setUsers(res.data);
     } catch (error) {
       if (typeof error === "object" && error !== null && "response" in error) {
