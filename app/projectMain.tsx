@@ -44,9 +44,9 @@ const ProjectMain = () => {
     }
   }, [projectId, token]);
 
-  console.log("Company:", company);
-  console.log("Project ID:", projectId);
-  console.log("Project Name:", projectName);
+  // console.log("Company:", company);
+  // console.log("Project ID:", projectId);
+  // console.log("Project Name:", projectName);
 
   const menuItems = [
     {
@@ -56,7 +56,10 @@ const ProjectMain = () => {
         <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />
       ),
       onPress: () => {
-        // router.push("/project-directory");
+        router.push({
+          pathname: "/userDirectory",
+          params: { company, projectId, projectName },
+        });
       },
     },
     {
@@ -97,11 +100,10 @@ const ProjectMain = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-           {/* {projectName || "Loading project..."} */}
-           Back
+            {/* {projectName || "Loading project..."} */}
+            Back
           </Text>
         </TouchableOpacity>
-        
       </View>
 
       <View>

@@ -70,7 +70,7 @@ function LayoutWithAuth() {
     } else {
       // If user is on login screen or root, redirect to profile
       if (currentSegment === "login" || currentSegment === "") {
-        router.replace("/(drawer)/profile");
+        router.replace("/(drawer)/projects");
       }
     }
   }, [loading, isAuthenticated, segments]);

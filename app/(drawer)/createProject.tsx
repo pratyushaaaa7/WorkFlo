@@ -57,9 +57,13 @@ const CreateProjectScreen = () => {
     { label: "INTERIORS", value: "Interiors" },
     { label: "DESIGN MANAGEMENT", value: "Design Management" },
     { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
+    { label: "CONTRACT MANAGEMENT", value: "Contract Management" },
     { label: "PROJECT MANAGEMENT", value: "Project Management" },
     { label: "QS", value: "QS" },
     { label: "AUDITORS", value: "Auditors" },
+    { label: "FAÇADE", value: "Facade" },
+    { label: "TENDER MANAGEMENT", value: "Tender Management" },
+    { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
   ];
 
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -215,8 +219,9 @@ const CreateProjectScreen = () => {
 
       <View className="mb-4">
         <Text className="text-lg font-semibold text-gray-700 mb-2">
-          Project Area
+          Project Area <Text style={{ color: "#9CA3AF" }}>(in sqft)</Text>
         </Text>
+
         <TextInput
           className="border border-gray-black rounded-md px-4 py-2"
           placeholder="Enter project area"
