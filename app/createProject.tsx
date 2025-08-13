@@ -8,7 +8,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+// import DropDownPicker from "react-native-dropdown-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
@@ -27,20 +27,20 @@ const CreateProjectScreen = () => {
   const [projectLocation, setProjectLocation] = useState("");
   const [projectArea, setProjectArea] = useState("");
 
-  const [openUsers, setOpenUsers] = useState(false);
+  // const [openUsers, setOpenUsers] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
     []
   );
 
-  const [openCompany, setOpenCompany] = useState(false);
+  // const [openCompany, setOpenCompany] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const companyOptions = [
     { label: "WP", value: "WP" },
     { label: "WAL+L", value: "WAL" },
   ];
 
-  const [openTypology, setOpenTypology] = useState(false);
+  // const [openTypology, setOpenTypology] = useState(false);
   const [projectTypology, setProjectTypology] = useState<string | null>(null);
   const typologyOptions = [
     { label: "RESIDENCE", value: "Residence" },
@@ -52,7 +52,7 @@ const CreateProjectScreen = () => {
     { label: "MISC.", value: "Misc" },
   ];
 
-  const [openScope, setOpenScope] = useState(false);
+  // const [openScope, setOpenScope] = useState(false);
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const scopeOptions = [
     { label: "MASTER PLANNING", value: "Master Planning" },

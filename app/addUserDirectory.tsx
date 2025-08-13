@@ -6,7 +6,7 @@ import {
   Pressable,
   Alert,
   Platform,
-  ScrollView,
+  
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -53,7 +53,7 @@ const AddUsers = () => {
     { label: "Vendor", value: "Vendor" },
     { label: "Client", value: "Client" },
     { label: "Consultant", value: "Consultant" },
-    { label: "Architecture", value: "Architecture" },
+    { label: "Architect", value: "Architect" },
   ]);
 
   const updateUserField = (index, field, value) => {

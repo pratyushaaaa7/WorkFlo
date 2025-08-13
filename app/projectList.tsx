@@ -16,7 +16,7 @@ import { AuthContext } from "../context/AuthContext";
 import { Ionicons, AntDesign, Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 type Project = {
   _id: string;

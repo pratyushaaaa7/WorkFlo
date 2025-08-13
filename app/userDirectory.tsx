@@ -9,7 +9,8 @@ import {
   Modal,
   Pressable,
   TextInput,
-  ScrollView,
+  
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 const UserList = () => {
   const router = useRouter();
@@ -101,7 +102,12 @@ const UserList = () => {
       setSelectedUser(null);
       fetchUsers();
     } catch (error) {
-      console.error("Error deleting user:", error.response?.data || error);
+      if (typeof error === "object" && error !== null && "response" in error) {
+        // @ts-ignore
+        console.error("Error deleting user:", error.response?.data || error);
+      } else {
+        console.error("Error deleting user:", error);
+      }
       Alert.alert("Error", "Failed to delete user.");
     } finally {
       setLoading(false);
@@ -153,7 +159,12 @@ const UserList = () => {
       });
       fetchUsers();
     } catch (error) {
-      console.error("Error updating user:", error.response?.data || error);
+      if (typeof error === "object" && error !== null && "response" in error) {
+        // @ts-ignore
+        console.error("Error updating user:", error.response?.data || error);
+      } else {
+        console.error("Error updating user:", error);
+      }
       Alert.alert("Error", "Failed to update user.");
     } finally {
       setLoading(false);
@@ -242,31 +253,36 @@ const UserList = () => {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
 
-      // 4. Write the workbook to binary string
-      const wbout = XLSX.write(workbook, {
-        type: "base64",
-        bookType: "xlsx",
+      if (Platform.OS === "web") {
+      // Web download using Blob
+      const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([wbout], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-
-      // 5. Create a file path
-      const fileUri = FileSystem.cacheDirectory + "users_data.xlsx";
-
-      // 6. Write the file to device storage
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "users.xlsx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      // Mobile (iOS/Android) download
+      const wbout = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+      const fileUri = FileSystem.cacheDirectory + "users.xlsx";
       await FileSystem.writeAsStringAsync(fileUri, wbout, {
         encoding: FileSystem.EncodingType.Base64,
       });
-
-      // 7. Share the file (will open share dialog or save file)
       await Sharing.shareAsync(fileUri, {
         mimeType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         dialogTitle: "Download Users Excel File",
         UTI: "com.microsoft.excel.xlsx",
       });
-    } catch (error) {
-      console.error("Error generating Excel file:", error);
     }
-  };
+  } catch (error) {
+    console.error("Error generating Excel file:", error);
+  }
+};
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -295,29 +311,24 @@ const UserList = () => {
 
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
-          {projectName}   User Directory
+          {projectName} User Directory
         </Text>
 
-      
-
-    {loading ? (
-  <ActivityIndicator size="large" color="#2563EB" />
-) : users.length === 0 ? (
-  <View className="flex-1 justify-center items-center py-10">
-    <Text className="text-gray-500 text-lg italic">
-      No user exists
-    </Text>
-  </View>
-) : (
-  <FlatList
-    data={users}
-    keyExtractor={(item, idx) => idx.toString()}
-    renderItem={renderUserItem}
-    contentContainerStyle={{ paddingBottom: 80 }}
-    showsVerticalScrollIndicator={false}
-  />
-)}
-
+        {loading ? (
+          <ActivityIndicator size="large" color="#2563EB" />
+        ) : users.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-10">
+            <Text className="text-gray-500 text-lg italic">No user exists</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={users}
+            keyExtractor={(item, idx) => idx.toString()}
+            renderItem={renderUserItem}
+            contentContainerStyle={{ paddingBottom: 80 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
 
       {/* Floating + Button */}
