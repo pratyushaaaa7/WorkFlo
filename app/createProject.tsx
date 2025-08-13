@@ -143,7 +143,7 @@ const CreateProjectScreen = () => {
         className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-lg flex-row items-center space-x-2"
         style={{ zIndex: 10 }}
       >
-        <TouchableOpacity onPress={() => router.push("/masterProjectList")} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold text-gray-900">Back</Text>
