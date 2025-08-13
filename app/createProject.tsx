@@ -263,32 +263,6 @@ const CreateProjectScreen = () => {
           />
         </View>
 
-        {/* Scope Dropdown */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Scope Description
-          </Text>
-          <MultiSelect
-            style={{
-              height: 35,
-              borderColor: "#000",
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
-            }}
-            placeholderStyle={{ fontSize: 15, color: "#888" }}
-            selectedTextStyle={{ fontSize: 15, color: "#333" }}
-            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
-            data={scopeOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select scopes..."
-            value={selectedScopes}
-            onChange={(items) => setSelectedScopes(items)}
-          />
-        </View>
-
         {/* Start Date Picker */}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
@@ -313,6 +287,32 @@ const CreateProjectScreen = () => {
               }}
             />
           )}
+        </View>
+
+        {/* Scope Dropdown */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Scope Description
+          </Text>
+          <MultiSelect
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 15, color: "#888" }}
+            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
+            data={scopeOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select scopes..."
+            value={selectedScopes}
+            onChange={(items) => setSelectedScopes(items)}
+          />
         </View>
 
         {/* Users Dropdown */}
