@@ -33,7 +33,7 @@ const AddUsers = () => {
     },
   ]);
 
-  const [roleOpenIndex, setRoleOpenIndex] = useState(null);
+  const [roleOpenIndex, setRoleOpenIndex] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false); // to disable button
 
   // Validation helper - returns true if any user has empty required fields
@@ -56,8 +56,20 @@ const AddUsers = () => {
     { label: "Architect", value: "Architect" },
   ]);
 
-  const updateUserField = (index, field, value) => {
-    const updated = [...formUsers];
+  interface UserForm {
+    individualName: string;
+    designation: string;
+    role: string;
+    roleDescription: string;
+    firmName: string;
+    email: string;
+    phone: string;
+  }
+
+  type UserField = keyof UserForm;
+
+  const updateUserField = (index: number, field: UserField, value: string) => {
+    const updated: UserForm[] = [...formUsers];
     updated[index][field] = value;
     setFormUsers(updated);
   };
@@ -77,7 +89,7 @@ const AddUsers = () => {
     ]);
   };
 
-  const removeUserField = (index) => {
+  const removeUserField = (index:any) => {
     if (formUsers.length > 1) {
       const updated = [...formUsers];
       updated.splice(index, 1);
@@ -103,7 +115,12 @@ const handleSubmit = async () => {
       Alert.alert("Success", "Users added successfully!");
       router.back();
     } catch (error) {
-      console.error("Error adding users:", error.response?.data || error);
+      if (typeof error === "object" && error !== null && "response" in error) {
+        // @ts-ignore
+        console.error("Error adding users:", error.response?.data || error);
+      } else {
+        console.error("Error adding users:", error);
+      }
       Alert.alert("Error", "Unable to add user(s).");
       setSubmitting(false); // Re-enable on error
     }

@@ -3,25 +3,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+// import { View, ActivityIndicator } from "react-native";
 
 export default function DrawerLayout() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, loading]);
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) return null;
 

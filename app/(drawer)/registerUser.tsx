@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import {
-  View,
+ 
   Text,
   TextInput,
   TouchableOpacity,
@@ -97,7 +97,7 @@ const RegisterUserScreen = () => {
         setValue={setSelectedRole}
         setItems={setRoleItems}
         placeholder="Select role"
-        className="mb-4"
+        // className="mb-4"
         containerStyle={{ marginBottom: roleOpen ? 160 : 20, zIndex: 1000 }}
         listMode="FLATLIST"
       />
