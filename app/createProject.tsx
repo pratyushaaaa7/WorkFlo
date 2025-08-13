@@ -202,7 +202,7 @@ const CreateProjectScreen = () => {
             Project Typology
           </Text>
           <Dropdown
-              style={{
+            style={{
               height: 35,
               borderColor: "#000", // Aqua border to match theme
               borderWidth: 1,
@@ -390,6 +390,7 @@ const CreateProjectScreen = () => {
             valueField="value"
             placeholder="Select users..."
             search
+            searchPlaceholder="Search users..."
             value={selectedUsers}
             onChange={(items) => setSelectedUsers(items)}
           />
