@@ -22,9 +22,10 @@ const RegisterUserScreen = () => {
   const [roleOpen, setRoleOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("user"); // default to 'user'
   const [roleItems, setRoleItems] = useState([
+    
     { label: "User", value: "user" },
     { label: "Admin", value: "admin" },
-    { label: "Tech Lead", value: "techLead" },
+    { label: "Team Lead", value: "teamLead" },
   ]);
 
   const handleRegister = async () => {
