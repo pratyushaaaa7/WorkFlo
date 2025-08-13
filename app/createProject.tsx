@@ -167,14 +167,26 @@ const CreateProjectScreen = () => {
           <Dropdown
             style={{
               height: 35,
-              borderColor: "#000",
+              borderColor: "#000", // Aqua border to match theme
               borderWidth: 1,
               borderRadius: 8,
               paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              backgroundColor: "#fff", // White for contrast
             }}
-            placeholderStyle={{ fontSize: 15, color: "#888" }}
-            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#888",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: "#0B0B0B", // Rich black for readability
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#E0F7FA", // Soft aqua dropdown background
+            }}
+            activeColor="#4DD0E1" // Medium aqua for active highlight
             data={companyOptions}
             labelField="label"
             valueField="value"
@@ -198,8 +210,17 @@ const CreateProjectScreen = () => {
               paddingHorizontal: 10,
               backgroundColor: "#fff",
             }}
-            placeholderStyle={{ fontSize: 15, color: "#888" }}
-            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            placeholderStyle={{ fontSize: 14, color: "#888" }}
+             selectedTextStyle={{
+              fontSize: 14,
+              color: "#0B0B0B", // Rich black for readability
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#E0F7FA", // Soft aqua dropdown background
+            }}
+            activeColor="#4DD0E1" // Medium aqua for active highlight
             data={typologyOptions}
             labelField="label"
             valueField="value"
@@ -300,12 +321,25 @@ const CreateProjectScreen = () => {
               borderColor: "#000",
               borderWidth: 1,
               borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              paddingHorizontal: 12,
+              backgroundColor: "#Fff",
             }}
-            placeholderStyle={{ fontSize: 15, color: "#888" }}
-            selectedTextStyle={{ fontSize: 15, color: "#333" }}
-            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
+            placeholderStyle={{ fontSize: 14, color: "#888" }}
+            selectedTextStyle={{
+              fontSize: 10,
+              color: "#0B0B0B", // Rich black for contrast
+            }}
+            selectedStyle={{
+              borderRadius: 10,
+              backgroundColor: "#B2EBF2", // Light aqua (cool & clean)
+              padding: 5,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#E0F7FA", // Very soft aqua for the dropdown
+            }}
+            activeColor="#4DD0E1" // Medium aqua for active selection
             data={scopeOptions}
             labelField="label"
             valueField="value"
@@ -323,15 +357,31 @@ const CreateProjectScreen = () => {
           <MultiSelect
             style={{
               height: 35,
-              borderColor: "#000",
+              borderColor: "#000", // Aqua border to match theme
               borderWidth: 1,
               borderRadius: 8,
               paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              backgroundColor: "#fff", // Keep white for good contrast
             }}
-            placeholderStyle={{ fontSize: 15, color: "#888" }}
-            selectedTextStyle={{ fontSize: 15, color: "#333" }}
-            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#888",
+            }}
+            selectedTextStyle={{
+              fontSize: 10,
+              color: "#0B0B0B", // Rich black for contrast
+            }}
+            selectedStyle={{
+              borderRadius: 10,
+              backgroundColor: "#B2EBF2", // Light aqua (cool & clean)
+              padding: 5,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#E0F7FA", // Very soft aqua for dropdown
+            }}
+            activeColor="#4DD0E1" // Medium aqua for active selection
             data={allUsers}
             labelField="label"
             valueField="value"
