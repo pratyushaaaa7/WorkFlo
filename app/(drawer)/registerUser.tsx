@@ -5,7 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  ScrollView,
+  View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../lib/api";
@@ -66,7 +66,7 @@ const RegisterUserScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-4 py-6">
+    <View className="flex-1 bg-white px-4 py-6">
       <Text className="text-xl font-bold mb-4">Register New User</Text>
 
       <Text className="mb-1 font-semibold text-gray-700">Username</Text>
@@ -108,7 +108,7 @@ const RegisterUserScreen = () => {
       >
         <Text className="text-white font-bold">Register</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 };
 
