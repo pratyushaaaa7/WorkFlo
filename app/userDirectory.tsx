@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
@@ -270,48 +270,54 @@ const UserList = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Header */}
       <View
-        className="pt-14 px-4 pb-5 bg-white"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.12,
-          shadowRadius: 4,
-          elevation: 5,
-        }}
+        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
+        style={{ zIndex: 10 }}
       >
+        {/* Back Button */}
         <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
+          activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={22} color="#1E293B" />
-          <Text className="ml-3 text-lg font-semibold text-[#1E293B]">
-            Back
-          </Text>
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Text className="text-lg font-semibold text-gray-900 ml-2">Back</Text>
+        </TouchableOpacity>
+
+        {/* Download Icon */}
+        <TouchableOpacity
+          onPress={handleDownloadExcel}
+          className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
+        >
+          <Feather name="download" size={22} color="#1E293B" />
         </TouchableOpacity>
       </View>
 
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
-          {projectName} - User Directory
+          {projectName}   User Directory
         </Text>
 
-        <TouchableOpacity onPress={handleDownloadExcel} className="p-2">
-          <Ionicons name="download-outline" size={24} color="#2563EB" />
-        </TouchableOpacity>
+      
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#2563EB" />
-        ) : (
-          <FlatList
-            data={users}
-            keyExtractor={(item, idx) => idx.toString()}
-            renderItem={renderUserItem}
-            contentContainerStyle={{ paddingBottom: 80 }}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
+    {loading ? (
+  <ActivityIndicator size="large" color="#2563EB" />
+) : users.length === 0 ? (
+  <View className="flex-1 justify-center items-center py-10">
+    <Text className="text-gray-500 text-lg italic">
+      No user exists
+    </Text>
+  </View>
+) : (
+  <FlatList
+    data={users}
+    keyExtractor={(item, idx) => idx.toString()}
+    renderItem={renderUserItem}
+    contentContainerStyle={{ paddingBottom: 80 }}
+    showsVerticalScrollIndicator={false}
+  />
+)}
+
       </View>
 
       {/* Floating + Button */}

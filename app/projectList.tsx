@@ -174,7 +174,7 @@ const ProjectList = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      {/* Header */}
+     
       <View
         className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
         style={{ zIndex: 10 }}
