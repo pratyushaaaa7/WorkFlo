@@ -270,7 +270,7 @@ const CreateProjectScreen = () => {
           </Text>
           <MultiSelect
             style={{
-               height: 35,
+              height: 35,
               borderColor: "#000",
               borderWidth: 1,
               borderRadius: 8,
@@ -322,7 +322,7 @@ const CreateProjectScreen = () => {
           </Text>
           <MultiSelect
             style={{
-                height: 35,
+              height: 35,
               borderColor: "#000",
               borderWidth: 1,
               borderRadius: 8,
