@@ -166,7 +166,7 @@ const CreateProjectScreen = () => {
             setValue={setCompanyName}
             setItems={() => {}}
             placeholder="Select company..."
-            listMode="SCROLLVIEW"
+            listMode="MODAL"
             dropDownContainerStyle={{ maxHeight: 200 }}
           />
         </View>
@@ -182,7 +182,7 @@ const CreateProjectScreen = () => {
             setValue={setProjectTypology}
             setItems={() => {}}
             placeholder="Select typology..."
-            listMode="FLATLIST"
+            listMode="MODAL"
             dropDownContainerStyle={{ maxHeight: 400 }}
           />
         </View>
@@ -252,7 +252,7 @@ const CreateProjectScreen = () => {
             mode="BADGE"
             badgeColors={["#bfdbfe"]}
             badgeDotColors={["#60a5fa"]}
-            listMode="SCROLLVIEW"
+            listMode="MODAL"
             dropDownContainerStyle={{ maxHeight: 300 }}
           />
         </View>
@@ -297,7 +297,7 @@ const CreateProjectScreen = () => {
             mode="BADGE"
             badgeColors={["#bfdbfe"]}
             badgeDotColors={["#60a5fa"]}
-            listMode="SCROLLVIEW"
+            listMode="MODAL"
             dropDownContainerStyle={{ maxHeight: 300 }}
           />
         </View>
