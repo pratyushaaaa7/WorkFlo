@@ -8,11 +8,15 @@ import {
   Modal,
   ScrollView,
   Pressable,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { Ionicons, AntDesign, Feather } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import XLSX from "xlsx";
 
 type Project = {
   _id: string;
@@ -39,43 +43,123 @@ const ProjectList = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  useEffect(() => {
+  const fetchProjects = async () => {
     if (!token || !company) return;
 
-    const fetchProjects = async () => {
-      try {
-        const res = await api.get("/projects", {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { company },
-        });
+    try {
+      setLoading(true);
+      const res = await api.get("/projects", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { company },
+      });
+      setProjects(res.data.projects);
+    } catch (err) {
+      console.error("Failed to fetch projects", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setProjects(res.data.projects);
-      } catch (err) {
-        console.error("Failed to fetch projects", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchProjects();
   }, [token, company]);
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Delete Project",
+      "Are you sure you want to delete this project?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/projects/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              Alert.alert("Success", "Project deleted successfully");
+              fetchProjects();
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Error", "Failed to delete project");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const openProjectModal = (project: Project) => {
     setSelectedProject(project);
     setModalVisible(true);
   };
 
+  const exportToExcel = async () => {
+    try {
+      if (projects.length === 0) {
+        alert("No projects to export");
+        return;
+      }
+
+      // Convert your data into a flat format (avoid nested objects)
+      const data = projects.map((proj) => ({
+        ProjectName: proj.projectName,
+        ProjectCode: proj.projectCode,
+        Company: proj.company,
+        Location: proj.location,
+        Area: proj.area,
+        Typology: proj.typology,
+        Scopes: proj.scopes.join(", "),
+        StartDate: new Date(proj.startDate).toLocaleDateString(),
+        TeamLeader: proj.assignedUsers
+          .map((u) => u.username ?? u._id)
+          .join(", "),
+      }));
+
+      // Create a worksheet
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Projects");
+
+      // Write file to temporary path
+      const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
+      const uri = FileSystem.cacheDirectory + "projects.xlsx";
+      await FileSystem.writeAsStringAsync(uri, wbout, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Share file
+      await Sharing.shareAsync(uri, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share Projects Excel",
+        UTI: "com.microsoft.excel.xlsx",
+      });
+    } catch (error) {
+      console.error("Export failed", error);
+    }
+  };
+
   const renderItem = ({ item }: { item: Project }) => (
-    <TouchableOpacity
-      className="px-6 py-4 border-b border-gray-200 bg-white rounded-lg mx-4 my-2 shadow-sm"
-      onPress={() => openProjectModal(item)}
-      activeOpacity={0.7}
-    >
-      <Text className="text-lg font-semibold text-gray-900">
-        {item.projectName}
-      </Text>
-      <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
-    </TouchableOpacity>
+    <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200 bg-white rounded-lg mx-4 my-2 shadow-sm">
+      {/* Project Info */}
+      <TouchableOpacity
+        className="flex-1 pr-4"
+        onPress={() => openProjectModal(item)}
+        activeOpacity={0.7}
+      >
+        <Text className="text-lg font-semibold text-gray-900">
+          {item.projectName}
+        </Text>
+        <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
+      </TouchableOpacity>
+
+      {/* Delete Button */}
+      <TouchableOpacity onPress={() => handleDelete(item._id)}>
+        <Ionicons name="trash" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
   );
 
   const formatDate = (dateString: string) => {
@@ -104,12 +188,16 @@ const ProjectList = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Print / Download Icon */}
+      <TouchableOpacity onPress={exportToExcel}>
+        <Feather name="download" size={24} color="#1E293B" />
+      </TouchableOpacity>
+
       {/* Floating + Button */}
       <TouchableOpacity
         onPress={() => {
           // Your action here, e.g., open create project modal or navigate
           router.push("/createProject");
-         
         }}
         activeOpacity={0.8}
         style={{
@@ -126,7 +214,8 @@ const ProjectList = () => {
           shadowOpacity: 0.3,
           shadowRadius: 5,
           shadowOffset: { width: 0, height: 3 },
-          elevation: 6,  zIndex: 1000,  // Add this line!
+          elevation: 6,
+          zIndex: 1000, // Add this line!
         }}
       >
         <AntDesign name="plus" size={28} color="white" />
