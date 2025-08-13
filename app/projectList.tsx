@@ -174,78 +174,77 @@ const ProjectList = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-     {/* Header */}
-<View
-  className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
-  style={{ zIndex: 10 }}
->
-  {/* Back Button */}
-  <TouchableOpacity
-    onPress={() => router.push("/masterProjectList")}
-    className="flex-row items-center"
-    activeOpacity={0.7}
-  >
-    <Ionicons name="arrow-back" size={24} color="#1E293B" />
-    <Text className="text-lg font-semibold text-gray-900 ml-2">Back</Text>
-  </TouchableOpacity>
+      {/* Header */}
+      <View
+        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
+        style={{ zIndex: 10 }}
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/masterProjectList")}
+          className="flex-row items-center"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Text className="text-lg font-semibold text-gray-900 ml-2">Back</Text>
+        </TouchableOpacity>
 
-  {/* Download Icon */}
-  <TouchableOpacity
-    onPress={exportToExcel}
-    className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
-  >
-    <Feather name="download" size={22} color="#1E293B" />
-  </TouchableOpacity>
-</View>
+        {/* Download Icon */}
+        <TouchableOpacity
+          onPress={exportToExcel}
+          className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
+        >
+          <Feather name="download" size={22} color="#1E293B" />
+        </TouchableOpacity>
+      </View>
 
-{/* Content */}
-{loading ? (
-  <View className="flex-1 justify-center items-center">
-    <ActivityIndicator size="large" color="#2563EB" />
-  </View>
-) : projects.length === 0 ? (
-  <View className="flex-1 justify-center items-center px-6">
-    {/* Optional: Add illustration here for a friendlier empty state */}
-    <Ionicons name="folder-open" size={48} color="#94A3B8" />
-    <Text className="text-gray-500 text-lg mt-3 text-center">
-      No projects found for{" "}
-      <Text className="font-semibold text-gray-700">{company}</Text>
-    </Text>
-  </View>
-) : (
-  <FlatList
-    data={projects}
-    keyExtractor={(item) => item._id}
-    renderItem={renderItem}
-    contentContainerStyle={{ paddingVertical: 12, paddingBottom: 90 }}
-    showsVerticalScrollIndicator={false}
-  />
-)}
+      {/* Content */}
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#2563EB" />
+        </View>
+      ) : projects.length === 0 ? (
+        <View className="flex-1 justify-center items-center px-6">
+          {/* Optional: Add illustration here for a friendlier empty state */}
+          <Ionicons name="folder-open" size={48} color="#94A3B8" />
+          <Text className="text-gray-500 text-lg mt-3 text-center">
+            No projects found for{" "}
+            <Text className="font-semibold text-gray-700">{company}</Text>
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={projects}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingVertical: 12, paddingBottom: 90 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
-{/* Floating + Button */}
-<TouchableOpacity
-  onPress={() => router.push("/createProject")}
-  activeOpacity={0.85}
-  style={{
-    position: "absolute",
-    bottom: 30,
-    right: 30,
-    backgroundColor: "#2563EB",
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  }}
->
-  <AntDesign name="plus" size={28} color="white" />
-</TouchableOpacity>
-
+      {/* Floating + Button */}
+      <TouchableOpacity
+        onPress={() => router.push("/createProject")}
+        activeOpacity={0.85}
+        style={{
+          position: "absolute",
+          bottom: 30,
+          right: 30,
+          backgroundColor: "#2563EB",
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: "#000",
+          shadowOpacity: 0.15,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 6,
+        }}
+      >
+        <AntDesign name="plus" size={28} color="white" />
+      </TouchableOpacity>
 
       {/* Modal */}
       <Modal
