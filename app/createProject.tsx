@@ -171,7 +171,7 @@ const CreateProjectScreen = () => {
               borderWidth: 1,
               borderRadius: 8,
               paddingHorizontal: 10,
-              backgroundColor: "#fff", // White for contrast
+              backgroundColor: "#fff",
             }}
             placeholderStyle={{
               fontSize: 14,
@@ -184,9 +184,9 @@ const CreateProjectScreen = () => {
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
-              backgroundColor: "#E0F7FA", // Soft aqua dropdown background
+              backgroundColor: "#fff", // Soft aqua dropdown background
             }}
-            activeColor="#4DD0E1" // Medium aqua for active highlight
+            activeColor="#E0F7FA" // Medium aqua for active highlight
             data={companyOptions}
             labelField="label"
             valueField="value"
@@ -202,25 +202,28 @@ const CreateProjectScreen = () => {
             Project Typology
           </Text>
           <Dropdown
-            style={{
+              style={{
               height: 35,
-              borderColor: "#000",
+              borderColor: "#000", // Aqua border to match theme
               borderWidth: 1,
               borderRadius: 8,
               paddingHorizontal: 10,
               backgroundColor: "#fff",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#888" }}
-             selectedTextStyle={{
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#888",
+            }}
+            selectedTextStyle={{
               fontSize: 14,
               color: "#0B0B0B", // Rich black for readability
             }}
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
-              backgroundColor: "#E0F7FA", // Soft aqua dropdown background
+              backgroundColor: "#fff", // Soft aqua dropdown background
             }}
-            activeColor="#4DD0E1" // Medium aqua for active highlight
+            activeColor="#E0F7FA" // Medium aqua for active highlight
             data={typologyOptions}
             labelField="label"
             valueField="value"
@@ -331,15 +334,15 @@ const CreateProjectScreen = () => {
             }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#B2EBF2", // Light aqua (cool & clean)
+              backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
               padding: 5,
             }}
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
-              backgroundColor: "#E0F7FA", // Very soft aqua for the dropdown
+              backgroundColor: "#fff", // Very soft aqua for the dropdown
             }}
-            activeColor="#4DD0E1" // Medium aqua for active selection
+            activeColor="#E0F7FA" // Medium aqua for active selection
             data={scopeOptions}
             labelField="label"
             valueField="value"
@@ -373,15 +376,15 @@ const CreateProjectScreen = () => {
             }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#B2EBF2", // Light aqua (cool & clean)
+              backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
               padding: 5,
             }}
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
-              backgroundColor: "#E0F7FA", // Very soft aqua for dropdown
+              backgroundColor: "#fff", // Very soft aqua for dropdown
             }}
-            activeColor="#4DD0E1" // Medium aqua for active selection
+            activeColor="#E0F7FA" // Medium aqua for active selection
             data={allUsers}
             labelField="label"
             valueField="value"
