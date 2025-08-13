@@ -15,6 +15,7 @@ import { AuthContext } from "../context/AuthContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 
 const CreateProjectScreen = () => {
   const router = useRouter();
@@ -28,7 +29,9 @@ const CreateProjectScreen = () => {
 
   const [openUsers, setOpenUsers] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
+    []
+  );
 
   const [openCompany, setOpenCompany] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
@@ -157,41 +160,62 @@ const CreateProjectScreen = () => {
       >
         {/* Company Dropdown */}
         <View className="mb-4" style={{ zIndex: 2500 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Company Name</Text>
-          <DropDownPicker
-            open={openCompany}
-            value={companyName}
-            items={companyOptions}
-            setOpen={setOpenCompany}
-            setValue={setCompanyName}
-            setItems={() => {}}
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Company Name
+          </Text>
+
+          <Dropdown
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 15, color: "#888" }}
+            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            data={companyOptions}
+            labelField="label"
+            valueField="value"
             placeholder="Select company..."
-            listMode="MODAL"
-            dropDownContainerStyle={{ maxHeight: 200 }}
+            value={companyName}
+            onChange={(item) => setCompanyName(item.value)}
           />
         </View>
 
         {/* Typology Dropdown */}
         <View className="mb-4" style={{ zIndex: 2000 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Project Typology</Text>
-          <DropDownPicker
-            open={openTypology}
-            value={projectTypology}
-            items={typologyOptions}
-            setOpen={setOpenTypology}
-            setValue={setProjectTypology}
-            setItems={() => {}}
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Typology
+          </Text>
+          <Dropdown
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 15, color: "#888" }}
+            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            data={typologyOptions}
+            labelField="label"
+            valueField="value"
             placeholder="Select typology..."
-            listMode="MODAL"
-            dropDownContainerStyle={{ maxHeight: 400 }}
+            value={projectTypology}
+            onChange={(item) => setProjectTypology(item.value)}
           />
         </View>
 
         {/* Text Inputs */}
         <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Project Name</Text>
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Name
+          </Text>
           <TextInput
-            className="border border-gray-600 rounded-md px-4 py-2 text-black"
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
             placeholder="Enter project name"
             placeholderTextColor="#999"
             value={projectName}
@@ -200,9 +224,11 @@ const CreateProjectScreen = () => {
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Project Code</Text>
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Code
+          </Text>
           <TextInput
-            className="border border-gray-600 rounded-md px-4 py-2 text-black"
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
             placeholder="Enter project code"
             placeholderTextColor="#999"
             value={projectCode}
@@ -211,9 +237,11 @@ const CreateProjectScreen = () => {
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Project Location</Text>
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Location
+          </Text>
           <TextInput
-            className="border border-gray-600 rounded-md px-4 py-2 text-black"
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
             placeholder="Enter project location"
             placeholderTextColor="#999"
             value={projectLocation}
@@ -226,7 +254,7 @@ const CreateProjectScreen = () => {
             Project Area <Text className="text-gray-400">(in sqft)</Text>
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-md px-4 py-2 text-black"
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
             placeholder="Enter project area"
             placeholderTextColor="#999"
             value={projectArea}
@@ -237,34 +265,42 @@ const CreateProjectScreen = () => {
 
         {/* Scope Dropdown */}
         <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Scope Description</Text>
-          <DropDownPicker
-            multiple
-            min={0}
-            max={10}
-            open={openScope}
-            value={selectedScopes}
-            items={scopeOptions}
-            setOpen={setOpenScope}
-            setValue={setSelectedScopes}
-            setItems={() => {}}
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Scope Description
+          </Text>
+          <MultiSelect
+            style={{
+               height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 15, color: "#888" }}
+            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
+            data={scopeOptions}
+            labelField="label"
+            valueField="value"
             placeholder="Select scopes..."
-            mode="BADGE"
-            badgeColors={["#bfdbfe"]}
-            badgeDotColors={["#60a5fa"]}
-            listMode="MODAL"
-            dropDownContainerStyle={{ maxHeight: 300 }}
+            value={selectedScopes}
+            onChange={(items) => setSelectedScopes(items)}
           />
         </View>
 
         {/* Start Date Picker */}
         <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Start Date</Text>
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Start Date
+          </Text>
           <Pressable
             onPress={() => setShowStartPicker(true)}
-            className="border border-gray-300 rounded-xl py-3 px-4 bg-white"
+            className="border border-black rounded-lg py-2 px-4 bg-white"
           >
-            <Text className="text-base text-black">{startDate.toDateString()}</Text>
+            <Text className="text-base text-black">
+              {startDate.toDateString()}
+            </Text>
           </Pressable>
           {showStartPicker && (
             <DateTimePicker
@@ -281,24 +317,28 @@ const CreateProjectScreen = () => {
 
         {/* Users Dropdown */}
         <View className="mb-4" style={{ zIndex: 1500 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">Project Team Leader(s)</Text>
-          <DropDownPicker
-            multiple
-            min={0}
-            max={10}
-            open={openUsers}
-            value={selectedUsers}
-            items={allUsers}
-            setOpen={setOpenUsers}
-            setValue={setSelectedUsers}
-            setItems={setAllUsers}
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Team Leader(s)
+          </Text>
+          <MultiSelect
+            style={{
+                height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 15, color: "#888" }}
+            selectedTextStyle={{ fontSize: 15, color: "#333" }}
+            selectedStyle={{ borderRadius: 8, backgroundColor: "#e0f2fe" }}
+            data={allUsers}
+            labelField="label"
+            valueField="value"
             placeholder="Select users..."
-            searchable
-            mode="BADGE"
-            badgeColors={["#bfdbfe"]}
-            badgeDotColors={["#60a5fa"]}
-            listMode="MODAL"
-            dropDownContainerStyle={{ maxHeight: 300 }}
+            search
+            value={selectedUsers}
+            onChange={(items) => setSelectedUsers(items)}
           />
         </View>
 
