@@ -12,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 
 type Project = {
   _id: string;
@@ -91,7 +91,7 @@ const ProjectList = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View
-        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-sm"
+        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-lg"
         style={{ zIndex: 10 }}
       >
         <TouchableOpacity
@@ -103,6 +103,34 @@ const ProjectList = () => {
           <Text className="text-xl font-semibold text-gray-900">Back</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Floating + Button */}
+      <TouchableOpacity
+        onPress={() => {
+          // Your action here, e.g., open create project modal or navigate
+          router.push("/createProject");
+         
+        }}
+        activeOpacity={0.8}
+        style={{
+          position: "absolute",
+          bottom: 30,
+          right: 30,
+          backgroundColor: "#2563EB", // Blue 600
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: "#000",
+          shadowOpacity: 0.3,
+          shadowRadius: 5,
+          shadowOffset: { width: 0, height: 3 },
+          elevation: 6,  zIndex: 1000,  // Add this line!
+        }}
+      >
+        <AntDesign name="plus" size={28} color="white" />
+      </TouchableOpacity>
 
       {/* Content */}
       {loading ? (

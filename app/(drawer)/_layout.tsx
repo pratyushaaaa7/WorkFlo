@@ -49,7 +49,7 @@ export default function DrawerLayout() {
         }}
       />
 
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="createProject"
         options={{
           drawerLabel: "Create Project",
@@ -58,7 +58,7 @@ export default function DrawerLayout() {
             <Ionicons name="create-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
 
       <Drawer.Screen
         name="registerUser"
