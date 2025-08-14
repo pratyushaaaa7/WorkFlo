@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from "../context/AuthContext"; // Adjust path accordingly
+import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <LayoutWithAuth />
+      <Toast/>
     </AuthProvider>
   );
 }

@@ -4,14 +4,15 @@ import {
   Text,
   TextInput,
   Pressable,
-  Alert,
+
   Platform,
-  
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
+
+import { Dropdown } from "react-native-element-dropdown";
+import Toast from "react-native-toast-message";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 
@@ -34,16 +35,17 @@ const AddUsers = () => {
   ]);
 
   const [roleOpenIndex, setRoleOpenIndex] = useState<number | null>(null);
-    const [submitting, setSubmitting] = useState(false); // to disable button
+  const [submitting, setSubmitting] = useState(false); // to disable button
 
   // Validation helper - returns true if any user has empty required fields
   const hasEmptyFields = () => {
-    return formUsers.some(user =>
-      !user.individualName.trim() ||
-      !user.designation.trim() ||
-      !user.role.trim() ||
-      !user.firmName.trim() ||
-      !user.email.trim()
+    return formUsers.some(
+      (user) =>
+        !user.individualName.trim() ||
+        !user.designation.trim() ||
+        !user.role.trim() ||
+        !user.firmName.trim() ||
+        !user.email.trim()
       // You can add more required fields here if needed
     );
   };
@@ -89,7 +91,7 @@ const AddUsers = () => {
     ]);
   };
 
-  const removeUserField = (index:any) => {
+  const removeUserField = (index: any) => {
     if (formUsers.length > 1) {
       const updated = [...formUsers];
       updated.splice(index, 1);
@@ -97,9 +99,14 @@ const AddUsers = () => {
     }
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (hasEmptyFields()) {
-      Alert.alert("Validation Error", "Please fill all required fields for every user.");
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Please fill all required fields for every user.",
+        position: "top",
+      });
       return;
     }
 
@@ -112,20 +119,30 @@ const handleSubmit = async () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-      Alert.alert("Success", "Users added successfully!");
-      router.back();
+
+      Toast.show({
+        type: "success",
+        text1: "✅ Success",
+        text2: "Users added successfully!",
+        position: "top",
+      });
+
+      setTimeout(() => {
+        router.back();
+      }, 1200);
     } catch (error) {
-      if (typeof error === "object" && error !== null && "response" in error) {
-        // @ts-ignore
-        console.error("Error adding users:", error.response?.data || error);
-      } else {
-        console.error("Error adding users:", error);
-      }
-      Alert.alert("Error", "Unable to add user(s).");
-      setSubmitting(false); // Re-enable on error
+      console.error("Error adding users:", error.response?.data || error);
+
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Unable to add user(s).",
+        position: "top",
+      });
+
+      setSubmitting(false);
     }
   };
-
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -140,9 +157,14 @@ const handleSubmit = async () => {
           elevation: 6,
         }}
       >
-        <Pressable onPress={() => router.back()} className="flex-row items-center">
+        <Pressable
+          onPress={() => router.back()}
+          className="flex-row items-center"
+        >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">Back</Text>
+          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
+            Back
+          </Text>
         </Pressable>
       </View>
 
@@ -166,53 +188,72 @@ const handleSubmit = async () => {
               elevation: roleOpenIndex === index ? 1000 : 0,
             }}
           >
-            <Text className="font-bold text-lg text-blue-600 mb-4">User {index + 1}</Text>
+            <Text className="font-bold text-lg text-blue-600 mb-4">
+              User {index + 1}
+            </Text>
 
-            <DropDownPicker
-              open={roleOpenIndex === index}
-              value={user.role}
-              items={roleItems}
-              setOpen={() =>
-                setRoleOpenIndex(roleOpenIndex === index ? null : index)
-              }
-              setValue={(callback) => {
-                const val = callback(user.role);
-                updateUserField(index, "role", val);
-              }}
-              setItems={() => {}}
-              placeholder="Select Role"
+            <Dropdown
               style={{
                 borderColor: "#D1D5DB",
+                borderWidth: 1,
                 backgroundColor: "#F9FAFB",
-                borderRadius: 10,
-                height: 45,
-                marginBottom: 16,
+                borderRadius: 8,
+                height: 35,
+                paddingHorizontal: 10,
+                marginBottom: 14,
               }}
-              dropDownContainerStyle={{
-                borderColor: "#D1D5DB",
+              placeholderStyle={{
+                fontSize: 14,
+                color: "#888",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: "#0B0B0B", // Rich black for readability
+              }}
+              itemTextStyle={{
+                fontSize: 15,
+                color: "#111827",
+              }}
+              containerStyle={{
                 borderRadius: 12,
+                overflow: "hidden",
+                backgroundColor: "#fff", // Soft aqua dropdown background
               }}
-              textStyle={{ fontSize: 16, color: "#111827" }}
+              activeColor="#E0F7FA" // Medium aqua for active highligh
+              data={roleItems} // roleItems should be [{label: 'Admin', value: 'admin'}, ...]
+              labelField="label"
+              valueField="value"
+              placeholder="Select Role"
+              value={user.role}
+              onChange={(item) => {
+                updateUserField(index, "role", item.value);
+              }}
             />
 
             <TextInput
               placeholder="Individual Name"
               value={user.individualName}
-              onChangeText={(text) => updateUserField(index, "individualName", text)}
+              onChangeText={(text) =>
+                updateUserField(index, "individualName", text)
+              }
               className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-gray-50 text-base text-gray-900"
               placeholderTextColor="#999"
             />
             <TextInput
               placeholder="Designation"
               value={user.designation}
-              onChangeText={(text) => updateUserField(index, "designation", text)}
+              onChangeText={(text) =>
+                updateUserField(index, "designation", text)
+              }
               className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-gray-50 text-base text-gray-900"
               placeholderTextColor="#999"
             />
             <TextInput
               placeholder="Role Description"
               value={user.roleDescription}
-              onChangeText={(text) => updateUserField(index, "roleDescription", text)}
+              onChangeText={(text) =>
+                updateUserField(index, "roleDescription", text)
+              }
               className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-gray-50 text-base text-gray-900"
               placeholderTextColor="#999"
             />
@@ -242,7 +283,10 @@ const handleSubmit = async () => {
             />
 
             {formUsers.length > 1 && (
-              <Pressable onPress={() => removeUserField(index)} className="mt-3">
+              <Pressable
+                onPress={() => removeUserField(index)}
+                className="mt-3"
+              >
                 <Text className="text-red-500 font-medium">Delete User</Text>
               </Pressable>
             )}
@@ -253,7 +297,9 @@ const handleSubmit = async () => {
           onPress={addUserField}
           className="bg-emerald-500 py-3 rounded-2xl mb-6 items-center active:scale-95"
         >
-          <Text className="text-white font-semibold text-lg">+ Add Another User</Text>
+          <Text className="text-white font-semibold text-lg">
+            + Add Another User
+          </Text>
         </Pressable>
 
         <Pressable
