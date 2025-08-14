@@ -105,7 +105,7 @@ const AddUsers = () => {
         type: "error",
         text1: "Validation Error",
         text2: "Please fill all required fields for every user.",
-        position: "top",
+        position: "bottom",
       });
       return;
     }
@@ -124,7 +124,7 @@ const AddUsers = () => {
         type: "success",
         text1: "✅ Success",
         text2: "Users added successfully!",
-        position: "top",
+        position: "bottom",
       });
 
       setTimeout(() => {
@@ -137,7 +137,7 @@ const AddUsers = () => {
         type: "error",
         text1: "Error",
         text2: "Unable to add user(s).",
-        position: "top",
+        position: "bottom",
       });
 
       setSubmitting(false);
