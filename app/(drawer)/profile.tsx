@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
+import Toast from "react-native-toast-message";
 
 type TokenPayload = {
   userId: string;
@@ -41,11 +42,16 @@ export default function ProfileScreen() {
     fetchUsername();
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    Alert.alert("Logged Out");
-    router.replace("/login");
-  };
+ const handleLogout = async () => {
+  await logout();
+  Toast.show({
+    type: "success",
+    text1: "Logged Out",
+    text2: "You have been signed out successfully.",
+    position: "bottom",
+  });
+  router.replace("/login");
+};
 
   return (
     <View className="flex-1 bg-gray-50">

@@ -17,6 +17,7 @@ import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import logoWP from "../assets/images/logoWP.png";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
+import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -40,10 +41,21 @@ export default function LoginScreen() {
       const response = await api.post("/auth/login", { username, password });
       const { token } = response.data;
       await login(token);
-      Alert.alert("Login Success");
+
+      Toast.show({
+        type: "success",
+        text1: "Login Successful",
+        text2: "Welcome back!",
+        position: "bottom",
+      });
     } catch (err: any) {
       console.log(err.response?.data);
-      Alert.alert("Login Failed", err.response?.data?.message || "Error");
+      Toast.show({
+        type: "error",
+        text1: "Login Failed",
+        text2: err.response?.data?.message || "Something went wrong",
+        position: "bottom",
+      });
     } finally {
       setLoading(false);
     }
