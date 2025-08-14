@@ -206,13 +206,13 @@ const ProjectList = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-lg font-semibold text-gray-900 ml-2">Back</Text>
+          <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
         </TouchableOpacity>
 
         {/* Download Icon */}
         <TouchableOpacity
           onPress={exportToExcel}
-          className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
+          className="px-2 rounded-full bg-gray-100 active:bg-gray-200"
         >
           <Feather name="download" size={22} color="#1E293B" />
         </TouchableOpacity>

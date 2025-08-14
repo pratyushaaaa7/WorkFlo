@@ -173,7 +173,7 @@ const CreateProjectScreen = () => {
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text className="text-xl font-semibold text-gray-900">Back</Text>
+        <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
       </View>
 
       <KeyboardAwareScrollView
