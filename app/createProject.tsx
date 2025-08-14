@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
   TouchableOpacity,
   Pressable,
   Platform,
@@ -89,12 +88,12 @@ const CreateProjectScreen = () => {
         setAllUsers(dropdownUsers);
       } catch (err) {
         console.error("Failed to fetch users:", err);
-         Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "You may not have access to user list.",
-        position: "bottom",
-      });
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "You may not have access to user list.",
+          position: "bottom",
+        });
       }
     };
 
@@ -103,7 +102,12 @@ const CreateProjectScreen = () => {
 
   const handleCreateProject = async () => {
     if (!projectName.trim() || !companyName || !projectTypology) {
-      Alert.alert("Validation", "Please fill all required fields.");
+      Toast.show({
+        type: "error", // or "success", "info"
+        text1: "Validation",
+        text2: "Please fill all required fields.",
+        position: "bottom", // or "top"
+      });
       return;
     }
 
@@ -126,7 +130,17 @@ const CreateProjectScreen = () => {
         }
       );
 
-      Alert.alert("Success", res.data.message);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: res.data.message || "Project created successfully!",
+        position: "bottom",
+      });
+
+      // Delay navigation slightly so toast is visible
+      setTimeout(() => {
+        router.back();
+      }, 800);
 
       // Reset form
       setProjectName("");
@@ -140,7 +154,12 @@ const CreateProjectScreen = () => {
       setStartDate(new Date());
     } catch (err) {
       console.error("Error creating project:", err);
-      Alert.alert("Error", "Failed to create project");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to create project",
+        position: "bottom",
+      });
     }
   };
 
