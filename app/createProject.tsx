@@ -8,7 +8,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-// import DropDownPicker from "react-native-dropdown-picker";
+import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
@@ -89,7 +89,12 @@ const CreateProjectScreen = () => {
         setAllUsers(dropdownUsers);
       } catch (err) {
         console.error("Failed to fetch users:", err);
-        Alert.alert("Error", "You may not have access to user list.");
+         Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "You may not have access to user list.",
+        position: "bottom",
+      });
       }
     };
 

@@ -3,7 +3,7 @@ import {
   Text,
   TextInput,
   Pressable,
-  
+  Keyboard,
   Platform,
   Image,
   Animated,
@@ -36,6 +36,7 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
+      Keyboard.dismiss(); // ✅ Close keyboard immediately when button is pressed
     setLoading(true);
     try {
       const response = await api.post("/auth/login", { username, password });
@@ -50,10 +51,16 @@ export default function LoginScreen() {
       });
     } catch (err: any) {
       console.log(err.response?.data);
+
+       const errorMessage =
+      err.response?.data?.message ||
+      err.message ||
+      "Something went wrong";
+
       Toast.show({
         type: "error",
         text1: "Login Failed",
-        text2: err.response?.data?.message || "Something went wrong",
+        text2:errorMessage, // Will show "Invalid credentials" if that's returned
         position: "bottom",
       });
     } finally {
