@@ -17,6 +17,7 @@ import { Ionicons, AntDesign, Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
+import Toast from "react-native-toast-message";
 
 type Project = {
   _id: string;
@@ -42,6 +43,7 @@ const ProjectList = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
 
   const fetchProjects = async () => {
     if (!token || !company) return;
@@ -64,31 +66,44 @@ const ProjectList = () => {
     fetchProjects();
   }, [token, company]);
 
-  const handleDelete = (id: string) => {
-    Alert.alert(
-      "Delete Project",
-      "Are you sure you want to delete this project?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/projects/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              Alert.alert("Success", "Project deleted successfully");
-              fetchProjects();
-            } catch (error) {
-              console.error(error);
-              Alert.alert("Error", "Failed to delete project");
-            }
-          },
+ const handleDelete = (id: string) => {
+  Alert.alert(
+    "Delete Project",
+    "Are you sure you want to delete this project?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await api.delete(`/projects/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            Toast.show({
+              type: "success",
+              text1: "Project Deleted",
+              text2: "The project has been deleted successfully.",
+              position: "bottom",
+            });
+
+            fetchProjects();
+          } catch (error) {
+            console.error(error);
+            Toast.show({
+              type: "error",
+              text1: "Delete Failed",
+              text2: "Unable to delete the project.",
+              position: "bottom",
+            });
+          }
         },
-      ]
-    );
-  };
+      },
+    ]
+  );
+};
+
 
   const openProjectModal = (project: Project) => {
     setSelectedProject(project);
@@ -98,7 +113,12 @@ const ProjectList = () => {
   const exportToExcel = async () => {
     try {
       if (projects.length === 0) {
-        alert("No projects to export");
+        Toast.show({
+        type: "info",
+        text1: "No Projects",
+        text2: "There are no projects to export.",
+        position: "bottom",
+      });
         return;
       }
 
@@ -174,7 +194,7 @@ const ProjectList = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-     
+
       <View
         className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
         style={{ zIndex: 10 }}
