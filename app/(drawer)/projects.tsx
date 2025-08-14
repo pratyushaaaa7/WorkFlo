@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TouchableOpacity, Alert, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
 
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
@@ -54,7 +55,12 @@ const CompanyProjectSelectionScreen = () => {
 
   const handleEnter = () => {
     if (!selectedCompany || !selectedProject) {
-      Alert.alert("Validation", "Please select both company and project.");
+    Toast.show({
+      type: "error",
+      // text1: "Validation Error",
+      text1: "Please select both company and project.",
+      position: "bottom",
+    });
       return;
     }
 

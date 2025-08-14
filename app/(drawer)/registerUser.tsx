@@ -4,12 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
+
   View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../lib/api";
 import { AuthContext } from "../../context/AuthContext";
+import Toast from "react-native-toast-message";
 
 const RegisterUserScreen = () => {
   const authContext = useContext(AuthContext);
@@ -28,42 +29,52 @@ const RegisterUserScreen = () => {
     { label: "Team Lead", value: "teamLead" },
   ]);
 
-  const handleRegister = async () => {
-    if (!username || !password) {
-      Alert.alert("Validation", "Username and password are required.");
-      return;
-    }
+ const handleRegister = async () => {
+  if (!username || !password) {
+    Toast.show({
+      type: "error",
+      text1: "Validation Error",
+      text2: "Username and password are required.",
+      position: "bottom",
+    });
+    return;
+  }
 
-    try {
-      const res = await api.post(
-        "/auth/register",
-        {
-          username,
-          password,
-          role: selectedRole,
+  try {
+    const res = await api.post(
+      "/auth/register",
+      {
+        username,
+        password,
+        role: selectedRole,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Only allow admin to register users
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Only allow admin to register users
-          },
-        }
-      );
+      }
+    );
 
-      Alert.alert(
-        "Success",
-        res.data.message || "User registered successfully!"
-      );
-      setUsername("");
-      setPassword("");
-      setSelectedRole("user");
-    } catch (err: any) {
-      console.error("Registration error:", err.response?.data || err.message);
-      Alert.alert(
-        "Error",
-        err.response?.data?.message || "Registration failed."
-      );
-    }
-  };
+    Toast.show({
+      type: "success",
+      text1: "Success",
+      text2: res.data.message || "User registered successfully!",
+      position: "bottom",
+    });
+
+    setUsername("");
+    setPassword("");
+    setSelectedRole("user");
+  } catch (err: any) {
+    console.error("Registration error:", err.response?.data || err.message);
+    Toast.show({
+      type: "error",
+      text1: "Error",
+      text2: err.response?.data?.message || "Registration failed.",
+      position: "bottom",
+    });
+  }
+};
 
   return (
     <View className="flex-1 bg-white px-4 py-6">

@@ -3,7 +3,7 @@ import {
   Text,
   TextInput,
   Pressable,
-  Alert,
+  
   Platform,
   Image,
   Animated,
