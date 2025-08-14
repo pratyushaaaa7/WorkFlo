@@ -9,7 +9,6 @@ import {
   Modal,
   Pressable,
   TextInput,
-  
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -254,41 +253,51 @@ const UserList = () => {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
 
       if (Platform.OS === "web") {
-      // Web download using Blob
-      const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([wbout], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "users.xlsx";
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else {
-      // Mobile (iOS/Android) download
-      const wbout = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
-      const fileUri = FileSystem.cacheDirectory + "users.xlsx";
-      await FileSystem.writeAsStringAsync(fileUri, wbout, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      await Sharing.shareAsync(fileUri, {
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        dialogTitle: "Download Users Excel File",
-        UTI: "com.microsoft.excel.xlsx",
-      });
+        // Web download using Blob
+        const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([wbout], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "users.xlsx";
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Mobile (iOS/Android) download
+        const wbout = XLSX.write(workbook, {
+          type: "base64",
+          bookType: "xlsx",
+        });
+        const fileUri = FileSystem.cacheDirectory + "users.xlsx";
+        await FileSystem.writeAsStringAsync(fileUri, wbout, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        await Sharing.shareAsync(fileUri, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Download Users Excel File",
+          UTI: "com.microsoft.excel.xlsx",
+        });
+      }
+    } catch (error) {
+      console.error("Error generating Excel file:", error);
     }
-  } catch (error) {
-    console.error("Error generating Excel file:", error);
-  }
-};
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
       <View
-        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
-        style={{ zIndex: 10 }}
+        className="bg-white pt-16 pb-6 px-4  flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
       >
         {/* Back Button */}
         <TouchableOpacity
@@ -297,13 +306,13 @@ const UserList = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-lg font-semibold text-gray-900 ml-2">Back</Text>
+          <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
         </TouchableOpacity>
 
         {/* Download Icon */}
         <TouchableOpacity
           onPress={handleDownloadExcel}
-          className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
+          className="px-2 mr-2 rounded-full bg-gray-100 active:bg-gray-200"
         >
           <Feather name="download" size={22} color="#1E293B" />
         </TouchableOpacity>
