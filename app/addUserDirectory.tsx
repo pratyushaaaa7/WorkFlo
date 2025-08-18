@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   Pressable,
-
+  Keyboard,
   Platform,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -100,6 +100,7 @@ const AddUsers = () => {
   };
 
   const handleSubmit = async () => {
+    Keyboard.dismiss(); // ✅ Close keyboard immediately when button is pressed
     if (hasEmptyFields()) {
       Toast.show({
         type: "error",

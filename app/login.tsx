@@ -36,10 +36,11 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
-      Keyboard.dismiss(); // ✅ Close keyboard immediately when button is pressed
+    Keyboard.dismiss(); // ✅ Close keyboard immediately when button is pressed
     setLoading(true);
     try {
       const response = await api.post("/auth/login", { username, password });
+       console.log("Login response:", response.data); // 👈 see exactly what backend returns
       const { token } = response.data;
       await login(token);
 
@@ -52,15 +53,13 @@ export default function LoginScreen() {
     } catch (err: any) {
       console.log(err.response?.data);
 
-       const errorMessage =
-      err.response?.data?.message ||
-      err.message ||
-      "Something went wrong";
+      const errorMessage =
+        err.response?.data?.message || err.message || "Something went wrong";
 
       Toast.show({
         type: "error",
         text1: "Login Failed",
-        text2:errorMessage, // Will show "Invalid credentials" if that's returned
+        text2: errorMessage, // Will show "Invalid credentials" if that's returned
         position: "bottom",
       });
     } finally {
