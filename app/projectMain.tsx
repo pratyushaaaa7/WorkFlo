@@ -67,7 +67,10 @@ const ProjectMain = () => {
       label: "ILR",
       icon: <Ionicons name="clipboard-outline" size={50} color="#F59E0B" />,
       onPress: () => {
-        // router.push("/ilr");
+       router.push({
+          pathname: "/ilrs",
+          params: { company, projectId, projectName: project?.projectName },
+        });
       },
     },
     {

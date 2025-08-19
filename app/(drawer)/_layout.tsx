@@ -29,7 +29,7 @@ export default function DrawerLayout() {
           ),
         }}
       />
-
+{/* 
       <Drawer.Screen
         name="ilrForm"
         options={{
@@ -39,7 +39,7 @@ export default function DrawerLayout() {
             <Ionicons name="document-text-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
 
       {/* <Drawer.Screen
         name="createProject"
