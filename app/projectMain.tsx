@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  Modal,
+  ScrollView,
+} from "react-native";
 import {
   Ionicons,
   MaterialIcons,
@@ -8,6 +15,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
+import { Project } from "../types/Project";
 
 const { width } = Dimensions.get("window");
 const ITEMS_PER_ROW = 3;
@@ -17,25 +25,21 @@ const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 const ProjectMain = () => {
   const router = useRouter();
   const { company, projectId } = useLocalSearchParams();
-  const authContext = useContext(AuthContext);
-  const token = authContext?.token;
+  const { token } = useContext(AuthContext) || {};
+  const [modalVisible, setModalVisible] = useState(false);
+  const [project, setProject] = useState<Project | null>(null);
 
-  const [projectName, setProjectName] = useState("");
-
-  // Fetch project name by ID
+  // Fetch project details by ID
   useEffect(() => {
     const fetchProject = async () => {
       try {
         const res = await api.get(`/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setProjectName(res.data.project.projectName);
-      } catch (err) {
-        if (err instanceof Error) {
-          console.error("Failed to fetch project name", err.message);
-        } else {
-          console.error("Failed to fetch project name", err);
-        }
+        setProject(res.data.project);
+        // console.log("Project details:", res.data.project);
+      } catch (err: any) {
+        console.error("Failed to fetch project details:", err.message || err);
       }
     };
 
@@ -43,10 +47,6 @@ const ProjectMain = () => {
       fetchProject();
     }
   }, [projectId, token]);
-
-  // console.log("Company:", company);
-  // console.log("Project ID:", projectId);
-  // console.log("Project Name:", projectName);
 
   const menuItems = [
     {
@@ -58,7 +58,7 @@ const ProjectMain = () => {
       onPress: () => {
         router.push({
           pathname: "/userDirectory",
-          params: { company, projectId, projectName },
+          params: { company, projectId, projectName: project?.projectName },
         });
       },
     },
@@ -82,16 +82,15 @@ const ProjectMain = () => {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Back button container with shadow */}
+      {/* Back button */}
       <View
-        className="pt-16 px-4 pb-6 bg-white "
+        className="pt-16 px-4 pb-6 bg-white"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
           shadowRadius: 4,
           elevation: 6,
-          zIndex: 10,
         }}
       >
         <TouchableOpacity
@@ -100,19 +99,25 @@ const ProjectMain = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-            {/* {projectName || "Loading project..."} */}
             Back
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View>
-        <Text className=" px-6 mt-6 text-2xl font-bold text-[#1E293B]">
-          {projectName || "Loading project..."}
+      {/* Project title + More Info button */}
+      <View className="flex-row items-center justify-between px-6 mt-6">
+        <Text className="text-2xl font-bold text-[#1E293B]">
+          {project?.projectName || "Loading project..."}
         </Text>
+        <TouchableOpacity
+          className="bg-red-300 px-3 py-2 rounded-lg"
+          onPress={() => setModalVisible(true)}
+        >
+          <Text className="text-lg text-gray-700 font-medium">More Info</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Grid container */}
+      {/* Menu Grid */}
       <View
         className="flex-row flex-wrap pt-6 px-3 justify-between"
         style={{ gap: ITEM_MARGIN }}
@@ -133,6 +138,56 @@ const ProjectMain = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Project Info Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View className="bg-white w-11/12 rounded-2xl p-4 max-h-[80%]">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text className="text-xl font-bold mb-4">
+                {project?.projectName}
+              </Text>
+
+              <Text className="mb-1">📍 Location: {project?.location}</Text>
+              <Text className="mb-1">🏢 Company: {project?.company}</Text>
+              <Text className="mb-1">📐 Area: {project?.area}</Text>
+              <Text className="mb-1">
+                🏷️ Project Code: {project?.projectCode}
+              </Text>
+              <Text className="mb-1">🏡 Typology: {project?.typology}</Text>
+
+              <Text className="mt-2 font-semibold">👥 Assigned Users:</Text>
+              {project?.assignedUsers?.map((user) => (
+                <Text key={user._id}>- {user.username}</Text>
+              ))}
+
+              <Text className="mt-2 font-semibold">📋 Scopes:</Text>
+              {project?.scopes?.map((scope, idx) => (
+                <Text key={idx}>- {scope}</Text>
+              ))}
+
+              {project?.startDate && (
+                <Text className="mt-2">
+                  📅 Start Date: {new Date(project.startDate).toDateString()}
+                </Text>
+              )}
+            </ScrollView>
+
+            {/* Close Button */}
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              className="bg-red-500 px-4 py-2 mt-4 rounded-xl"
+            >
+              <Text className="text-white text-center font-medium">Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

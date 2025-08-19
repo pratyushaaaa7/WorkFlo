@@ -14,19 +14,20 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useAuth } from "../../context/AuthContext"; // adjust path as needed
 import api from "../../lib/api";
-
 import moment from "moment";
+import { Dropdown } from "react-native-element-dropdown";
 
 type Issue = {
   serialNo: number;
   description: string;
-  issueDate: string;
+  targetDate: string;
   responsibility: string;
   status: boolean;
   archResponseDate: string;
   remarks: string;
-  //   location: string;
+ 
 };
+
 
 export default function ILRForm() {
   const { isAuthenticated } = useAuth();
@@ -40,18 +41,44 @@ export default function ILRForm() {
     fetchToken();
   }, []);
 
+  const [assignedProjects, setAssignedProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await api.get("/projects", {
+          headers: { Authorization: `Bearer ${token}` },
+          // params: { company: selectedCompany }, // optional filter
+        });
+
+        const dropdownProjects = res.data.projects.map((project) => ({
+          label: project.projectName, // what will show in dropdown
+          value: project._id, // unique identifier
+        }));
+
+        setAssignedProjects(dropdownProjects);
+      } catch (err) {
+        console.error("Failed to fetch projects", err.message);
+        setAssignedProjects([]);
+      }
+    };
+
+    if (token) fetchProjects();
+  }, [token]);
+
   const [projectName, setProjectName] = useState("");
-  const [month, setMonth] = useState("");
+
   const [issues, setIssues] = useState<Issue[]>([
     {
       serialNo: 1,
       description: "",
-      issueDate: "",
+      targetDate: "",
       responsibility: "",
       status: false,
       archResponseDate: "",
       remarks: "",
-      //   location: "",
+     
     },
   ]);
 
@@ -60,7 +87,7 @@ export default function ILRForm() {
     null
   );
   const [selectedField, setSelectedField] = useState<
-    "issueDate" | "archResponseDate" | null
+    "targetDate" | "archResponseDate" | null
   >(null);
 
   const addIssue = () => {
@@ -69,12 +96,12 @@ export default function ILRForm() {
       {
         serialNo: prev.length + 1,
         description: "",
-        issueDate: "",
+        targetDate: "",
         responsibility: "",
         status: false,
         archResponseDate: "",
         remarks: "",
-        location: "",
+       
       },
     ]);
   };
@@ -105,9 +132,10 @@ export default function ILRForm() {
     setDatePickerVisible(false);
   };
 
+
   const openDatePicker = (
     index: number,
-    field: "issueDate" | "archResponseDate"
+    field: "targetDate" | "archResponseDate"
   ) => {
     setSelectedIssueIndex(index);
     setSelectedField(field);
@@ -125,7 +153,7 @@ export default function ILRForm() {
   //   };
 
   const handleSubmit = async () => {
-    if (!projectName || !month || issues.length === 0) {
+    if (!selectedProject || issues.length === 0) {
       Alert.alert(
         "Validation Error",
         "Please fill out all fields and add at least one issue."
@@ -135,12 +163,12 @@ export default function ILRForm() {
 
     const formData = {
       projectName,
-      month,
+       projectId: selectedProject, // ✅ use project ID
       issues,
     };
 
     for (const issue of issues) {
-      if (!issue.description || !issue.issueDate || !issue.responsibility) {
+      if (!issue.description || !issue.targetDate || !issue.responsibility) {
         Alert.alert(
           "Validation Error",
           "Please fill all required issue fields."
@@ -167,17 +195,17 @@ export default function ILRForm() {
     }
 
     setProjectName("");
-    setMonth("");
+   
     setIssues([
       {
         serialNo: 1,
         description: "",
-        issueDate: "",
+        targetDate: "",
         responsibility: "",
         status: false,
         archResponseDate: "",
         remarks: "",
-        // location: "",
+        
       },
     ]);
 
@@ -199,20 +227,56 @@ export default function ILRForm() {
 
         {/* Project Details */}
         <View className="mb-6">
-          <TextInput
+          {/* <TextInput
             placeholder="Project Name"
             value={projectName}
             onChangeText={setProjectName}
             className="border border-gray-300 rounded-xl px-4 py-3 mb-4 bg-white text-base"
             placeholderTextColor="#999"
+          /> */}
+
+          <Dropdown
+            data={assignedProjects}
+            labelField="label"
+            valueField="value"
+            placeholder="Choose project"
+            value={selectedProject}
+            onChange={(item: any) => {
+              setSelectedProject(item.value); // store selected project id
+            }}
+            style={{
+              height: 45,
+              borderColor: "#D1D5DB",
+              borderWidth: 1,
+              borderRadius: 10,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+              marginBottom: 8,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#888",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: "#0B0B0B",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#fff",
+            }}
+            activeColor="#E0F7FA"
           />
-          <TextInput
+
+          {/* <TextInput
             placeholder="Month (e.g., August)"
             value={month}
             onChangeText={setMonth}
             className="border border-gray-300 rounded-xl px-4 py-3 bg-white text-base"
             placeholderTextColor="#999"
-          />
+          /> */}
+         
         </View>
 
         {/* Issues Section */}
@@ -231,11 +295,11 @@ export default function ILRForm() {
             />
 
             <TouchableOpacity
-              onPress={() => openDatePicker(index, "issueDate")}
+              onPress={() => openDatePicker(index, "targetDate")}
             >
               <TextInput
-                placeholder="Issue Date (DD-MM-YYYY)"
-                value={issue.issueDate}
+                placeholder="Target Date (DD-MM-YYYY)"
+                value={issue.targetDate}
                 editable={false}
                 pointerEvents="none"
                 className="border border-gray-200 rounded-lg px-3 py-2 mb-3 bg-gray-50 text-base text-gray-800"

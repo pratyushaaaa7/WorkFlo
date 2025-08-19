@@ -1,0 +1,14 @@
+type Project = {
+  _id: string;
+  projectName: string;
+  projectCode: string;
+  location: string;
+  area: string;
+  typology: string;
+  company: string;
+  scopes: string[];
+  startDate: string; // ISO string
+  assignedUsers: { _id: string; username?: string }[];
+};
+
+export type { Project };
