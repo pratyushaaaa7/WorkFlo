@@ -4,32 +4,29 @@ import { useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "../context/AuthContext";
-import api from "../lib/api";
 import moment from "moment";
+import { MultiSelect } from "react-native-element-dropdown";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import api from "../lib/api";
+import Toast from "react-native-toast-message";
 
 type Issue = {
   serialNo: number;
   description: string;
   targetDate: string;
-  responsibility: string;
-  status: boolean;
-  archResponseDate: string;
+  responsibility: string[]; // ✅ make it array for multi-select
   remarks: string;
 };
 
 export default function ILRForm() {
-  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { projectId, projectName } = useLocalSearchParams<{
     projectId: string;
@@ -51,9 +48,7 @@ export default function ILRForm() {
       serialNo: 1,
       description: "",
       targetDate: "",
-      responsibility: "",
-      status: false,
-      archResponseDate: "",
+      responsibility: [],
       remarks: "",
     },
   ]);
@@ -62,10 +57,8 @@ export default function ILRForm() {
   const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(
     null
   );
-  const [selectedField, setSelectedField] = useState<
-    "targetDate" | "archResponseDate" | null
-  >(null);
 
+  // ✅ Add Issue
   const addIssue = () => {
     setIssues((prev) => [
       ...prev,
@@ -73,14 +66,13 @@ export default function ILRForm() {
         serialNo: prev.length + 1,
         description: "",
         targetDate: "",
-        responsibility: "",
-        status: false,
-        archResponseDate: "",
+        responsibility: [],
         remarks: "",
       },
     ]);
   };
 
+  // ✅ Remove Issue
   const removeIssue = (index: number) => {
     setIssues((prev) =>
       prev
@@ -89,6 +81,7 @@ export default function ILRForm() {
     );
   };
 
+  // ✅ Update Issue field
   const updateIssue = <K extends keyof Issue>(
     index: number,
     field: K,
@@ -99,22 +92,139 @@ export default function ILRForm() {
     setIssues(updatedIssues);
   };
 
+  // ✅ Handle Date Selection
   const handleDateSelect = (event: any, selectedDate?: Date) => {
-    if (selectedDate && selectedIssueIndex !== null && selectedField) {
-      const formattedDate = moment(selectedDate).format("DD-MM-YYYY");
-      updateIssue(selectedIssueIndex, selectedField, formattedDate);
+    if (selectedDate && selectedIssueIndex !== null) {
+      const formattedDate = moment(selectedDate).format("YYYY-MM-DD"); // backend-friendly
+      updateIssue(selectedIssueIndex, "targetDate", formattedDate);
     }
     setDatePickerVisible(false);
   };
 
-  const openDatePicker = (
-    index: number,
-    field: "targetDate" | "archResponseDate"
-  ) => {
+  const openDatePicker = (index: number) => {
     setSelectedIssueIndex(index);
-    setSelectedField(field);
     setDatePickerVisible(true);
   };
+
+  // ✅ Handle Submit (send each issue separately)
+const handleSubmit = async () => {
+  try {
+    if (!token) {
+      Toast.show({
+        type: "error",
+        text1: "Authentication Error",
+        text2: "User not authenticated",
+        position: "bottom",
+      });
+      return;
+    }
+
+    // 🔹 Validate each issue before submitting
+    for (const issue of issues) {
+      if (
+        !issue.description.trim() ||
+        !issue.targetDate ||
+        !issue.responsibility.length
+      ) {
+        Toast.show({
+          type: "error",
+          text1: "Validation Error",
+          text2: "Please fill all required fields for every issue.",
+          position: "bottom",
+        });
+        return; // stop submission
+      }
+    }
+
+    for (const issue of issues) {
+      console.log("Submitting issue:", {
+        projectId,
+        description: issue.description,
+        targetDate: issue.targetDate,
+        responsibility: issue.responsibility,
+        remarks: issue.remarks,
+      });
+
+      await api.post(
+        "/ilrs",
+        {
+          projectId,
+          description: issue.description,
+          targetDate: new Date(issue.targetDate), // ensure Date object
+          responsibility: issue.responsibility,
+          remarks: issue.remarks,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    }
+
+    Toast.show({
+      type: "success",
+      text1: "Success",
+      text2: "ILRs created successfully!",
+      position: "bottom",
+    });
+
+    setIssues([
+      {
+        serialNo: 1,
+        description: "",
+        targetDate: "",
+        responsibility: [],
+        remarks: "",
+      },
+    ]);
+
+    router.back();
+  } catch (error: any) {
+    console.log("ILR Submit Error:", error); // log full error
+    Toast.show({
+      type: "error",
+      text1: "Error",
+      text2: error.response?.data?.message || "Something went wrong",
+      position: "bottom",
+    });
+  }
+};
+
+  const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // 🔹 Fetch users assigned to this project
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (!token || !projectId) return;
+        setLoadingUsers(true);
+
+        const res = await api.get(`/user-directory/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // 🔹 Format for dropdown
+        const formatted = res.data.map((u: any) => ({
+          label: `${u.individualName} (${u.designation})`,
+          value: u._id,
+        }));
+
+        setUsers(formatted);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Unable to fetch users for responsibility dropdown.",
+          position: "bottom",
+        });
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [token, projectId]);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -150,20 +260,9 @@ export default function ILRForm() {
           paddingBottom: 60,
         }}
       >
-        <Text className="text-2xl py-4 font-extrabold text-gray-800 my-6 text-center">
-         {projectName}  ILR
+        <Text className="text-2xl py-4 font-extrabold text-gray-800 my-2 text-center">
+          {projectName} ILR
         </Text>
-
-        {/* Project (readonly) */}
-        {/* <View className="mb-6">
-          <TextInput
-            placeholder="Project Name"
-            value={projectName}
-            editable={false}
-            className="border border-gray-300 rounded-xl px-4 py-3 bg-gray-100 text-base text-gray-700"
-            placeholderTextColor="#999"
-          />
-        </View> */}
 
         {/* Issues Section */}
         {issues.map((issue, index) => (
@@ -172,7 +271,7 @@ export default function ILRForm() {
               Issue {issue.serialNo}
             </Text>
 
-            <View className="gap-3">
+            <View className="gap-1">
               <TextInput
                 placeholder="Issue Description"
                 value={issue.description}
@@ -181,12 +280,14 @@ export default function ILRForm() {
                 placeholderTextColor="#999"
               />
 
-              <TouchableOpacity
-                onPress={() => openDatePicker(index, "targetDate")}
-              >
+              <TouchableOpacity onPress={() => openDatePicker(index)}>
                 <TextInput
                   placeholder="Target Date (DD-MM-YYYY)"
-                  value={issue.targetDate}
+                  value={
+                    issue.targetDate
+                      ? new Date(issue.targetDate).toLocaleDateString("en-GB") // ✅ formats as DD/MM/YYYY
+                      : ""
+                  }
                   editable={false}
                   pointerEvents="none"
                   className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base text-gray-800"
@@ -194,40 +295,46 @@ export default function ILRForm() {
                 />
               </TouchableOpacity>
 
-              <TextInput
-                placeholder="Responsibility"
-                value={issue.responsibility}
-                onChangeText={(text) =>
-                  updateIssue(index, "responsibility", text)
+              {/* Responsibility MultiSelect */}
+
+              <MultiSelect
+                style={{
+                  height: 35,
+                  borderColor: "#E5E7EB",
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: "#F9FAFB",
+                  marginBottom: 2,
+                }}
+                placeholderStyle={{ fontSize: 14, color: "#888" }}
+                selectedTextStyle={{
+                  fontSize: 12,
+                  color: "#0B0B0B",
+                }}
+                selectedStyle={{
+                  borderRadius: 10,
+                  backgroundColor: "#b9EBF1", // light aqua
+                  padding: 5,
+                }}
+                containerStyle={{
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  backgroundColor: "#fff",
+                }}
+                activeColor="#E0F7FA"
+                inputSearchStyle={{ fontSize: 14 }}
+                search
+                labelField="label"
+                valueField="value"
+                data={users}
+                value={issue.responsibility} // ✅ bind to issue state
+                placeholder="Select responsible users"
+                searchPlaceholder="Search..."
+                onChange={
+                  (items) => updateIssue(index, "responsibility", items) // ✅ save array
                 }
-                className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base"
-                placeholderTextColor="#999"
               />
-
-              <View className="flex-row items-center">
-                <Text className="text-gray-700 font-medium">Status:</Text>
-                <Switch
-                  value={issue.status}
-                  onValueChange={(val) => updateIssue(index, "status", val)}
-                  className="ml-4"
-                />
-                <Text className="ml-2 text-sm text-gray-500">
-                  {issue.status ? "Closed" : "Open"}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => openDatePicker(index, "archResponseDate")}
-              >
-                <TextInput
-                  placeholder="Arch Response Date (DD-MM-YYYY)"
-                  value={issue.archResponseDate}
-                  editable={false}
-                  pointerEvents="none"
-                  className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base text-gray-800"
-                  placeholderTextColor="#999"
-                />
-              </TouchableOpacity>
 
               <TextInput
                 placeholder="Remarks"
@@ -259,7 +366,7 @@ export default function ILRForm() {
 
         {/* Submit Button */}
         <Pressable
-          // onPress={handleSubmit}
+          onPress={handleSubmit}
           className="bg-blue-600 py-4 rounded-2xl items-center active:scale-95"
           android_ripple={{ color: "rgba(255,255,255,0.2)" }}
         >

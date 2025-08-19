@@ -5,23 +5,75 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Modal,
-  Pressable,
-  TextInput,
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
+
+type ILR = {
+  _id: string;
+  description: string;
+  targetDate: string;
+  remarks: string;
+  responsibility: { _id: string; individualName: string; designation: string }[];
+
+  status: "Open" | "Closed";
+};
 
 const ILRs = () => {
   const router = useRouter();
   const { projectId, projectName } = useLocalSearchParams();
+  const { token } = useContext(AuthContext); // Assuming your AuthContext provides token
+
+  const [ilrs, setIlrs] = useState<ILR[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchILRs = async () => {
+      if (!token || !projectId) return;
+      try {
+        setLoading(true);
+        const res = await api.get(`/ilrs/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setIlrs(res.data);
+        console.log("Fetched ILRs:", res.data);
+      } catch (err) {
+        console.error("Error fetching ILRs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchILRs();
+  }, [token, projectId]);
+
+  const renderCard = ({ item }: { item: ILR }) => (
+    <View
+      className="bg-white rounded-2xl p-4 mb-4 "
+      
+    >
+      <Text className="font-bold text-lg text-blue-600 mb-2">
+        Issue: {item.description}
+      </Text>
+      <Text>Target Date: {new Date(item.targetDate).toLocaleDateString()}</Text>
+      <Text>Remarks: {item.remarks}</Text>
+      <Text>Status: {item.status}</Text>
+      <Text>
+  Responsibility:{" "}
+  {item.responsibility.map((u) => `${u.individualName} (${u.designation})`).join(", ")}
+</Text>
+
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Header */}
       <View
-        className="bg-white pt-16 pb-6 px-4  flex-row items-center justify-between"
+        className="bg-white pt-16 pb-6 px-4 flex-row items-center justify-between"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
@@ -31,37 +83,39 @@ const ILRs = () => {
           zIndex: 10,
         }}
       >
-        {/* Back Button */}
         <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
-          activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
         </TouchableOpacity>
-
-        {/* Download Icon */}
-        {/* <TouchableOpacity
-          onPress={handleDownloadExcel}
-          className="px-2 mr-2 rounded-full bg-gray-100 active:bg-gray-200"
-        >
-          <Feather name="download" size={22} color="#1E293B" />
-        </TouchableOpacity> */}
       </View>
 
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
-          {projectName}'s   Issue Log Register
+          {projectName}'s Issue Log Register
         </Text>
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#2563EB" />
+        ) : ilrs.length === 0 ? (
+          <Text className="text-center text-gray-500 mt-10">
+            No ILRs found for this project.
+          </Text>
+        ) : (
+          <FlatList
+            data={ilrs}
+            keyExtractor={(item) => item._id}
+            renderItem={renderCard}
+          />
+        )}
       </View>
 
       {/* Floating + Button */}
       <TouchableOpacity
         onPress={() =>
-          router.push(
-            `/ilrForm?projectId=${projectId}&projectName=${projectName}`
-          )
+          router.push(`/ilrForm?projectId=${projectId}&projectName=${projectName}`)
         }
         style={{
           position: "absolute",
