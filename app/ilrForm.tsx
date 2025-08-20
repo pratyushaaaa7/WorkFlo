@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Keyboard,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import moment from "moment";
@@ -108,6 +109,8 @@ export default function ILRForm() {
 
   // ✅ Handle Submit (send each issue separately)
 const handleSubmit = async () => {
+  // Close keyboard immediately when button is pressed
+  Keyboard.dismiss();
   try {
     if (!token) {
       Toast.show({

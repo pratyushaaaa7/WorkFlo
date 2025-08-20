@@ -14,8 +14,19 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 
-type Responsibility = { _id: string; individualName: string; designation: string };
-type Activity = { _id: string; title: string; createdBy: string; createdAt: string };
+type Responsibility = {
+  _id: string;
+  individualName: string;
+  designation: string;
+};
+type Activity = {
+  _id: string;
+  title: string;
+  createdBy: string;
+  createdAt: string;
+  oldValue?: any;
+  newValue?: any;
+};
 
 const IlrActivities = () => {
   const router = useRouter();
@@ -24,11 +35,10 @@ const IlrActivities = () => {
 
   const token = auth?.token;
   const user = auth?.user; // user info for activity logs
-// useEffect(() => {
-//   console.log('Token in context:', auth?.token);
-//   console.log('User in context:', auth?.user);
-// }, [auth]);
-
+  // useEffect(() => {
+  //   console.log('Token in context:', auth?.token);
+  //   console.log('User in context:', auth?.user);
+  // }, [auth]);
 
   // ILR data from params
   const [ilr, setIlr] = useState({
@@ -36,36 +46,104 @@ const IlrActivities = () => {
     description: params.description as string,
     targetDate: params.targetDate as string,
     remarks: params.remarks as string,
-    responsibility: JSON.parse(params.responsibility as string) as Responsibility[],
+    responsibility: JSON.parse(
+      params.responsibility as string
+    ) as Responsibility[],
     status: params.status as "Open" | "Closed",
-
   });
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
 
-  // Local UI state
+  const [notes, setNotes] = useState<any[]>([]);
+  const [newNote, setNewNote] = useState("");
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRemarkInput, setShowRemarkInput] = useState(false);
   const [newRemark, setNewRemark] = useState(ilr.remarks);
 
-  // Fetch activities from backend (optional)
-//   useEffect(() => {
-//     const fetchActivities = async () => {
-//       setActivitiesLoading(true);
-//       try {
-//         const res = await api.get(`/ilrs/${ilr._id}/activities`, {
-//           headers: { Authorization: `Bearer ${token}` },
-//         });
-//         setActivities(res.data);
-//       } catch (err) {
-//         console.error(err);
-//       } finally {
-//         setActivitiesLoading(false);
-//       }
-//     };
-//     fetchActivities();
-//   }, [ilr._id, token]);
+  useEffect(() => {
+    const fetchILR = async () => {
+      if (!token || !params.ilrId) return;
+
+      setActivitiesLoading(true);
+      try {
+        const res = await api.get(`/ilrs/details/${params.ilrId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const ilrData = res.data;
+
+        setIlr({
+          _id: ilrData._id,
+          description: ilrData.description,
+          targetDate: ilrData.targetDate,
+          remarks: ilrData.remarks,
+          responsibility: ilrData.responsibility || [],
+          status: ilrData.status,
+        });
+
+        // Map activities to match your frontend type
+        const mappedActivities = (ilrData.activities || []).map((act: any) => ({
+          _id: act._id,
+          title: act.action || act.title,
+          createdBy: act.createdBy?.username || "Unknown",
+          createdAt: act.createdAt,
+        }));
+
+        setActivities(mappedActivities);
+        setNotes(ilrData.notes || []);
+      } catch (err) {
+        console.error("Failed to fetch ILR:", err);
+      } finally {
+        setActivitiesLoading(false);
+      }
+    };
+
+    fetchILR();
+  }, [params.ilrId, token]);
+
+  const fetchActivities = async () => {
+    if (!token || !params.ilrId) return;
+
+    setActivitiesLoading(true);
+    try {
+      const res = await api.get(`/ilrs/details/${params.ilrId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const ilrData = res.data;
+
+      setIlr({
+        _id: ilrData._id,
+        description: ilrData.description,
+        targetDate: ilrData.targetDate,
+        remarks: ilrData.remarks,
+        responsibility: ilrData.responsibility || [],
+        status: ilrData.status,
+      });
+
+      const mappedActivities = (ilrData.activities || []).map((act: any) => ({
+        _id: act._id,
+        title: act.action || act.title,
+        createdBy: act.createdBy?.username || "Unknown",
+        createdAt: act.createdAt,
+        oldValue: act.oldValue,
+        newValue: act.newValue,
+      })) .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      setActivities(mappedActivities);
+      setNotes(ilrData.notes || []);
+    } catch (err) {
+      console.error("Failed to fetch ILR:", err);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivities();
+  }, [params.ilrId, token]);
 
   // --- Handlers ---
 
@@ -78,7 +156,7 @@ const IlrActivities = () => {
     const updatedDate = selectedDate.toISOString();
 
     // Update locally
-    setIlr(prev => ({ ...prev, targetDate: updatedDate }));
+    setIlr((prev) => ({ ...prev, targetDate: updatedDate }));
 
     // Update backend
     try {
@@ -87,16 +165,9 @@ const IlrActivities = () => {
         { targetDate: updatedDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Add activity log locally
-      setActivities(prev => [
-        ...prev,
-        {
-          _id: Date.now().toString(),
-          title: `Target date changed to ${selectedDate.toLocaleDateString()}`,
-          createdBy: user.username,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+
+      // ✅ No need to push manual activity
+      fetchActivities(); // re-fetch from backend
     } catch (err) {
       console.error("Failed to update target date:", err);
     }
@@ -106,7 +177,8 @@ const IlrActivities = () => {
 
   const saveRemark = async () => {
     setShowRemarkInput(false);
-    setIlr(prev => ({ ...prev, remarks: newRemark }));
+
+    setIlr((prev) => ({ ...prev, remarks: newRemark }));
 
     try {
       await api.patch(
@@ -114,15 +186,9 @@ const IlrActivities = () => {
         { remarks: newRemark },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setActivities(prev => [
-        ...prev,
-        {
-          _id: Date.now().toString(),
-          title: `Remark added/changed`,
-          createdBy: user.username,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+
+      // ✅ No manual log here
+      fetchActivities();
     } catch (err) {
       console.error("Failed to update remark:", err);
     }
@@ -130,7 +196,7 @@ const IlrActivities = () => {
 
   const toggleStatus = async () => {
     const newStatus = ilr.status === "Open" ? "Closed" : "Open";
-    setIlr(prev => ({ ...prev, status: newStatus }));
+    setIlr((prev) => ({ ...prev, status: newStatus }));
 
     try {
       await api.patch(
@@ -138,126 +204,218 @@ const IlrActivities = () => {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setActivities(prev => [
-        ...prev,
-        {
-          _id: Date.now().toString(),
-          title: `Status changed to ${newStatus}`,
-          createdBy: user.username,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+
+      // ✅ No manual activity, backend logs it
+      fetchActivities();
     } catch (err) {
       console.error("Failed to update status:", err);
     }
   };
 
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+
+    try {
+      const res = await api.post(
+        `/ilrs/${ilr._id}/notes`,
+        { text: newNote },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotes(res.data.notes); // backend returns updated ILR with notes
+      setNewNote(""); // clear input
+      fetchActivities(); // refresh activities since note creation also logs activity
+    } catch (err) {
+      console.error("Failed to add note:", err);
+    }
+  };
+
   const statusClasses = ilr.status === "Open" ? "bg-blue-600" : "bg-green-500";
 
-//     if (!user || !token) {
-//   return (
-//     <View className="flex-1 justify-center items-center">
-//       <ActivityIndicator size="large" color="#2563EB" />
-//     </View>
-//   );
-// }
+  //     if (!user || !token) {
+  //   return (
+  //     <View className="flex-1 justify-center items-center">
+  //       <ActivityIndicator size="large" color="#2563EB" />
+  //     </View>
+  //   );
+  // }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-100">
       {/* Header */}
-      <View className="bg-white pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
-        <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
+      <View className="bg-white pt-16 pb-4 px-4 flex-row items-center shadow-md">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-row items-center"
+        >
+          <Ionicons name="arrow-back" size={22} color="#1E293B" />
+          <Text className="text-lg font-semibold text-gray-900 ml-3">
+            ILR Details
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 px-4 py-6">
-        {/* ILR Details */}
-        <View className="bg-white rounded-xl p-4 shadow-md mb-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="font-semibold text-gray-900 text-base flex-1 mr-2">{ilr.description}</Text>
-            <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-              <Text className="text-white text-xs font-semibold">{ilr.status}</Text>
+      <ScrollView className="flex-1 px-4 py-4">
+        {/* ILR Card */}
+        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <View className="flex-row justify-between items-start">
+            <Text className="font-semibold text-lg text-gray-900 flex-1">
+              {ilr.description}
+            </Text>
+            <View
+              className={`px-3 py-1 rounded-full ${
+                ilr.status === "Open" ? "bg-blue-500" : "bg-green-500"
+              }`}
+            >
+              <Text className="text-white text-xs font-medium">
+                {ilr.status}
+              </Text>
             </View>
           </View>
 
-          <Text className="text-gray-500 text-sm mt-2">
-            Target Date: {new Date(ilr.targetDate).toLocaleDateString()}
+          <Text className="text-gray-600 text-sm mt-3">
+            🎯 Target Date:{" "}
+            <Text className="font-medium">
+              {new Date(ilr.targetDate).toLocaleDateString()}
+            </Text>
           </Text>
 
-          <Text className="text-gray-500 text-sm mt-1">
-            Responsibility: {ilr.responsibility.map(u => `${u.individualName} (${u.designation})`).join(", ")}
+          <Text className="text-gray-600 text-sm mt-1">
+            👥 Responsibility:{" "}
+            <Text className="font-medium">
+              {ilr.responsibility
+                .map((u) => `${u.individualName} (${u.designation})`)
+                .join(", ")}
+            </Text>
           </Text>
 
-          <Text className={`text-gray-500 text-sm mt-1 ${ilr.remarks ? "" : "italic"}`}>
-            Remarks: {ilr.remarks ? ilr.remarks : "No remarks"}
+          <Text className="text-gray-600 text-sm mt-1">
+            📝 Remarks:{" "}
+            <Text
+              className={ilr.remarks ? "font-medium" : "italic text-gray-400"}
+            >
+              {ilr.remarks || "No remarks"}
+            </Text>
           </Text>
-
-         
         </View>
 
-         {/* Action Buttons */}
-          <View className="flex-row justify-between mt-4 space-x-2">
-            <TouchableOpacity className="bg-blue-500 px-4 py-2 rounded" onPress={openDatePicker}>
-              <Text className="text-white">Change Target Date</Text>
-            </TouchableOpacity>
+        {/* Action Buttons */}
+        <View className="flex-row justify-between mb-6">
+          <TouchableOpacity
+            className="flex-1 bg-blue-600 mx-1 py-3 rounded-xl shadow"
+            onPress={openDatePicker}
+          >
+            <Text className="text-center text-white font-medium text-sm">
+              Change Date
+            </Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity className="bg-yellow-500 px-4 py-2 rounded" onPress={openRemarkModal}>
-              <Text className="text-white">Edit Remark</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className={`px-4 py-2 rounded ${ilr.status === "Open" ? "bg-green-500" : "bg-red-500"}`}
-              onPress={toggleStatus}
-            >
-              <Text className="text-white">{ilr.status === "Open" ? "Close Issue" : "Reopen Issue"}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Date Picker */}
           {showDatePicker && (
             <DateTimePicker
-              value={new Date(ilr.targetDate)}
+              value={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
               mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
+              display={Platform.OS === "ios" ? "inline" : "default"}
               onChange={onDateChange}
             />
           )}
 
-          {/* Remark Input */}
-          {showRemarkInput && (
-            <View className="mt-2 p-2 bg-white rounded shadow">
-              <TextInput
-                value={newRemark}
-                onChangeText={setNewRemark}
-                placeholder="Enter remark..."
-                className="border border-gray-300 rounded p-2"
-              />
-              <TouchableOpacity className="bg-blue-500 mt-2 p-2 rounded" onPress={saveRemark}>
-                <Text className="text-white text-center">Save Remark</Text>
-              </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-yellow-500 mx-1 py-3 rounded-xl shadow"
+            onPress={openRemarkModal}
+          >
+            <Text className="text-center text-white font-medium text-sm">
+              Edit Remark
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className={`flex-1 mx-1 py-3 rounded-xl shadow ${
+              ilr.status === "Open" ? "bg-green-600" : "bg-red-500"
+            }`}
+            onPress={toggleStatus}
+          >
+            <Text className="text-center text-white font-medium text-sm">
+              {ilr.status === "Open" ? "Close" : "Reopen"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Remark Input */}
+        {showRemarkInput && (
+          <View className="p-3 bg-white rounded-xl shadow mb-6">
+            <TextInput
+              value={newRemark}
+              onChangeText={setNewRemark}
+              placeholder="Enter remark..."
+              className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
+            />
+            <TouchableOpacity
+              className="bg-blue-600 py-2 rounded-lg"
+              onPress={saveRemark}
+            >
+              <Text className="text-center text-white font-medium">Save</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Notes Section */}
+        <Text className="font-semibold text-gray-800 text-base mb-2">
+          Notes
+        </Text>
+        <View className="mb-3 flex-row items-center">
+          <TextInput
+            value={newNote}
+            onChangeText={setNewNote}
+            placeholder="Add a note..."
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-white"
+          />
+          <TouchableOpacity
+            className="ml-2 bg-blue-600 px-4 py-2 rounded-lg shadow"
+            onPress={addNote}
+          >
+            <Text className="text-white font-medium">Add</Text>
+          </TouchableOpacity>
+        </View>
+        {notes.length === 0 ? (
+          <Text className="text-gray-500">No notes yet.</Text>
+        ) : (
+          notes.map((note, idx) => (
+            <View key={idx} className="bg-white rounded-xl p-3 mb-2 shadow">
+              <Text className="text-gray-800 text-sm">{note.text}</Text>
+              <Text className="text-xs text-gray-500 mt-1">
+                By {note.createdBy?.username || "Unknown"} •{" "}
+                {new Date(note.createdAt).toLocaleString()}
+              </Text>
             </View>
-          )}
+          ))
+        )}
 
         {/* Activity Log */}
-        <View className="mt-6">
-          <Text className="font-semibold text-gray-700 mb-2">Activity Log:</Text>
-          {activitiesLoading ? (
-            <ActivityIndicator size="large" color="#2563EB" />
-          ) : activities.length === 0 ? (
-            <Text className="text-gray-500">No activities yet.</Text>
-          ) : (
-            activities.map(act => (
-              <View key={act._id} className="bg-white rounded p-2 mb-2 shadow">
-                <Text className="text-sm text-gray-800">{act.title}</Text>
-                <Text className="text-xs text-gray-500">
-                  By {act.createdBy} at {new Date(act.createdAt).toLocaleString()}
+        <Text className="font-semibold text-gray-800 text-base mt-6 mb-2">
+          Activity Log
+        </Text>
+        {activitiesLoading ? (
+          <ActivityIndicator size="large" color="#2563EB" />
+        ) : activities.length === 0 ? (
+          <Text className="text-gray-500">No activities yet.</Text>
+        ) : (
+          activities.map((act) => (
+            <View key={act._id} className="bg-white rounded-xl p-3 mb-2 shadow">
+              <Text className="text-sm text-gray-800 font-medium">
+                {act.title}
+              </Text>
+              {act.oldValue !== undefined && act.newValue !== undefined && (
+                <Text className="text-xs text-gray-500 mt-1">
+                  From: <Text className="">{act.oldValue}</Text> →To:{" "}
+                  <Text className="font-medium">{act.newValue}</Text>
                 </Text>
-              </View>
-            ))
-          )}
-        </View>
+              )}
+              <Text className="text-xs text-gray-500 mt-1">
+                By {act.createdBy} • {new Date(act.createdAt).toLocaleString()}
+              </Text>
+            </View>
+          ))
+        )}
       </ScrollView>
     </View>
   );
