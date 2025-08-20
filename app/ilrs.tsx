@@ -17,7 +17,11 @@ type ILR = {
   description: string;
   targetDate: string;
   remarks: string;
-  responsibility: { _id: string; individualName: string; designation: string }[];
+  responsibility: {
+    _id: string;
+    individualName: string;
+    designation: string;
+  }[];
 
   status: "Open" | "Closed";
 };
@@ -39,7 +43,7 @@ const ILRs = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIlrs(res.data);
-        console.log("Fetched ILRs:", res.data);
+        // console.log("Fetched ILRs:", res.data);
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -50,24 +54,59 @@ const ILRs = () => {
     fetchILRs();
   }, [token, projectId]);
 
-  const renderCard = ({ item }: { item: ILR }) => (
-    <View
-      className="bg-white rounded-2xl p-4 mb-4 "
-      
-    >
-      <Text className="font-bold text-lg text-blue-600 mb-2">
-        Issue: {item.description}
-      </Text>
-      <Text>Target Date: {new Date(item.targetDate).toLocaleDateString()}</Text>
-      <Text>Remarks: {item.remarks}</Text>
-      <Text>Status: {item.status}</Text>
-      <Text>
-  Responsibility:{" "}
-  {item.responsibility.map((u) => `${u.individualName} (${u.designation})`).join(", ")}
-</Text>
+  const renderCard = ({ item }: { item: ILR }) => {
+    // Tailwind classes for status badge
+    const statusClasses =
+      item.status === "Open" ? "bg-blue-600" : "bg-green-500";
 
-    </View>
-  );
+    return (
+      <View className="bg-white rounded-xl p-3 mb-3 shadow-md">
+        {/* Top row: Description + Status */}
+        <View className="flex-row justify-between items-center">
+          <Text
+            className="font-semibold text-gray-900 text-base flex-1 mr-2"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {item.description}
+          </Text>
+          <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
+            <Text className="text-white text-xs font-semibold">
+              {item.status}
+            </Text>
+          </View>
+        </View>
+
+        {/* Target Date */}
+        <Text className="text-gray-500 text-xs mt-1">
+          Target Date: {new Date(item.targetDate).toLocaleDateString()}
+        </Text>
+
+        {/* Responsibility */}
+        <Text
+          className="text-gray-500 text-xs mt-1"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          Responsibility:{" "}
+          {item.responsibility
+            .map((u) => `${u.individualName} (${u.designation})`)
+            .join(", ")}
+        </Text>
+
+        {/* Remarks */}
+        <Text
+          className={`text-gray-500 text-xs mt-1 ${
+            item.remarks ? "" : "italic"
+          }`}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          Remarks: {item.remarks ? item.remarks : "No remarks"}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -115,7 +154,9 @@ const ILRs = () => {
       {/* Floating + Button */}
       <TouchableOpacity
         onPress={() =>
-          router.push(`/ilrForm?projectId=${projectId}&projectName=${projectName}`)
+          router.push(
+            `/ilrForm?projectId=${projectId}&projectName=${projectName}`
+          )
         }
         style={{
           position: "absolute",
