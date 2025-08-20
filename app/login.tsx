@@ -41,8 +41,8 @@ export default function LoginScreen() {
     try {
       const response = await api.post("/auth/login", { username, password });
        console.log("Login response:", response.data); // 👈 see exactly what backend returns
-      const { token } = response.data;
-      await login(token);
+      const { token , user} = response.data;
+      await login(token, user);
 
       Toast.show({
         type: "success",

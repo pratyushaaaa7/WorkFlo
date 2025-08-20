@@ -1,64 +1,87 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useEffect, useContext } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type User = {
+  _id: string;
+  username: string;
+  role: string;
+};
 
 type AuthContextType = {
   isAuthenticated: boolean;
   token: string | null;
-  login: (token: string) => Promise<void>;
+  user: User | null;
+  login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   getToken: () => Promise<string | null>;
+  getUser: () => Promise<User | null>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const checkToken = async () => {
+    const loadAuth = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('token');
-        setToken(storedToken);
+        const storedToken = await AsyncStorage.getItem("token");
+        const storedUser = await AsyncStorage.getItem("user");
+        console.log("Stored token:", storedToken);
+        console.log("Stored user:", storedUser);
+        if (storedToken) setToken(storedToken);
+        if (storedUser) setUser(JSON.parse(storedUser));
         setIsAuthenticated(!!storedToken);
       } catch (err) {
-        console.error('Error checking token from storage:', err);
+        console.error("Error loading auth:", err);
       }
     };
-    checkToken();
+    loadAuth();
   }, []);
 
-  const login = async (newToken: string) => {
+  const login = async (newToken: string, newUser: User) => {
     try {
-      await AsyncStorage.setItem('token', newToken);
+      await AsyncStorage.setItem("token", newToken);
+      await AsyncStorage.setItem("user", JSON.stringify(newUser));
       setToken(newToken);
+      setUser(newUser);
       setIsAuthenticated(true);
     } catch (err) {
-      console.error('Login error:', err);
+      console.error("Login error:", err);
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("user");
       setToken(null);
+      setUser(null);
       setIsAuthenticated(false);
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error("Logout error:", err);
     }
   };
 
-  const getToken = async () => {
-    try {
-      return await AsyncStorage.getItem('token');
-    } catch (err) {
-      console.error('GetToken error:', err);
-      return null;
-    }
+  const getToken = async (): Promise<string | null> => {
+    // Always return a promise
+    return token;
+  };
+
+  const getUser = async (): Promise<User | null> => {
+    return user;
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout, getToken }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, token, user, login, logout, getToken, getUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -68,10 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
-
-// Optional: Export context if you need it directly
-export { AuthContext };
