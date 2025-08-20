@@ -50,7 +50,10 @@ const IlrActivities = () => {
       params.responsibility as string
     ) as Responsibility[],
     status: params.status as "Open" | "Closed",
+    ilrCreatedBy: params.createdBy as string, // 👈 include from params
+    ilrCreatedAt: params.createdAt as string,
   });
+//   console.log("ILR from params:", ilr);
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
@@ -81,6 +84,8 @@ const IlrActivities = () => {
           remarks: ilrData.remarks,
           responsibility: ilrData.responsibility || [],
           status: ilrData.status,
+         ilrCreatedBy: ilrData.createdBy?.username || "Unknown",  // 👈 FIX HERE
+          ilrCreatedAt: ilrData.createdAt, // 👈 add createdAt
         });
 
         // Map activities to match your frontend type
@@ -121,16 +126,23 @@ const IlrActivities = () => {
         remarks: ilrData.remarks,
         responsibility: ilrData.responsibility || [],
         status: ilrData.status,
+         ilrCreatedBy: ilrData.createdBy?.username || "Unknown",  // 👈 FIX HERE
+        ilrCreatedAt: ilrData.createdAt, // 👈 add createdAt
       });
 
-      const mappedActivities = (ilrData.activities || []).map((act: any) => ({
-        _id: act._id,
-        title: act.action || act.title,
-        createdBy: act.createdBy?.username || "Unknown",
-        createdAt: act.createdAt,
-        oldValue: act.oldValue,
-        newValue: act.newValue,
-      })) .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const mappedActivities = (ilrData.activities || [])
+        .map((act: any) => ({
+          _id: act._id,
+          title: act.action || act.title,
+          createdBy: act.createdBy?.username || "Unknown",
+          createdAt: act.createdAt,
+          oldValue: act.oldValue,
+          newValue: act.newValue,
+        }))
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
 
       setActivities(mappedActivities);
       setNotes(ilrData.notes || []);
@@ -298,6 +310,14 @@ const IlrActivities = () => {
             </Text>
           </Text>
         </View>
+
+      <Text className="text-gray-500 text-xs mt-2">
+  Added by {ilr.ilrCreatedBy} on{" "}
+  {ilr.ilrCreatedAt
+    ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
+    : "N/A"}
+</Text>
+
 
         {/* Action Buttons */}
         <View className="flex-row justify-between mb-6">

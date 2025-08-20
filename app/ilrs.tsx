@@ -24,6 +24,8 @@ type ILR = {
   }[];
 
   status: "Open" | "Closed";
+  createdBy: { _id: string; username: string }; // 👈 add this
+  createdAt: string; // 👈 add this
 };
 
 const ILRs = () => {
@@ -54,59 +56,87 @@ const ILRs = () => {
     fetchILRs();
   }, [token, projectId]);
 
-const renderCard = ({ item }: { item: ILR }) => {
-  const statusClasses = item.status === "Open" ? "bg-blue-600" : "bg-green-500";
+  const renderCard = ({ item }: { item: ILR }) => {
+    const statusClasses =
+      item.status === "Open" ? "bg-blue-600" : "bg-green-500";
 
-  return (
-    <TouchableOpacity
-      className="bg-white rounded-xl p-3 mb-3 shadow-md"
-     onPress={() =>
+    return (
+      <TouchableOpacity
+  className="bg-white rounded-xl p-3 mb-3 shadow-md"
+  onPress={() => {
+    const params = {
+      ilrId: item._id,
+      projectName,
+      description: item.description,
+      targetDate: item.targetDate,
+      remarks: item.remarks,
+      responsibility: JSON.stringify(item.responsibility),
+      status: item.status,
+      createdBy: item.createdBy?.username, 
+      createdAt: item.createdAt, 
+    };
+
+    // console.log("🔍 Params passed to ilrActivities:", params); // 👈 check here
+
     router.push({
       pathname: `/ilrActivities`,
-      params: {
-        ilrId: item._id,
-        projectName,
-        description: item.description,
-        targetDate: item.targetDate,
-        remarks: item.remarks,
-        responsibility: JSON.stringify(item.responsibility),
-        status: item.status,
-      },
-    })
-  }
-    >
-      {/* Top row: Description + Status */}
-      <View className="flex-row justify-between items-center">
+      params,
+    });
+  }}
+>
+
+        {/* Top row: Description + Status */}
+        <View className="flex-row justify-between items-center">
+          <Text
+            className="font-semibold text-gray-900 text-base flex-1 mr-2"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {item.description}
+          </Text>
+          <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
+            <Text className="text-white text-xs font-semibold">
+              {item.status}
+            </Text>
+          </View>
+        </View>
+
+        {/* Target Date */}
+        <Text className="text-gray-500 text-xs mt-1">
+          Target Date: {new Date(item.targetDate).toLocaleDateString()}
+        </Text>
+
+        {/* Responsibility */}
         <Text
-          className="font-semibold text-gray-900 text-base flex-1 mr-2"
+          className="text-gray-500 text-xs mt-1"
           numberOfLines={2}
           ellipsizeMode="tail"
         >
-          {item.description}
+          Responsibility:{" "}
+          {item.responsibility
+            .map((u) => `${u.individualName} (${u.designation})`)
+            .join(", ")}
         </Text>
-        <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-          <Text className="text-white text-xs font-semibold">{item.status}</Text>
-        </View>
-      </View>
 
-      {/* Target Date */}
-      <Text className="text-gray-500 text-xs mt-1">
-        Target Date: {new Date(item.targetDate).toLocaleDateString()}
-      </Text>
+        {/* Remarks */}
+        <Text
+          className={`text-gray-500 text-xs mt-1 ${
+            item.remarks ? "" : "italic"
+          }`}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          Remarks: {item.remarks ? item.remarks : "No remarks"}
+        </Text>
 
-      {/* Responsibility */}
-      <Text className="text-gray-500 text-xs mt-1" numberOfLines={2} ellipsizeMode="tail">
-        Responsibility: {item.responsibility.map(u => `${u.individualName} (${u.designation})`).join(", ")}
-      </Text>
-
-      {/* Remarks */}
-      <Text className={`text-gray-500 text-xs mt-1 ${item.remarks ? "" : "italic"}`} numberOfLines={2} ellipsizeMode="tail">
-        Remarks: {item.remarks ? item.remarks : "No remarks"}
-      </Text>
-    </TouchableOpacity>
-  );
-};
-
+        {/* Created By */}
+        <Text className="text-gray-400 text-xs mt-1">
+          Added by {item.createdBy?.username} on{" "}
+          {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
