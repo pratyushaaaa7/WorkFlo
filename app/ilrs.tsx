@@ -54,59 +54,59 @@ const ILRs = () => {
     fetchILRs();
   }, [token, projectId]);
 
-  const renderCard = ({ item }: { item: ILR }) => {
-    // Tailwind classes for status badge
-    const statusClasses =
-      item.status === "Open" ? "bg-blue-600" : "bg-green-500";
+const renderCard = ({ item }: { item: ILR }) => {
+  const statusClasses = item.status === "Open" ? "bg-blue-600" : "bg-green-500";
 
-    return (
-      <View className="bg-white rounded-xl p-3 mb-3 shadow-md">
-        {/* Top row: Description + Status */}
-        <View className="flex-row justify-between items-center">
-          <Text
-            className="font-semibold text-gray-900 text-base flex-1 mr-2"
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
-            {item.description}
-          </Text>
-          <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-            <Text className="text-white text-xs font-semibold">
-              {item.status}
-            </Text>
-          </View>
+  return (
+    <TouchableOpacity
+      className="bg-white rounded-xl p-3 mb-3 shadow-md"
+     onPress={() =>
+    router.push({
+      pathname: `/ilrActivities`,
+      params: {
+        ilrId: item._id,
+        projectName,
+        description: item.description,
+        targetDate: item.targetDate,
+        remarks: item.remarks,
+        responsibility: JSON.stringify(item.responsibility),
+        status: item.status,
+      },
+    })
+  }
+    >
+      {/* Top row: Description + Status */}
+      <View className="flex-row justify-between items-center">
+        <Text
+          className="font-semibold text-gray-900 text-base flex-1 mr-2"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {item.description}
+        </Text>
+        <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
+          <Text className="text-white text-xs font-semibold">{item.status}</Text>
         </View>
-
-        {/* Target Date */}
-        <Text className="text-gray-500 text-xs mt-1">
-          Target Date: {new Date(item.targetDate).toLocaleDateString()}
-        </Text>
-
-        {/* Responsibility */}
-        <Text
-          className="text-gray-500 text-xs mt-1"
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          Responsibility:{" "}
-          {item.responsibility
-            .map((u) => `${u.individualName} (${u.designation})`)
-            .join(", ")}
-        </Text>
-
-        {/* Remarks */}
-        <Text
-          className={`text-gray-500 text-xs mt-1 ${
-            item.remarks ? "" : "italic"
-          }`}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          Remarks: {item.remarks ? item.remarks : "No remarks"}
-        </Text>
       </View>
-    );
-  };
+
+      {/* Target Date */}
+      <Text className="text-gray-500 text-xs mt-1">
+        Target Date: {new Date(item.targetDate).toLocaleDateString()}
+      </Text>
+
+      {/* Responsibility */}
+      <Text className="text-gray-500 text-xs mt-1" numberOfLines={2} ellipsizeMode="tail">
+        Responsibility: {item.responsibility.map(u => `${u.individualName} (${u.designation})`).join(", ")}
+      </Text>
+
+      {/* Remarks */}
+      <Text className={`text-gray-500 text-xs mt-1 ${item.remarks ? "" : "italic"}`} numberOfLines={2} ellipsizeMode="tail">
+        Remarks: {item.remarks ? item.remarks : "No remarks"}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 
   return (
     <View className="flex-1 bg-gray-50">
