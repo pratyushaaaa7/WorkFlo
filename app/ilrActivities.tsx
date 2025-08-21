@@ -28,6 +28,7 @@ type Activity = {
   createdAt: string;
   oldValue?: any;
   newValue?: any;
+  type: "note" | "date" | "remark" | "status"; // <-- add this
 };
 
 const IlrActivities = () => {
@@ -413,41 +414,39 @@ const IlrActivities = () => {
           ) : activities.length === 0 ? (
             <Text className="text-gray-400 text-sm">No activities yet.</Text>
           ) : (
-            <View className="">
-              {activities.map((act) => {
-                // Set card color based on activity type
-                let bgColor = "bg-gray-100"; // default
-                if (act.type === "note") bgColor = "bg-emerald-50";
-                else if (act.type === "date") bgColor = "bg-indigo-50";
-                else if (act.type === "remark") bgColor = "bg-cyan-50";
-                else if (act.type === "status") bgColor = "bg-red-50";
+            <View className="space-y-3">
+              {activities.map((act) => (
+                <View
+                  key={act._id}
+                  className={`rounded-xl p-3 mb-2 shadow-sm ${
+                    act.type === "note"
+                      ? "bg-emerald-100"
+                      : act.type === "date"
+                      ? "bg-indigo-100"
+                      : act.type === "remark"
+                      ? "bg-cyan-100"
+                      : act.type === "status"
+                      ? "bg-red-100"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <Text className="text-gray-800 text-sm font-medium">
+                    {act.title}
+                  </Text>
 
-                return (
-                  <View
-                    key={act._id}
-                    className={`${bgColor} rounded-xl p-3 mb-2 shadow-sm`}
-                  >
-                    <Text className="text-gray-800 text-sm font-medium">
-                      {act.title}
+                  {act.oldValue !== undefined && act.newValue !== undefined && (
+                    <Text className="text-xs text-gray-600 mt-1">
+                      From: <Text className="font-normal">{act.oldValue}</Text>{" "}
+                      → To: <Text className="font-medium">{act.newValue}</Text>
                     </Text>
+                  )}
 
-                    {act.oldValue !== undefined &&
-                      act.newValue !== undefined && (
-                        <Text className="text-xs text-gray-600 mt-1">
-                          From:{" "}
-                          <Text className="font-normal">{act.oldValue}</Text> →
-                          To:{" "}
-                          <Text className="font-medium">{act.newValue}</Text>
-                        </Text>
-                      )}
-
-                    <Text className="text-xs text-gray-500 mt-1">
-                      By {act.createdBy} •{" "}
-                      {new Date(act.createdAt).toLocaleString()}
-                    </Text>
-                  </View>
-                );
-              })}
+                  <Text className="text-xs text-gray-500 mt-1">
+                    By {act.createdBy} •{" "}
+                    {new Date(act.createdAt).toLocaleString()}
+                  </Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
