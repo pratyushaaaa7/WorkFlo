@@ -30,6 +30,14 @@ type Activity = {
   newValue?: any;
   type: "note" | "date" | "remark" | "status"; // <-- add this
 };
+// --- Define color map outside the component ---
+const ACTIVITY_BG_COLORS: Record<Activity["type"], string> = {
+  note: "#DDFCE7", // lighter green
+  date: "#E0E7FF", // lighter indigo
+  remark: "#E0F7FA", // lighter cyan
+  status: "#FEE2E2", // lighter red
+};
+const DEFAULT_BG_COLOR = "#F3F4F6"; // fallback gray
 
 const IlrActivities = () => {
   const router = useRouter();
@@ -68,6 +76,15 @@ const IlrActivities = () => {
   const [showRemarkInput, setShowRemarkInput] = useState(false); // controls remark modal
   const [newRemark, setNewRemark] = useState(ilr.remarks); // holds remark text
 
+  const mapActivityType = (action: string | undefined): Activity["type"] => {
+    if (!action) return "note";
+    const a = action.toLowerCase();
+    if (a.includes("status")) return "status";
+    if (a.includes("remark")) return "remark";
+    if (a.includes("date")) return "date";
+    return "note";
+  };
+
   // --- Fetch ILR Details (outside useEffect so it can be reused) ---
   const fetchILRDetails = async () => {
     if (!token || !params.ilrId) return;
@@ -101,6 +118,7 @@ const IlrActivities = () => {
           createdAt: act.createdAt,
           oldValue: act.oldValue,
           newValue: act.newValue,
+          type: mapActivityType(act.action),
         }))
         .sort(
           (a: any, b: any) =>
@@ -320,24 +338,38 @@ const IlrActivities = () => {
           </View>
         </View>
 
-        {/* Action Buttons (Status button removed) */}
+        {/* Action Buttons */}
         <View className="flex-row justify-between mb-6">
           <TouchableOpacity
-            className="flex-1 bg-indigo-600 mx-1 py-3 rounded-xl shadow"
+            className="flex-1 mx-1 rounded-xl shadow overflow-hidden"
             onPress={openDatePicker}
           >
-            <Text className="text-center text-white font-medium text-sm">
-              Change Date
-            </Text>
+            <LinearGradient
+              colors={["#A5B4FC", "#4338CA"]} // Indigo gradient: light → dark
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              className="py-3 rounded-xl"
+            >
+              <Text className="text-center text-white font-medium text-sm">
+                Change Date
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="flex-1 bg-cyan-500 mx-1 py-3 rounded-xl shadow"
+            className="flex-1 mx-1 rounded-xl shadow overflow-hidden"
             onPress={openRemarkModal}
           >
-            <Text className="text-center text-white font-medium text-sm">
-              Edit Remark
-            </Text>
+            <LinearGradient
+              colors={["#67E8F9", "#0284C7"]} // Cyan gradient: light → dark
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-3 rounded-xl"
+            >
+              <Text className="text-center text-white font-medium text-sm">
+                Edit Remark
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -375,10 +407,17 @@ const IlrActivities = () => {
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-800"
             />
             <TouchableOpacity
-              className="ml-3 bg-emerald-600 px-4 py-2 rounded-lg shadow-md"
+              className="ml-3 rounded-lg shadow-md overflow-hidden"
               onPress={addNote}
             >
-              <Text className="text-white font-medium">Add</Text>
+              <LinearGradient
+                colors={["#34D399", "#059669"]} // Emerald green gradient
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-medium">Add</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -414,39 +453,39 @@ const IlrActivities = () => {
           ) : activities.length === 0 ? (
             <Text className="text-gray-400 text-sm">No activities yet.</Text>
           ) : (
-            <View className="space-y-3">
-              {activities.map((act) => (
-                <View
-                  key={act._id}
-                  className={`rounded-xl p-3 mb-2 shadow-sm ${
-                    act.type === "note"
-                      ? "bg-emerald-100"
-                      : act.type === "date"
-                      ? "bg-indigo-100"
-                      : act.type === "remark"
-                      ? "bg-cyan-100"
-                      : act.type === "status"
-                      ? "bg-red-100"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  <Text className="text-gray-800 text-sm font-medium">
-                    {act.title}
-                  </Text>
+            <View>
+              {activities.map((act) => {
+                // get bgColor from the mapping
+                const bgColor =
+                  ACTIVITY_BG_COLORS[act.type] || DEFAULT_BG_COLOR;
 
-                  {act.oldValue !== undefined && act.newValue !== undefined && (
-                    <Text className="text-xs text-gray-600 mt-1">
-                      From: <Text className="font-normal">{act.oldValue}</Text>{" "}
-                      → To: <Text className="font-medium">{act.newValue}</Text>
+                return (
+                  <View
+                    key={act._id}
+                    className="rounded-xl p-3 mb-2 shadow-sm"
+                    style={{ backgroundColor: bgColor }}
+                  >
+                    <Text className="text-gray-800 text-sm font-medium">
+                      {act.title}
                     </Text>
-                  )}
 
-                  <Text className="text-xs text-gray-500 mt-1">
-                    By {act.createdBy} •{" "}
-                    {new Date(act.createdAt).toLocaleString()}
-                  </Text>
-                </View>
-              ))}
+                    {act.oldValue !== undefined &&
+                      act.newValue !== undefined && (
+                        <Text className="text-xs text-gray-600 mt-1">
+                          From:{" "}
+                          <Text className="font-normal">{act.oldValue}</Text> →
+                          To:{" "}
+                          <Text className="font-medium">{act.newValue}</Text>
+                        </Text>
+                      )}
+
+                    <Text className="text-xs text-gray-500 mt-1">
+                      By {act.createdBy} •{" "}
+                      {new Date(act.createdAt).toLocaleString()}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           )}
         </View>
