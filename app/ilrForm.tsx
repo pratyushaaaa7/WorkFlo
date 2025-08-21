@@ -139,14 +139,6 @@ export default function ILRForm() {
       }
 
       for (const issue of issues) {
-        console.log("Submitting issue:", {
-          projectId,
-          description: issue.description,
-          targetDate: issue.targetDate,
-          responsibility: issue.responsibility,
-          remarks: issue.remarks,
-        });
-
         await api.post(
           "/ilrs",
           {
