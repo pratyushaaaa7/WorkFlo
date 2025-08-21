@@ -57,8 +57,10 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const renderCard = ({ item }: { item: ILR }) => {
-    const statusClasses =
-      item.status === "Open" ? "bg-blue-600" : "bg-green-500";
+   const statusClasses =
+  item.status === "Open"
+    ? "bg-red-600" // Deep red for Open
+    : "bg-[#4B5563]"; // Deep gray for Closed
 
     return (
       <TouchableOpacity
