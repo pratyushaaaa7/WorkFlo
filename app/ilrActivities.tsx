@@ -269,43 +269,60 @@ const IlrActivities = () => {
             </TouchableOpacity>
           </View>
 
-          <Text className="text-gray-600 text-sm mt-3">
-            🎯 Target Date:{" "}
-            <Text className="font-medium">
-              {new Date(ilr.targetDate).toLocaleDateString()}
+          {/* Target Date */}
+          <View className="mt-3 flex-row items-center gap-2">
+            <Ionicons name="calendar-outline" size={16} color="#4B5563" />
+            <Text className="text-gray-600 text-sm">
+              Target Date:{" "}
+              <Text className="font-medium">
+                {new Date(ilr.targetDate).toLocaleDateString()}
+              </Text>
             </Text>
-          </Text>
+          </View>
 
-          <Text className="text-gray-600 text-sm mt-1">
-            👥 Responsibility:{" "}
-            <Text className="font-medium">
-              {ilr.responsibility
-                .map((u) => `${u.individualName} (${u.designation})`)
-                .join(", ")}
+          {/* Responsibility */}
+          <View className="mt-1 flex-row items-center gap-2">
+            <Ionicons name="people-outline" size={16} color="#4B5563" />
+            <Text className="text-gray-600 text-sm">
+              Responsibility:{" "}
+              <Text className="font-medium">
+                {ilr.responsibility
+                  .map((u) => `${u.individualName} (${u.designation})`)
+                  .join(", ")}
+              </Text>
             </Text>
-          </Text>
+          </View>
 
-          <Text className="text-gray-600 text-sm mt-1">
-            📝 Remarks:{" "}
-            <Text
-              className={ilr.remarks ? "font-medium" : "italic text-gray-400"}
-            >
-              {ilr.remarks || "No remarks"}
+          {/* Remarks */}
+          <View className="mt-1 flex-row items-center gap-2">
+            <Ionicons name="document-text-outline" size={16} color="#4B5563" />
+            <Text className="text-gray-600 text-sm">
+              Remarks:{" "}
+              <Text
+                className={ilr.remarks ? "font-medium" : "italic text-gray-400"}
+              >
+                {ilr.remarks || "No remarks"}
+              </Text>
             </Text>
-          </Text>
+          </View>
+
+          {/* Added by */}
+          <View className="mt-2 flex-row items-center gap-2">
+            <Ionicons name="person-outline" size={16} color="#4B5563" />
+            <Text className="text-gray-600 text-sm">
+              Added by <Text className="font-medium">{ilr.ilrCreatedBy}</Text>{" "}
+              on{" "}
+              {ilr.ilrCreatedAt
+                ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
+                : "N/A"}
+            </Text>
+          </View>
         </View>
-
-        <Text className="text-gray-500 text-xs mt-2">
-          Added by {ilr.ilrCreatedBy} on{" "}
-          {ilr.ilrCreatedAt
-            ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
-            : "N/A"}
-        </Text>
 
         {/* Action Buttons (Status button removed) */}
         <View className="flex-row justify-between mb-6">
           <TouchableOpacity
-            className="flex-1 bg-blue-600 mx-1 py-3 rounded-xl shadow"
+            className="flex-1 bg-indigo-600 mx-1 py-3 rounded-xl shadow"
             onPress={openDatePicker}
           >
             <Text className="text-center text-white font-medium text-sm">
@@ -314,7 +331,7 @@ const IlrActivities = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="flex-1 bg-yellow-500 mx-1 py-3 rounded-xl shadow"
+            className="flex-1 bg-cyan-500 mx-1 py-3 rounded-xl shadow"
             onPress={openRemarkModal}
           >
             <Text className="text-center text-white font-medium text-sm">
@@ -323,68 +340,115 @@ const IlrActivities = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Notes Section */}
-        <Text className="font-semibold text-gray-800 text-base mb-2">
-          Notes
-        </Text>
-        <View className="mb-3 flex-row items-center">
-          <TextInput
-            value={newNote}
-            onChangeText={setNewNote}
-            placeholder="Add a note..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-white"
-          />
-          <TouchableOpacity
-            className="ml-2 bg-blue-600 px-4 py-2 rounded-lg shadow"
-            onPress={addNote}
-          >
-            <Text className="text-white font-medium">Add</Text>
-          </TouchableOpacity>
-        </View>
-        {notes.length === 0 ? (
-          <Text className="text-gray-500">No notes yet.</Text>
-        ) : (
-          notes.map((note, idx) => (
-            <View key={idx} className="bg-white rounded-xl p-3 mb-2 shadow">
-              <Text className="text-gray-800 text-sm">{note.text}</Text>
-              <Text className="text-xs text-gray-500 mt-1">
-                By {note.createdBy?.username || "Unknown"} •{" "}
-                {new Date(note.createdAt).toLocaleString()}
-              </Text>
-            </View>
-          ))
+        {/* Remark Input */}
+        {showRemarkInput && (
+          <View className="p-3 bg-white rounded-xl shadow mb-6">
+            <TextInput
+              value={newRemark}
+              onChangeText={setNewRemark}
+              placeholder="Enter remark..."
+              className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
+            />
+            <TouchableOpacity
+              className="bg-cyan-500 py-2 rounded-lg"
+              onPress={saveRemark}
+            >
+              <Text className="text-center text-white font-medium">Save</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
+        {/* Notes Section */}
+        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <Text className="font-semibold text-gray-800 text-lg mb-4">
+            Notes
+          </Text>
+
+          {/* Input Row */}
+          <View className="flex-row items-center mb-4">
+            <TextInput
+              value={newNote}
+              onChangeText={setNewNote}
+              placeholder="Add a note..."
+              placeholderTextColor="#9CA3AF"
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-800"
+            />
+            <TouchableOpacity
+              className="ml-3 bg-emerald-600 px-4 py-2 rounded-lg shadow-md"
+              onPress={addNote}
+            >
+              <Text className="text-white font-medium">Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Notes List */}
+          {notes.length === 0 ? (
+            <Text className="text-gray-400 text-sm">No notes yet.</Text>
+          ) : (
+            <View className="">
+              {notes.map((note, idx) => (
+                <View
+                  key={idx}
+                  className="bg-emerald-50 mb-2 rounded-xl p-3 shadow-sm"
+                >
+                  <Text className="text-gray-800 text-sm">{note.text}</Text>
+                  <Text className="text-xs text-gray-700 mt-1">
+                    By {note.createdBy?.username || "Unknown"} •{" "}
+                    {new Date(note.createdAt).toLocaleString()}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Activity Log */}
-        <View className="pb-10">
-          <Text className="font-semibold text-gray-800 text-base mt-6 mb-2">
+        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <Text className="font-semibold text-gray-800 text-lg mb-4">
             Activity Log
           </Text>
+
           {activitiesLoading ? (
             <ActivityIndicator size="large" color="#2563EB" />
           ) : activities.length === 0 ? (
-            <Text className="text-gray-500">No activities yet.</Text>
+            <Text className="text-gray-400 text-sm">No activities yet.</Text>
           ) : (
-            activities.map((act) => (
-              <View
-                key={act._id}
-                className="bg-white rounded-xl p-3 mb-2 shadow"
-              >
-                <Text className="text-sm text-gray-800 font-medium">
-                  {act.title}
-                </Text>
-                {act.oldValue !== undefined && act.newValue !== undefined && (
-                  <Text className="text-xs text-gray-500 mt-1">
-                    From: <Text>{act.oldValue}</Text> → To:{" "}
-                    <Text className="font-medium">{act.newValue}</Text>
-                  </Text>
-                )}
-                <Text className="text-xs text-gray-500 mt-1">
-                  By {act.createdBy} •{" "}
-                  {new Date(act.createdAt).toLocaleString()}
-                </Text>
-              </View>
-            ))
+            <View className="">
+              {activities.map((act) => {
+                // Set card color based on activity type
+                let bgColor = "bg-gray-100"; // default
+                if (act.type === "note") bgColor = "bg-emerald-50";
+                else if (act.type === "date") bgColor = "bg-indigo-50";
+                else if (act.type === "remark") bgColor = "bg-cyan-50";
+                else if (act.type === "status") bgColor = "bg-red-50";
+
+                return (
+                  <View
+                    key={act._id}
+                    className={`${bgColor} rounded-xl p-3 mb-2 shadow-sm`}
+                  >
+                    <Text className="text-gray-800 text-sm font-medium">
+                      {act.title}
+                    </Text>
+
+                    {act.oldValue !== undefined &&
+                      act.newValue !== undefined && (
+                        <Text className="text-xs text-gray-600 mt-1">
+                          From:{" "}
+                          <Text className="font-normal">{act.oldValue}</Text> →
+                          To:{" "}
+                          <Text className="font-medium">{act.newValue}</Text>
+                        </Text>
+                      )}
+
+                    <Text className="text-xs text-gray-500 mt-1">
+                      By {act.createdBy} •{" "}
+                      {new Date(act.createdAt).toLocaleString()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -396,24 +460,6 @@ const IlrActivities = () => {
           display={Platform.OS === "ios" ? "inline" : "default"}
           onChange={onDateChange}
         />
-      )}
-
-      {/* Remark Input */}
-      {showRemarkInput && (
-        <View className="p-3 bg-white rounded-xl shadow mb-6">
-          <TextInput
-            value={newRemark}
-            onChangeText={setNewRemark}
-            placeholder="Enter remark..."
-            className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
-          />
-          <TouchableOpacity
-            className="bg-blue-600 py-2 rounded-lg"
-            onPress={saveRemark}
-          >
-            <Text className="text-center text-white font-medium">Save</Text>
-          </TouchableOpacity>
-        </View>
       )}
     </View>
   );
