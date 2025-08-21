@@ -62,29 +62,28 @@ const ILRs = () => {
 
     return (
       <TouchableOpacity
-  className="bg-white rounded-xl p-3 mb-3 shadow-md"
-  onPress={() => {
-    const params = {
-      ilrId: item._id,
-      projectName,
-      description: item.description,
-      targetDate: item.targetDate,
-      remarks: item.remarks,
-      responsibility: JSON.stringify(item.responsibility),
-      status: item.status,
-      createdBy: item.createdBy?.username, 
-      createdAt: item.createdAt, 
-    };
+        className="bg-white rounded-xl p-3 mb-3 shadow-md"
+        onPress={() => {
+          const params = {
+            ilrId: item._id,
+            projectName,
+            description: item.description,
+            targetDate: item.targetDate,
+            remarks: item.remarks,
+            responsibility: JSON.stringify(item.responsibility),
+            status: item.status,
+            createdBy: item.createdBy?.username,
+            createdAt: item.createdAt,
+          };
 
-    // console.log("🔍 Params passed to ilrActivities:", params); // 👈 check here
+          // console.log("🔍 Params passed to ilrActivities:", params); // 👈 check here
 
-    router.push({
-      pathname: `/ilrActivities`,
-      params,
-    });
-  }}
->
-
+          router.push({
+            pathname: `/ilrActivities`,
+            params,
+          });
+        }}
+      >
         {/* Top row: Description + Status */}
         <View className="flex-row justify-between items-center">
           <Text
