@@ -206,13 +206,13 @@ const IlrActivities = () => {
   return (
     <View className="flex-1 bg-gray-100">
       {/* Header */}
-      <View className="bg-white pt-16 pb-4 px-4 flex-row items-center shadow-md">
+      <View className="bg-white pt-16 pb-6 px-4 flex-row items-center shadow-md">
         <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
         >
-          <Ionicons name="arrow-back" size={22} color="#1E293B" />
-          <Text className="text-lg font-semibold text-gray-900 ml-3">
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+          <Text className="text-xl font-semibold text-gray-900 ml-3">
             ILR Details
           </Text>
         </TouchableOpacity>
