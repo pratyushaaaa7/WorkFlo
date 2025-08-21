@@ -1,12 +1,5 @@
 import React, { useState, useContext } from "react";
-import {
- 
-  Text,
-  TextInput,
-  TouchableOpacity,
-
-  View,
-} from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../lib/api";
 import { AuthContext } from "../../context/AuthContext";
@@ -23,58 +16,57 @@ const RegisterUserScreen = () => {
   const [roleOpen, setRoleOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("user"); // default to 'user'
   const [roleItems, setRoleItems] = useState([
-    
     { label: "User", value: "user" },
     { label: "Admin", value: "admin" },
     { label: "Team Lead", value: "teamLead" },
   ]);
 
- const handleRegister = async () => {
-  if (!username || !password) {
-    Toast.show({
-      type: "error",
-      text1: "Validation Error",
-      text2: "Username and password are required.",
-      position: "bottom",
-    });
-    return;
-  }
+  const handleRegister = async () => {
+    if (!username || !password) {
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Username and password are required.",
+        position: "bottom",
+      });
+      return;
+    }
 
-  try {
-    const res = await api.post(
-      "/auth/register",
-      {
-        username,
-        password,
-        role: selectedRole,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // Only allow admin to register users
+    try {
+      const res = await api.post(
+        "/auth/register",
+        {
+          username,
+          password,
+          role: selectedRole,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Only allow admin to register users
+          },
+        }
+      );
 
-    Toast.show({
-      type: "success",
-      text1: "Success",
-      text2: res.data.message || "User registered successfully!",
-      position: "bottom",
-    });
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: res.data.message || "User registered successfully!",
+        position: "bottom",
+      });
 
-    setUsername("");
-    setPassword("");
-    setSelectedRole("user");
-  } catch (err: any) {
-    console.error("Registration error:", err.response?.data || err.message);
-    Toast.show({
-      type: "error",
-      text1: "Error",
-      text2: err.response?.data?.message || "Registration failed.",
-      position: "bottom",
-    });
-  }
-};
+      setUsername("");
+      setPassword("");
+      setSelectedRole("user");
+    } catch (err: any) {
+      console.error("Registration error:", err.response?.data || err.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err.response?.data?.message || "Registration failed.",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <View className="flex-1 bg-white px-4 py-6">
