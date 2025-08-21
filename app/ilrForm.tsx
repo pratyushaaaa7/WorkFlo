@@ -15,7 +15,6 @@ import moment from "moment";
 import { MultiSelect } from "react-native-element-dropdown";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 
@@ -108,89 +107,89 @@ export default function ILRForm() {
   };
 
   // ✅ Handle Submit (send each issue separately)
-const handleSubmit = async () => {
-  // Close keyboard immediately when button is pressed
-  Keyboard.dismiss();
-  try {
-    if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Authentication Error",
-        text2: "User not authenticated",
-        position: "bottom",
-      });
-      return;
-    }
-
-    // 🔹 Validate each issue before submitting
-    for (const issue of issues) {
-      if (
-        !issue.description.trim() ||
-        !issue.targetDate ||
-        !issue.responsibility.length
-      ) {
+  const handleSubmit = async () => {
+    // Close keyboard immediately when button is pressed
+    Keyboard.dismiss();
+    try {
+      if (!token) {
         Toast.show({
           type: "error",
-          text1: "Validation Error",
-          text2: "Please fill all required fields for every issue.",
+          text1: "Authentication Error",
+          text2: "User not authenticated",
           position: "bottom",
         });
-        return; // stop submission
+        return;
       }
-    }
 
-    for (const issue of issues) {
-      console.log("Submitting issue:", {
-        projectId,
-        description: issue.description,
-        targetDate: issue.targetDate,
-        responsibility: issue.responsibility,
-        remarks: issue.remarks,
-      });
+      // 🔹 Validate each issue before submitting
+      for (const issue of issues) {
+        if (
+          !issue.description.trim() ||
+          !issue.targetDate ||
+          !issue.responsibility.length
+        ) {
+          Toast.show({
+            type: "error",
+            text1: "Validation Error",
+            text2: "Please fill all required fields for every issue.",
+            position: "bottom",
+          });
+          return; // stop submission
+        }
+      }
 
-      await api.post(
-        "/ilrs",
-        {
+      for (const issue of issues) {
+        console.log("Submitting issue:", {
           projectId,
           description: issue.description,
-          targetDate: new Date(issue.targetDate), // ensure Date object
+          targetDate: issue.targetDate,
           responsibility: issue.responsibility,
           remarks: issue.remarks,
-        },
+        });
+
+        await api.post(
+          "/ilrs",
+          {
+            projectId,
+            description: issue.description,
+            targetDate: new Date(issue.targetDate), // ensure Date object
+            responsibility: issue.responsibility,
+            remarks: issue.remarks,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "ILRs created successfully!",
+        position: "bottom",
+      });
+
+      setIssues([
         {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+          serialNo: 1,
+          description: "",
+          targetDate: "",
+          responsibility: [],
+          remarks: "",
+        },
+      ]);
+
+      router.back();
+    } catch (error: any) {
+      console.log("ILR Submit Error:", error); // log full error
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.message || "Something went wrong",
+        position: "bottom",
+      });
     }
-
-    Toast.show({
-      type: "success",
-      text1: "Success",
-      text2: "ILRs created successfully!",
-      position: "bottom",
-    });
-
-    setIssues([
-      {
-        serialNo: 1,
-        description: "",
-        targetDate: "",
-        responsibility: [],
-        remarks: "",
-      },
-    ]);
-
-    router.back();
-  } catch (error: any) {
-    console.log("ILR Submit Error:", error); // log full error
-    Toast.show({
-      type: "error",
-      text1: "Error",
-      text2: error.response?.data?.message || "Something went wrong",
-      position: "bottom",
-    });
-  }
-};
+  };
 
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
