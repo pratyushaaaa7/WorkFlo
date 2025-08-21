@@ -34,7 +34,7 @@ const IlrActivities = () => {
   const auth = useContext(AuthContext);
 
   const token = auth?.token;
-  const user = auth?.user; // user info for activity logs
+  // const user = auth?.user; // user info for activity logs
   // useEffect(() => {
   //   console.log('Token in context:', auth?.token);
   //   console.log('User in context:', auth?.user);
@@ -50,65 +50,23 @@ const IlrActivities = () => {
       params.responsibility as string
     ) as Responsibility[],
     status: params.status as "Open" | "Closed",
-    ilrCreatedBy: params.createdBy as string, // 👈 include from params
+    ilrCreatedBy: params.createdBy as string,
     ilrCreatedAt: params.createdAt as string,
-  });
-//   console.log("ILR from params:", ilr);
+  }); // stores current ILR details
 
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [activities, setActivities] = useState<Activity[]>([]); // activity logs (who changed what)
+  const [activitiesLoading, setActivitiesLoading] = useState(false); // loading spinner
 
-  const [notes, setNotes] = useState<any[]>([]);
-  const [newNote, setNewNote] = useState("");
+  const [notes, setNotes] = useState<any[]>([]); // list of notes
+  const [newNote, setNewNote] = useState(""); // for typing a new note
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showRemarkInput, setShowRemarkInput] = useState(false);
-  const [newRemark, setNewRemark] = useState(ilr.remarks);
+  const [showDatePicker, setShowDatePicker] = useState(false); // controls date picker popup
 
-  useEffect(() => {
-    const fetchILR = async () => {
-      if (!token || !params.ilrId) return;
+  const [showRemarkInput, setShowRemarkInput] = useState(false); // controls remark modal
+  const [newRemark, setNewRemark] = useState(ilr.remarks); // holds remark text
 
-      setActivitiesLoading(true);
-      try {
-        const res = await api.get(`/ilrs/details/${params.ilrId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const ilrData = res.data;
-
-        setIlr({
-          _id: ilrData._id,
-          description: ilrData.description,
-          targetDate: ilrData.targetDate,
-          remarks: ilrData.remarks,
-          responsibility: ilrData.responsibility || [],
-          status: ilrData.status,
-         ilrCreatedBy: ilrData.createdBy?.username || "Unknown",  // 👈 FIX HERE
-          ilrCreatedAt: ilrData.createdAt, // 👈 add createdAt
-        });
-
-        // Map activities to match your frontend type
-        const mappedActivities = (ilrData.activities || []).map((act: any) => ({
-          _id: act._id,
-          title: act.action || act.title,
-          createdBy: act.createdBy?.username || "Unknown",
-          createdAt: act.createdAt,
-        }));
-
-        setActivities(mappedActivities);
-        setNotes(ilrData.notes || []);
-      } catch (err) {
-        console.error("Failed to fetch ILR:", err);
-      } finally {
-        setActivitiesLoading(false);
-      }
-    };
-
-    fetchILR();
-  }, [params.ilrId, token]);
-
-  const fetchActivities = async () => {
+  // --- Fetch ILR Details (outside useEffect so it can be reused) ---
+  const fetchILRDetails = async () => {
     if (!token || !params.ilrId) return;
 
     setActivitiesLoading(true);
@@ -119,6 +77,7 @@ const IlrActivities = () => {
 
       const ilrData = res.data;
 
+      // Update ILR details
       setIlr({
         _id: ilrData._id,
         description: ilrData.description,
@@ -126,10 +85,11 @@ const IlrActivities = () => {
         remarks: ilrData.remarks,
         responsibility: ilrData.responsibility || [],
         status: ilrData.status,
-         ilrCreatedBy: ilrData.createdBy?.username || "Unknown",  // 👈 FIX HERE
-        ilrCreatedAt: ilrData.createdAt, // 👈 add createdAt
+        ilrCreatedBy: ilrData.createdBy?.username || "Unknown",
+        ilrCreatedAt: ilrData.createdAt,
       });
 
+      // Map + sort activities
       const mappedActivities = (ilrData.activities || [])
         .map((act: any) => ({
           _id: act._id,
@@ -140,7 +100,7 @@ const IlrActivities = () => {
           newValue: act.newValue,
         }))
         .sort(
-          (a, b) =>
+          (a: any, b: any) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
@@ -153,8 +113,9 @@ const IlrActivities = () => {
     }
   };
 
+  // --- useEffect just calls it once on mount / param change ---
   useEffect(() => {
-    fetchActivities();
+    fetchILRDetails();
   }, [params.ilrId, token]);
 
   // --- Handlers ---
@@ -178,8 +139,8 @@ const IlrActivities = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // ✅ No need to push manual activity
-      fetchActivities(); // re-fetch from backend
+      // Re-fetch ILR + activities + notes
+      fetchILRDetails();
     } catch (err) {
       console.error("Failed to update target date:", err);
     }
@@ -200,7 +161,7 @@ const IlrActivities = () => {
       );
 
       // ✅ No manual log here
-      fetchActivities();
+      fetchILRDetails();
     } catch (err) {
       console.error("Failed to update remark:", err);
     }
@@ -218,7 +179,7 @@ const IlrActivities = () => {
       );
 
       // ✅ No manual activity, backend logs it
-      fetchActivities();
+      fetchILRDetails();
     } catch (err) {
       console.error("Failed to update status:", err);
     }
@@ -236,21 +197,11 @@ const IlrActivities = () => {
 
       setNotes(res.data.notes); // backend returns updated ILR with notes
       setNewNote(""); // clear input
-      fetchActivities(); // refresh activities since note creation also logs activity
+      fetchILRDetails(); // refresh activities since note creation also logs activity
     } catch (err) {
       console.error("Failed to add note:", err);
     }
   };
-
-  const statusClasses = ilr.status === "Open" ? "bg-blue-600" : "bg-green-500";
-
-  //     if (!user || !token) {
-  //   return (
-  //     <View className="flex-1 justify-center items-center">
-  //       <ActivityIndicator size="large" color="#2563EB" />
-  //     </View>
-  //   );
-  // }
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -311,13 +262,12 @@ const IlrActivities = () => {
           </Text>
         </View>
 
-      <Text className="text-gray-500 text-xs mt-2">
-  Added by {ilr.ilrCreatedBy} on{" "}
-  {ilr.ilrCreatedAt
-    ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
-    : "N/A"}
-</Text>
-
+        <Text className="text-gray-500 text-xs mt-2">
+          Added by {ilr.ilrCreatedBy} on{" "}
+          {ilr.ilrCreatedAt
+            ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
+            : "N/A"}
+        </Text>
 
         {/* Action Buttons */}
         <View className="flex-row justify-between mb-6">
