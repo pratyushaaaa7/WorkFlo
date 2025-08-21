@@ -345,7 +345,7 @@ const IlrActivities = () => {
             onPress={openDatePicker}
           >
             <LinearGradient
-              colors={["#A5B4FC", "#4338CA"]} // Indigo gradient: light → dark
+              colors={["#C084FC", "#7C3AED"]} // Purple gradient
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
               className="py-3 rounded-xl"
@@ -361,7 +361,7 @@ const IlrActivities = () => {
             onPress={openRemarkModal}
           >
             <LinearGradient
-              colors={["#67E8F9", "#0284C7"]} // Cyan gradient: light → dark
+              colors={["#93C5FD", "#3B82F6"]} // Blue gradient
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               className="py-3 rounded-xl"
@@ -383,10 +383,17 @@ const IlrActivities = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
             />
             <TouchableOpacity
-              className="bg-cyan-500 py-2 rounded-lg"
+              className="rounded-lg shadow-md overflow-hidden"
               onPress={saveRemark}
             >
-              <Text className="text-center text-white font-medium">Save</Text>
+              <LinearGradient
+                colors={["#93C5FD", "#3B82F6"]} // Blue gradient (matches Edit Remark)
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="py-2 rounded-lg"
+              >
+                <Text className="text-center text-white font-medium">Save</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         )}
