@@ -85,6 +85,11 @@ const IlrActivities = () => {
     return "note";
   };
 
+  const formatDateSafe = (v: any) => {
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? v : d.toLocaleDateString("en-GB"); // dd/mm/yyyy
+  };
+
   // --- Fetch ILR Details (outside useEffect so it can be reused) ---
   const fetchILRDetails = async () => {
     if (!token || !params.ilrId) return;
@@ -111,15 +116,26 @@ const IlrActivities = () => {
 
       // Map + sort activities
       const mappedActivities = (ilrData.activities || [])
-        .map((act: any) => ({
-          _id: act._id,
-          title: act.action || act.title,
-          createdBy: act.createdBy?.username || "Unknown",
-          createdAt: act.createdAt,
-          oldValue: act.oldValue,
-          newValue: act.newValue,
-          type: mapActivityType(act.action),
-        }))
+        .map((act: any) => {
+          // ✅ scoped here
+          const isDateChange =
+            act.action?.toLowerCase().includes("date") ||
+            act.title?.toLowerCase().includes("date");
+
+          return {
+            _id: act._id,
+            title: act.action || act.title,
+            createdBy: act.createdBy?.username || "Unknown",
+            createdAt: act.createdAt,
+            oldValue: isDateChange
+              ? formatDateSafe(act.oldValue)
+              : act.oldValue,
+            newValue: isDateChange
+              ? formatDateSafe(act.newValue)
+              : act.newValue,
+            type: mapActivityType(act.action),
+          };
+        })
         .sort(
           (a: any, b: any) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
