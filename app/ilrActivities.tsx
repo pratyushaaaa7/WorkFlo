@@ -7,12 +7,14 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  Animated,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Responsibility = {
   _id: string;
@@ -218,22 +220,53 @@ const IlrActivities = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1 px-4 py-4">
+      <ScrollView className="flex-1 px-4 py-4 ">
         {/* ILR Card */}
         <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
           <View className="flex-row justify-between items-start">
             <Text className="font-semibold text-lg text-gray-900 flex-1">
               {ilr.description}
             </Text>
-            <View
-              className={`px-3 py-1 rounded-full ${
-                ilr.status === "Open" ? "bg-blue-500" : "bg-green-500"
-              }`}
+
+            {/* Toggle-style Status Badge with Gradient */}
+            <TouchableOpacity
+              onPress={toggleStatus}
+              activeOpacity={0.9}
+              className="w-20 h-8 rounded-full overflow-hidden"
             >
-              <Text className="text-white text-xs font-medium">
-                {ilr.status}
-              </Text>
-            </View>
+              <LinearGradient
+                colors={
+                  ilr.status === "Open"
+                    ? ["#FF4D4D", "#B91C1C"] // Bright red → deep red for Open
+                    : ["#4B5563", "#D1D5DB"] // Dark gray → light gray for Closed
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="flex-1 h-full rounded-full relative"
+              >
+                {/* Circle */}
+                <View
+                  className="w-6 h-6 rounded-full  bg-white shadow absolute top-1"
+                  style={{
+                    left: ilr.status === "Open" ? 1 : undefined,
+                    right: ilr.status === "Closed" ? 1 : undefined,
+                  }}
+                />
+
+                {/* Text opposite to the circle */}
+                <View
+                  className="absolute w-full h-full justify-center px-2"
+                  style={{
+                    alignItems:
+                      ilr.status === "Open" ? "flex-end" : "flex-start",
+                  }}
+                >
+                  <Text className="text-white text-xs font-medium">
+                    {ilr.status === "Open" ? "Open" : "Closed"}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
 
           <Text className="text-gray-600 text-sm mt-3">
@@ -269,7 +302,7 @@ const IlrActivities = () => {
             : "N/A"}
         </Text>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Status button removed) */}
         <View className="flex-row justify-between mb-6">
           <TouchableOpacity
             className="flex-1 bg-blue-600 mx-1 py-3 rounded-xl shadow"
@@ -280,15 +313,6 @@ const IlrActivities = () => {
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
-              mode="date"
-              display={Platform.OS === "ios" ? "inline" : "default"}
-              onChange={onDateChange}
-            />
-          )}
-
           <TouchableOpacity
             className="flex-1 bg-yellow-500 mx-1 py-3 rounded-xl shadow"
             onPress={openRemarkModal}
@@ -297,36 +321,7 @@ const IlrActivities = () => {
               Edit Remark
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            className={`flex-1 mx-1 py-3 rounded-xl shadow ${
-              ilr.status === "Open" ? "bg-green-600" : "bg-red-500"
-            }`}
-            onPress={toggleStatus}
-          >
-            <Text className="text-center text-white font-medium text-sm">
-              {ilr.status === "Open" ? "Close" : "Reopen"}
-            </Text>
-          </TouchableOpacity>
         </View>
-
-        {/* Remark Input */}
-        {showRemarkInput && (
-          <View className="p-3 bg-white rounded-xl shadow mb-6">
-            <TextInput
-              value={newRemark}
-              onChangeText={setNewRemark}
-              placeholder="Enter remark..."
-              className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
-            />
-            <TouchableOpacity
-              className="bg-blue-600 py-2 rounded-lg"
-              onPress={saveRemark}
-            >
-              <Text className="text-center text-white font-medium">Save</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Notes Section */}
         <Text className="font-semibold text-gray-800 text-base mb-2">
@@ -361,32 +356,65 @@ const IlrActivities = () => {
         )}
 
         {/* Activity Log */}
-        <Text className="font-semibold text-gray-800 text-base mt-6 mb-2">
-          Activity Log
-        </Text>
-        {activitiesLoading ? (
-          <ActivityIndicator size="large" color="#2563EB" />
-        ) : activities.length === 0 ? (
-          <Text className="text-gray-500">No activities yet.</Text>
-        ) : (
-          activities.map((act) => (
-            <View key={act._id} className="bg-white rounded-xl p-3 mb-2 shadow">
-              <Text className="text-sm text-gray-800 font-medium">
-                {act.title}
-              </Text>
-              {act.oldValue !== undefined && act.newValue !== undefined && (
-                <Text className="text-xs text-gray-500 mt-1">
-                  From: <Text className="">{act.oldValue}</Text> →To:{" "}
-                  <Text className="font-medium">{act.newValue}</Text>
+        <View className="pb-10">
+          <Text className="font-semibold text-gray-800 text-base mt-6 mb-2">
+            Activity Log
+          </Text>
+          {activitiesLoading ? (
+            <ActivityIndicator size="large" color="#2563EB" />
+          ) : activities.length === 0 ? (
+            <Text className="text-gray-500">No activities yet.</Text>
+          ) : (
+            activities.map((act) => (
+              <View
+                key={act._id}
+                className="bg-white rounded-xl p-3 mb-2 shadow"
+              >
+                <Text className="text-sm text-gray-800 font-medium">
+                  {act.title}
                 </Text>
-              )}
-              <Text className="text-xs text-gray-500 mt-1">
-                By {act.createdBy} • {new Date(act.createdAt).toLocaleString()}
-              </Text>
-            </View>
-          ))
-        )}
+                {act.oldValue !== undefined && act.newValue !== undefined && (
+                  <Text className="text-xs text-gray-500 mt-1">
+                    From: <Text>{act.oldValue}</Text> → To:{" "}
+                    <Text className="font-medium">{act.newValue}</Text>
+                  </Text>
+                )}
+                <Text className="text-xs text-gray-500 mt-1">
+                  By {act.createdBy} •{" "}
+                  {new Date(act.createdAt).toLocaleString()}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "inline" : "default"}
+          onChange={onDateChange}
+        />
+      )}
+
+      {/* Remark Input */}
+      {showRemarkInput && (
+        <View className="p-3 bg-white rounded-xl shadow mb-6">
+          <TextInput
+            value={newRemark}
+            onChangeText={setNewRemark}
+            placeholder="Enter remark..."
+            className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
+          />
+          <TouchableOpacity
+            className="bg-blue-600 py-2 rounded-lg"
+            onPress={saveRemark}
+          >
+            <Text className="text-center text-white font-medium">Save</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
