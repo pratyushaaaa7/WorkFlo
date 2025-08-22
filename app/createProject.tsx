@@ -68,7 +68,7 @@ const CreateProjectScreen = () => {
     { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
   ];
 
-const [startDate, setStartDate] = useState<Date | null>(null); // start as null
+  const [startDate, setStartDate] = useState<Date | null>(null); // start as null
   const [showStartPicker, setShowStartPicker] = useState(false);
 
   useEffect(() => {
@@ -121,7 +121,7 @@ const [startDate, setStartDate] = useState<Date | null>(null); // start as null
           location: projectLocation,
           area: projectArea,
           assignedUsers: selectedUsers,
-          startDate: startDate.toISOString(),
+          startDate: startDate?.toISOString(),
           typology: projectTypology,
           scopes: selectedScopes,
         },
@@ -335,7 +335,7 @@ const [startDate, setStartDate] = useState<Date | null>(null); // start as null
           </Pressable>
           {showStartPicker && (
             <DateTimePicker
-            value={startDate || new Date()}
+              value={startDate || new Date()}
               mode="date"
               display={Platform.OS === "ios" ? "spinner" : "default"}
               onChange={(event, selectedDate) => {
@@ -432,7 +432,7 @@ const [startDate, setStartDate] = useState<Date | null>(null); // start as null
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleCreateProject}
-          className="bg-blue-600 mt-6 mb-10 py-3 rounded-lg items-center"
+          className="bg-blue-600 mt-6 mb-20 py-3 rounded-lg items-center"
         >
           <Text className="text-white font-bold text-base">Create Project</Text>
         </TouchableOpacity>
