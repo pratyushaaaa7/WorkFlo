@@ -192,7 +192,7 @@ const ILRs = () => {
 
         <TouchableOpacity
           onPress={handleDownloadExcel} // 👈 attach function
-          className="px-3 py-1 rounded hover:bg-brown-100"
+          className="px-3 py-1 rounded-full hover:bg-brown-100 bg-gray-100"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           // activeOpacity={0.7}
         >
