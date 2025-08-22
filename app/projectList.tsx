@@ -172,7 +172,13 @@ const ProjectList = () => {
         {/* Edit Button */}
         <TouchableOpacity
           className="p-2 rounded-full bg-blue-50"
-          onPress={() => console.log("Edit pressed")}
+          // onPress={() => console.log("Edit pressed")}
+          onPress={() =>
+            router.push({
+              pathname: "/createProject",
+              params: { project: JSON.stringify(projects) }, // pass project as string
+            })
+          }
         >
           <Ionicons name="pencil" size={20} color="blue" />
         </TouchableOpacity>
