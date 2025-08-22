@@ -14,7 +14,7 @@ import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
-
+import Toast from "react-native-toast-message";
 
 type ILR = {
   _id: string;
@@ -35,7 +35,7 @@ type ILR = {
 const ILRs = () => {
   const router = useRouter();
   const { projectId, projectName } = useLocalSearchParams();
-  const auth = useContext(AuthContext); 
+  const auth = useContext(AuthContext);
   const token = auth?.token;
 
   const [ilrs, setIlrs] = useState<ILR[]>([]);
@@ -62,98 +62,98 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const handleDownloadExcel = async () => {
-  try {
-    if (!ilrs || ilrs.length === 0) {
-      alert("No ILRs available to download");
-      return;
+    try {
+      if (!ilrs || ilrs.length === 0) {
+        alert("No ILRs available to download");
+        return;
+      }
+
+      // Prepare data
+      const worksheetData = ilrs.map((ilr, index) => ({
+        "S. No": index + 1,
+        "Issue Description": ilr.description,
+        "Target Date": new Date(ilr.targetDate).toLocaleDateString(),
+        Status: ilr.status,
+        Responsibility: ilr.responsibility
+          .map((r) => `${r.individualName} (${r.designation})`)
+          .join(", "),
+        Remarks: ilr.remarks || "No remarks",
+        "Added By": ilr.createdBy?.username || "N/A",
+        "Created At": new Date(ilr.createdAt).toLocaleDateString(),
+      }));
+
+      // Create worksheet & workbook
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "ILRs");
+
+      // Convert to binary
+      const excelBuffer = XLSX.write(workbook, {
+        type: "base64",
+        bookType: "xlsx",
+      });
+
+      // Save to device
+      const filename = FileSystem.documentDirectory + "ILRs.xlsx";
+      await FileSystem.writeAsStringAsync(filename, excelBuffer, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Share
+      await Sharing.shareAsync(filename, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share ILRs Excel",
+        UTI: "com.microsoft.excel.xlsx",
+      });
+    } catch (err) {
+      console.error("Error exporting Excel:", err);
+      alert("Failed to export Excel");
     }
+  };
 
-    // Prepare data
-    const worksheetData = ilrs.map((ilr, index) => ({
-      "S. No": index + 1,
-      "Issue Description": ilr.description,
-      "Target Date": new Date(ilr.targetDate).toLocaleDateString(),
-      Status: ilr.status,
-      Responsibility: ilr.responsibility
-        .map((r) => `${r.individualName} (${r.designation})`)
-        .join(", "),
-      Remarks: ilr.remarks || "No remarks",
-      "Added By": ilr.createdBy?.username || "N/A",
-      "Created At": new Date(ilr.createdAt).toLocaleDateString(),
-    }));
+  const renderCard = ({ item }: { item: ILR }) => {
+    const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
 
-    // Create worksheet & workbook
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "ILRs");
-
-    // Convert to binary
-    const excelBuffer = XLSX.write(workbook, {
-      type: "base64",
-      bookType: "xlsx",
-    });
-
-    // Save to device
-    const filename = FileSystem.documentDirectory + "ILRs.xlsx";
-    await FileSystem.writeAsStringAsync(filename, excelBuffer, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-
-    // Share
-    await Sharing.shareAsync(filename, {
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      dialogTitle: "Share ILRs Excel",
-      UTI: "com.microsoft.excel.xlsx",
-    });
-  } catch (err) {
-    console.error("Error exporting Excel:", err);
-    alert("Failed to export Excel");
-  }
-};
-
-const renderCard = ({ item }: { item: ILR }) => {
-  const statusClasses =
-    item.status === "Open"
-      ? "bg-red-600"
-      : "bg-[#4B5563]";
-
-  return (
-    <TouchableOpacity
-      className="bg-white rounded-xl p-3 mb-3 shadow-md"
-      onPress={() => {
-        const params = {
-          ilrId: item._id,
-          projectName,
-          description: item.description,
-          targetDate: item.targetDate,
-          remarks: item.remarks,
-          responsibility: JSON.stringify(item.responsibility),
-          status: item.status,
-          createdBy: item.createdBy?.username,
-          createdAt: item.createdAt,
-        };
-        router.push({ pathname: `/ilrActivities`, params });
-      }}
-    >
-      {/* Top row: Description + Status */}
-      <View className="flex-row justify-between items-center">
-        <Text
-          className="font-semibold text-gray-900 text-base flex-1 mr-2"
-          numberOfLines={2}
-        >
-          {item.description}
-        </Text>
-        <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-          <Text className="text-white text-xs font-semibold">
-            {item.status}
+    return (
+      <TouchableOpacity
+        className="bg-white rounded-xl px-4 py-3 mb-3 shadow-sm border border-gray-100"
+        onPress={() => {
+          const params = {
+            ilrId: item._id,
+            projectName,
+            description: item.description,
+            targetDate: item.targetDate,
+            remarks: item.remarks,
+            responsibility: JSON.stringify(item.responsibility),
+            status: item.status,
+            createdBy: item.createdBy?.username,
+            createdAt: item.createdAt,
+          };
+          router.push({ pathname: `/ilrActivities`, params });
+        }}
+      >
+        {/* Row: Description + Status */}
+        <View className="flex-row justify-between items-start">
+          {/* Issue description */}
+          <Text
+            className="font-medium text-gray-900 text-base flex-1 mr-3"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {item.description}
           </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
 
+          {/* Status pill */}
+          <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
+            <Text className="text-white text-xs font-semibold">
+              {item.status}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -181,7 +181,7 @@ const renderCard = ({ item }: { item: ILR }) => {
           onPress={handleDownloadExcel} // 👈 attach function
           className="px-3 py-1 rounded hover:bg-brown-100"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
+          // activeOpacity={0.7}
         >
           <Feather name="download" size={22} color="black" />
         </TouchableOpacity>
