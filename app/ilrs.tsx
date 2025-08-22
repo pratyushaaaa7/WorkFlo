@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Platform,
+  // Switch,
+  // Platform,
+  // Modal,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -14,7 +16,7 @@ import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
-import Toast from "react-native-toast-message";
+// import Toast from "react-native-toast-message";
 
 type ILR = {
   _id: string;
@@ -40,6 +42,13 @@ const ILRs = () => {
 
   const [ilrs, setIlrs] = useState<ILR[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // const [modalVisible, setModalVisible] = useState(false);
+  const [filter, setFilter] = useState<"All" | "Open" | "Closed">("All"); // 👈 filter state
+
+  // const toggleFilter = (selected: "Open" | "Closed") => {
+  //   setFilter(selected);
+  // };
 
   useEffect(() => {
     const fetchILRs = async () => {
@@ -69,7 +78,7 @@ const ILRs = () => {
       }
 
       // Prepare data
-      const worksheetData = ilrs.map((ilr, index) => ({
+      const worksheetData = filteredILRs.map((ilr, index) => ({
         "S. No": index + 1,
         "Issue Description": ilr.description,
         "Target Date": new Date(ilr.targetDate).toLocaleDateString(),
@@ -155,6 +164,10 @@ const ILRs = () => {
     );
   };
 
+  // 👇 filter ILRs before rendering
+  const filteredILRs =
+    filter === "All" ? ilrs : ilrs.filter((ilr) => ilr.status === filter);
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -187,6 +200,104 @@ const ILRs = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Filter Buttons */}
+      <View className="flex-row justify-center gap-3 mt-3">
+        {["All", "Open", "Closed"].map((f) => (
+          <TouchableOpacity
+            key={f}
+            onPress={() => setFilter(f as "All" | "Open" | "Closed")}
+            className={`px-4 py-2 rounded-full ${
+              filter === f ? "bg-blue-600" : "bg-gray-200"
+            }`}
+          >
+            <Text
+              className={`text-sm font-medium ${
+                filter === f ? "text-white" : "text-gray-700"
+              }`}
+            >
+              {f}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* <View className="flex-row justify-center items-center mt-3">
+        <Text className="mr-2 text-gray-700">Closed</Text>
+        <Switch
+          value={filter === "Open"}
+          onValueChange={(val) => setFilter(val ? "Open" : "Closed")}
+          thumbColor={filter === "Open" ? "#2563EB" : "#9CA3AF"} // blue when ON, gray when OFF
+          trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
+        />
+        <Text className="ml-2 text-gray-700">Open</Text>
+      </View> */}
+
+      {/* <View className="mt-4 items-center">
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          className="bg-blue-600 px-6 py-2 rounded-full"
+        >
+          <Text className="text-white font-medium">Filter</Text>
+        </TouchableOpacity>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/40">
+            <View className="bg-white w-80 p-6 rounded-2xl shadow-lg">
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Select Filter
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => setFilter("All")}
+                className="flex-row justify-between items-center mb-4"
+              >
+                <Text className="text-gray-700">All</Text>
+                <Switch
+                  value={filter === "All"}
+                  onValueChange={() => setFilter("All")}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => toggleFilter("Open")}
+                className="flex-row justify-between items-center mb-4"
+              >
+                <Text className="text-gray-700">Open</Text>
+                <Switch
+                  value={filter === "Open"}
+                  onValueChange={() => toggleFilter("Open")}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => toggleFilter("Closed")}
+                className="flex-row justify-between items-center mb-6"
+              >
+                <Text className="text-gray-700">Closed</Text>
+                <Switch
+                  value={filter === "Closed"}
+                  onValueChange={() => toggleFilter("Closed")}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                className="bg-blue-600 px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white text-center">Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Text className="mt-2 text-gray-600">Current Filter: {filter}</Text>
+      </View> */}
+
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
           {projectName}&#39;s Issue Log Register
@@ -194,13 +305,13 @@ const ILRs = () => {
 
         {loading ? (
           <ActivityIndicator size="large" color="#2563EB" />
-        ) : ilrs.length === 0 ? (
+        ) : filteredILRs.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
-            No ILRs found for this project.
+            No ILRs found for this filter.
           </Text>
         ) : (
           <FlatList
-            data={ilrs}
+            data={filteredILRs}
             keyExtractor={(item) => item._id}
             renderItem={renderCard}
           />
