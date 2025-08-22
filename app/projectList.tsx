@@ -124,9 +124,6 @@ const ProjectList = () => {
         TeamMembers: proj.teamMembers
           .map((u) => u.username ?? u._id)
           .join(", "),
-        LegacyAssigned: proj.assignedUsers
-          .map((u) => u.username ?? u._id)
-          .join(", "), // optional, for debugging
       }));
 
       // Create a worksheet
