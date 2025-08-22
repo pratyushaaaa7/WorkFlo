@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-
   FlatList,
   ActivityIndicator,
   Modal,
@@ -94,43 +93,43 @@ const UserList = () => {
     setDeleteModalVisible(true);
   };
 
-const handleConfirmDelete = async () => {
-  if (!selectedUser) return;
+  const handleConfirmDelete = async () => {
+    if (!selectedUser) return;
 
-  try {
-    setLoading(true);
-    await api.delete(`/user-directory/${selectedUser._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      setLoading(true);
+      await api.delete(`/user-directory/${selectedUser._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    Toast.show({
-      type: "success",
-      text1: "User Deleted",
-      text2: "The user has been removed successfully.",
-      position: "bottom",
-    });
+      Toast.show({
+        type: "success",
+        text1: "User Deleted",
+        text2: "The user has been removed successfully.",
+        position: "bottom",
+      });
 
-    setDeleteModalVisible(false);
-    setSelectedUser(null);
-    fetchUsers();
-  } catch (error) {
-    if (typeof error === "object" && error !== null && "response" in error) {
-      const err = error as any; // or AxiosError for strict typing
-      console.error("Error deleting user:", err.response?.data || err);
-    } else {
-      console.error("Error deleting user:", error);
+      setDeleteModalVisible(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const err = error as any; // or AxiosError for strict typing
+        console.error("Error deleting user:", err.response?.data || err);
+      } else {
+        console.error("Error deleting user:", error);
+      }
+
+      Toast.show({
+        type: "error",
+        text1: "Delete Failed",
+        text2: "Unable to delete the user.",
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    Toast.show({
-      type: "error",
-      text1: "Delete Failed",
-      text2: "Unable to delete the user.",
-      position: "bottom",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   // Edit handlers
   interface EditUserData {
     _id: string;
@@ -156,51 +155,50 @@ const handleConfirmDelete = async () => {
     setEditUserData((prev) => ({ ...prev, [field]: value }));
   };
 
- const handleSaveEdit = async () => {
-  try {
-    setLoading(true);
-    await api.put(`/user-directory/${editUserData._id}`, editUserData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const handleSaveEdit = async () => {
+    try {
+      setLoading(true);
+      await api.put(`/user-directory/${editUserData._id}`, editUserData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    Toast.show({
-      type: "success",
-      text1: "User Updated",
-      text2: "The user details have been updated successfully.",
-      position: "bottom",
-    });
+      Toast.show({
+        type: "success",
+        text1: "User Updated",
+        text2: "The user details have been updated successfully.",
+        position: "bottom",
+      });
 
-    setEditModalVisible(false);
-    setEditUserData({
-      _id: "",
-      individualName: "",
-      designation: "",
-      role: "",
-      email: "",
-      phone: "",
-      roleDescription: "",
-      firmName: "",
-    });
-    fetchUsers();
-  } catch (error) {
-    if (typeof error === "object" && error !== null && "response" in error) {
-      const err = error; // or AxiosError if typed
-      console.error("Error updating user:", err.response?.data || err);
-    } else {
-      console.error("Error updating user:", error);
+      setEditModalVisible(false);
+      setEditUserData({
+        _id: "",
+        individualName: "",
+        designation: "",
+        role: "",
+        email: "",
+        phone: "",
+        roleDescription: "",
+        firmName: "",
+      });
+      fetchUsers();
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "response" in error) {
+        const err = error; // or AxiosError if typed
+        console.error("Error updating user:", err.response?.data || err);
+      } else {
+        console.error("Error updating user:", error);
+      }
+
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Unable to update the user details.",
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    Toast.show({
-      type: "error",
-      text1: "Update Failed",
-      text2: "Unable to update the user details.",
-      position: "bottom",
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
     <View key={index} className="bg-white rounded-xl p-4 mb-4 shadow-sm">
@@ -267,7 +265,8 @@ const handleConfirmDelete = async () => {
     try {
       // 1. Prepare the data array you want to export
       // Use your fetched users data array here, example:
-      const dataToExport = users.map((user) => ({
+      const dataToExport = users.map((user, index) => ({
+        SNo: index + 1, // Serial number starting from 1
         Name: user.individualName,
         Designation: user.designation,
         Role: user.role,

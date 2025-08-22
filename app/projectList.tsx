@@ -65,43 +65,43 @@ const ProjectList = () => {
     fetchProjects();
   }, [token, company]);
 
-  const handleDelete = (id: string) => {
-    Alert.alert(
-      "Delete Project",
-      "Are you sure you want to delete this project?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/projects/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
+  // const handleDelete = (id: string) => {
+  //   Alert.alert(
+  //     "Delete Project",
+  //     "Are you sure you want to delete this project?",
+  //     [
+  //       { text: "Cancel", style: "cancel" },
+  //       {
+  //         text: "Delete",
+  //         style: "destructive",
+  //         onPress: async () => {
+  //           try {
+  //             await api.delete(`/projects/${id}`, {
+  //               headers: { Authorization: `Bearer ${token}` },
+  //             });
 
-              Toast.show({
-                type: "success",
-                text1: "Project Deleted",
-                text2: "The project has been deleted successfully.",
-                position: "bottom",
-              });
+  //             Toast.show({
+  //               type: "success",
+  //               text1: "Project Deleted",
+  //               text2: "The project has been deleted successfully.",
+  //               position: "bottom",
+  //             });
 
-              fetchProjects();
-            } catch (error) {
-              console.error(error);
-              Toast.show({
-                type: "error",
-                text1: "Delete Failed",
-                text2: "Unable to delete the project.",
-                position: "bottom",
-              });
-            }
-          },
-        },
-      ]
-    );
-  };
+  //             fetchProjects();
+  //           } catch (error) {
+  //             console.error(error);
+  //             Toast.show({
+  //               type: "error",
+  //               text1: "Delete Failed",
+  //               text2: "Unable to delete the project.",
+  //               position: "bottom",
+  //             });
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
 
   const openProjectModal = (project: Project) => {
     setSelectedProject(project);
@@ -121,7 +121,8 @@ const ProjectList = () => {
       }
 
       // Convert your data into a flat format (avoid nested objects)
-      const data = projects.map((proj) => ({
+      const data = projects.map((proj, index) => ({
+        SNo: index + 1, // Serial number starting from 1
         ProjectName: proj.projectName,
         ProjectCode: proj.projectCode,
         Company: proj.company,
@@ -159,41 +160,40 @@ const ProjectList = () => {
     }
   };
 
-const renderItem = ({ item }: { item: Project }) => (
-  <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
-    {/* Project Info */}
-    <TouchableOpacity
-      className="flex-1 pr-4"
-      onPress={() => openProjectModal(item)}
-      activeOpacity={0.7}
-    >
-      <Text className="text-lg font-semibold text-gray-900">
-        {item.projectName}
-      </Text>
-      <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
-    </TouchableOpacity>
-
-    {/* Action Buttons */}
-    <View className="flex-row items-center space-x-4">
-      {/* Edit Button */}
+  const renderItem = ({ item }: { item: Project }) => (
+    <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
+      {/* Project Info */}
       <TouchableOpacity
-        className="p-2 rounded-full bg-blue-50"
-        onPress={() => console.log("Edit pressed")}
+        className="flex-1 pr-4"
+        onPress={() => openProjectModal(item)}
+        activeOpacity={0.7}
       >
-        <Ionicons name="pencil" size={20} color="blue" />
+        <Text className="text-lg font-semibold text-gray-900">
+          {item.projectName}
+        </Text>
+        <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
       </TouchableOpacity>
 
-      {/* Delete Button */}
-      <TouchableOpacity
-        className="p-2 rounded-full bg-red-50"
-        onPress={() => handleDelete(item._id)}
-      >
-        <Ionicons name="trash" size={20} color="red" />
-      </TouchableOpacity>
+      {/* Action Buttons */}
+      <View className="flex-row items-center space-x-4">
+        {/* Edit Button */}
+        <TouchableOpacity
+          className="p-2 rounded-full bg-blue-50"
+          onPress={() => console.log("Edit pressed")}
+        >
+          <Ionicons name="pencil" size={20} color="blue" />
+        </TouchableOpacity>
+
+        {/* Delete Button */}
+        {/* <TouchableOpacity
+          className="p-2 rounded-full bg-red-50"
+          onPress={() => handleDelete(item._id)}
+        >
+          <Ionicons name="trash" size={20} color="red" />
+        </TouchableOpacity> */}
+      </View>
     </View>
-  </View>
-);
-
+  );
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
