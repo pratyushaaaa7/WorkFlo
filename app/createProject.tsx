@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 
@@ -21,25 +21,46 @@ const CreateProjectScreen = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
-  const [projectName, setProjectName] = useState("");
-  const [projectCode, setProjectCode] = useState("");
-  const [projectLocation, setProjectLocation] = useState("");
-  const [projectArea, setProjectArea] = useState("");
+  const { project } = useLocalSearchParams(); // <-- get project from params
+  const existingProject = project ? JSON.parse(project as string) : null;
+  const isEditing = !!existingProject;
 
-  const [selectedLeaders, setSelectedLeaders] = useState<string[]>([]);
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  // States with prefill if editing
+  const [projectName, setProjectName] = useState(
+    existingProject?.projectName || ""
+  );
+  const [projectCode, setProjectCode] = useState(
+    existingProject?.projectCode || ""
+  );
+  const [projectLocation, setProjectLocation] = useState(
+    existingProject?.location || ""
+  );
+  const [projectArea, setProjectArea] = useState(existingProject?.area || "");
+const [selectedLeaders, setSelectedLeaders] = useState(
+  existingProject?.teamLeaders?.map((u: any) => u._id || u) || []
+);
 
-  const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
-    []
+const [selectedMembers, setSelectedMembers] = useState(
+  existingProject?.teamMembers?.map((u: any) => u._id || u) || []
+);
+  const [companyName, setCompanyName] = useState(
+    existingProject?.company || null
+  );
+  const [projectTypology, setProjectTypology] = useState(
+    existingProject?.typology || null
+  );
+  const [selectedScopes, setSelectedScopes] = useState(
+    existingProject?.scopes || []
+  );
+  const [startDate, setStartDate] = useState(
+    existingProject?.startDate ? new Date(existingProject.startDate) : null
   );
 
-  const [companyName, setCompanyName] = useState<string | null>(null);
   const companyOptions = [
     { label: "WP", value: "WP" },
     { label: "WAL+L", value: "WAL" },
   ];
 
-  const [projectTypology, setProjectTypology] = useState<string | null>(null);
   const typologyOptions = [
     { label: "RESIDENCE", value: "Residence" },
     { label: "COMMERCIAL", value: "Commercial" },
@@ -50,7 +71,6 @@ const CreateProjectScreen = () => {
     { label: "MISC.", value: "Misc" },
   ];
 
-  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const scopeOptions = [
     { label: "MASTER PLANNING", value: "Master Planning" },
     { label: "ARCHITECTURE", value: "Architecture" },
@@ -66,7 +86,10 @@ const CreateProjectScreen = () => {
     { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
   ];
 
-  const [startDate, setStartDate] = useState<Date | null>(null); // start as null
+  const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
+    []
+  );
+
   const [showStartPicker, setShowStartPicker] = useState(false);
 
   useEffect(() => {
@@ -98,66 +121,64 @@ const CreateProjectScreen = () => {
     fetchUsers();
   }, [token]);
 
-  const handleCreateProject = async () => {
+  const handleSaveProject = async () => {
     if (!projectName.trim() || !companyName || !projectTypology) {
       Toast.show({
-        type: "error", // or "success", "info"
+        type: "error",
         text1: "Validation",
         text2: "Please fill all required fields.",
-        position: "bottom", // or "top"
+        position: "bottom",
       });
       return;
     }
 
+    const payload = {
+      company: companyName,
+      projectName,
+      projectCode,
+      location: projectLocation,
+      area: projectArea,
+      teamLeaders: selectedLeaders,
+      teamMembers: selectedMembers,
+      startDate: startDate?.toISOString(),
+      typology: projectTypology,
+      scopes: selectedScopes,
+    };
+
     try {
-      const res = await api.post(
-        "/projects",
-        {
-          company: companyName,
-          projectName,
-          projectCode,
-          location: projectLocation,
-          area: projectArea,
-          teamLeaders: selectedLeaders,
-          teamMembers: selectedMembers,
-          startDate: startDate?.toISOString(),
-          typology: projectTypology,
-          scopes: selectedScopes,
-        },
-        {
+      if (isEditing) {
+        //  UPDATE PROJECT
+        const res = await api.put(`/projects/${existingProject._id}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        });
 
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: res.data.message || "Project created successfully!",
-        position: "bottom",
-      });
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: res.data.message || "Project updated successfully!",
+          position: "bottom",
+        });
+      } else {
+        //  CREATE PROJECT
+        const res = await api.post("/projects", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      // Delay navigation slightly so toast is visible
-      setTimeout(() => {
-        router.back();
-      }, 800);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: res.data.message || "Project created successfully!",
+          position: "bottom",
+        });
+      }
 
-      // Reset form
-      setProjectName("");
-      setProjectCode("");
-      setProjectLocation("");
-      setProjectArea("");
-      setSelectedLeaders([]);
-      setSelectedMembers([]);
-      setCompanyName(null);
-      setProjectTypology(null);
-      setSelectedScopes([]);
-      setStartDate(new Date());
+      setTimeout(() => router.back(), 800);
     } catch (err) {
       console.error("Error creating project:", err);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Failed to create project",
+        text2: `Failed to ${isEditing ? "update" : "create"} project`,
         position: "bottom",
       });
     }
@@ -469,10 +490,12 @@ const CreateProjectScreen = () => {
 
         {/* Submit Button */}
         <TouchableOpacity
-          onPress={handleCreateProject}
+          onPress={handleSaveProject}
           className="bg-blue-600 mt-6 mb-20 py-3 rounded-lg items-center"
         >
-          <Text className="text-white font-bold text-base">Create Project</Text>
+          <Text className="text-white font-bold text-base">
+            {isEditing ? "Update Project" : "Create Project"}
+          </Text>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </View>
