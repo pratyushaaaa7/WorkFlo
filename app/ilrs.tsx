@@ -8,7 +8,7 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 
@@ -57,10 +57,10 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const renderCard = ({ item }: { item: ILR }) => {
-   const statusClasses =
-  item.status === "Open"
-    ? "bg-red-600" // Deep red for Open
-    : "bg-[#4B5563]"; // Deep gray for Closed
+    const statusClasses =
+      item.status === "Open"
+        ? "bg-red-600" // Deep red for Open
+        : "bg-[#4B5563]"; // Deep gray for Closed
 
     return (
       <TouchableOpacity
@@ -143,7 +143,7 @@ const ILRs = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View
-        className="bg-white pt-16 pb-6 px-4 flex-row items-center justify-between"
+        className="bg-white pt-16 pb-5 px-4 flex-row items-center justify-between"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
@@ -159,6 +159,14 @@ const ILRs = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="px-3 py-1 rounded hover:bg-brown-100"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          activeOpacity={0.7}
+        >
+          <Feather name="download" size={22} color="black" />
         </TouchableOpacity>
       </View>
 
