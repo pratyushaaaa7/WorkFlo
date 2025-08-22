@@ -26,20 +26,19 @@ const CreateProjectScreen = () => {
   const [projectLocation, setProjectLocation] = useState("");
   const [projectArea, setProjectArea] = useState("");
 
-  // const [openUsers, setOpenUsers] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedLeaders, setSelectedLeaders] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
   const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
     []
   );
 
-  // const [openCompany, setOpenCompany] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const companyOptions = [
     { label: "WP", value: "WP" },
     { label: "WAL+L", value: "WAL" },
   ];
 
-  // const [openTypology, setOpenTypology] = useState(false);
   const [projectTypology, setProjectTypology] = useState<string | null>(null);
   const typologyOptions = [
     { label: "RESIDENCE", value: "Residence" },
@@ -51,7 +50,6 @@ const CreateProjectScreen = () => {
     { label: "MISC.", value: "Misc" },
   ];
 
-  // const [openScope, setOpenScope] = useState(false);
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const scopeOptions = [
     { label: "MASTER PLANNING", value: "Master Planning" },
@@ -120,7 +118,8 @@ const CreateProjectScreen = () => {
           projectCode,
           location: projectLocation,
           area: projectArea,
-          assignedUsers: selectedUsers,
+          teamLeaders: selectedLeaders,
+          teamMembers: selectedMembers,
           startDate: startDate?.toISOString(),
           typology: projectTypology,
           scopes: selectedScopes,
@@ -147,7 +146,8 @@ const CreateProjectScreen = () => {
       setProjectCode("");
       setProjectLocation("");
       setProjectArea("");
-      setSelectedUsers([]);
+      setSelectedLeaders([]);
+      setSelectedMembers([]);
       setCompanyName(null);
       setProjectTypology(null);
       setSelectedScopes([]);
@@ -385,7 +385,7 @@ const CreateProjectScreen = () => {
           />
         </View>
 
-        {/* Users Dropdown */}
+        {/* Team Leader Dropdown */}
         <View className="mb-4" style={{ zIndex: 1500 }}>
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Team Leader(s)
@@ -421,11 +421,49 @@ const CreateProjectScreen = () => {
             data={allUsers}
             labelField="label"
             valueField="value"
-            placeholder="Select users..."
+            placeholder="Select Leader(s)..."
             search
             searchPlaceholder="Search users..."
-            value={selectedUsers}
-            onChange={(items) => setSelectedUsers(items)}
+            value={selectedLeaders}
+            onChange={(items) => setSelectedLeaders(items)}
+          />
+        </View>
+
+        {/* Project Team Members Dropdown */}
+        <View className="mb-4" style={{ zIndex: 1400 }}>
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Team Member(s)
+          </Text>
+          <MultiSelect
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 14, color: "#888" }}
+            selectedTextStyle={{ fontSize: 10, color: "#0B0B0B" }}
+            selectedStyle={{
+              borderRadius: 10,
+              backgroundColor: "#b9EBF1",
+              padding: 5,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#fff",
+            }}
+            activeColor="#E0F7FA"
+            data={allUsers}
+            labelField="label"
+            valueField="value"
+            placeholder="Select members..."
+            search
+            searchPlaceholder="Search users..."
+            value={selectedMembers}
+            onChange={(items) => setSelectedMembers(items)}
           />
         </View>
 

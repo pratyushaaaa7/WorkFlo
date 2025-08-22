@@ -8,7 +8,6 @@ import {
   Modal,
   ScrollView,
   Pressable,
-  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
@@ -18,19 +17,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
-
-type Project = {
-  _id: string;
-  projectName: string;
-  projectCode: string;
-  location: string;
-  area: string;
-  typology: string;
-  company: string;
-  scopes: string[];
-  startDate: string; // ISO string
-  assignedUsers: { _id: string; username?: string }[];
-};
+import { Project } from "../types/Project";
 
 const ProjectList = () => {
   const router = useRouter();
@@ -122,7 +109,7 @@ const ProjectList = () => {
 
       // Convert your data into a flat format (avoid nested objects)
       const data = projects.map((proj, index) => ({
-        SNo: index + 1, // Serial number starting from 1
+        SNo: index + 1,
         ProjectName: proj.projectName,
         ProjectCode: proj.projectCode,
         Company: proj.company,
@@ -131,9 +118,15 @@ const ProjectList = () => {
         Typology: proj.typology,
         Scopes: proj.scopes.join(", "),
         StartDate: new Date(proj.startDate).toLocaleDateString(),
-        TeamLeader: proj.assignedUsers
+        TeamLeaders: proj.teamLeaders
           .map((u) => u.username ?? u._id)
           .join(", "),
+        TeamMembers: proj.teamMembers
+          .map((u) => u.username ?? u._id)
+          .join(", "),
+        LegacyAssigned: proj.assignedUsers
+          .map((u) => u.username ?? u._id)
+          .join(", "), // optional, for debugging
       }));
 
       // Create a worksheet
@@ -174,7 +167,7 @@ const ProjectList = () => {
         <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
       </TouchableOpacity>
 
-      {/* Action Buttons */}
+      {/* Action Buttons (Edit/ Delete) */}
       <View className="flex-row items-center space-x-4">
         {/* Edit Button */}
         <TouchableOpacity
@@ -207,7 +200,6 @@ const ProjectList = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-
       <View
         className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
         style={{ zIndex: 10 }}
@@ -389,8 +381,8 @@ const ProjectList = () => {
                     <Text className="font-semibold text-gray-700 mb-1">
                       Team Leaders
                     </Text>
-                    {selectedProject.assignedUsers.length > 0 ? (
-                      selectedProject.assignedUsers.map((user) => (
+                    {selectedProject.teamLeaders.length > 0 ? (
+                      selectedProject.teamLeaders.map((user) => (
                         <Text
                           key={user._id}
                           className="text-gray-800 text-base ml-4 mb-1"
@@ -401,6 +393,26 @@ const ProjectList = () => {
                     ) : (
                       <Text className="text-gray-500 italic ml-4">
                         No team leaders assigned
+                      </Text>
+                    )}
+                  </View>
+
+                  <View className="mb-2">
+                    <Text className="font-semibold text-gray-700 mb-1">
+                      Team Members
+                    </Text>
+                    {selectedProject.teamMembers.length > 0 ? (
+                      selectedProject.teamMembers.map((user) => (
+                        <Text
+                          key={user._id}
+                          className="text-gray-800 text-base ml-4 mb-1"
+                        >
+                          - {user.username ?? user._id}
+                        </Text>
+                      ))
+                    ) : (
+                      <Text className="text-gray-500 italic ml-4">
+                        No team members assigned
                       </Text>
                     )}
                   </View>

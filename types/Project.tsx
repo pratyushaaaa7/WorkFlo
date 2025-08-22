@@ -8,7 +8,9 @@ type Project = {
   company: string;
   scopes: string[];
   startDate: string; // ISO string
-  assignedUsers: { _id: string; username?: string }[];
+  assignedUsers: { _id: string; username?: string }[]; // legacy
+  teamLeaders: { _id: string; username?: string }[];
+  teamMembers: { _id: string; username?: string }[];
 };
 
 export type { Project };
