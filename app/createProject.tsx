@@ -68,7 +68,7 @@ const CreateProjectScreen = () => {
     { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
   ];
 
-  const [startDate, setStartDate] = useState<Date>(new Date());
+const [startDate, setStartDate] = useState<Date | null>(null); // start as null
   const [showStartPicker, setShowStartPicker] = useState(false);
 
   useEffect(() => {
@@ -258,6 +258,8 @@ const CreateProjectScreen = () => {
         </View>
 
         {/* Text Inputs */}
+
+        {/*Project Name*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Name
@@ -271,6 +273,7 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/*Project Code*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Code
@@ -284,6 +287,7 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/*Project Location*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Location
@@ -297,6 +301,7 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/*Project area*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Area <Text className="text-gray-400">(in sqft)</Text>
@@ -320,13 +325,17 @@ const CreateProjectScreen = () => {
             onPress={() => setShowStartPicker(true)}
             className="border border-black rounded-lg py-2 px-4 bg-white"
           >
-            <Text className="text-base text-black">
-              {startDate.toDateString()}
+            <Text
+              className={`text-base ${
+                startDate ? "text-black" : "text-[#999]"
+              }`}
+            >
+              {startDate ? startDate.toDateString() : "Enter start date"}
             </Text>
           </Pressable>
           {showStartPicker && (
             <DateTimePicker
-              value={startDate}
+            value={startDate || new Date()}
               mode="date"
               display={Platform.OS === "ios" ? "spinner" : "default"}
               onChange={(event, selectedDate) => {
