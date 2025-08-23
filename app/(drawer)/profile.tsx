@@ -42,23 +42,28 @@ export default function ProfileScreen() {
     fetchUsername();
   }, []);
 
- const handleLogout = async () => {
-  await logout();
-  Toast.show({
-    type: "success",
-    text1: "Logged Out",
-    text2: "You have been signed out successfully.",
-    position: "bottom",
-  });
-  router.replace("/login");
-};
+  const handleLogout = async () => {
+    await logout();
+    Toast.show({
+      type: "success",
+      text1: "Logged Out",
+      text2: "You have been signed out successfully.",
+      position: "bottom",
+    });
+    router.replace("/login");
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header Gradient with Avatar */}
       <LinearGradient
-        colors={["#6a11cb", "#2575fc"]}
-        className="h-64 justify-center items-center rounded-b-3xl"
+        colors={["#6366F1", "#8B5CF6"]}
+        className="h-64 justify-center items-center "
+        style={{
+          borderBottomLeftRadius: 200,
+          borderBottomRightRadius: 200,
+          overflow: "hidden", // important
+        }}
       >
         <View className="w-28 h-28 bg-white rounded-full justify-center items-center shadow-md">
           <Text className="text-4xl font-bold text-indigo-600">{initials}</Text>
