@@ -6,20 +6,23 @@ import {
   Dimensions,
   Modal,
   ScrollView,
+  Animated,
+  
 } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { Project } from "../types/Project";
 
 const { width } = Dimensions.get("window");
-const ITEMS_PER_ROW = 3;
-const ITEM_MARGIN = 12;
+const ITEMS_PER_ROW = 2; // fewer items per row for larger, card-like buttons
+const ITEM_MARGIN = 16;
 const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 
 const ProjectMain = () => {
@@ -37,7 +40,7 @@ const ProjectMain = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProject(res.data.project);
-        // console.log("Project details:", res.data.project);
+        console.log("Fetched project:", res.data.project);
       } catch (err: any) {
         console.error("Failed to fetch project details:", err.message || err);
       }
@@ -53,7 +56,11 @@ const ProjectMain = () => {
       key: "directory",
       label: "User Directory",
       icon: (
-        <MaterialCommunityIcons name="dots-grid" size={50} color="#8B5CF6" />
+        <MaterialCommunityIcons
+          name="account-group"
+          size={40}
+          color="#6366F1"
+        />
       ),
       onPress: () => {
         router.push({
@@ -65,9 +72,9 @@ const ProjectMain = () => {
     {
       key: "ilr",
       label: "ILR",
-      icon: <Ionicons name="clipboard-outline" size={50} color="#F59E0B" />,
+      icon: <Ionicons name="clipboard-outline" size={40} color="#F59E0B" />,
       onPress: () => {
-       router.push({
+        router.push({
           pathname: "/ilrs",
           params: { company, projectId, projectName: project?.projectName },
         });
@@ -75,8 +82,8 @@ const ProjectMain = () => {
     },
     {
       key: "mom",
-      label: "Minutes of Meeting",
-      icon: <MaterialIcons name="edit-document" size={50} color="#3B82F6" />,
+      label: "Meetings",
+      icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
       onPress: () => {
         // router.push("/mom");
       },
@@ -84,113 +91,174 @@ const ProjectMain = () => {
   ];
 
   return (
-    <View className="flex-1 bg-white">
-      {/* Back button */}
-      <View
-        className="pt-16 px-4 pb-6 bg-white"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-        }}
+    <View className="flex-1 bg-gray-50">
+      {/* Gradient Header */}
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="rounded-b-3xl px-6 pt-14 pb-10"
       >
         <TouchableOpacity
           onPress={() => router.push("/projects")}
-          className="flex-row items-center"
+          className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-            Back
-          </Text>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-      </View>
-
-      {/* Project title + More Info button */}
-      <View className="flex-row items-center justify-between px-6 mt-6">
-        <Text className="text-2xl font-bold text-[#1E293B]">
-          {project?.projectName || "Loading project..."}
+        <Text className="text-3xl font-bold text-white">
+          {project?.projectName || "Loading..."}
         </Text>
-        <TouchableOpacity
-          className="bg-red-300 px-3 py-2 rounded-lg"
-          onPress={() => setModalVisible(true)}
-        >
-          <Text className="text-lg text-gray-700 font-medium">More Info</Text>
-        </TouchableOpacity>
-      </View>
+        <Text className="text-white/80 mt-1">{project?.company}</Text>
+      </LinearGradient>
 
       {/* Menu Grid */}
       <View
-        className="flex-row flex-wrap pt-6 px-3 justify-between"
+        className="flex-row flex-wrap px-4 mt-6 justify-between"
         style={{ gap: ITEM_MARGIN }}
       >
         {menuItems.map(({ key, label, icon, onPress }) => (
           <TouchableOpacity
             key={key}
             onPress={onPress}
-            className="items-center mb-6"
+            className="bg-white rounded-2xl p-6 items-center shadow-md active:scale-95"
             style={{ width: ITEM_WIDTH }}
           >
-            <View className="w-20 h-20 rounded-full bg-gray-100 justify-center items-center shadow-md mb-2">
-              {icon}
-            </View>
-            <Text className="text-gray-700 font-semibold text-center text-base">
+            <View className="mb-3">{icon}</View>
+            <Text className="text-gray-800 font-semibold text-sm text-center">
               {label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Project Info Modal */}
+      {/* Project Info Modal (Bottom Sheet Style) */}
       <Modal
         visible={modalVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white w-11/12 rounded-2xl p-4 max-h-[80%]">
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text className="text-xl font-bold mb-4">
+        <View className="flex-1 bg-black/40 justify-end">
+          <Animated.View
+            className="bg-white rounded-t-3xl p-6 max-h-[85%] shadow-2xl"
+            style={{ elevation: 10 }}
+          >
+            {/* Drag Handle */}
+            <View className="items-center mb-4">
+              <View className="w-12 h-1.5 bg-gray-300 rounded-full" />
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              className="space-y-6"
+            >
+              {/* Project Name */}
+              <Text className="text-2xl font-bold text-gray-900 text-center">
                 {project?.projectName}
               </Text>
 
-              <Text className="mb-1">📍 Location: {project?.location}</Text>
-              <Text className="mb-1">🏢 Company: {project?.company}</Text>
-              <Text className="mb-1">📐 Area: {project?.area}</Text>
-              <Text className="mb-1">
-                🏷️ Project Code: {project?.projectCode}
-              </Text>
-              <Text className="mb-1">🏡 Typology: {project?.typology}</Text>
+              {/* Info Section */}
+              <View className="bg-gray-50 rounded-xl p-4 gap-3">
+                <View className="flex-row items-center">
+                  <Ionicons name="location-outline" size={20} color="#6366F1" />
+                  <Text className="ml-2 text-gray-700">
+                    {project?.location}
+                  </Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="business-outline" size={20} color="#10B981" />
+                  <Text className="ml-2 text-gray-700">{project?.company}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="resize-outline" size={20} color="#F59E0B" />
+                  <Text className="ml-2 text-gray-700">{project?.area}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="code" size={20} color="#EF4444" />
+                  <Text className="ml-2 text-gray-700">
+                    {project?.projectCode}
+                  </Text>
+                </View>
 
-              <Text className="mt-2 font-semibold">👥 Assigned Users:</Text>
-              {project?.assignedUsers?.map((user) => (
-                <Text key={user._id}>- {user.username}</Text>
-              ))}
+                {/* Start Date */}
+                {project?.startDate && (
+                  <View className="flex-row items-center  mt-2">
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color="#4B5563"
+                    />
+                    <Text className="ml-2 text-gray-700">
+                      Start Date: {new Date(project.startDate).toDateString()}
+                    </Text>
+                  </View>
+                )}
+              </View>
 
-              <Text className="mt-2 font-semibold">📋 Scopes:</Text>
-              {project?.scopes?.map((scope, idx) => (
-                <Text key={idx}>- {scope}</Text>
-              ))}
+              {/* Team Leaders */}
+              <View className="pt-4">
+                <View className="flex-row items-center ">
+                  <Ionicons name="person-outline" size={20} color="#2563EB" />
+                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
+                    Team Leader(s)
+                  </Text>
+                </View>
+                {project?.teamLeaders?.map((user) => (
+                  <Text key={user._id} className="ml-4 text-gray-600">
+                    • {user.username}
+                  </Text>
+                ))}
+              </View>
 
-              {project?.startDate && (
-                <Text className="mt-2">
-                  📅 Start Date: {new Date(project.startDate).toDateString()}
-                </Text>
-              )}
+              {/* Team Members */}
+              <View className="pt-4">
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="people-outline" size={20} color="#9333EA" />
+                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
+                    Team Member(s)
+                  </Text>
+                </View>
+                {project?.teamMembers?.map((user) => (
+                  <Text key={user._id} className="ml-4 text-gray-600">
+                    • {user.username}
+                  </Text>
+                ))}
+              </View>
+
+              {/* Scopes */}
+              <View className="pt-4">
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="list-outline" size={20} color="#F59E0B" />
+                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
+                    Scopes
+                  </Text>
+                </View>
+                {project?.scopes?.map((scope, idx) => (
+                  <Text key={idx} className="ml-4 text-gray-600">
+                    • {scope}
+                  </Text>
+                ))}
+              </View>
             </ScrollView>
 
             {/* Close Button */}
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="bg-red-500 px-4 py-2 mt-4 rounded-xl"
+              className="bg-indigo-600 px-5 py-3 mt-6 rounded-xl shadow-md"
             >
-              <Text className="text-white text-center font-medium">Close</Text>
+              <Text className="text-white text-center font-semibold text-lg">
+                Close
+              </Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
+
+      {/* Floating More Info Button */}
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        className="absolute bottom-8 right-8 bg-indigo-600 p-4 rounded-full shadow-lg"
+      >
+        <Ionicons name="information-circle" size={28} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
