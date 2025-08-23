@@ -141,8 +141,8 @@ const ProjectMain = () => {
             style={{ elevation: 10 }}
           >
             {/* Drag Handle */}
-            <View className="items-center mb-4">
-              <View className="w-12 h-1.5 bg-gray-300 rounded-full" />
+            <View className="items-center mb-2">
+              {/* <View className="w-12 h-1.5 bg-gray-300 rounded-full" /> */}
             </View>
 
             <ScrollView
@@ -150,7 +150,7 @@ const ProjectMain = () => {
               className="space-y-6"
             >
               {/* Project Name */}
-              <Text className="text-2xl font-bold text-gray-900 text-center">
+              <Text className="text-2xl mb-2 font-bold text-gray-900 text-center">
                 {project?.projectName}
               </Text>
 
@@ -179,7 +179,7 @@ const ProjectMain = () => {
 
                 {/* Start Date */}
                 {project?.startDate && (
-                  <View className="flex-row items-center  mt-2">
+                  <View className="flex-row items-center">
                     <Ionicons
                       name="calendar-outline"
                       size={20}
