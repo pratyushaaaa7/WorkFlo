@@ -1,15 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
+
 import { View, Text, TouchableOpacity } from "react-native";
-import {
-  Ionicons,
-  AntDesign,
-  MaterialIcons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { AuthContext } from "../../context/AuthContext";
 
 const ProjectMain = () => {
   const router = useRouter();
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
 
   return (
     <>
@@ -45,30 +44,31 @@ const ProjectMain = () => {
           <Ionicons name="chevron-forward" size={20} color="#6B7280" />
         </TouchableOpacity>
 
-        {/* Floating + Button */}
-        <TouchableOpacity
-          onPress={() => router.push("/createProject")}
-          className="bg-indigo-600"
-          activeOpacity={0.85}
-          style={{
-            position: "absolute",
-            bottom: 30,
-            right: 30,
-          
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOpacity: 0.15,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 6,
-          }}
-        >
-          <AntDesign name="plus" size={28} color="white" />
-        </TouchableOpacity>
+        {/* Create Floating + Button */}
+        {user?.role === "admin" && (
+          <TouchableOpacity
+            onPress={() => router.push("/createProject")}
+            className="bg-indigo-600"
+            activeOpacity={0.85}
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 30,
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              justifyContent: "center",
+              alignItems: "center",
+              shadowColor: "#000",
+              shadowOpacity: 0.15,
+              shadowRadius: 6,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 6,
+            }}
+          >
+            <AntDesign name="plus" size={28} color="white" />
+          </TouchableOpacity>
+        )}
 
         {/* ➕ Create Project Button */}
         {/* <TouchableOpacity
