@@ -7,7 +7,6 @@ import {
   Modal,
   ScrollView,
   Animated,
-  
 } from "react-native";
 import {
   Ionicons,
