@@ -18,6 +18,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
 
 const UserList = () => {
   const router = useRouter();
@@ -319,8 +320,9 @@ const UserList = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View
-        className="bg-white pt-16 pb-6 px-4  flex-row items-center justify-between"
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
@@ -336,18 +338,18 @@ const UserList = () => {
           className="flex-row items-center"
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">Back</Text>
         </TouchableOpacity>
 
         {/* Download Icon */}
         <TouchableOpacity
           onPress={handleDownloadExcel}
-          className="px-2 mr-2 rounded-full bg-gray-100 active:bg-gray-200"
+          className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
         >
-          <Feather name="download" size={22} color="#1E293B" />
+          <Feather name="download" size={22} color="#fff" />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
@@ -378,11 +380,12 @@ const UserList = () => {
             `/addUserDirectory?projectId=${projectId}&projectName=${projectName}`
           )
         }
+        className="bg-indigo-600"
         style={{
           position: "absolute",
           bottom: 36,
           right: 20,
-          backgroundColor: "#2563EB",
+       
           width: 56,
           height: 56,
           borderRadius: 28,
@@ -542,7 +545,7 @@ const UserList = () => {
 
               <Pressable
                 onPress={handleSaveEdit}
-                className="px-6 py-2 rounded-lg bg-blue-600"
+                className="px-6 py-2 rounded-lg bg-indigo-600"
               >
                 <Text className="text-white font-semibold text-center">
                   Save

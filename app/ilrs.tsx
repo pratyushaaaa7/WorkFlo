@@ -16,6 +16,7 @@ import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
+import { LinearGradient } from "expo-linear-gradient";
 // import Toast from "react-native-toast-message";
 
 type ILR = {
@@ -171,34 +172,36 @@ const ILRs = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View
-        className="bg-white pt-16 pb-5 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-4">Back</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleDownloadExcel} // 👈 attach function
-          className="px-3 py-1 rounded-full hover:bg-brown-100 bg-gray-100"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          // activeOpacity={0.7}
-        >
-          <Feather name="download" size={22} color="black" />
-        </TouchableOpacity>
-      </View>
+    <LinearGradient
+            colors={["#6366F1", "#8B5CF6"]}
+            className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 6,
+              zIndex: 10,
+            }}
+          >
+            {/* Back Button */}
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="flex-row items-center"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+              <Text className="text-xl font-semibold text-white ml-4">Back</Text>
+            </TouchableOpacity>
+    
+            {/* Download Icon */}
+            <TouchableOpacity
+              onPress={handleDownloadExcel}
+              className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
+            >
+              <Feather name="download" size={22} color="#fff" />
+            </TouchableOpacity>
+          </LinearGradient>
 
       {/* Filter Buttons */}
       <View className="flex-row justify-center gap-3 mt-3">
@@ -325,11 +328,12 @@ const ILRs = () => {
             `/ilrForm?projectId=${projectId}&projectName=${projectName}`
           )
         }
+        className="bg-indigo-600"
         style={{
           position: "absolute",
           bottom: 36,
           right: 20,
-          backgroundColor: "#2563EB",
+         
           width: 56,
           height: 56,
           borderRadius: 28,

@@ -39,7 +39,7 @@ const ProjectMain = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProject(res.data.project);
-        console.log("Fetched project:", res.data.project);
+        // console.log("Fetched project:", res.data.project);
       } catch (err: any) {
         console.error("Failed to fetch project details:", err.message || err);
       }
