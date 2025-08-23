@@ -57,11 +57,11 @@ export default function ProfileScreen() {
     <View className="flex-1 bg-gray-50">
       {/* Header Gradient with Avatar */}
       <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
+        colors={["#8B5CF6", "#9333EA"]}//#6366F1
         className="h-64 justify-center items-center "
         style={{
-          borderBottomLeftRadius: 200,
-          borderBottomRightRadius: 200,
+          borderBottomLeftRadius: 150,
+          borderBottomRightRadius: 150,
           overflow: "hidden", // important
         }}
       >

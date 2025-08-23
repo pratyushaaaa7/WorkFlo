@@ -3,6 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet } from "react-native";
 // import { View, ActivityIndicator } from "react-native";
 
 export default function DrawerLayout() {
@@ -18,7 +20,18 @@ export default function DrawerLayout() {
   if (!isAuthenticated) return null;
 
   return (
-    <Drawer>
+    <Drawer
+      screenOptions={{
+        headerTintColor: "#fff", // title & icon color
+        headerTitleStyle: { fontWeight: "bold" },
+        headerBackground: () => (
+          <LinearGradient
+            colors={["#6366F1", "#8B5CF6"]}
+            style={StyleSheet.absoluteFill}
+          />
+        ),
+      }}
+    >
       <Drawer.Screen
         name="profile"
         options={{
@@ -29,7 +42,7 @@ export default function DrawerLayout() {
           ),
         }}
       />
-{/* 
+      {/* 
       <Drawer.Screen
         name="ilrForm"
         options={{

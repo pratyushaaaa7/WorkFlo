@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
 
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
@@ -73,94 +74,103 @@ const CompanyProjectSelectionScreen = () => {
     });
   };
 
-  return (
-    <ScrollView
-      className="flex-1 px-4 py-6 bg-white"
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="mb-4">
-        <Text className="text-lg font-semibold text-gray-700 mb-2">
-          Select Company
-        </Text>
-        <Dropdown
-          data={companyOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Choose company"
-          value={selectedCompany}
-          onChange={(item) => {
-            setSelectedCompany(item.value);
-          }}
-          style={{
-            height: 45,
-            borderColor: "#000", // Aqua border to match theme
-            borderWidth: 1,
-            borderRadius: 8,
-            paddingHorizontal: 10,
-            backgroundColor: "#fff",
-          }}
-          placeholderStyle={{
-            fontSize: 14,
-            color: "#888",
-          }}
-          selectedTextStyle={{
-            fontSize: 14,
-            color: "#0B0B0B", // Rich black for readability
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            overflow: "hidden",
-            backgroundColor: "#fff", // Soft aqua dropdown background
-          }}
-          activeColor="#E0F7FA" // Medium aqua for active highlight
-        />
-      </View>
-
-      <View className="mb-4">
-        <Text className="text-lg font-semibold text-gray-700 mb-2">
-          Select Project
-        </Text>
-        <Dropdown
-          data={assignedProjects}
-          labelField="label"
-          valueField="value"
-          placeholder="Choose project"
-          value={selectedProject}
-          onChange={(item) => {
-            setSelectedProject(item.value);
-          }}
-          style={{
-            height: 45,
-            borderColor: "#000", // Aqua border to match theme
-            borderWidth: 1,
-            borderRadius: 8,
-            paddingHorizontal: 10,
-            backgroundColor: "#fff",
-          }}
-          placeholderStyle={{
-            fontSize: 14,
-            color: "#888",
-          }}
-          selectedTextStyle={{
-            fontSize: 14,
-            color: "#0B0B0B", // Rich black for readability
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            overflow: "hidden",
-            backgroundColor: "#fff", // Soft aqua dropdown background
-          }}
-          activeColor="#E0F7FA" // Medium aqua for active highlight
-        />
-      </View>
-
-      <TouchableOpacity
-        className="bg-blue-600 mt-6 py-3 rounded-lg items-center"
-        onPress={handleEnter}
+ return (
+    <View className="flex-1 bg-gray-50">
+      {/* Gradient Header */}
+      <View
+        // colors={["#6366F1", "#8B5CF6"]}
+        className=" pt-4 justify-center items-center "
       >
-        <Text className="text-white font-bold text-base">Enter</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text className="text-xl font-bold">Select Project</Text>
+        <Text className=" mt-1 text-sm">
+          Choose company and project to continue
+        </Text>
+      </View>
+
+      {/* Form Section */}
+      <ScrollView
+        className="flex-1 px-5 py-6"
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Company Dropdown */}
+        <View className="mb-5 bg-white rounded-xl shadow-md p-4">
+          <Text className="text-base font-semibold text-gray-700 mb-2">
+            Select Company
+          </Text>
+          <Dropdown
+            data={companyOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Choose company"
+            value={selectedCompany}
+            onChange={(item) => setSelectedCompany(item.value)}
+            style={{
+              height: 48,
+              borderRadius: 10,
+              paddingHorizontal: 10,
+              backgroundColor: "#F9FAFB",
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#9CA3AF",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: "#111827",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: "#fff",
+              elevation: 4,
+            }}
+            activeColor="#E0E7FF"
+          />
+        </View>
+
+        {/* Project Dropdown */}
+        <View className="mb-5 bg-white rounded-xl shadow-md p-4">
+          <Text className="text-base font-semibold text-gray-700 mb-2">
+            Select Project
+          </Text>
+          <Dropdown
+            data={assignedProjects}
+            labelField="label"
+            valueField="value"
+            placeholder="Choose project"
+            value={selectedProject}
+            onChange={(item) => setSelectedProject(item.value)}
+            style={{
+              height: 48,
+              borderRadius: 10,
+              paddingHorizontal: 10,
+              backgroundColor: "#F9FAFB",
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#9CA3AF",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: "#111827",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: "#fff",
+              elevation: 4,
+            }}
+            activeColor="#E0E7FF"
+          />
+        </View>
+
+        {/* Enter Button */}
+        <TouchableOpacity
+          className="bg-indigo-600 mt-6 py-3 rounded-xl items-center shadow-lg active:scale-95"
+          onPress={handleEnter}
+        >
+          <Text className="text-white font-bold text-base">Enter</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 };
 
