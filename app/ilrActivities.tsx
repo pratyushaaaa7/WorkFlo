@@ -493,10 +493,10 @@ const IlrActivities = () => {
           </View>
 
           {/* Buttons Row */}
-          <View className="flex-row justify-start gap-3">
+          <View className="flex-row justify-between gap-3">
             {/* Add Note Button */}
             <TouchableOpacity
-              className={`rounded-lg shadow-md overflow-hidden ${
+              className={`flex-1 rounded-lg shadow-md overflow-hidden ${
                 newNote.trim() ? "" : "opacity-50"
               }`}
               disabled={!newNote.trim()}
@@ -506,7 +506,7 @@ const IlrActivities = () => {
                 colors={["#34D399", "#059669"]} // Green gradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="px-4 py-2 rounded-lg"
+                className="w-full py-2 rounded-lg items-center"
               >
                 <Text className="text-white font-medium">Add Note</Text>
               </LinearGradient>
@@ -514,7 +514,7 @@ const IlrActivities = () => {
 
             {/* Change Date Button */}
             <TouchableOpacity
-              className={`rounded-lg shadow-md overflow-hidden ${
+              className={`flex-1 rounded-lg shadow-md overflow-hidden ${
                 newNote.trim() ? "" : "opacity-50"
               }`}
               disabled={!newNote.trim()}
@@ -524,7 +524,7 @@ const IlrActivities = () => {
                 colors={["#C084FC", "#7C3AED"]} // Purple gradient
                 start={{ x: 1, y: 0 }}
                 end={{ x: 0, y: 1 }}
-                className="px-4 py-2 rounded-lg"
+                className="w-full py-2 rounded-lg items-center"
               >
                 <Text className="text-white font-medium">Change Date</Text>
               </LinearGradient>
