@@ -13,11 +13,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import * as XLSX from "xlsx";
+// import * as FileSystem from "expo-file-system";
+// import * as Sharing from "expo-sharing";
+// import * as XLSX from "xlsx";
 import { LinearGradient } from "expo-linear-gradient";
 // import Toast from "react-native-toast-message";
+import Activity from "@/types/ILRActivity";
+// import ExcelJS from "exceljs";
+
+import { exportILRsToExcel } from "../utils/ilrExcel"; // adjust path
 
 type ILR = {
   _id: string;
@@ -25,6 +29,7 @@ type ILR = {
   description: string;
   targetDate: string;
   remarks: string;
+  activities?: Activity[]; // 👈 add this
   responsibility: {
     _id: string;
     individualName: string;
@@ -71,56 +76,11 @@ const ILRs = () => {
 
     fetchILRs();
   }, [token, projectId]);
+  // console.log("ILRs State:", ilrs);
 
-  const handleDownloadExcel = async () => {
-    try {
-      if (!ilrs || ilrs.length === 0) {
-        alert("No ILRs available to download");
-        return;
-      }
 
-      // Prepare data
-      const worksheetData = filteredILRs.map((ilr, index) => ({
-        "S. No": index + 1,
-        "Issue Subject": ilr.description,
-        "Target Date": new Date(ilr.targetDate).toLocaleDateString(),
-        Status: ilr.status,
-        Responsibility: ilr.responsibility
-          .map((r) => `${r.individualName} (${r.designation})`)
-          .join(", "),
-        "Issue Description": ilr.remarks || "No remarks",
-        "Added By": ilr.createdBy?.username || "N/A",
-        "Created At": new Date(ilr.createdAt).toLocaleDateString(),
-      }));
-
-      // Create worksheet & workbook
-      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "ILRs");
-
-      // Convert to binary
-      const excelBuffer = XLSX.write(workbook, {
-        type: "base64",
-        bookType: "xlsx",
-      });
-
-      // Save to device
-      const filename = FileSystem.documentDirectory + "ILRs.xlsx";
-      await FileSystem.writeAsStringAsync(filename, excelBuffer, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Share
-      await Sharing.shareAsync(filename, {
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        dialogTitle: "Share ILRs Excel",
-        UTI: "com.microsoft.excel.xlsx",
-      });
-    } catch (err) {
-      console.error("Error exporting Excel:", err);
-      alert("Failed to export Excel");
-    }
+ const handleDownloadExcel = () => {
+    exportILRsToExcel(parsedILRs, projectName, auth.user?.username); // 👈 one-line call
   };
 
   const renderCard = ({ item }: { item: ILR }) => {
@@ -140,7 +100,7 @@ const ILRs = () => {
             status: item.status,
             createdBy: item.createdBy?.username,
             createdAt: item.createdAt,
-            ilrNumber: item.ilrNumber, // 👈 ADD THIS
+            ilrNumber: item.ilrNumber,
           };
           router.push({ pathname: `/ilrActivities`, params });
         }}
@@ -153,7 +113,7 @@ const ILRs = () => {
             numberOfLines={2}
             ellipsizeMode="tail"
           >
-            {item.description}
+            {item.ilrNumber}. {item.description}
           </Text>
 
           {/* Status pill */}
@@ -170,6 +130,14 @@ const ILRs = () => {
   // 👇 filter ILRs before rendering
   const filteredILRs =
     filter === "All" ? ilrs : ilrs.filter((ilr) => ilr.status === filter);
+
+  const parsedILRs = filteredILRs.map((ilr) => ({
+    ...ilr,
+    activities:
+      typeof ilr.activities === "string"
+        ? JSON.parse(ilr.activities)
+        : ilr.activities || [],
+  }));
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -193,7 +161,10 @@ const ILRs = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">  {projectName}&#39;s  ILR</Text>
+          <Text className="text-xl font-semibold text-white ml-4">
+            {" "}
+            {projectName} ILRs
+          </Text>
         </TouchableOpacity>
 
         {/* Download Icon */}

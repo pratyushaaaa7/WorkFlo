@@ -20,6 +20,8 @@
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/native-stack": "^7.3.24",
     "axios": "^1.11.0",
+    "base-64": "^1.0.0",
+    "exceljs": "^4.4.0",
     "expo": "~53.0.20",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
@@ -58,6 +60,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/base-64": "^1.0.2",
     "@types/react": "~19.0.10",
     "@types/react-native": "^0.72.8",
     "@types/react-native-vector-icons": "^6.4.18",

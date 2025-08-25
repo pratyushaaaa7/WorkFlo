@@ -16,22 +16,14 @@ import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
+import Activity from "@/types/ILRActivity";
 
 type Responsibility = {
   _id: string;
   individualName: string;
   designation: string;
 };
-type Activity = {
-  _id: string;
-  title: string;
-  createdBy: string;
-  createdAt: string;
-  oldValue?: any;
-  newValue?: any;
-  note?: string; // 👈 add this
-  type: "note" | "date" | "remark" | "status"; // <-- add this
-};
+
 // --- Define color map outside the component ---
 const ACTIVITY_BG_COLORS: Record<Activity["type"], string> = {
   note: "#DDFCE7", // lighter green
@@ -272,6 +264,8 @@ const IlrActivities = () => {
       console.error("Failed to add note:", err);
     }
   };
+
+  // console.log("Current ILR:", activities);
 
   return (
     <View className="flex-1 bg-gray-100">
