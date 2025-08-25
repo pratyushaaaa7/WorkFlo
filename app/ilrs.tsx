@@ -21,6 +21,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 type ILR = {
   _id: string;
+  ilrNumber: number; // 👈 add here
   description: string;
   targetDate: string;
   remarks: string;
@@ -81,13 +82,13 @@ const ILRs = () => {
       // Prepare data
       const worksheetData = filteredILRs.map((ilr, index) => ({
         "S. No": index + 1,
-        "Issue Description": ilr.description,
+        "Issue Subject": ilr.description,
         "Target Date": new Date(ilr.targetDate).toLocaleDateString(),
         Status: ilr.status,
         Responsibility: ilr.responsibility
           .map((r) => `${r.individualName} (${r.designation})`)
           .join(", "),
-        Remarks: ilr.remarks || "No remarks",
+        "Issue Description": ilr.remarks || "No remarks",
         "Added By": ilr.createdBy?.username || "N/A",
         "Created At": new Date(ilr.createdAt).toLocaleDateString(),
       }));
@@ -139,6 +140,7 @@ const ILRs = () => {
             status: item.status,
             createdBy: item.createdBy?.username,
             createdAt: item.createdAt,
+            ilrNumber: item.ilrNumber, // 👈 ADD THIS
           };
           router.push({ pathname: `/ilrActivities`, params });
         }}
@@ -172,36 +174,36 @@ const ILRs = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-    <LinearGradient
-            colors={["#6366F1", "#8B5CF6"]}
-            className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 6,
-              zIndex: 10,
-            }}
-          >
-            {/* Back Button */}
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="flex-row items-center"
-              activeOpacity={0.7}
-            >
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-              <Text className="text-xl font-semibold text-white ml-4">Back</Text>
-            </TouchableOpacity>
-    
-            {/* Download Icon */}
-            <TouchableOpacity
-              onPress={handleDownloadExcel}
-              className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
-            >
-              <Feather name="download" size={22} color="#fff" />
-            </TouchableOpacity>
-          </LinearGradient>
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-row items-center"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">Back</Text>
+        </TouchableOpacity>
+
+        {/* Download Icon */}
+        <TouchableOpacity
+          onPress={handleDownloadExcel}
+          className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
+        >
+          <Feather name="download" size={22} color="#fff" />
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Filter Buttons */}
       <View className="flex-row justify-center gap-3 mt-3">
@@ -224,83 +226,6 @@ const ILRs = () => {
         ))}
       </View>
 
-      {/* <View className="flex-row justify-center items-center mt-3">
-        <Text className="mr-2 text-gray-700">Closed</Text>
-        <Switch
-          value={filter === "Open"}
-          onValueChange={(val) => setFilter(val ? "Open" : "Closed")}
-          thumbColor={filter === "Open" ? "#2563EB" : "#9CA3AF"} // blue when ON, gray when OFF
-          trackColor={{ false: "#D1D5DB", true: "#93C5FD" }}
-        />
-        <Text className="ml-2 text-gray-700">Open</Text>
-      </View> */}
-
-      {/* <View className="mt-4 items-center">
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          className="bg-blue-600 px-6 py-2 rounded-full"
-        >
-          <Text className="text-white font-medium">Filter</Text>
-        </TouchableOpacity>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View className="flex-1 justify-center items-center bg-black/40">
-            <View className="bg-white w-80 p-6 rounded-2xl shadow-lg">
-              <Text className="text-lg font-semibold text-gray-800 mb-4">
-                Select Filter
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => setFilter("All")}
-                className="flex-row justify-between items-center mb-4"
-              >
-                <Text className="text-gray-700">All</Text>
-                <Switch
-                  value={filter === "All"}
-                  onValueChange={() => setFilter("All")}
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => toggleFilter("Open")}
-                className="flex-row justify-between items-center mb-4"
-              >
-                <Text className="text-gray-700">Open</Text>
-                <Switch
-                  value={filter === "Open"}
-                  onValueChange={() => toggleFilter("Open")}
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => toggleFilter("Closed")}
-                className="flex-row justify-between items-center mb-6"
-              >
-                <Text className="text-gray-700">Closed</Text>
-                <Switch
-                  value={filter === "Closed"}
-                  onValueChange={() => toggleFilter("Closed")}
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="bg-blue-600 px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white text-center">Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        <Text className="mt-2 text-gray-600">Current Filter: {filter}</Text>
-      </View> */}
-
       <View className="px-4 pt-5 flex-1">
         <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
           {projectName}&#39;s Issue Log Register
@@ -310,7 +235,7 @@ const ILRs = () => {
           <ActivityIndicator size="large" color="#2563EB" />
         ) : filteredILRs.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
-            No ILRs found for this filter.
+            No ILRs found.
           </Text>
         ) : (
           <FlatList
@@ -333,7 +258,7 @@ const ILRs = () => {
           position: "absolute",
           bottom: 36,
           right: 20,
-         
+
           width: 56,
           height: 56,
           borderRadius: 28,

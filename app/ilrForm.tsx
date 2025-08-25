@@ -126,7 +126,8 @@ export default function ILRForm() {
         if (
           !issue.description.trim() ||
           !issue.targetDate ||
-          !issue.responsibility.length
+          !issue.responsibility.length ||
+          !issue.remarks.trim()
         ) {
           Toast.show({
             type: "error",
@@ -267,7 +268,7 @@ export default function ILRForm() {
 
             <View className="gap-1">
               <TextInput
-                placeholder="Issue Description"
+                placeholder="Issue Title"
                 value={issue.description}
                 onChangeText={(text) => updateIssue(index, "description", text)}
                 className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base"
@@ -331,7 +332,7 @@ export default function ILRForm() {
               />
 
               <TextInput
-                placeholder="Remarks"
+                placeholder="Issue Description"
                 value={issue.remarks}
                 onChangeText={(text) => updateIssue(index, "remarks", text)}
                 className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base"

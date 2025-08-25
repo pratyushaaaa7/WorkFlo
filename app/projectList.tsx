@@ -8,6 +8,7 @@ import {
   Modal,
   ScrollView,
   Pressable,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
