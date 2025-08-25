@@ -276,17 +276,31 @@ const IlrActivities = () => {
   return (
     <View className="flex-1 bg-gray-100">
       {/* Header */}
-      <View className="bg-white pt-16 pb-6 px-4 flex-row items-center shadow-md">
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
+      >
+        {/* Back Button */}
         <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
+          activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-3">
-            ILR Details
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">
+            {" "}
+            ILR Activities
           </Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <ScrollView className="flex-1 px-3 py-3">
         {/* ILR Card */}

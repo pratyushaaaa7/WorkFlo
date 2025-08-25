@@ -193,7 +193,7 @@ const ILRs = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">Back</Text>
+          <Text className="text-xl font-semibold text-white ml-4">  {projectName}&#39;s  ILR</Text>
         </TouchableOpacity>
 
         {/* Download Icon */}
@@ -227,9 +227,9 @@ const ILRs = () => {
       </View>
 
       <View className="px-4 pt-5 flex-1">
-        <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
+        {/* <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
           {projectName}&#39;s Issue Log Register
-        </Text>
+        </Text> */}
 
         {loading ? (
           <ActivityIndicator size="large" color="#2563EB" />
