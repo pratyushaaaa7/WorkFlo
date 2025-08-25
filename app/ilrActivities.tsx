@@ -455,6 +455,7 @@ const IlrActivities = () => {
               value={newRemark}
               onChangeText={setNewRemark}
               placeholder="Enter remark..."
+              placeholderTextColor={"#999"}
               className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
             />
             <TouchableOpacity
@@ -476,9 +477,9 @@ const IlrActivities = () => {
         {/* Notes Section */}
 
         <View className="bg-white rounded-2xl p-4 shadow-md mb-3">
-          <Text className="font-semibold text-gray-800 text-lg mb-4">
+          {/* <Text className="font-semibold text-gray-800 text-lg mb-4">
             Notes & Change Date
-          </Text>
+          </Text> */}
 
           {/* Text Input Row */}
           <View className="mb-3">
