@@ -40,8 +40,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const response = await api.post("/auth/login", { username, password });
-       console.log("Login response:", response.data); // 👈 see exactly what backend returns
-      const { token , user} = response.data;
+      console.log("Login response:", response.data); // 👈 see exactly what backend returns
+      const { token, user } = response.data;
       await login(token, user);
 
       Toast.show({
@@ -68,7 +68,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={["#4facfe", "#00f2fe"]} className="flex-1">
+    <LinearGradient  colors={["#6366F1", "#8B5CF6"]} className="flex-1">
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -125,20 +125,13 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Forgot Password */}
-          <TouchableOpacity className="mb-4 self-end">
-            <Text className="text-blue-600 text-sm font-medium">
-              Forgot Password?
-            </Text>
-          </TouchableOpacity>
-
           {/* Login Button */}
           <Pressable
             onPress={handleLogin}
             disabled={loading}
             className={`${
-              loading ? "bg-blue-400" : "bg-blue-600"
-            } py-3 rounded-xl w-full items-center active:scale-95`}
+              loading ? "bg-indigo-400" : "bg-indigo-600"
+            } py-3 rounded-xl w-full mt-4 items-center active:scale-95`}
             android_ripple={{ color: "rgba(255,255,255,0.2)" }}
           >
             {loading ? (
