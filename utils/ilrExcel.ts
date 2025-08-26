@@ -2,8 +2,10 @@
 import ExcelJS from "exceljs";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import { Buffer } from "buffer";
 
-// 👇 Define the types if you want strong typing
+
+// Types
 type Responsibility = { individualName: string; designation: string };
 type Activity = {
   fieldChanged: string;
@@ -13,7 +15,7 @@ type Activity = {
 };
 
 export type ILR = {
-  ilrNumber: number; // match your actual model
+  ilrNumber: number;
   createdAt: string;
   createdBy?: { username: string };
   description: string;
@@ -28,10 +30,9 @@ export type ILR = {
 function formatDate(date: string | Date): string {
   if (!date) return "N/A";
   const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
+  return `${String(d.getDate()).padStart(2, "0")}.${String(
+    d.getMonth() + 1
+  ).padStart(2, "0")}.${d.getFullYear()}`;
 }
 
 export async function exportILRsToExcel(
@@ -48,11 +49,20 @@ export async function exportILRsToExcel(
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("ILRs");
 
-    // --- TOP INFO ROWS ---
-    worksheet.addRow([`Project Name: ${projectName}`]);
-    worksheet.addRow([`Printed Date: ${formatDate(new Date())}`]);
-    worksheet.addRow([`Downloaded By: ${accountName}`]);
+    // --- HEAD INFO ---
+    const infoRows = [
+      `Project Name: ${projectName}`,
+      `Printed Date: ${formatDate(new Date())}`,
+      `Downloaded By: ${accountName}`,
+    ];
+
+    infoRows.forEach((text, i) => {
+      const row = worksheet.addRow([text]);
+      worksheet.mergeCells(`A${i + 1}:J${i + 1}`); // merge across columns
+      row.font = { bold: true };
+    });
     worksheet.addRow([]); // empty row for spacing
+    
 
     // --- HEADERS ---
     const maxActivities = Math.max(
@@ -85,7 +95,7 @@ export async function exportILRsToExcel(
         pattern: "solid",
         fgColor: { argb: "E5E7EB" },
       };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
+      cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
     });
 
     // --- DATA ROWS ---
@@ -118,52 +128,42 @@ export async function exportILRsToExcel(
         ...activityValues,
       ]);
 
+      // style status cell
       const statusCell = row.getCell(9);
       if (ilr.status.toLowerCase() === "open") {
-        statusCell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "F87171" },
-        };
+        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F87171" } };
         statusCell.font = { color: { argb: "FFFFFF" }, bold: true };
       } else if (ilr.status.toLowerCase() === "closed") {
-        statusCell.fill = {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "4ADE80" },
-        };
+        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4ADE80" } };
         statusCell.font = { color: { argb: "FFFFFF" }, bold: true };
       }
 
+      // wrap activity text
       activityValues.forEach((_, i) => {
-        row.getCell(10 + i).alignment = {
-          wrapText: true,
-          vertical: "top",
-        };
+        row.getCell(10 + i).alignment = { wrapText: true, vertical: "top" };
       });
     });
 
-    // --- AUTO WIDTH ---
-    worksheet.columns.forEach((col) => {
-      let maxLength = 0;
-      col.eachCell({ includeEmpty: true }, (cell) => {
-        const val = cell.value ? cell.value.toString() : "";
-        maxLength = Math.max(maxLength, val.length);
-      });
-      col.width = maxLength + 2;
+    // --- COLUMN WIDTHS ---
+    const colWidths: Record<number, number> = {
+      1: 6, // S.NO
+      2: 12, // Issue Number
+      3: 14, // Date
+      4: 15, // Raised By
+      5: 30, // Subject
+      6: 40, // Description
+      7: 30, // Responsibility
+      8: 14, // Target Date
+      9: 12, // Status
+    };
+
+    worksheet.columns.forEach((col, idx) => {
+      col.width = colWidths[idx + 1] ?? 25; // default for activities
     });
 
     // --- SAVE FILE ---
     const buffer = await workbook.xlsx.writeBuffer();
-    const bytes = new Uint8Array(buffer);
-
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    const base64 = global.btoa
-      ? global.btoa(binary)
-      : Buffer.from(binary).toString("base64");
+    const base64 = Buffer.from(buffer).toString("base64");
 
     const fileUri = FileSystem.documentDirectory + "ILRs.xlsx";
     await FileSystem.writeAsStringAsync(fileUri, base64, {
@@ -171,117 +171,12 @@ export async function exportILRsToExcel(
     });
 
     await Sharing.shareAsync(fileUri, {
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       dialogTitle: "Share ILRs Excel",
       UTI: "com.microsoft.excel.xlsx",
     });
   } catch (err) {
-    console.error("Error exporting Excel:", err);
+    console.error("❌ Error exporting Excel:", err);
     alert("Failed to export Excel");
   }
 }
-
-
-// const handleDownloadExcel = async () => {
-//   try {
-//     if (!ilrs || ilrs.length === 0) {
-//       alert("No ILRs available to download");
-//       return;
-//     }
-
-//     // Prepare data
-//     //       const worksheetData = parsedILRs.map((ilr, index) => ({
-//     //         "S. NO": index + 1,
-//     //         "ISSUE NUMBER": ilr.ilrNumber,
-//     //         "DATE OF ISSUE": new Date(ilr.createdAt).toLocaleDateString(),
-//     //         "RAISED BY": ilr.createdBy?.username || "N/A",
-//     //         "ISSUE SUBJECT": ilr.description,
-//     //         "ISSUE DESCRIPTION": ilr.remarks || "No remarks",
-//     //         RESPONSIBILITY: ilr.responsibility
-//     //           .map((r) => `${r.individualName} (${r.designation})`)
-//     //           .join(", "),
-//     //         "TARGET DATE": new Date(ilr.targetDate).toLocaleDateString(),
-//     //         STATUS: ilr.status,
-//     //         NOTE: ilr.activities
-//     //           .filter((a: any) => a.fieldChanged === "targetDate") // only target date changes
-//     //           .map((a: any) => {
-//     //             return `Date - ${new Date(a.createdAt).toLocaleDateString()}
-//     // Note - ${a.note || "N/A"}
-//     // New Target Date - ${a.newValue}`;
-//     //           })
-//     //           .join("\n\n"), // add extra line between activities for readability
-//     //       }));
-
-//     const maxActivities = Math.max(
-//       ...filteredILRs.map(
-//         (ilr) =>
-//           (ilr.activities ?? []).filter(
-//             (a) => a.fieldChanged === "targetDate"
-//           ).length
-//       )
-//     );
-
-//     const worksheetData = filteredILRs.map((ilr, index) => {
-//       const targetDateActivities = (ilr.activities ?? []).filter(
-//         (a: any) => a.fieldChanged === "targetDate"
-//       );
-
-//       const activityColumns: Record<string, string> = {};
-
-//       for (let i = 0; i < maxActivities; i++) {
-//         const activity = targetDateActivities[i];
-//         activityColumns[`Activity ${i + 1}`] = activity
-//           ? `Date - ${new Date(
-//               activity.createdAt
-//             ).toLocaleDateString()}\r\nNote - ${
-//               activity.note || "N/A"
-//             }\r\nNew Target Date - ${activity.newValue}`
-//           : "";
-//       }
-
-//       return {
-//         "S. NO": index + 1,
-//         "ISSUE NUMBER": ilr.ilrNumber,
-//         "DATE OF ISSUE": new Date(ilr.createdAt).toLocaleDateString(),
-//         "RAISED BY": ilr.createdBy?.username || "N/A",
-//         "ISSUE SUBJECT": ilr.description,
-//         "ISSUE DESCRIPTION": ilr.remarks || "No remarks",
-//         RESPONSIBILITY: ilr.responsibility
-//           .map((r) => `${r.individualName} (${r.designation})`)
-//           .join(", "),
-//         "TARGET DATE": new Date(ilr.targetDate).toLocaleDateString(),
-//         STATUS: ilr.status,
-//         ...activityColumns, // spread each activity as its own column
-//       };
-//     });
-
-//     // Create worksheet & workbook
-//     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-//     const workbook = XLSX.utils.book_new();
-//     XLSX.utils.book_append_sheet(workbook, worksheet, "ILRs");
-
-//     // Convert to binary
-//     const excelBuffer = XLSX.write(workbook, {
-//       type: "base64",
-//       bookType: "xlsx",
-//     });
-
-//     // Save to device
-//     const filename = FileSystem.documentDirectory + "ILRs.xlsx";
-//     await FileSystem.writeAsStringAsync(filename, excelBuffer, {
-//       encoding: FileSystem.EncodingType.Base64,
-//     });
-
-//     // Share
-//     await Sharing.shareAsync(filename, {
-//       mimeType:
-//         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-//       dialogTitle: "Share ILRs Excel",
-//       UTI: "com.microsoft.excel.xlsx",
-//     });
-//   } catch (err) {
-//     console.error("Error exporting Excel:", err);
-//     alert("Failed to export Excel");
-//   }
-// };
