@@ -4,7 +4,6 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
 
-
 // Types
 type Responsibility = { individualName: string; designation: string };
 type Activity = {
@@ -24,6 +23,7 @@ export type ILR = {
   targetDate: string;
   status: string;
   activities?: Activity[];
+  delayDays?: number;
 };
 
 // Utility: Format date as DD.MM.YYYY
@@ -62,7 +62,6 @@ export async function exportILRsToExcel(
       row.font = { bold: true };
     });
     worksheet.addRow([]); // empty row for spacing
-    
 
     // --- HEADERS ---
     const maxActivities = Math.max(
@@ -84,6 +83,7 @@ export async function exportILRsToExcel(
       "RESPONSIBILITY",
       "TARGET DATE",
       "STATUS",
+      "DELAY DAYS", // 👈 new column
       ...Array.from({ length: maxActivities }, (_, i) => `Activity ${i + 1}`),
     ];
 
@@ -95,7 +95,11 @@ export async function exportILRsToExcel(
         pattern: "solid",
         fgColor: { argb: "E5E7EB" },
       };
-      cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+      cell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+        wrapText: true,
+      };
     });
 
     // --- DATA ROWS ---
@@ -125,22 +129,31 @@ export async function exportILRsToExcel(
           .join(", "),
         formatDate(ilr.targetDate),
         ilr.status,
+        ilr.delayDays ?? 0, // 👈 new field
         ...activityValues,
       ]);
 
       // style status cell
       const statusCell = row.getCell(9);
       if (ilr.status.toLowerCase() === "open") {
-        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F87171" } };
+        statusCell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "F87171" },
+        };
         statusCell.font = { color: { argb: "FFFFFF" }, bold: true };
       } else if (ilr.status.toLowerCase() === "closed") {
-        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4ADE80" } };
+        statusCell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "4ADE80" },
+        };
         statusCell.font = { color: { argb: "FFFFFF" }, bold: true };
       }
 
       // wrap activity text
       activityValues.forEach((_, i) => {
-        row.getCell(10 + i).alignment = { wrapText: true, vertical: "top" };
+        row.getCell(11 + i).alignment = { wrapText: true, vertical: "top" };
       });
     });
 
@@ -155,10 +168,11 @@ export async function exportILRsToExcel(
       7: 30, // Responsibility
       8: 14, // Target Date
       9: 12, // Status
+      10: 14, // Delay (Days) 👈
     };
 
     worksheet.columns.forEach((col, idx) => {
-      col.width = colWidths[idx + 1] ?? 25; // default for activities
+      col.width = colWidths[idx + 1] ?? 30; // default for activities
     });
 
     // --- SAVE FILE ---
@@ -171,7 +185,8 @@ export async function exportILRsToExcel(
     });
 
     await Sharing.shareAsync(fileUri, {
-      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       dialogTitle: "Share ILRs Excel",
       UTI: "com.microsoft.excel.xlsx",
     });

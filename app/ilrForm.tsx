@@ -22,6 +22,7 @@ type Issue = {
   serialNo: number;
   description: string;
   targetDate: string;
+  originalTargetDate: string; // ✅ baseline date
   responsibility: string[]; // ✅ make it array for multi-select
   remarks: string;
 };
@@ -50,6 +51,7 @@ export default function ILRForm() {
       targetDate: "",
       responsibility: [],
       remarks: "",
+      originalTargetDate: "", // ✅ baseline date
     },
   ]);
 
@@ -67,6 +69,7 @@ export default function ILRForm() {
         description: "",
         targetDate: "",
         responsibility: [],
+        originalTargetDate: "", // ✅ baseline date
         remarks: "",
       },
     ]);
@@ -145,6 +148,10 @@ export default function ILRForm() {
           {
             projectId,
             description: issue.description,
+            originalTargetDate: new Date(
+              issue.originalTargetDate || issue.targetDate
+            ),
+
             targetDate: new Date(issue.targetDate), // ensure Date object
             responsibility: issue.responsibility,
             remarks: issue.remarks,
@@ -167,6 +174,8 @@ export default function ILRForm() {
           serialNo: 1,
           description: "",
           targetDate: "",
+          originalTargetDate: "", // ✅ baseline date
+
           responsibility: [],
           remarks: "",
         },

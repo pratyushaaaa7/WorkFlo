@@ -39,6 +39,7 @@ type ILR = {
   status: "Open" | "Closed";
   createdBy: { _id: string; username: string }; // 👈 add this
   createdAt: string; // 👈 add this
+  delayDays?: number; // 👈 add this
 };
 
 const ILRs = () => {
@@ -66,7 +67,6 @@ const ILRs = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIlrs(res.data);
-        // console.log("Fetched ILRs:", res.data);
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -76,10 +76,8 @@ const ILRs = () => {
 
     fetchILRs();
   }, [token, projectId]);
-  // console.log("ILRs State:", ilrs);
 
-
- const handleDownloadExcel = () => {
+  const handleDownloadExcel = () => {
     exportILRsToExcel(parsedILRs, projectName, auth.user?.username); // 👈 one-line call
   };
 
@@ -113,7 +111,8 @@ const ILRs = () => {
             numberOfLines={2}
             ellipsizeMode="tail"
           >
-            {item.ilrNumber}. {item.description}
+            {item.ilrNumber}. {item.description}{" "}
+            {/* <Text className="text-red-500">Delay: {item.delayDays} days</Text> */}
           </Text>
 
           {/* Status pill */}
