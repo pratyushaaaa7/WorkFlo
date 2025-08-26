@@ -169,7 +169,7 @@ const ILRs = () => {
         {/* Download Icon */}
         <TouchableOpacity
           onPress={handleDownloadExcel}
-          className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
+          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
         >
           <Feather name="download" size={22} color="#fff" />
         </TouchableOpacity>
