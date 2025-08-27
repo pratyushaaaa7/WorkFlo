@@ -202,7 +202,7 @@ const ProjectMain = () => {
                 </View>
                 {project?.teamLeaders?.map((user) => (
                   <Text key={user._id} className="ml-4 text-gray-600">
-                    • {user.username}
+                    • {user.fullName}
                   </Text>
                 ))}
               </View>
@@ -217,7 +217,7 @@ const ProjectMain = () => {
                 </View>
                 {project?.teamMembers?.map((user) => (
                   <Text key={user._id} className="ml-4 text-gray-600">
-                    • {user.username}
+                    • {user.fullName}
                   </Text>
                 ))}
               </View>

@@ -13,7 +13,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import { Ionicons, AntDesign, Feather } from "@expo/vector-icons";
+import { Ionicons,  Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
@@ -370,7 +370,7 @@ const ProjectList = () => {
                           key={user._id}
                           className="text-gray-800 text-base ml-4 mb-1"
                         >
-                          - {user.username ?? user._id}
+                          - {user.fullName ?? user._id}
                         </Text>
                       ))
                     ) : (
@@ -390,7 +390,7 @@ const ProjectList = () => {
                           key={user._id}
                           className="text-gray-800 text-base ml-4 mb-1"
                         >
-                          - {user.username ?? user._id}
+                          - {user.fullName ?? user._id}
                         </Text>
                       ))
                     ) : (

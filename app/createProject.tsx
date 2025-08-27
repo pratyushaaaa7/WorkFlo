@@ -102,7 +102,7 @@ const CreateProjectScreen = () => {
         });
 
         const dropdownUsers = res.data.users.map((user: any) => ({
-          label: `${user.username} (${user.role})`,
+          label: `${user.fullName}`,
           value: user._id,
         }));
 
