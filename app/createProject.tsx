@@ -71,20 +71,57 @@ const CreateProjectScreen = () => {
     { label: "MISC.", value: "Misc" },
   ];
 
-  const scopeOptions = [
-    { label: "MASTER PLANNING", value: "Master Planning" },
-    { label: "ARCHITECTURE", value: "Architecture" },
-    { label: "INTERIORS", value: "Interiors" },
-    { label: "DESIGN MANAGEMENT", value: "Design Management" },
-    { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
-    { label: "CONTRACT MANAGEMENT", value: "Contract Management" },
-    { label: "PROJECT MANAGEMENT", value: "Project Management" },
-    { label: "QS", value: "QS" },
-    { label: "AUDITORS", value: "Auditors" },
-    { label: "FAÇADE", value: "Facade" },
-    { label: "TENDER MANAGEMENT", value: "Tender Management" },
-    { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
-  ];
+  // const scopeOptions = [
+
+  //   { label: "MASTER PLANNING", value: "Master Planning" },
+  //   { label: "ARCHITECTURE", value: "Architecture" },
+  //   { label: "INTERIORS", value: "Interiors" },
+  //   { label: "DESIGN MANAGEMENT", value: "Design Management" },
+  //   { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
+  //   { label: "CONTRACT MANAGEMENT", value: "Contract Management" },
+  //   { label: "PROJECT MANAGEMENT", value: "Project Management" },
+  //   { label: "QS", value: "QS" },
+  //   { label: "AUDITORS", value: "Auditors" },
+  //   { label: "FAÇADE", value: "Facade" },
+  //   { label: "TENDER MANAGEMENT", value: "Tender Management" },
+  //   { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
+  // ];
+
+  // 1. Define company-specific scopes
+  const scopeOptionsByCompany: Record<
+    string,
+    { label: string; value: string }[]
+  > = {
+    WAL: [
+      { label: "MASTER PLANNING", value: "Master Planning" },
+      { label: "ARCHITECTURE", value: "Architecture" },
+      { label: "FAÇADE", value: "Facade" },
+      { label: "INTERIORS", value: "Interiors" },
+      { label: "DESIGN MANAGEMENT", value: "Design Management" },
+    ],
+    WP: [
+      { label: "DESIGN MANAGEMENT", value: "Design Management" },
+      {
+        label: "TENDER AND CONTRACTS MANAGEMENT",
+        value: "Tender and Contracts Management",
+      },
+      { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
+      { label: "QS AND COST CONSULTANCY", value: "QS and Cost Consultancy" },
+      { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
+      { label: "AUDITORS", value: "Auditors" },
+      { label: "DLP MANAGEMENT", value: "DLP Management" },
+    ],
+  };
+
+  // 2. Use dynamic scope options based on selected company
+  const scopeOptions = companyName
+    ? scopeOptionsByCompany[companyName] || []
+    : [];
+
+  // 3. Reset scopes when company changes
+  useEffect(() => {
+    setSelectedScopes([]);
+  }, [companyName]);
 
   const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
     []
