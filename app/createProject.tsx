@@ -518,7 +518,7 @@ const CreateProjectScreen = () => {
             selectedStyle={{
               borderRadius: 10,
               // backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
-                     backgroundColor: "#E0E7FF",
+              backgroundColor: "#E0E7FF",
               padding: 5,
             }}
             containerStyle={{
@@ -552,8 +552,8 @@ const CreateProjectScreen = () => {
               paddingHorizontal: 10,
               backgroundColor: "#fff",
             }}
-            placeholderStyle={{ fontSize: 14,  color: "#9CA3AF",}}
-            selectedTextStyle={{ fontSize: 10, color: "#111827", }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            selectedTextStyle={{ fontSize: 10, color: "#111827" }}
             selectedStyle={{
               borderRadius: 10,
               backgroundColor: "#E0E7FF",
@@ -564,7 +564,7 @@ const CreateProjectScreen = () => {
               overflow: "hidden",
               backgroundColor: "#fff",
             }}
-             activeColor="#E0E7FF"
+            activeColor="#E0E7FF"
             data={allUsers}
             labelField="label"
             valueField="value"
