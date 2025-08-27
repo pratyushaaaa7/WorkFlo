@@ -34,6 +34,7 @@ type ILR = {
     _id: string;
     individualName: string;
     designation: string;
+    firmName: string;
   }[];
 
   status: "Open" | "Closed";
@@ -88,7 +89,7 @@ const ILRs = () => {
       <TouchableOpacity
         className="bg-white rounded-xl px-4 py-3 mb-3 shadow-sm border border-gray-100"
         onPress={() => {
-          const params = {
+            const params = {
             ilrId: item._id,
             projectName,
             description: item.description,
@@ -99,7 +100,8 @@ const ILRs = () => {
             createdBy: item.createdBy?.username,
             createdAt: item.createdAt,
             ilrNumber: item.ilrNumber,
-          };
+            };
+            // console.log("ILR Card params:", params);
           router.push({ pathname: `/ilrActivities`, params });
         }}
       >
