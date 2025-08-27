@@ -130,7 +130,7 @@ const ProjectDetails = () => {
             ))}
 
           {/* Scopes */}
-          <View className="mt-4">
+          <View>
             <Text className="text-gray-500 text-xs font-medium mb-1">
               Scopes
             </Text>
