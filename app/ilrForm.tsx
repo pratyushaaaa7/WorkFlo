@@ -209,7 +209,7 @@ export default function ILRForm() {
 
         // 🔹 Format for dropdown
         const formatted = res.data.map((u: any) => ({
-          label: `${u.individualName} (${u.designation})`,
+          label: `${u.individualName}  (${u.firmName})`,
           value: u._id,
         }));
 
