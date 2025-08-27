@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const ProjectDetails = () => {
   const { project } = useLocalSearchParams();
-  console.log("Project param:", project);
+//   console.log("Project param:", project);
   const router = useRouter();
 
   // Parse project back to object
