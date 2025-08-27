@@ -11,6 +11,9 @@ type Project = {
   assignedUsers: { _id: string; username?: string }[]; // legacy
   teamLeaders: { _id: string; username?: string ; fullName?:string}[];
   teamMembers: { _id: string; username?: string ; fullName?:string}[];
+  clientName?: string;
+  siteArea?: string;
+  designedArea?: string;
 };
 
 export type { Project };

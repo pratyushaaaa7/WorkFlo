@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const ProjectDetails = () => {
   const { project } = useLocalSearchParams();
+  console.log("Project param:", project);
   const router = useRouter();
 
   // Parse project back to object
@@ -42,15 +43,14 @@ const ProjectDetails = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4"> Back</Text>
+          <Text className="text-xl font-semibold text-white ml-4">
+            {" "}
+            Project Details
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
 
       <ScrollView className="p-6">
-        <Text className="text-2xl font-bold text-gray-900 mb-6">
-          Project Details
-        </Text>
-
         <View className="mb-4">
           <Text className="font-semibold text-gray-700">Company</Text>
           <Text className="text-gray-900 text-lg">
@@ -73,6 +73,13 @@ const ProjectDetails = () => {
         </View>
 
         <View className="mb-4">
+          <Text className="font-semibold text-gray-700">Client Name</Text>
+          <Text className="text-gray-900 text-lg">
+            {selectedProject.clientName || "Not specified"}
+          </Text>
+        </View>
+
+        <View className="mb-4">
           <Text className="font-semibold text-gray-700">Project Code</Text>
           <Text className="text-gray-900 text-lg">
             {selectedProject.projectCode}
@@ -87,8 +94,17 @@ const ProjectDetails = () => {
         </View>
 
         <View className="mb-4">
-          <Text className="font-semibold text-gray-700">Area</Text>
-          <Text className="text-gray-900 text-lg">{selectedProject.area}</Text>
+          <Text className="font-semibold text-gray-700">Site Area</Text>
+          <Text className="text-gray-900 text-lg">
+            {selectedProject.siteArea || "N/A"}
+          </Text>
+        </View>
+
+        <View className="mb-4">
+          <Text className="font-semibold text-gray-700">Designed Area</Text>
+          <Text className="text-gray-900 text-lg">
+            {selectedProject.designedArea || "N/A"}
+          </Text>
         </View>
 
         <View className="mb-4">
