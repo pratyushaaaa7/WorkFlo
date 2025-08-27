@@ -213,7 +213,7 @@ const ProjectList = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
+          <Text className="text-xl font-bold text-white ml-4">
             Project List
           </Text>
         </TouchableOpacity>

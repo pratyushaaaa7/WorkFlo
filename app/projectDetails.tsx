@@ -2,6 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Project } from "../types/Project";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ProjectDetails = () => {
   const { project } = useLocalSearchParams();
@@ -22,16 +23,28 @@ const ProjectDetails = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center">
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
+      >
+        {/* Back Button */}
         <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4"> Back</Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <ScrollView className="p-6">
         <Text className="text-2xl font-bold text-gray-900 mb-6">
@@ -75,9 +88,7 @@ const ProjectDetails = () => {
 
         <View className="mb-4">
           <Text className="font-semibold text-gray-700">Area</Text>
-          <Text className="text-gray-900 text-lg">
-            {selectedProject.area}
-          </Text>
+          <Text className="text-gray-900 text-lg">{selectedProject.area}</Text>
         </View>
 
         <View className="mb-4">
