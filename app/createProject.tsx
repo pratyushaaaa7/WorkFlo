@@ -36,6 +36,17 @@ const CreateProjectScreen = () => {
     existingProject?.location || ""
   );
   const [projectArea, setProjectArea] = useState(existingProject?.area || "");
+
+  const [clientName, setClientName] = useState(
+    existingProject?.clientName || ""
+  );
+
+  const [siteArea, setSiteArea] = useState(existingProject?.siteArea || "");
+
+  const [designedArea, setDesignedArea] = useState(
+    existingProject?.designedArea || ""
+  );
+
   const [selectedLeaders, setSelectedLeaders] = useState(
     existingProject?.teamLeaders?.map((u: any) => u._id || u) || []
   );
@@ -70,22 +81,6 @@ const CreateProjectScreen = () => {
     { label: "HOUSING", value: "Housing" },
     { label: "MISC.", value: "Misc" },
   ];
-
-  // const scopeOptions = [
-
-  //   { label: "MASTER PLANNING", value: "Master Planning" },
-  //   { label: "ARCHITECTURE", value: "Architecture" },
-  //   { label: "INTERIORS", value: "Interiors" },
-  //   { label: "DESIGN MANAGEMENT", value: "Design Management" },
-  //   { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
-  //   { label: "CONTRACT MANAGEMENT", value: "Contract Management" },
-  //   { label: "PROJECT MANAGEMENT", value: "Project Management" },
-  //   { label: "QS", value: "QS" },
-  //   { label: "AUDITORS", value: "Auditors" },
-  //   { label: "FAÇADE", value: "Facade" },
-  //   { label: "TENDER MANAGEMENT", value: "Tender Management" },
-  //   { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
-  // ];
 
   // 1. Define company-specific scopes
   const scopeOptionsByCompany: Record<
@@ -180,6 +175,10 @@ const CreateProjectScreen = () => {
       startDate: startDate?.toISOString(),
       typology: projectTypology,
       scopes: selectedScopes,
+      clientName,
+      siteArea,
+      designedArea,
+      // ⚡ no need to send status here, it defaults to "active" in DB
     };
 
     try {
@@ -338,6 +337,20 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/* Client Name */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Client Name
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter client name"
+            placeholderTextColor="#999"
+            value={clientName}
+            onChangeText={setClientName}
+          />
+        </View>
+
         {/*Project Code*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
@@ -378,6 +391,34 @@ const CreateProjectScreen = () => {
             value={projectArea}
             onChangeText={setProjectArea}
             keyboardType="numeric"
+          />
+        </View>
+
+        {/* Site Area */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Site Area
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter site area (in acres)"
+            placeholderTextColor="#999"
+            value={siteArea}
+            onChangeText={setSiteArea}
+          />
+        </View>
+
+        {/* Designed Area */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Designed Area <Text className="text-gray-400">(in sqft)</Text>
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter designed area (in sqft)"
+            placeholderTextColor="#999"
+            value={designedArea}
+            onChangeText={setDesignedArea}
           />
         </View>
 
