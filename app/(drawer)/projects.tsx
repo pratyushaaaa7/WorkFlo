@@ -45,7 +45,11 @@ const CompanyProjectSelectionScreen = () => {
         setAssignedProjects(dropdownProjects);
         setSelectedProject(null);
       } catch (err) {
-        console.error("Failed to fetch projects", err.message);
+        if (err instanceof Error) {
+          console.error("Failed to fetch projects", err.message);
+        } else {
+          console.error("Failed to fetch projects", err);
+        }
         setAssignedProjects([]);
         setSelectedProject(null);
       }
