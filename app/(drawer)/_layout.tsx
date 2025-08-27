@@ -8,7 +8,8 @@ import { StyleSheet } from "react-native";
 // import { View, ActivityIndicator } from "react-native";
 
 export default function DrawerLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
   const router = useRouter();
 
   useEffect(() => {
@@ -65,16 +66,26 @@ export default function DrawerLayout() {
         }}
       /> */}
 
-      <Drawer.Screen
-        name="registerUser"
-        options={{
-          drawerLabel: "Register User",
-          title: "Register User",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="person-add-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      {user?.role === "admin" ? (
+        <Drawer.Screen
+          name="registerUser"
+          options={{
+            drawerLabel: "Register User",
+            title: "Register User",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="person-add-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      ) : (
+        <Drawer.Screen
+          name="registerUser"
+          options={{
+            // hide from drawer but still accessible if navigated directly
+            drawerItemStyle: { display: "none" },
+          }}
+        />
+      )}
 
       <Drawer.Screen
         name="projects"
