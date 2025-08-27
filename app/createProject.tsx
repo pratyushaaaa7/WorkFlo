@@ -117,7 +117,9 @@ const CreateProjectScreen = () => {
 
   // 3. Reset scopes when company changes
   useEffect(() => {
-    setSelectedScopes([]);
+    if (!isEditing) {
+      setSelectedScopes([]);
+    }
   }, [companyName]);
 
   const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
