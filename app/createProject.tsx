@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
   Platform,
+  Keyboard,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -35,7 +36,7 @@ const CreateProjectScreen = () => {
   const [projectLocation, setProjectLocation] = useState(
     existingProject?.location || ""
   );
-  const [projectArea, setProjectArea] = useState(existingProject?.area || "");
+  // const [projectArea, setProjectArea] = useState(existingProject?.area || "");
 
   const [clientName, setClientName] = useState(
     existingProject?.clientName || ""
@@ -154,6 +155,7 @@ const CreateProjectScreen = () => {
   }, [token]);
 
   const handleSaveProject = async () => {
+    Keyboard.dismiss();
     if (!projectName.trim() || !companyName || !projectTypology) {
       Toast.show({
         type: "error",
@@ -169,7 +171,7 @@ const CreateProjectScreen = () => {
       projectName,
       projectCode,
       location: projectLocation,
-      area: projectArea,
+      // area: projectArea,
       teamLeaders: selectedLeaders,
       teamMembers: selectedMembers,
       startDate: startDate?.toISOString(),
@@ -208,7 +210,7 @@ const CreateProjectScreen = () => {
         });
       }
 
-      setTimeout(() => router.back(), 800);
+      setTimeout(() => router.push({ pathname: "/masterProjectList" }), 800);
     } catch (err) {
       console.error("Error creating project:", err);
       Toast.show({
@@ -263,18 +265,18 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              color: "#888",
+             color: "#9CA3AF",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              color: "#0B0B0B", // Rich black for readability
+              color: "#111827",
             }}
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
               backgroundColor: "#fff", // Soft aqua dropdown background
             }}
-            activeColor="#E0F7FA" // Medium aqua for active highlight
+            activeColor="#E0E7FF" // Medium aqua for active highlight
             data={companyOptions}
             labelField="label"
             valueField="value"
@@ -380,7 +382,7 @@ const CreateProjectScreen = () => {
         </View>
 
         {/*Project area*/}
-        <View className="mb-4">
+        {/* <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
             Project Area <Text className="text-gray-400">(in sqft)</Text>
           </Text>
@@ -392,7 +394,7 @@ const CreateProjectScreen = () => {
             onChangeText={setProjectArea}
             keyboardType="numeric"
           />
-        </View>
+        </View> */}
 
         {/* Site Area */}
         <View className="mb-4">
@@ -576,7 +578,7 @@ const CreateProjectScreen = () => {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSaveProject}
-          className="bg-blue-600 mt-6 mb-20 py-3 rounded-lg items-center"
+          className="bg-indigo-600 mt-6 mb-20 py-3 rounded-lg items-center"
         >
           <Text className="text-white font-bold text-base">
             {isEditing ? "Update Project" : "Create Project"}
