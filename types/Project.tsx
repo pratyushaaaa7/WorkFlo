@@ -9,11 +9,12 @@ type Project = {
   scopes: string[];
   startDate: string; // ISO string
   assignedUsers: { _id: string; username?: string }[]; // legacy
-  teamLeaders: { _id: string; username?: string ; fullName?:string}[];
-  teamMembers: { _id: string; username?: string ; fullName?:string}[];
+  teamLeaders: { _id: string; username?: string; fullName?: string }[];
+  teamMembers: { _id: string; username?: string; fullName?: string }[];
   clientName?: string;
   siteArea?: string;
   designedArea?: string;
+  status: string;
 };
 
 export type { Project };
