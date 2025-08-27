@@ -255,22 +255,6 @@ const CreateProjectScreen = () => {
           </Text>
         </TouchableOpacity>
       </LinearGradient>
-      {/* <View
-        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-lg flex-row items-center space-x-2"
-        style={{ zIndex: 10 }}
-      >
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/masterProjectList",
-            })
-          }
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
-      </View> */}
 
       <KeyboardAwareScrollView
         className="flex-1 px-4 py-6 bg-white"
