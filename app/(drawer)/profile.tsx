@@ -2,15 +2,17 @@ import { View, Text, Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+
 import { useAuth } from "../../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
+import { jwtDecode } from "jwt-decode";
 
 type TokenPayload = {
   userId: string;
   username: string;
   role: string;
+  fullName?: string;
   iat: number;
   exp: number;
 };
@@ -19,16 +21,19 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [initials, setInitials] = useState("");
 
   useEffect(() => {
-    const fetchUsername = async () => {
+    const fetchUser = async () => {
       const token = await AsyncStorage.getItem("token");
       if (token) {
         try {
           const decoded = jwtDecode<TokenPayload>(token);
           setUsername(decoded.username);
-          const nameParts = decoded.username.split(" ");
+          setFullName(decoded.fullName || decoded.username);
+
+          const nameParts = (decoded.fullName || decoded.username).split(" ");
           const initials = nameParts
             .map((n) => n[0])
             .join("")
@@ -39,7 +44,7 @@ export default function ProfileScreen() {
         }
       }
     };
-    fetchUsername();
+    fetchUser();
   }, []);
 
   const handleLogout = async () => {
@@ -57,19 +62,19 @@ export default function ProfileScreen() {
     <View className="flex-1 bg-gray-50">
       {/* Header Gradient with Avatar */}
       <LinearGradient
-        colors={["#8B5CF6", "#9333EA"]}//#6366F1
-        className="h-64 justify-center items-center "
+        colors={["#8B5CF6", "#9333EA"]}
+        className="h-64 justify-center items-center"
         style={{
           borderBottomLeftRadius: 150,
           borderBottomRightRadius: 150,
-          overflow: "hidden", // important
+          overflow: "hidden",
         }}
       >
         <View className="w-28 h-28 bg-white rounded-full justify-center items-center shadow-md">
           <Text className="text-4xl font-bold text-indigo-600">{initials}</Text>
         </View>
         <Text className="text-white text-2xl font-semibold mt-4">
-          {username}
+          {fullName}
         </Text>
       </LinearGradient>
 
@@ -77,7 +82,7 @@ export default function ProfileScreen() {
       <View className="mt-8 px-6">
         <View className="bg-white rounded-2xl shadow-md p-6">
           <Text className="text-xl font-semibold text-gray-800">
-            Welcome, {username}!
+            Welcome, {fullName}!
           </Text>
           <Text className="text-gray-500 mt-2">
             Your one stop solution for all your tasks.

@@ -15,40 +15,6 @@ export default function RootLayout() {
   );
 }
 
-// function LayoutWithAuth() {
-//   const router = useRouter();
-//   const segments = useSegments() as string[];
-
-//   const { isAuthenticated } = useAuth();
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     setLoading(false); // No need to check AsyncStorage here anymore, AuthContext handles it
-//   }, []);
-
-//   useEffect(() => {
-//     if (!loading) {
-//       const inDrawer = segments[0] === '(drawer)';
-//       const inLogin = segments[0] === 'login';
-
-//       if (!isAuthenticated && !inLogin) {
-//         router.replace('/login');
-//       } else if (isAuthenticated && !inDrawer) {
-//         router.replace('/(drawer)/profile');
-//       }
-//     }
-//   }, [loading, isAuthenticated, segments]);
-
-//   if (loading) {
-//     return (
-//       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-//         <ActivityIndicator size="large" />
-//       </View>
-//     );
-//   }
-
-//   return <Slot />;
-// }
 
 function LayoutWithAuth() {
   const router = useRouter();
