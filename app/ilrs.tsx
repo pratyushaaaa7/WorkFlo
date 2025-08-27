@@ -37,7 +37,7 @@ type ILR = {
   }[];
 
   status: "Open" | "Closed";
-  createdBy: { _id: string; username: string }; // 👈 add this
+  createdBy: { _id: string; username: string ; fullName:string}; // 👈 add this
   createdAt: string; // 👈 add this
   delayDays?: number; // 👈 add this
 };
@@ -78,7 +78,7 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const handleDownloadExcel = () => {
-    exportILRsToExcel(parsedILRs, projectName, auth.user?.username); // 👈 one-line call
+    exportILRsToExcel(parsedILRs, projectName, auth?.user?.fullName); // 👈 one-line call
   };
 
   const renderCard = ({ item }: { item: ILR }) => {
