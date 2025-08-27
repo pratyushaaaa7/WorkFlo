@@ -16,6 +16,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
+import { LinearGradient } from "expo-linear-gradient";
 
 const CreateProjectScreen = () => {
   const router = useRouter();
@@ -225,7 +226,36 @@ const CreateProjectScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/masterProjectList",
+            })
+          }
+          className="flex-row items-center"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">
+            {" "}
+            Create Project
+          </Text>
+        </TouchableOpacity>
+      </LinearGradient>
+      {/* <View
         className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-lg flex-row items-center space-x-2"
         style={{ zIndex: 10 }}
       >
@@ -240,7 +270,7 @@ const CreateProjectScreen = () => {
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
-      </View>
+      </View> */}
 
       <KeyboardAwareScrollView
         className="flex-1 px-4 py-6 bg-white"

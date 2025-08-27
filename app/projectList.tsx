@@ -5,20 +5,18 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
-  ScrollView,
-  Pressable,
   Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import { Ionicons,  Feather } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
 import { Project } from "../types/Project";
+import { LinearGradient } from "expo-linear-gradient";
 
 const ProjectList = () => {
   const router = useRouter();
@@ -29,9 +27,6 @@ const ProjectList = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const fetchProjects = async () => {
     if (!token || !company) return;
@@ -90,11 +85,6 @@ const ProjectList = () => {
         },
       ]
     );
-  };
-
-  const openProjectModal = (project: Project) => {
-    setSelectedProject(project);
-    setModalVisible(true);
   };
 
   const exportToExcel = async () => {
@@ -157,7 +147,12 @@ const ProjectList = () => {
       {/* Project Info */}
       <TouchableOpacity
         className="flex-1 pr-4"
-        onPress={() => openProjectModal(item)}
+        onPress={() =>
+          router.push({
+            pathname: "/projectDetails", // ✅ new page
+            params: { project: JSON.stringify(item) }, // send project as param
+          })
+        }
         activeOpacity={0.7}
       >
         <Text className="text-lg font-semibold text-gray-900">
@@ -195,21 +190,21 @@ const ProjectList = () => {
     </View>
   );
 
-  const formatDate = (dateString: string) => {
-    const d = new Date(dateString);
-    return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View
-        className="bg-white pt-16 pb-4 px-6 border-b border-gray-200 shadow-md flex-row items-center justify-between"
-        style={{ zIndex: 10 }}
+
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+          elevation: 6,
+          zIndex: 10,
+        }}
       >
         {/* Back Button */}
         <TouchableOpacity
@@ -217,18 +212,20 @@ const ProjectList = () => {
           className="flex-row items-center"
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="text-xl font-semibold text-gray-900 ml-2">Back</Text>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">
+            Project List
+          </Text>
         </TouchableOpacity>
 
         {/* Download Icon */}
         <TouchableOpacity
           onPress={exportToExcel}
-          className="px-2 rounded-full bg-gray-100 active:bg-gray-200"
+          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
         >
-          <Feather name="download" size={22} color="#1E293B" />
+          <Feather name="download" size={22} color="#fff" />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       {/* Content */}
       {loading ? (
@@ -253,158 +250,6 @@ const ProjectList = () => {
           showsVerticalScrollIndicator={false}
         />
       )}
-
-      {/* Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View
-          className="flex-1 justify-center items-center bg-black bg-opacity-60 px-6"
-          style={{ backgroundColor: "rgba(0,0,0,0.6)" }} // darker translucent black background
-        >
-          <View className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85%] shadow-lg relative">
-            {/* Close Button */}
-            <Pressable
-              onPress={() => setModalVisible(false)}
-              style={{
-                position: "absolute",
-                top: 16,
-                right: 16,
-                padding: 12,
-                zIndex: 20,
-                // Optional: add a transparent background to make tap area visible during debugging
-                // backgroundColor: 'rgba(255,0,0,0.2)'
-              }}
-              android_ripple={{ color: "rgba(0,0,0,0.1)", borderless: true }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close" size={28} color="#374151" />
-            </Pressable>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              style={{ paddingTop: 8 }}
-            >
-              <Text className="text-2xl font-bold text-gray-900 mb-6  border-gray-200 pb-3">
-                Project Details
-              </Text>
-
-              {selectedProject && (
-                <>
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">Company</Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.company}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">
-                      Typology
-                    </Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.typology}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">
-                      Project Name
-                    </Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.projectName}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">
-                      Project Code
-                    </Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.projectCode}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">
-                      Location
-                    </Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.location}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">Area</Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.area}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">Scopes</Text>
-                    <Text className="text-gray-900 text-lg">
-                      {selectedProject.scopes.join(", ")}
-                    </Text>
-                  </View>
-
-                  <View className="mb-4">
-                    <Text className="font-semibold text-gray-700">
-                      Start Date
-                    </Text>
-                    <Text className="text-gray-900 text-lg">
-                      {formatDate(selectedProject.startDate)}
-                    </Text>
-                  </View>
-
-                  <View className="mb-2">
-                    <Text className="font-semibold text-gray-700 mb-1">
-                      Team Leaders
-                    </Text>
-                    {selectedProject.teamLeaders.length > 0 ? (
-                      selectedProject.teamLeaders.map((user) => (
-                        <Text
-                          key={user._id}
-                          className="text-gray-800 text-base ml-4 mb-1"
-                        >
-                          - {user.fullName ?? user._id}
-                        </Text>
-                      ))
-                    ) : (
-                      <Text className="text-gray-500 italic ml-4">
-                        No team leaders assigned
-                      </Text>
-                    )}
-                  </View>
-
-                  <View className="mb-2">
-                    <Text className="font-semibold text-gray-700 mb-1">
-                      Team Members
-                    </Text>
-                    {selectedProject.teamMembers.length > 0 ? (
-                      selectedProject.teamMembers.map((user) => (
-                        <Text
-                          key={user._id}
-                          className="text-gray-800 text-base ml-4 mb-1"
-                        >
-                          - {user.fullName ?? user._id}
-                        </Text>
-                      ))
-                    ) : (
-                      <Text className="text-gray-500 italic ml-4">
-                        No team members assigned
-                      </Text>
-                    )}
-                  </View>
-                </>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
