@@ -73,24 +73,26 @@ const ProjectDetails = () => {
           {/* Info grouped into pairs */}
           {[
             { label: "Company", value: selectedProject.company },
-            { label: "Typology", value: selectedProject.typology },
+            { label: "Project Code", value: selectedProject.projectCode },
             {
               label: "Client Name",
               value: selectedProject.clientName || "Not specified",
             },
-            { label: "Project Code", value: selectedProject.projectCode },
+            { label: "Typology", value: selectedProject.typology },
+
             { label: "Location", value: selectedProject.location },
-            { label: "Site Area", value: selectedProject.siteArea || "N/A" },
-            {
-              label: "Designed Area",
-              value: selectedProject.designedArea || "N/A",
-            },
             {
               label: "Start Date",
               value: selectedProject.startDate
                 ? formatDate(selectedProject.startDate)
                 : "N/A",
             },
+            { label: "Site Area", value: selectedProject.siteArea || "N/A" },
+            {
+              label: "Designed Area",
+              value: selectedProject.designedArea || "N/A",
+            },
+
             {
               label: "Team Leaders",
               value:
