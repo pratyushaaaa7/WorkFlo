@@ -265,7 +265,7 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-             color: "#9CA3AF",
+              color: "#9CA3AF",
             }}
             selectedTextStyle={{
               fontSize: 14,
@@ -302,18 +302,18 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              color: "#888",
+              color: "#9CA3AF",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              color: "#0B0B0B", // Rich black for readability
+              color: "#111827",
             }}
             containerStyle={{
               borderRadius: 12,
               overflow: "hidden",
               backgroundColor: "#fff", // Soft aqua dropdown background
             }}
-            activeColor="#E0F7FA" // Medium aqua for active highlight
+            activeColor="#E0E7FF" // Medium aqua for active highlight
             data={typologyOptions}
             labelField="label"
             valueField="value"
@@ -413,7 +413,7 @@ const CreateProjectScreen = () => {
         {/* Designed Area */}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Designed Area <Text className="text-gray-400">(in sqft)</Text>
+            Designed Area
           </Text>
           <TextInput
             className="border border-gray-600 rounded-lg px-4 py-2 text-black"
@@ -468,14 +468,14 @@ const CreateProjectScreen = () => {
               paddingHorizontal: 12,
               backgroundColor: "#Fff",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#888" }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
             selectedTextStyle={{
               fontSize: 10,
-              color: "#0B0B0B", // Rich black for contrast
+              color: "#111827",
             }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
+              backgroundColor: "#E0E7FF",
               padding: 5,
             }}
             containerStyle={{
@@ -483,7 +483,7 @@ const CreateProjectScreen = () => {
               overflow: "hidden",
               backgroundColor: "#fff", // Very soft aqua for the dropdown
             }}
-            activeColor="#E0F7FA" // Medium aqua for active selection
+            activeColor="#E0E7FF"
             data={scopeOptions}
             labelField="label"
             valueField="value"
@@ -509,15 +509,16 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              color: "#888",
+              color: "#9CA3AF",
             }}
             selectedTextStyle={{
               fontSize: 10,
-              color: "#0B0B0B", // Rich black for contrast
+              color: "#111827",
             }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
+              // backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
+                     backgroundColor: "#E0E7FF",
               padding: 5,
             }}
             containerStyle={{
@@ -525,7 +526,7 @@ const CreateProjectScreen = () => {
               overflow: "hidden",
               backgroundColor: "#fff", // Very soft aqua for dropdown
             }}
-            activeColor="#E0F7FA" // Medium aqua for active selection
+            activeColor="#E0E7FF" // Medium aqua for active selection
             data={allUsers}
             labelField="label"
             valueField="value"
@@ -551,11 +552,11 @@ const CreateProjectScreen = () => {
               paddingHorizontal: 10,
               backgroundColor: "#fff",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#888" }}
-            selectedTextStyle={{ fontSize: 10, color: "#0B0B0B" }}
+            placeholderStyle={{ fontSize: 14,  color: "#9CA3AF",}}
+            selectedTextStyle={{ fontSize: 10, color: "#111827", }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#b9EBF1",
+              backgroundColor: "#E0E7FF",
               padding: 5,
             }}
             containerStyle={{
@@ -563,7 +564,7 @@ const CreateProjectScreen = () => {
               overflow: "hidden",
               backgroundColor: "#fff",
             }}
-            activeColor="#E0F7FA"
+             activeColor="#E0E7FF"
             data={allUsers}
             labelField="label"
             valueField="value"
