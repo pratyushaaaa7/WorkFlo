@@ -150,7 +150,10 @@ const ProjectList = () => {
         onPress={() =>
           router.push({
             pathname: "/projectDetails", // ✅ new page
-            params: { project: JSON.stringify(item) }, // send project as param
+            params: {
+              id: item._id,
+              project: JSON.stringify(item),
+            },
           })
         }
         activeOpacity={0.7}
