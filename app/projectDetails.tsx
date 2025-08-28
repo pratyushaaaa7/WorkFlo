@@ -34,8 +34,7 @@ const ProjectDetails = () => {
   const [status, setStatus] = useState(project.status || null);
 
   const [activities, setActivities] = useState<any[]>([]);
-const [activitiesLoading, setActivitiesLoading] = useState(false);
-
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
 
   const statusOptions = [
     { label: "Active", value: "active" },
@@ -53,23 +52,22 @@ const [activitiesLoading, setActivitiesLoading] = useState(false);
   };
 
   // Fetch fresh project
-const fetchProject = async () => {
-  try {
-    setLoading(true);
-    setActivitiesLoading(true); // ✅ show spinner
-    const res = await api.get(`/projects/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setProject(res.data.project);
-    setActivities(res.data.project.activities || []); // ✅ load activities
-  } catch (err) {
-    console.error("Failed to fetch project:", err);
-  } finally {
-    setLoading(false);
-    setActivitiesLoading(false);
-  }
-};
-
+  const fetchProject = async () => {
+    try {
+      setLoading(true);
+      setActivitiesLoading(true); // ✅ show spinner
+      const res = await api.get(`/projects/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProject(res.data.project);
+      setActivities(res.data.project.activities || []); // ✅ load activities
+    } catch (err) {
+      console.error("Failed to fetch project:", err);
+    } finally {
+      setLoading(false);
+      setActivitiesLoading(false);
+    }
+  };
 
   // ✅ Update status
   const updateStatus = async (newStatus: string) => {
@@ -302,76 +300,75 @@ const fetchProject = async () => {
         </View>
 
         {/* ✅ Activity Logs */}
-      <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
-  <Text className="font-semibold text-gray-800 text-lg mb-4">
-    Activity Log
-  </Text>
+        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <Text className="font-semibold text-gray-800 text-lg mb-4">
+            Activity Log
+          </Text>
 
-  {activitiesLoading ? (
-    <ActivityIndicator size="large" color="#2563EB" />
-  ) : activities.length === 0 ? (
-    <Text className="text-gray-400 text-sm">No activities yet.</Text>
-  ) : (
-    <View>
-      {activities.map((act) => {
-        // pick a background color by action type
-        const bgColor =
-          act.action === "added"
-            ? "#DCFCE7" // green for added
-            : act.action === "updated"
-            ? "#DBEAFE" // blue for updated
-            : "#F3F4F6"; // default gray
+          {activitiesLoading ? (
+            <ActivityIndicator size="large" color="#2563EB" />
+          ) : activities.length === 0 ? (
+            <Text className="text-gray-400 text-sm">No activities yet.</Text>
+          ) : (
+            <View>
+              {activities.map((act) => {
+                // pick a background color by action type
+                const bgColor =
+                  act.action === "added"
+                    ? "#DCFCE7" // green for added
+                    : act.action === "updated"
+                    ? "#DBEAFE" // blue for updated
+                    : "#F3F4F6"; // default gray
 
-        return (
-          <View
-            key={act._id}
-            className="rounded-xl p-3 mb-2 shadow-sm"
-            style={{ backgroundColor: bgColor }}
-          >
-            <Text className="text-gray-800 text-sm font-medium">
-              {act.fieldChanged === "note"
-                ? "Note Added"
-                : `${act.fieldChanged} ${act.action}`}
-            </Text>
+                return (
+                  <View
+                    key={act._id}
+                    className="rounded-xl p-3 mb-2 shadow-sm"
+                    style={{ backgroundColor: bgColor }}
+                  >
+                    <Text className="text-gray-800 text-sm font-medium">
+                      {act.fieldChanged === "note"
+                        ? "Note Added"
+                        : `${act.fieldChanged} ${act.action}`}
+                    </Text>
 
-            {/* Show old → new values if they exist */}
-            {act.previousValue !== undefined &&
-              act.newValue !== undefined &&
-              act.fieldChanged !== "note" && (
-                <Text className="text-xs text-gray-600 mt-1">
-                  From:{" "}
-                  <Text className="font-normal">
-                    {Array.isArray(act.previousValue)
-                      ? act.previousValue.join(", ")
-                      : act.previousValue || "-"}
-                  </Text>{" "}
-                  → To:{" "}
-                  <Text className="font-medium">
-                    {Array.isArray(act.newValue)
-                      ? act.newValue.join(", ")
-                      : act.newValue || "-"}
-                  </Text>
-                </Text>
-              )}
+                    {/* Show old → new values if they exist */}
+                    {act.previousValue !== undefined &&
+                      act.newValue !== undefined &&
+                      act.fieldChanged !== "note" && (
+                        <Text className="text-xs text-gray-600 mt-1">
+                          From:{" "}
+                          <Text className="font-normal">
+                            {Array.isArray(act.previousValue)
+                              ? act.previousValue.join(", ")
+                              : act.previousValue || "-"}
+                          </Text>{" "}
+                          → To:{" "}
+                          <Text className="font-medium">
+                            {Array.isArray(act.newValue)
+                              ? act.newValue.join(", ")
+                              : act.newValue || "-"}
+                          </Text>
+                        </Text>
+                      )}
 
-            {/* Special case for notes */}
-            {act.fieldChanged === "note" && (
-              <Text className="text-xs text-gray-700 italic mt-1">
-                {act.newValue}
-              </Text>
-            )}
+                    {/* Special case for notes */}
+                    {act.fieldChanged === "note" && (
+                      <Text className="text-xs text-gray-700 italic mt-1">
+                        {act.newValue}
+                      </Text>
+                    )}
 
-            <Text className="text-xs text-gray-500 mt-1">
-              By {act.performedBy?.fullName || "Unknown"} •{" "}
-              {new Date(act.createdAt).toLocaleString()}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  )}
-</View>
-
+                    <Text className="text-xs text-gray-500 mt-1">
+                      By {act.performedBy?.fullName || "Unknown"} •{" "}
+                      {new Date(act.createdAt).toLocaleString()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
