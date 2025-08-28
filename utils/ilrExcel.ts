@@ -1,8 +1,9 @@
-// excelExporter.ts
 import ExcelJS from "exceljs";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
+import { Asset } from "expo-asset";
+
 
 // Types
 type Responsibility = { individualName: string; designation: string };
@@ -35,6 +36,13 @@ function formatDate(date: string | Date): string {
   ).padStart(2, "0")}.${d.getFullYear()}`;
 }
 
+async function getImageBase64(uri: string): Promise<string> {
+  const fileInfo = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return fileInfo;
+}
+
 export async function exportILRsToExcel(
   filteredILRs: ILR[],
   projectName: string,
@@ -49,7 +57,23 @@ export async function exportILRsToExcel(
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("ILRs");
 
-    // --- HEAD INFO ---
+    // --- ADD LOGO ---
+    // Assume you have an image in your project at: assets/logo.png
+    const asset = Asset.fromModule(require("../assets/images/logoWP.png"));
+    await asset.downloadAsync(); // ensures file is loaded
+    const base64Logo = await getImageBase64(asset.localUri || asset.uri);
+
+    const imageId = workbook.addImage({
+      base64: base64Logo,
+      extension: "png",
+    });
+
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 0 }, // top-left corner
+      ext: { width: 120, height: 60 }, // adjust size as needed
+    });
+
+    // --- HEAD INFO --- (shifted a few rows to make space for logo)
     const infoRows = [
       `Project Name: ${projectName}`,
       `Printed Date: ${formatDate(new Date())}`,
@@ -58,10 +82,11 @@ export async function exportILRsToExcel(
 
     infoRows.forEach((text, i) => {
       const row = worksheet.addRow([text]);
-      worksheet.mergeCells(`A${i + 1}:J${i + 1}`); // merge across columns
+      worksheet.mergeCells(`B${i + 1}:J${i + 1}`); // merge across columns, leaving column A for logo
       row.font = { bold: true };
     });
-    worksheet.addRow([]); // empty row for spacing
+
+    worksheet.addRow([]); // spacing
 
     // --- HEADERS ---
     const maxActivities = Math.max(
@@ -83,7 +108,7 @@ export async function exportILRsToExcel(
       "RESPONSIBILITY",
       "TARGET DATE",
       "STATUS",
-      "DELAY DAYS", // 👈 new column
+      "DELAY DAYS",
       ...Array.from({ length: maxActivities }, (_, i) => `Activity ${i + 1}`),
     ];
 
@@ -129,11 +154,11 @@ export async function exportILRsToExcel(
           .join(", "),
         formatDate(ilr.targetDate),
         ilr.status,
-        ilr.delayDays ?? 0, // 👈 new field
+        ilr.delayDays ?? 0,
         ...activityValues,
       ]);
 
-      // style status cell
+      // Style status cell
       const statusCell = row.getCell(9);
       if (ilr.status.toLowerCase() === "open") {
         statusCell.fill = {
@@ -151,7 +176,6 @@ export async function exportILRsToExcel(
         statusCell.font = { color: { argb: "FFFFFF" }, bold: true };
       }
 
-      // wrap activity text
       activityValues.forEach((_, i) => {
         row.getCell(11 + i).alignment = { wrapText: true, vertical: "top" };
       });
@@ -159,20 +183,19 @@ export async function exportILRsToExcel(
 
     // --- COLUMN WIDTHS ---
     const colWidths: Record<number, number> = {
-      1: 6, // S.NO
-      2: 12, // Issue Number
-      3: 14, // Date
-      4: 15, // Raised By
-      5: 30, // Subject
-      6: 40, // Description
-      7: 30, // Responsibility
-      8: 14, // Target Date
-      9: 12, // Status
-      10: 14, // Delay (Days) 👈
+      1: 6,
+      2: 12,
+      3: 14,
+      4: 15,
+      5: 30,
+      6: 40,
+      7: 30,
+      8: 14,
+      9: 12,
+      10: 14,
     };
-
     worksheet.columns.forEach((col, idx) => {
-      col.width = colWidths[idx + 1] ?? 30; // default for activities
+      col.width = colWidths[idx + 1] ?? 30;
     });
 
     // --- SAVE FILE ---
