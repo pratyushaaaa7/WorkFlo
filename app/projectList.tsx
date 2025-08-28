@@ -109,7 +109,7 @@ const ProjectList = () => {
         Area: proj.area,
         Typology: proj.typology,
         Scopes: proj.scopes.join(", "),
-        StartDate: new Date(proj.startDate).toLocaleDateString(),
+        StartDate: proj.startDate ? new Date(proj.startDate).toLocaleDateString() : "",
         TeamLeaders: proj.teamLeaders
           .map((u) => u.username ?? u._id)
           .join(", "),

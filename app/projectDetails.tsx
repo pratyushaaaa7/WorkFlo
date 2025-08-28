@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
 import { Project } from "../types/Project";
 import { LinearGradient } from "expo-linear-gradient";
@@ -26,6 +26,19 @@ const ProjectDetails = () => {
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
 
+  const itemColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "#15803d"; // green
+      case "hold":
+        return "#a16207"; // amber
+      case "closed":
+        return "#b91c1c"; // red
+      default:
+        return "#6B7280"; // gray fallback
+    }
+  };
+
   // Parse project from params (initial view)
   const initialProject: Project = JSON.parse(projectParam as string);
   const [project, setProject] = useState<Project>(initialProject);
@@ -35,12 +48,6 @@ const ProjectDetails = () => {
 
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
-
-  const statusOptions = [
-    { label: "Active", value: "active" },
-    { label: "On Hold", value: "hold" },
-    { label: "Closed", value: "closed" },
-  ];
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
@@ -151,27 +158,66 @@ const ProjectDetails = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView className="p-4">
+      <ScrollView className="p-3">
         {/* Project Info Card */}
-        <View className="bg-white rounded-2xl shadow-md p-5 mb-6">
+        <View className="bg-white rounded-2xl shadow-md p-5 mb-3">
           {/* Project Name + Status */}
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-xl font-semibold text-gray-900">
               {project.projectName}
             </Text>
-            <Text
-              style={{
-                color:
-                  project.status === "active"
-                    ? "#15803d" // green
-                    : project.status === "hold"
-                    ? "#a16207" // yellow
-                    : "#b91c1c", // red
+            <Dropdown
+              data={[
+                { label: "Active", value: "active", color: "#15803d" },
+                { label: "Hold", value: "hold", color: "#a16207" },
+                { label: "Closed", value: "closed", color: "#b91c1c" },
+              ]}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Status"
+              value={status}
+              onChange={(item) => {
+                setStatus(item.value);
+                updateStatus(item.value);
               }}
-              className="text-lg font-semibold px-3 py-1 rounded-full capitalize"
-            >
-              {project.status}
-            </Text>
+              style={{
+                height: 40,
+                width: 120, // set a compact width
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                backgroundColor: "#fff",
+                flexDirection: "row",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: itemColor(status),
+                alignSelf: "flex-start", // prevents stretching
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: itemColor(status),
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: itemColor(status),
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                elevation: 4,
+              }}
+              activeColor="#E0E7FF"
+              renderLeftIcon={() => (
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: itemColor(status),
+                    marginRight: 8,
+                  }}
+                />
+              )}
+            />
           </View>
 
           {/* Info grouped into pairs */}
@@ -247,60 +293,33 @@ const ProjectDetails = () => {
           </View>
         </View>
 
-        <Dropdown
-          style={{
-            height: 50,
-            borderColor: "#ccc",
-            borderWidth: 1,
-            borderRadius: 12,
-            paddingHorizontal: 12,
-            backgroundColor: "#fff",
-          }}
-          placeholderStyle={{
-            color: "#999",
-            fontSize: 14,
-          }}
-          selectedTextStyle={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: "#000",
-          }}
-          data={[
-            { label: "Active", value: "active" },
-            { label: "Hold", value: "hold" },
-            { label: "Closed", value: "closed" },
-          ]}
-          labelField="label"
-          valueField="value"
-          placeholder="Select Status"
-          value={status}
-          onChange={(item) => {
-            setStatus(item.value);
-            updateStatus(item.value);
-          }}
-        />
-
         {/* ✅ Add Note */}
-        <View className="bg-white rounded-2xl shadow-md p-4 mb-4">
-          <Text className="text-lg font-semibold mb-2">Add Note</Text>
+        <View className="bg-white rounded-2xl shadow-md p-4 mb-3">
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Write a note..."
+            placeholder="Add a note..."
+            placeholderTextColor={"#9CA3AF"}
             className="border border-gray-300 rounded-xl px-3 py-2 mb-2"
           />
           <TouchableOpacity
-            className="bg-blue-500 px-4 py-2 rounded-2xl"
+            className="rounded-xl px-2 overflow-hidden"
             onPress={addNote}
           >
-            <Text className="text-white text-center font-semibold">
-              Submit Note
-            </Text>
+            <LinearGradient
+              colors={["#34D399", "#059669"]} // Green gradient
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="w-full py-2 items-center"
+              style={{ borderRadius: 12 }} // ✅ Apply radius here
+            >
+              <Text className="text-white font-medium">Add Note</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* ✅ Activity Logs */}
-        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+        <View className="bg-white rounded-2xl p-3 shadow-md mb-6">
           <Text className="font-semibold text-gray-800 text-lg mb-4">
             Activity Log
           </Text>
