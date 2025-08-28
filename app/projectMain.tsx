@@ -81,7 +81,7 @@ const ProjectMain = () => {
     },
     {
       key: "mom",
-      label: "Meetings",
+      label: "Minutes",
       icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
       onPress: () => {
         // router.push("/mom");
