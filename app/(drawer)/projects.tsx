@@ -80,11 +80,12 @@ const CompanyProjectSelectionScreen = () => {
 
     const projectName = selected ? selected.projectName : "";
 
-    console.log("Navigating to project with:", {
-      projectId: selectedProject,
-      company: selectedCompany,
-      projectName,
-    });
+    // console.log("Navigating to project with:", {
+    //   projectId: selectedProject,
+    //   company: selectedCompany,
+    //   projectName,
+    // });
+
     router.push({
       pathname: "/projectMain",
       params: {
