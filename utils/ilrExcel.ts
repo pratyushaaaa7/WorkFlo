@@ -4,7 +4,6 @@ import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
 import { Asset } from "expo-asset";
 
-
 // Types
 type Responsibility = { individualName: string; designation: string };
 type Activity = {
@@ -46,7 +45,8 @@ async function getImageBase64(uri: string): Promise<string> {
 export async function exportILRsToExcel(
   filteredILRs: ILR[],
   projectName: string,
-  accountName: string
+  accountName: string,
+  company: string // 👈 new param
 ) {
   try {
     if (!filteredILRs || filteredILRs.length === 0) {
@@ -57,9 +57,17 @@ export async function exportILRsToExcel(
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("ILRs");
 
-    // --- ADD LOGO ---
-    // Assume you have an image in your project at: assets/logo.png
-    const asset = Asset.fromModule(require("../assets/images/logoWP.png"));
+    // --- ADD LOGO BASED ON COMPANY ---
+    let logoPath;
+    if (company.toLowerCase() === "wp") {
+      logoPath = require("../assets/images/logoWP.png");
+    } else if (company.toLowerCase() === "wal") {
+      logoPath = require("../assets/images/logoWPicon.png");
+    } else {
+      logoPath = require("../assets/images/react-logo.png"); // fallback logo
+    }
+
+    const asset = Asset.fromModule(logoPath);
     await asset.downloadAsync(); // ensures file is loaded
     const base64Logo = await getImageBase64(asset.localUri || asset.uri);
 
@@ -68,10 +76,7 @@ export async function exportILRsToExcel(
       extension: "png",
     });
 
-    worksheet.addImage(imageId, {
-      tl: { col: 0, row: 0 }, // top-left corner
-      ext: { width: 120, height: 60 }, // adjust size as needed
-    });
+    worksheet.addImage(imageId, "A1:B5");
 
     // --- HEAD INFO --- (shifted a few rows to make space for logo)
     const infoRows = [
@@ -81,12 +86,18 @@ export async function exportILRsToExcel(
     ];
 
     infoRows.forEach((text, i) => {
-      const row = worksheet.addRow([text]);
-      worksheet.mergeCells(`B${i + 1}:J${i + 1}`); // merge across columns, leaving column A for logo
+      const rowIndex = 1 + i; // rows 1,2,3
+      const row = worksheet.getRow(rowIndex);
+
+      // place info starting from column C
+      row.values = [null, null, text]; // skip A & B (reserved for logo)
+      worksheet.mergeCells(`C${rowIndex}:J${rowIndex}`);
       row.font = { bold: true };
+      row.alignment = { vertical: "middle", horizontal: "left" };
+      row.commit();
     });
 
-    worksheet.addRow([]); // spacing
+    // worksheet.addRow([]); // spacing before headers
 
     // --- HEADERS ---
     const maxActivities = Math.max(
@@ -138,7 +149,7 @@ export async function exportILRsToExcel(
         return a
           ? `Date - ${formatDate(a.createdAt)}\nNote - ${
               a.note || "N/A"
-            }\nNew Target Date - ${formatDate(a.newValue)}`
+            }\nNew Target Date - ${formatDate(a.newValue ?? "")}`
           : "";
       });
 

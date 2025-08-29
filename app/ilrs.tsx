@@ -41,7 +41,7 @@ type ILR = {
 
 const ILRs = () => {
   const router = useRouter();
-  const { projectId, projectName } = useLocalSearchParams();
+  const { projectId, projectName, company } = useLocalSearchParams();
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
@@ -70,7 +70,7 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const handleDownloadExcel = () => {
-    exportILRsToExcel(parsedILRs, projectName, auth?.user?.fullName); // 👈 one-line call
+    exportILRsToExcel(parsedILRs, projectName, auth?.user?.fullName, company); // 👈 one-line call
   };
 
   const renderCard = ({ item }: { item: ILR }) => {
