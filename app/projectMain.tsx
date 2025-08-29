@@ -85,9 +85,9 @@ const ProjectMain = () => {
       label: "Minutes",
       icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
       onPress: () => {
-          router.push({
+        router.push({
           pathname: "/minutes",
-          params: { company, projectId,projectName },
+          params: { company, projectId, projectName },
         });
       },
     },
