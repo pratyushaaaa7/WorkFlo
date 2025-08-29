@@ -198,7 +198,7 @@ const CreateMinutes = () => {
                 }
               >
                 <Card.Content className="bg-white px-3 py-4">
-                  <View className="gap-3">
+                  <View className="gap-2">
                     <TextInput
                       placeholder="Full Name"
                       placeholderTextColor="#888"
@@ -300,7 +300,7 @@ const CreateMinutes = () => {
                 }
               >
                 <Card.Content className="bg-white px-3 py-4">
-                  <View className="gap-3">
+                  <View className="gap-2">
                     <TextInput
                       placeholder="Issue Title"
                       placeholderTextColor="#888"
