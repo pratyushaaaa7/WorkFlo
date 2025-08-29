@@ -28,7 +28,7 @@ type Issue = {
   remarks: string;
 };
 
-export default function ILRForm() {
+const ILRForm = () => {
   const router = useRouter();
   const { projectId, projectName } = useLocalSearchParams<{
     projectId: string;
@@ -152,7 +152,6 @@ export default function ILRForm() {
             originalTargetDate: new Date(
               issue.originalTargetDate || issue.targetDate
             ),
-
             targetDate: new Date(issue.targetDate), // ensure Date object
             responsibility: issue.responsibility,
             remarks: issue.remarks,
@@ -176,7 +175,6 @@ export default function ILRForm() {
           description: "",
           targetDate: "",
           originalTargetDate: "", // ✅ baseline date
-
           responsibility: [],
           remarks: "",
         },
@@ -393,3 +391,5 @@ export default function ILRForm() {
     </View>
   );
 }
+
+export default ILRForm;
