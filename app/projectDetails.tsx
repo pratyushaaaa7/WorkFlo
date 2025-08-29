@@ -86,6 +86,9 @@ const ProjectDetails = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setProject(res.data);
+      // 🔑 instead of only updating project locally, fetch fresh data
+      await fetchProject();
+
       Toast.show({ type: "success", text1: `Status updated to ${newStatus}` });
     } catch (err) {
       console.error("Error updating status:", err);
@@ -107,6 +110,8 @@ const ProjectDetails = () => {
       );
       setProject(res.data);
       setNote("");
+      // 🔑 refetch to reload activities and project data
+      await fetchProject();
       Toast.show({ type: "success", text1: "Note added" });
     } catch (err) {
       console.error("Error adding note:", err);
