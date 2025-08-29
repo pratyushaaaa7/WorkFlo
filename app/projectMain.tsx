@@ -26,10 +26,11 @@ const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 
 const ProjectMain = () => {
   const router = useRouter();
-  const { company, projectId } = useLocalSearchParams();
+  const { company, projectId, projectName } = useLocalSearchParams();
   const { token } = useContext(AuthContext) || {};
   const [modalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
+  // console.log("Project name from params:", projectId, projectName);
 
   // Fetch project details by ID
   useEffect(() => {
@@ -84,7 +85,10 @@ const ProjectMain = () => {
       label: "Minutes",
       icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
       onPress: () => {
-        // router.push("/mom");
+          router.push({
+          pathname: "/minutes",
+          params: { company, projectId,projectName },
+        });
       },
     },
   ];
@@ -103,9 +107,9 @@ const ProjectMain = () => {
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text className="text-3xl font-bold text-white">
-          {project?.projectName || "Loading..."}
+          {projectName || "Loading..."}
         </Text>
-        <Text className="text-white/80 mt-1">{project?.company}</Text>
+        <Text className="text-white/80 mt-1">{company}</Text>
       </LinearGradient>
 
       {/* Menu Grid */}

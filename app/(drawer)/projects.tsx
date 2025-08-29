@@ -14,6 +14,7 @@ const CompanyProjectSelectionScreen = () => {
 
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectName, setProjectName] = useState("");
 
   const [companyOptions, setCompanyOptions] = useState([
     { label: "WP", value: "WP" },
@@ -40,7 +41,10 @@ const CompanyProjectSelectionScreen = () => {
         const dropdownProjects = res.data.projects.map((project: any) => ({
           label: project.projectName,
           value: project._id,
+          projectName: project.projectName,
         }));
+
+        // console.log("Fetched projects:", dropdownProjects);
 
         setAssignedProjects(dropdownProjects);
         setSelectedProject(null);
@@ -60,25 +64,38 @@ const CompanyProjectSelectionScreen = () => {
 
   const handleEnter = () => {
     if (!selectedCompany || !selectedProject) {
-    Toast.show({
-      type: "error",
-      // text1: "Validation Error",
-      text1: "Please select both company and project.",
-      position: "bottom",
-    });
+      Toast.show({
+        type: "error",
+        // text1: "Validation Error",
+        text1: "Please select both company and project.",
+        position: "bottom",
+      });
       return;
     }
 
+    // Find project name from assignedProjects array
+    const selected = assignedProjects.find(
+      (p: any) => p.value === selectedProject
+    );
+
+    const projectName = selected ? selected.projectName : "";
+
+    console.log("Navigating to project with:", {
+      projectId: selectedProject,
+      company: selectedCompany,
+      projectName,
+    });
     router.push({
       pathname: "/projectMain",
       params: {
         projectId: selectedProject,
         company: selectedCompany,
+        projectName,
       },
     });
   };
 
- return (
+  return (
     <View className="flex-1 bg-gray-50">
       {/* Gradient Header */}
       <View

@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Issue = {
   serialNo: number;
@@ -233,26 +234,31 @@ export default function ILRForm() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View
-        className="pt-16 px-4 pb-6 bg-white shadow-md"
+      {/* Header */}
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
           shadowRadius: 4,
           elevation: 6,
+          zIndex: 10,
         }}
       >
-        <Pressable
+        {/* Back Button + Title */}
+        <TouchableOpacity
           onPress={() => router.back()}
           className="flex-row items-center"
+          activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-            Back
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text className="text-xl font-semibold text-white ml-4">
+            Create ILR
           </Text>
-        </Pressable>
-      </View>
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Scrollable Content */}
       <KeyboardAwareScrollView
@@ -265,7 +271,7 @@ export default function ILRForm() {
         }}
       >
         <Text className="text-2xl py-4 font-extrabold text-gray-800 my-2 text-center">
-          {projectName} ILR
+          {projectName || ""} ILR
         </Text>
 
         {/* Issues Section */}
