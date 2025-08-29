@@ -234,7 +234,6 @@ export default function ILRForm() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      {/* Header */}
       <LinearGradient
         colors={["#6366F1", "#8B5CF6"]}
         className="pt-16 pb-6 px-4 flex-row items-center justify-between"
@@ -306,7 +305,6 @@ export default function ILRForm() {
               </TouchableOpacity>
 
               {/* Responsibility MultiSelect */}
-
               <MultiSelect
                 style={{
                   height: 35,

@@ -66,7 +66,7 @@ const Minutes = () => {
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/ilrForm?projectId=${projectId}&projectName=${projectName}`
+            `/createMinutes?projectId=${projectId}&projectName=${projectName}`
           )
         }
         className="bg-indigo-600"
