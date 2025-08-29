@@ -377,7 +377,7 @@ const ILRForm = () => {
         {/* Submit Button */}
         <Pressable
           onPress={handleSubmit}
-          className="bg-blue-600 py-4 rounded-2xl items-center active:scale-95"
+          className="bg-blue-700 py-4 rounded-2xl items-center active:scale-95"
           android_ripple={{ color: "rgba(255,255,255,0.2)" }}
         >
           <Text className="text-white font-bold text-lg">Submit ILR</Text>
