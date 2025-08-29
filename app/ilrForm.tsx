@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   Platform,
   Pressable,
@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
 
 type Issue = {
   serialNo: number;
@@ -35,15 +36,18 @@ const ILRForm = () => {
     projectName: string;
   }>();
 
-  const [token, setToken] = useState<string | null>(null);
+  const auth = useContext(AuthContext);
+  const token = auth?.token;
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      const storedToken = await AsyncStorage.getItem("token");
-      setToken(storedToken);
-    };
-    fetchToken();
-  }, []);
+  // const [token, setToken] = useState<string | null>(null);
+
+  // useEffect(() => {
+  //   const fetchToken = async () => {
+  //     const storedToken = await AsyncStorage.getItem("token");
+  //     setToken(storedToken);
+  //   };
+  //   fetchToken();
+  // }, []);
 
   const [issues, setIssues] = useState<Issue[]>([
     {
@@ -390,6 +394,6 @@ const ILRForm = () => {
       )}
     </View>
   );
-}
+};
 
 export default ILRForm;
