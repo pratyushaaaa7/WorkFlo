@@ -42,10 +42,10 @@ const CreateMinutes = () => {
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
     {
-      sno: 1,
-      name: "",
+      sNo: 1,
+      attendeeName: "",
       role: "",
-      company: "",
+      organization: "",
       designation: "",
       email: "",
       phone: "",
@@ -56,7 +56,7 @@ const CreateMinutes = () => {
   const [minutes, setMinutes] = useState<any[]>([
     {
       serialNo: 1,
-      raisedBy: "",
+      raisedBy: [],
       issueSubject: "",
       issueDescription: "",
       targetDate: null,
@@ -107,10 +107,10 @@ const CreateMinutes = () => {
     setAttendees((prev) => [
       ...prev,
       {
-        sno: prev.length + 1,
-        name: "",
+        sNo: prev.length + 1,
+        attendeeName: "",
         role: "",
-        company: "",
+        organization: "",
         designation: "",
         email: "",
         phone: "",
@@ -119,7 +119,7 @@ const CreateMinutes = () => {
   const deleteAttendee = (index: number) => {
     const updated = attendees
       .filter((_, i) => i !== index)
-      .map((a, i) => ({ ...a, sno: i + 1 }));
+      .map((a, i) => ({ ...a, sNo: i + 1 }));
     setAttendees(updated);
   };
 
@@ -133,7 +133,7 @@ const CreateMinutes = () => {
       ...prev,
       {
         serialNo: prev.length + 1,
-        raisedBy: "",
+        raisedBy: [],
         issueSubject: "",
         issueDescription: "",
         targetDate: null,
@@ -157,6 +157,54 @@ const CreateMinutes = () => {
     if (selectedDate && dateIndex !== null) {
       updateMinute(dateIndex, "targetDate", selectedDate.toISOString());
       setDateIndex(null);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (!token) return;
+
+      // Fix attendees mapping
+      const formattedAttendees = attendees.map((a) => ({
+        sNo: a.sNo,
+        attendeeName: a.attendeeName,
+        role: a.role,
+        organization: a.organization,
+        designation: a.designation,
+        email: a.email,
+        phone: a.phone,
+      }));
+
+      // Fix minutes mapping
+      const formattedMinutes = minutes.map((m) => ({
+        serialNo: m.serialNo,
+        issueSubject: m.issueSubject,
+        issueDescription: m.issueDescription,
+        raisedBy: Array.isArray(m.raisedBy) ? m.raisedBy : [m.raisedBy], // ✅ always array
+        responsibility: m.responsibility,
+        targetDate: m.targetDate,
+        remarks: m.remarks,
+      }));
+
+      const payload = {
+        projectId,
+        meetingDate: meetingDate ? meetingDate.toISOString() : null,
+        meetingTime,
+        meetingVenue,
+        attendees: formattedAttendees,
+        minutes: formattedMinutes,
+        // meetingNumber: let backend auto-generate
+      };
+
+      await api.post("/minutes", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Toast.show({ type: "success", text1: "Minutes created successfully", position:"bottom" });
+      router.back();
+    } catch (err) {
+      console.error("Submit error:", err);
+      Toast.show({ type: "error", text1: "Failed to create minutes" , position:"bottom"});
     }
   };
 
@@ -240,9 +288,7 @@ const CreateMinutes = () => {
         </View>
 
         <View className="bg-white rounded-xl p-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">
-            Attendees
-          </Text>
+          <Text className="text-lg font-bold text-gray-700 p-2">Attendees</Text>
 
           {attendees.map((att, index) => (
             <Card
@@ -250,7 +296,7 @@ const CreateMinutes = () => {
               className="mb-4 rounded-3xl shadow-sm overflow-hidden"
             >
               <List.Accordion
-                title={`Attendee ${att.sno}`}
+                title={`Attendee ${att.sNo}`}
                 titleStyle={{
                   fontWeight: "600",
                   fontSize: 16,
@@ -269,8 +315,10 @@ const CreateMinutes = () => {
                     <TextInput
                       placeholder="Full Name"
                       placeholderTextColor="#888"
-                      value={att.name}
-                      onChangeText={(t) => updateAttendee(index, "name", t)}
+                      value={att.attendeeName}
+                      onChangeText={(t) =>
+                        updateAttendee(index, "attendeeName", t)
+                      }
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
@@ -281,10 +329,12 @@ const CreateMinutes = () => {
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
-                      placeholder="Company"
+                      placeholder="Organization"
                       placeholderTextColor="#888"
-                      value={att.company}
-                      onChangeText={(t) => updateAttendee(index, "company", t)}
+                      value={att.organization}
+                      onChangeText={(t) =>
+                        updateAttendee(index, "organization", t)
+                      }
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
@@ -338,9 +388,7 @@ const CreateMinutes = () => {
 
         {/* Minutes */}
         <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">
-            Minutes
-          </Text>
+          <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text>
 
           {minutes.map((m, index) => (
             <Card
@@ -515,7 +563,7 @@ const CreateMinutes = () => {
 
         {/* Submit Button */}
         <TouchableOpacity
-          onPress={() => console.log({ attendees, minutes })}
+          onPress={handleSubmit}
           className="bg-indigo-600 py-4 rounded-2xl items-center my-4"
         >
           <Text className="text-white font-bold">Submit MOM</Text>
