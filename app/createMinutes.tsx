@@ -246,17 +246,20 @@ const CreateMinutes = () => {
                       keyboardType="phone-pad"
                     />
                     {/* 🗑 Delete button */}
-                    <TouchableOpacity
-                      onPress={() => {
-                        setAttendees((prev) =>
-                          prev.filter((_, i) => i !== index)
-                        );
-                      }}
-                    >
-                      <Text className="text-red-500 font-semibold text-right px-4 mt-2">
-                        Remove Attendee
-                      </Text>
-                    </TouchableOpacity>
+                    {attendees.length > 1 && (
+                      <TouchableOpacity
+                        // onPress={() => {
+                        //   setAttendees((prev) =>
+                        //     prev.filter((_, i) => i !== index)
+                        //   );
+                        // }}
+                        onPress={() => deleteAttendee(index)}
+                      >
+                        <Text className="text-red-500 font-semibold text-right px-4 mt-2">
+                          Remove Attendee
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </Card.Content>
               </List.Accordion>
@@ -342,7 +345,6 @@ const CreateMinutes = () => {
                       style={{
                         height: 35,
                         borderColor: "#E5E7EB", // gray-200
-
                         borderWidth: 1,
                         borderRadius: 12,
                         paddingHorizontal: 12,
@@ -356,7 +358,7 @@ const CreateMinutes = () => {
                       selectedStyle={{
                         borderRadius: 10,
                         backgroundColor: "#D1FADF", // light green (instead of light aqua)
-                        padding: 5,
+                        padding: 4,
                       }}
                       containerStyle={{
                         borderRadius: 12,
