@@ -425,8 +425,15 @@ const CreateMinutes = () => {
                         updateMinute(index, "responsibility", val)
                       }
                     />
-
-               
+                    <TextInput
+                      placeholder="Remarks (if any)"
+                      placeholderTextColor="#888"
+                      value={m.remarks}
+                      onChangeText={(t) =>
+                        updateMinute(index, "remarks", t)
+                      }
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                    />
 
                     {/* 🗑 Delete Minute */}
                     {minutes.length > 1 && (
