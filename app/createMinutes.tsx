@@ -32,6 +32,13 @@ const CreateMinutes = () => {
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
   const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
 
+  // ✅ Meeting-level state
+  const [meetingDate, setMeetingDate] = useState<Date | null>(null);
+  const [meetingTime, setMeetingTime] = useState<string>(""); // string for time
+  const [meetingVenue, setMeetingVenue] = useState<string>("");
+
+  const [showMeetingDatePicker, setShowMeetingDatePicker] = useState(false);
+
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
     {
@@ -181,15 +188,66 @@ const CreateMinutes = () => {
           {projectName || ""} MOM
         </Text> */}
 
-        <List.Section>
-          <List.Subheader className="text-lg font-bold text-gray-700">
+        {/* ✅ Meeting Info Section */}
+        <View className="mb-2 rounded-xl shadow-md overflow-hidden">
+          <View className="bg-white px-3 py-4 gap-3">
+            <Text className="text-lg font-bold text-gray-700">
+              Meeting Info
+            </Text>
+            {/* Meeting Date */}
+            <TouchableOpacity onPress={() => setShowMeetingDatePicker(true)}>
+              <TextInput
+                placeholder="Meeting Date"
+                placeholderTextColor="#888"
+                value={
+                  meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : ""
+                }
+                editable={false}
+                pointerEvents="none"
+                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+              />
+            </TouchableOpacity>
+            {showMeetingDatePicker && (
+              <DateTimePicker
+                value={meetingDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(_, selectedDate) => {
+                  setShowMeetingDatePicker(false);
+                  if (selectedDate) setMeetingDate(selectedDate);
+                }}
+              />
+            )}
+
+            {/* Meeting Time */}
+            <TextInput
+              placeholder="Meeting Time"
+              placeholderTextColor="#888"
+              value={meetingTime}
+              onChangeText={setMeetingTime}
+              className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+            />
+
+            {/* Venue */}
+            <TextInput
+              placeholder="Venue"
+              placeholderTextColor="#888"
+              value={meetingVenue}
+              onChangeText={setMeetingVenue}
+              className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+            />
+          </View>
+        </View>
+
+        <View className="bg-white rounded-xl p-2 shadow-md">
+          <Text className="text-lg font-bold text-gray-700 p-2">
             Attendees
-          </List.Subheader>
+          </Text>
 
           {attendees.map((att, index) => (
             <Card
               key={index}
-              className="mb-4 rounded-3xl shadow-md overflow-hidden"
+              className="mb-4 rounded-3xl shadow-sm overflow-hidden"
             >
               <List.Accordion
                 title={`Attendee ${att.sno}`}
@@ -274,20 +332,20 @@ const CreateMinutes = () => {
           >
             <Text className="text-white font-semibold">+ Add Attendee</Text>
           </TouchableOpacity>
-        </List.Section>
+        </View>
 
-        <Divider style={{ marginVertical: 16 }} />
+        {/* <Divider style={{ marginVertical: 16 }} /> */}
 
         {/* Minutes */}
-        <List.Section>
-          <List.Subheader className="text-lg font-bold text-gray-700">
+        <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
+          <Text className="text-lg font-bold text-gray-700 p-2">
             Minutes
-          </List.Subheader>
+          </Text>
 
           {minutes.map((m, index) => (
             <Card
               key={index}
-              className="mb-4 rounded-3xl shadow-md overflow-hidden"
+              className="mb-4 rounded-3xl shadow-sm overflow-hidden"
             >
               <List.Accordion
                 title={`Minute ${m.serialNo}`}
@@ -429,9 +487,7 @@ const CreateMinutes = () => {
                       placeholder="Remarks (if any)"
                       placeholderTextColor="#888"
                       value={m.remarks}
-                      onChangeText={(t) =>
-                        updateMinute(index, "remarks", t)
-                      }
+                      onChangeText={(t) => updateMinute(index, "remarks", t)}
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
 
@@ -455,7 +511,7 @@ const CreateMinutes = () => {
           >
             <Text className="text-white font-semibold">+ Add Minute</Text>
           </TouchableOpacity>
-        </List.Section>
+        </View>
 
         {/* Submit Button */}
         <TouchableOpacity
