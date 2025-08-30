@@ -40,7 +40,6 @@ const Minutes = () => {
 
     if (projectId) fetchMeetings();
   }, [projectId]);
-
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -69,8 +68,27 @@ const Minutes = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Content */}
-      <ScrollView className="flex-1 bg-gray-100 p-4">
+      <ScrollView className="p-4">
+        <View>
+          <View className="bg-white p-4 rounded-2xl shadow mb-4">
+            <Text className="text-lg font-semibold text-gray-800">
+              Project Name
+            </Text>
+            <Text className="text-gray-500 mt-1">{projectName}</Text>
+          </View>
+
+          <View className="bg-white p-4 rounded-2xl shadow mb-4">
+            <Text className="text-lg font-semibold text-gray-800">Company</Text>
+            <Text className="text-gray-500 mt-1">{company}</Text>
+          </View>
+
+          <View className="bg-white p-4 rounded-2xl shadow mb-4">
+            <Text className="text-lg font-semibold text-gray-800">
+              Project ID
+            </Text>
+            <Text className="text-gray-500 mt-1">{projectId}</Text>
+          </View>
+        </View>
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" />
         ) : meetings.length === 0 ? (
@@ -79,118 +97,24 @@ const Minutes = () => {
           </Text>
         ) : (
           meetings.map((meeting) => (
-            <View key={meeting._id} className="mb-6">
-              {/* Header */}
-              <LinearGradient
-                colors={["#6366F1", "#8B5CF6"]}
-                className="rounded-2xl p-4 mb-4"
-              >
-                <Text className="text-white text-2xl font-bold">
-                  Meeting #{meeting.meetingNumber}
-                </Text>
-                <Text className="text-white mt-1">
-                  {new Date(meeting.meetingDate).toLocaleDateString()} |{" "}
-                  {meeting.meetingTime}
-                </Text>
-                <Text className="text-white mt-1">{meeting.meetingVenue}</Text>
-              </LinearGradient>
-
-              <View className="bg-white p-4 rounded-2xl shadow mb-4">
-                <Text className="text-lg font-semibold text-gray-800">
-                  Project Name
-                </Text>
-                <Text className="text-gray-500 mt-1">{projectName}</Text>
-              </View>
-
-              <View className="bg-white p-4 rounded-2xl shadow mb-4">
-                <Text className="text-lg font-semibold text-gray-800">
-                  Company
-                </Text>
-                <Text className="text-gray-500 mt-1">{company}</Text>
-              </View>
-
-              <View className="bg-white p-4 rounded-2xl shadow mb-4">
-                <Text className="text-lg font-semibold text-gray-800">
-                  Project ID
-                </Text>
-                <Text className="text-gray-500 mt-1">{projectId}</Text>
-              </View>
-
-              {/* Attendees Section */}
-              <View className="bg-white p-4 rounded-2xl shadow mb-4">
-                <Text className="text-lg font-semibold text-gray-800 mb-2">
-                  Attendees
-                </Text>
-                {meeting.attendees.map((attendee) => (
-                  <View
-                    key={attendee._id}
-                    className="border-b border-gray-200 py-2 flex-row justify-between"
-                  >
-                    <View>
-                      <Text className="font-medium text-gray-700">
-                        {attendee.attendeeName}
-                      </Text>
-                      <Text className="text-gray-500 text-sm">
-                        {attendee.designation} | {attendee.organization}
-                      </Text>
-                    </View>
-                    <Text className="text-gray-400">{attendee.phone}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Minutes Section */}
-              <View className="bg-white p-4 rounded-2xl shadow mb-4">
-                <Text className="text-lg font-semibold text-gray-800 mb-2">
-                  Minutes of Meeting
-                </Text>
-                {meeting.minutes.map((minute) => (
-                  <View
-                    key={minute._id}
-                    className="border border-gray-200 rounded-xl p-3 mb-3"
-                  >
-                    <Text className="font-bold text-indigo-600 mb-1">
-                      {minute.serialNo}. {minute.issueSubject}
-                    </Text>
-                    <Text className="text-gray-700 mb-1">
-                      {minute.issueDescription}
-                    </Text>
-
-                    <Text className="text-gray-500 text-sm">
-                      Raised By:{" "}
-                      {minute.raisedBy.map((r) => r.individualName).join(", ")}
-                    </Text>
-                    <Text className="text-gray-500 text-sm">
-                      Responsible:{" "}
-                      {minute.responsibility
-                        .map((r) => r.individualName)
-                        .join(", ")}
-                    </Text>
-                    <Text className="text-gray-500 text-sm">
-                      Target Date:{" "}
-                      {new Date(minute.targetDate).toLocaleDateString()}
-                    </Text>
-                    <Text className="text-gray-500 text-sm">
-                      Status:{" "}
-                      <Text
-                        className={`${
-                          minute.status === "open"
-                            ? "text-red-500"
-                            : "text-green-500"
-                        } font-semibold`}
-                      >
-                        {minute.status.toUpperCase()}
-                      </Text>
-                    </Text>
-                    {minute.remarks ? (
-                      <Text className="text-gray-500 text-sm mt-1">
-                        Remarks: {minute.remarks}
-                      </Text>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            </View>
+            <TouchableOpacity
+              key={meeting._id}
+              className="bg-white rounded-2xl shadow p-4 mb-4"
+              onPress={() =>
+                router.push(
+                  `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}`
+                )
+              }
+            >
+              <Text className="text-lg font-bold text-indigo-600 mb-1">
+                Meeting #{meeting.meetingNumber}
+              </Text>
+              <Text className="text-gray-700">
+                {new Date(meeting.meetingDate).toLocaleDateString()} |{" "}
+                {meeting.meetingTime}
+              </Text>
+              <Text className="text-gray-500">{meeting.meetingVenue}</Text>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
