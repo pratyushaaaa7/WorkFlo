@@ -49,7 +49,9 @@ const CreateMinutes = () => {
   const [minutes, setMinutes] = useState<any[]>([
     {
       serialNo: 1,
-      description: "",
+      raisedBy: "",
+      issueSubject: "",
+      issueDescription: "",
       targetDate: null,
       responsibility: [],
       remarks: "",
@@ -59,6 +61,11 @@ const CreateMinutes = () => {
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
+
+  // //Users for Raised By dropdown
+  // const [raisedBy, setRaisedBy] = useState<{ label: string; value: string }[]>(
+  //   []
+  // );
 
   // Users for responsibility dropdown
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
@@ -119,7 +126,9 @@ const CreateMinutes = () => {
       ...prev,
       {
         serialNo: prev.length + 1,
-        description: "",
+        raisedBy: "",
+        issueSubject: "",
+        issueDescription: "",
         targetDate: null,
         responsibility: [],
         remarks: "",
@@ -247,14 +256,7 @@ const CreateMinutes = () => {
                     />
                     {/* 🗑 Delete button */}
                     {attendees.length > 1 && (
-                      <TouchableOpacity
-                        // onPress={() => {
-                        //   setAttendees((prev) =>
-                        //     prev.filter((_, i) => i !== index)
-                        //   );
-                        // }}
-                        onPress={() => deleteAttendee(index)}
-                      >
+                      <TouchableOpacity onPress={() => deleteAttendee(index)}>
                         <Text className="text-red-500 font-semibold text-right px-4 mt-2">
                           Remove Attendee
                         </Text>
@@ -304,12 +306,57 @@ const CreateMinutes = () => {
               >
                 <Card.Content className="bg-white px-3 py-4">
                   <View className="gap-2">
+                    {/* Raised By */}
+                    <MultiSelect
+                      style={{
+                        height: 35,
+                        borderColor: "#E5E7EB", // gray-200
+                        borderWidth: 1,
+                        borderRadius: 12,
+                        paddingHorizontal: 12,
+                        backgroundColor: "#F9FAFB",
+                      }}
+                      placeholderStyle={{ fontSize: 14, color: "#888" }}
+                      selectedTextStyle={{
+                        fontSize: 12,
+                        color: "#0B0B0B",
+                      }}
+                      selectedStyle={{
+                        borderRadius: 10,
+                        backgroundColor: "#D1FADF", // light green (instead of light aqua)
+                        padding: 4,
+                      }}
+                      containerStyle={{
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        backgroundColor: "#fff",
+                      }}
+                      activeColor="#DCFCE7"
+                      inputSearchStyle={{ fontSize: 14 }}
+                      search
+                      labelField="label"
+                      valueField="value"
+                      data={users}
+                      value={m.raisedBy} // bind to minute state
+                      placeholder="Issue raised by"
+                      searchPlaceholder="Search..."
+                      onChange={(val) => updateMinute(index, "raisedBy", val)}
+                    />
                     <TextInput
-                      placeholder="Issue Title"
+                      placeholder="Issue Subject"
                       placeholderTextColor="#888"
-                      value={m.description}
+                      value={m.issueSubject}
                       onChangeText={(t) =>
-                        updateMinute(index, "description", t)
+                        updateMinute(index, "issueSubject", t)
+                      }
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                    />
+                    <TextInput
+                      placeholder="Issue Description"
+                      placeholderTextColor="#888"
+                      value={m.issueDescription}
+                      onChangeText={(t) =>
+                        updateMinute(index, "issueDescription", t)
                       }
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
@@ -329,7 +376,7 @@ const CreateMinutes = () => {
                         className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       />
                     </TouchableOpacity>
-                    {showDatePicker && (
+                    {showDatePicker && dateIndex === index && (
                       <DateTimePicker
                         value={
                           m.targetDate ? new Date(m.targetDate) : new Date()
@@ -374,18 +421,12 @@ const CreateMinutes = () => {
                       value={m.responsibility} // bind to minute state
                       placeholder="Select responsible users"
                       searchPlaceholder="Search..."
-                      onChange={(items) =>
-                        updateMinute(index, "responsibility", items)
-                      } // save array
+                      onChange={(val) =>
+                        updateMinute(index, "responsibility", val)
+                      }
                     />
 
-                    <TextInput
-                      placeholder="Remarks"
-                      placeholderTextColor="#999"
-                      value={m.remarks}
-                      onChangeText={(t) => updateMinute(index, "remarks", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
+               
 
                     {/* 🗑 Delete Minute */}
                     {minutes.length > 1 && (
