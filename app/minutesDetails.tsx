@@ -28,7 +28,6 @@ const MinutesDetail = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
-
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -74,7 +73,7 @@ const MinutesDetail = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
           <Text className="text-xl font-semibold text-white ml-4">
-            Meeting #{meetingNumber}
+            {projectName} Meeting #{meetingNumber}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -97,18 +96,39 @@ const MinutesDetail = () => {
 
       {/* Content */}
       <ScrollView className="p-2">
-        <View className="bg-white rounded-2xl p-4 mb-2 shadow">
-          <Text className="text-black text-2xl font-bold">
-            Meeting #{meetingNumber}
-          </Text>
-          <Text className="mt-1">
-            {new Date(
-              Array.isArray(meetingDate) ? meetingDate[0] : meetingDate
-            ).toLocaleDateString()}{" "}
-            | {meetingTime}
-          </Text>
-          <Text className=" mt-1">{meetingVenue}</Text>
+        {/* Date & Time */}
+        <View className="bg-white rounded-2xl p-5 mb-3 shadow-md border border-gray-100">
+          {/* Date & Time Row */}
+          <View className="flex-row justify-between items-center">
+            {/* Date */}
+            <View className="flex-row items-center">
+              <Ionicons name="calendar-outline" size={20} color="#1F2937" />
+              <Text className="ml-2 text-gray-800 font-medium">
+                {new Date(
+                  Array.isArray(meetingDate) ? meetingDate[0] : meetingDate
+                ).toLocaleDateString()}
+              </Text>
+            </View>
+
+            {/* Time */}
+            <View className="flex-row items-center">
+              <Ionicons name="time-outline" size={20} color="#1F2937" />
+              <Text className="ml-2 text-gray-800 font-medium">
+                {meetingTime}
+              </Text>
+            </View>
+          </View>
+
+          {/* Divider */}
+          <View className="h-[1px] bg-gray-200 my-3" />
+
+          {/* Venue */}
+          <View className="flex-row items-center">
+            <Ionicons name="location-outline" size={20} color="#1F2937" />
+            <Text className="ml-2 text-gray-700">{meetingVenue}</Text>
+          </View>
         </View>
+
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meeting ? (
@@ -161,7 +181,7 @@ const MinutesDetail = () => {
                   <Text className="text-gray-500 text-sm">
                     Responsible:{" "}
                     {minute.responsibility
-                      .map((r) => r.individualName)
+                      .map((r: any) => r.individualName)
                       .join(", ")}
                   </Text>
                   <Text className="text-gray-500 text-sm">
