@@ -97,7 +97,7 @@ const MinutesDetail = () => {
 
       {/* Content */}
       <ScrollView className="p-2">
-        <View className="bg-white rounded-2xl p-4 mb-4 shadow">
+        <View className="bg-white rounded-2xl p-4 mb-2 shadow">
           <Text className="text-black text-2xl font-bold">
             Meeting #{meetingNumber}
           </Text>
@@ -114,14 +114,14 @@ const MinutesDetail = () => {
         ) : meeting ? (
           <>
             {/* Attendees */}
-            <View className="bg-white p-4 rounded-2xl shadow mb-4">
+            <View className="bg-white p-4 rounded-2xl shadow mb-2">
               <Text className="text-lg font-semibold text-gray-800 mb-2">
                 Attendees
               </Text>
               {meeting.attendees.map((attendee: any) => (
                 <View
                   key={attendee._id}
-                  className="border-b border-gray-200 py-2 flex-row justify-between"
+                  className="border-t border-gray-200 py-2 flex-row justify-between"
                 >
                   <View>
                     <Text className="font-medium text-gray-700">
