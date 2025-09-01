@@ -47,7 +47,7 @@ export async function exportMinutesToExcel(
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Meeting Details");
- 
+
     // --- ADD LOGO BASED ON COMPANY ---
     let logoPath;
     if (company.toLowerCase() === "wp") {
@@ -80,16 +80,27 @@ export async function exportMinutesToExcel(
       ext: { width: 120, height: 60 },
     });
 
-    // --- Project Info ---
-    worksheet.addRow(["Project Name", projectName]);
-    worksheet.addRow(["Meeting Number", meeting.meetingNumber]);
-    worksheet.addRow([
-      "Meeting Date",
-      new Date(meeting.meetingDate).toLocaleDateString(),
-    ]);
-    worksheet.addRow(["Time", meeting.meetingTime]);
-    worksheet.addRow(["Venue", meeting.meetingVenue]);
-    worksheet.addRow(["Minutes Prepared By", accountName]);
+    // --- Project Info beside logo (C column) ---
+    const info = [
+      ["Project Name", projectName],
+      ["Meeting Number", meeting.meetingNumber],
+      ["Meeting Date", new Date(meeting.meetingDate).toLocaleDateString()],
+      ["Time", meeting.meetingTime],
+      ["Venue", meeting.meetingVenue],
+      ["Minutes Prepared By", accountName],
+    ];
+
+    info.forEach((row, i) => {
+      // Place text in column C, starting at row 1 (beside logo)
+      worksheet.mergeCells(`C${i + 1}:D${i + 1}`);
+      const cell = worksheet.getCell(`C${i + 1}`);
+      cell.value = `${row[0]}: ${row[1]}`;
+      cell.font = { bold: true };
+      cell.alignment = { vertical: "middle", horizontal: "left" };
+    });
+
+    // Add a couple of empty rows after header section
+    worksheet.addRow([]);
     worksheet.addRow([]);
 
     // --- Attendees Section ---
