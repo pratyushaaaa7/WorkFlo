@@ -65,31 +65,22 @@ const MinutesDetail = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
           <Text className="text-xl font-semibold text-white ml-4">
-            Minutes of Meeting
+            Meeting #{meetingNumber}
           </Text>
         </TouchableOpacity>
       </LinearGradient>
 
-      <View className="bg-indigo-600 rounded-2xl p-4 mb-4 shadow">
-        <Text className="text-white text-2xl font-bold">
-          Meeting #{meetingNumber}
-        </Text>
-        <Text className="text-white mt-1">
-          {new Date(meetingDate).toLocaleDateString()} | {meetingTime}
-        </Text>
-        <Text className="text-white mt-1">{meetingVenue}</Text>
-      </View>
-
-      {/* Back Button */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        className="absolute top-16 left-4 p-2 bg-white rounded-full shadow"
-      >
-        <Ionicons name="arrow-back" size={24} color="#6366F1" />
-      </TouchableOpacity>
-
       {/* Content */}
-      <ScrollView className="p-4">
+      <ScrollView className="p-2">
+        <View className="bg-white rounded-2xl p-4 mb-4 shadow">
+          <Text className="text-black text-2xl font-bold">
+            Meeting #{meetingNumber}
+          </Text>
+          <Text className="mt-1">
+            {new Date(meetingDate).toLocaleDateString()} | {meetingTime}
+          </Text>
+          <Text className=" mt-1">{meetingVenue}</Text>
+        </View>
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meeting ? (

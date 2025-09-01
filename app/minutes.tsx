@@ -69,7 +69,7 @@ const Minutes = () => {
       </LinearGradient>
 
       <ScrollView className="p-4">
-        <View>
+        {/* <View>
           <View className="bg-white p-4 rounded-2xl shadow mb-4">
             <Text className="text-lg font-semibold text-gray-800">
               Project Name
@@ -88,7 +88,7 @@ const Minutes = () => {
             </Text>
             <Text className="text-gray-500 mt-1">{projectId}</Text>
           </View>
-        </View>
+        </View> */}
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" />
         ) : meetings.length === 0 ? (
