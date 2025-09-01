@@ -166,18 +166,45 @@ const ProjectMain = () => {
                     {project?.location}
                   </Text>
                 </View>
+
                 <View className="flex-row items-center">
                   <Ionicons name="business-outline" size={20} color="#10B981" />
                   <Text className="ml-2 text-gray-700">{project?.company}</Text>
                 </View>
-                <View className="flex-row items-center">
-                  <Ionicons name="resize-outline" size={20} color="#F59E0B" />
-                  <Text className="ml-2 text-gray-700">{project?.area}</Text>
-                </View>
+
                 <View className="flex-row items-center">
                   <Ionicons name="code" size={20} color="#EF4444" />
                   <Text className="ml-2 text-gray-700">
                     {project?.projectCode}
+                  </Text>
+                </View>
+
+                {/* ✅ New Fields */}
+                <View className="flex-row items-center">
+                  <Ionicons name="person-outline" size={20} color="#2563EB" />
+                  <Text className="ml-2 text-gray-700">
+                    Client: {project?.clientName}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <Ionicons name="cube-outline" size={20} color="#9333EA" />
+                  <Text className="ml-2 text-gray-700">
+                    Designed Area: {project?.designedArea}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <Ionicons name="home-outline" size={20} color="#14B8A6" />
+                  <Text className="ml-2 text-gray-700">
+                    Site Area: {project?.siteArea}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <Ionicons name="pulse-outline" size={20} color="#F97316" />
+                  <Text className="ml-2 text-gray-700">
+                    Status: {project?.status}
                   </Text>
                 </View>
 
