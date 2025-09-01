@@ -200,11 +200,19 @@ const CreateMinutes = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      Toast.show({ type: "success", text1: "Minutes created successfully", position:"bottom" });
+      Toast.show({
+        type: "success",
+        text1: "Minutes created successfully",
+        position: "bottom",
+      });
       router.back();
     } catch (err) {
       console.error("Submit error:", err);
-      Toast.show({ type: "error", text1: "Failed to create minutes" , position:"bottom"});
+      Toast.show({
+        type: "error",
+        text1: "Failed to create minutes",
+        position: "bottom",
+      });
     }
   };
 
@@ -286,7 +294,8 @@ const CreateMinutes = () => {
             />
           </View>
         </View>
-
+        
+        {/* Attendees */}
         <View className="bg-white rounded-xl p-2 shadow-md">
           <Text className="text-lg font-bold text-gray-700 p-2">Attendees</Text>
 
