@@ -151,7 +151,7 @@ const MinutesDetail = () => {
                     </Text>
                   </Text>
                   {minute.remarks ? (
-                    <Text className="text-gray-500 text-sm mt-1">
+                    <Text className="text-gray-500 text-sm ">
                       Remarks: {minute.remarks}
                     </Text>
                   ) : null}
