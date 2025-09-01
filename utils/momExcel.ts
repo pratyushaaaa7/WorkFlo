@@ -2,13 +2,16 @@ import ExcelJS from "exceljs";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
+import { Asset } from "expo-asset";
 
-// Types for clarity (optional, adjust based on your backend shape)
+// Types
 type Attendee = {
   attendeeName: string;
   designation: string;
   organization: string;
-  phone: string;
+  role?: string;
+  email?: string;
+  phone?: string;
 };
 
 type Responsibility = { individualName: string; designation?: string };
@@ -21,11 +24,12 @@ type Minute = {
   raisedBy: RaisedBy[];
   responsibility: Responsibility[];
   targetDate: string;
-  status: string;
+  status: string; // "open" | "closed"
   remarks?: string;
 };
 
 type Meeting = {
+  projectName: string;
   meetingNumber: string;
   meetingDate: string;
   meetingTime: string;
@@ -34,87 +38,189 @@ type Meeting = {
   minutes: Minute[];
 };
 
-export async function exportMinutesToExcel(meeting: Meeting) {
+export async function exportMinutesToExcel(
+  meeting: Meeting,
+  accountName: string,
+  projectName: string,
+  company: string
+) {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Meeting Details");
+ 
+    // --- ADD LOGO BASED ON COMPANY ---
+    let logoPath;
+    if (company.toLowerCase() === "wp") {
+      logoPath = require("../assets/images/logoWP.png");
+    } else if (company.toLowerCase() === "wal") {
+      logoPath = require("../assets/images/logoWPicon.png");
+    } else {
+      logoPath = require("../assets/images/react-logo.png"); // fallback logo
+    }
 
-    // --- Header ---
-    worksheet.mergeCells("A1", "E1");
-    worksheet.getCell("A1").value = `Meeting #${meeting.meetingNumber}`;
-    worksheet.getCell("A1").font = { size: 16, bold: true };
-    worksheet.getCell("A1").alignment = { horizontal: "center" };
+    // Resolve asset into a real local file
 
-    worksheet.addRow([]);
+    const asset = Asset.fromModule(logoPath);
+    await asset.downloadAsync(); // ensures file is loaded
+
+    // Read it as base64
+    const logoBase64 = await FileSystem.readAsStringAsync(asset.localUri!, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Add image to workbook
+    const logoId = workbook.addImage({
+      base64: logoBase64,
+      extension: "png",
+    });
+
+    // Place image at top-left
+    worksheet.addImage(logoId, {
+      tl: { col: 0, row: 0 },
+      ext: { width: 120, height: 60 },
+    });
+
+    // --- Project Info ---
+    worksheet.addRow(["Project Name", projectName]);
+    worksheet.addRow(["Meeting Number", meeting.meetingNumber]);
     worksheet.addRow([
-      "Date",
+      "Meeting Date",
       new Date(meeting.meetingDate).toLocaleDateString(),
-      "Time",
-      meeting.meetingTime,
     ]);
+    worksheet.addRow(["Time", meeting.meetingTime]);
     worksheet.addRow(["Venue", meeting.meetingVenue]);
+    worksheet.addRow(["Minutes Prepared By", accountName]);
     worksheet.addRow([]);
 
     // --- Attendees Section ---
-    worksheet.addRow(["Attendees"]).font = { bold: true };
-    worksheet.addRow([
+    worksheet.addRow(["Attendees"]);
+    const attendeeHeader = worksheet.addRow([
+      "S.No",
       "Name",
+      "Role",
+      "Company",
       "Designation",
-      "Organization",
-      "Phone",
-    ]).font = { bold: true };
+      "Email",
+      "Phone Number",
+    ]);
 
-    meeting.attendees.forEach((attendee) => {
+    attendeeHeader.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "D3D3D3" }, // gray background
+      };
+    });
+
+    meeting.attendees.forEach((attendee, index) => {
       worksheet.addRow([
+        index + 1,
         attendee.attendeeName,
-        attendee.designation,
+        attendee.role || "",
         attendee.organization,
-        attendee.phone,
+        attendee.designation,
+        attendee.email || "",
+        attendee.phone || "",
       ]);
     });
 
     worksheet.addRow([]);
-    worksheet.addRow(["Minutes of Meeting"]).font = { bold: true };
-    worksheet.addRow([
+
+    // --- Minutes Section ---
+    worksheet.addRow(["Minutes of Meeting"]);
+    const minutesHeader = worksheet.addRow([
       "S.No",
-      "Subject",
-      "Description",
       "Raised By",
-      "Responsible",
+      "Issue Subject",
+      "Issue Description",
+      "Responsibility",
       "Target Date",
       "Status",
-      "Remarks",
-    ]).font = { bold: true };
+    ]);
+
+    minutesHeader.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "D3D3D3" }, // gray background
+      };
+    });
 
     meeting.minutes.forEach((minute) => {
-      worksheet.addRow([
+      const row = worksheet.addRow([
         minute.serialNo,
+        minute.raisedBy.map((r) => r.individualName).join(", "),
         minute.issueSubject,
         minute.issueDescription,
-        minute.raisedBy.map((r) => r.individualName).join(", "),
         minute.responsibility.map((r) => r.individualName).join(", "),
         new Date(minute.targetDate).toLocaleDateString(),
         minute.status.toUpperCase(),
-        minute.remarks || "",
       ]);
+
+      // Conditional row background for Status
+      //   if (minute.status.toLowerCase() === "open") {
+      //     row.eachCell((cell) => {
+      //       cell.fill = {
+      //         type: "pattern",
+      //         pattern: "solid",
+      //         fgColor: { argb: "FFCCCC" }, // light red
+      //       };
+      //     });
+      //   } else if (minute.status.toLowerCase() === "closed") {
+      //     row.eachCell((cell) => {
+      //       cell.fill = {
+      //         type: "pattern",
+      //         pattern: "solid",
+      //         fgColor: { argb: "CCFFCC" }, // light green
+      //       };
+      //     });
+      //   }
+
+      // Conditional background for Status cell only
+      const statusCell = row.getCell(7); // 7th column is "Status"
+      if (minute.status.toLowerCase() === "open") {
+        statusCell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFCCCC" }, // light red
+        };
+      } else if (minute.status.toLowerCase() === "closed") {
+        statusCell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "CCFFCC" }, // light green
+        };
+      }
     });
 
-    // Adjust column widths
+    // Auto column widths
     worksheet.columns.forEach((col) => {
-      col.width = 20;
+      let maxLength = 20;
+      col.eachCell({ includeEmpty: true }, (cell) => {
+        const len = cell.value ? cell.value.toString().length : 10;
+        if (len > maxLength) maxLength = len;
+      });
+      col.width = maxLength + 2;
     });
 
     // Save to file
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileUri = FileSystem.documentDirectory + `Meeting_${meeting.meetingNumber}.xlsx`;
-    await FileSystem.writeAsStringAsync(fileUri, Buffer.from(buffer).toString("base64"), {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const fileUri =
+      FileSystem.documentDirectory + `Meeting_${meeting.meetingNumber}.xlsx`;
+
+    await FileSystem.writeAsStringAsync(
+      fileUri,
+      Buffer.from(buffer).toString("base64"),
+      { encoding: FileSystem.EncodingType.Base64 }
+    );
 
     // Share
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(fileUri, {
-        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         dialogTitle: "Export Meeting Minutes",
         UTI: "com.microsoft.excel.xlsx",
       });

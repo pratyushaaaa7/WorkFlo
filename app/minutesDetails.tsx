@@ -15,11 +15,19 @@ import { exportMinutesToExcel } from "../utils/momExcel";
 
 const MinutesDetail = () => {
   // Get local params from previous screen
-  const { meetingId, meetingNumber, meetingDate, meetingTime, meetingVenue } =
-    useLocalSearchParams();
+  const {
+    meetingId,
+    meetingNumber,
+    meetingDate,
+    meetingTime,
+    meetingVenue,
+    projectName,
+    company,
+  } = useLocalSearchParams();
   const router = useRouter();
-  const authContext = useContext(AuthContext);
-  const token = authContext?.token;
+  const auth = useContext(AuthContext);
+  const token = auth?.token;
+
 
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -71,7 +79,16 @@ const MinutesDetail = () => {
         </TouchableOpacity>
         <TouchableOpacity
           className=" px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-          onPress={() => meeting && exportMinutesToExcel(meeting)}
+          // onPress={() => meeting && exportMinutesToExcel(meeting, projectName, company, auth?.user?.fullName ?? "Unknown")}
+          onPress={() =>
+            meeting &&
+            exportMinutesToExcel(
+              meeting,
+              auth?.user?.fullName ?? "Unknown", // accountName
+              projectName, // projectName
+              company // company
+            )
+          }
           activeOpacity={0.7}
         >
           <Feather name="download" size={22} color="white" />
