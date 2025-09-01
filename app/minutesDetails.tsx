@@ -6,11 +6,12 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
+import { exportMinutesToExcel } from "../utils/momExcel";
 
 const MinutesDetail = () => {
   // Get local params from previous screen
@@ -68,6 +69,13 @@ const MinutesDetail = () => {
             Meeting #{meetingNumber}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          className=" px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
+          onPress={() => meeting && exportMinutesToExcel(meeting)}
+          activeOpacity={0.7}
+        >
+          <Feather name="download" size={22} color="white" />
+        </TouchableOpacity>
       </LinearGradient>
 
       {/* Content */}
@@ -77,7 +85,10 @@ const MinutesDetail = () => {
             Meeting #{meetingNumber}
           </Text>
           <Text className="mt-1">
-            {new Date(meetingDate).toLocaleDateString()} | {meetingTime}
+            {new Date(
+              Array.isArray(meetingDate) ? meetingDate[0] : meetingDate
+            ).toLocaleDateString()}{" "}
+            | {meetingTime}
           </Text>
           <Text className=" mt-1">{meetingVenue}</Text>
         </View>
@@ -90,7 +101,7 @@ const MinutesDetail = () => {
               <Text className="text-lg font-semibold text-gray-800 mb-2">
                 Attendees
               </Text>
-              {meeting.attendees.map((attendee) => (
+              {meeting.attendees.map((attendee: any) => (
                 <View
                   key={attendee._id}
                   className="border-b border-gray-200 py-2 flex-row justify-between"
@@ -113,7 +124,7 @@ const MinutesDetail = () => {
               <Text className="text-lg font-semibold text-gray-800 mb-2">
                 Minutes of Meeting
               </Text>
-              {meeting.minutes.map((minute) => (
+              {meeting.minutes.map((minute: any) => (
                 <View
                   key={minute._id}
                   className="border border-gray-200 rounded-xl p-3 mb-3"
@@ -126,7 +137,9 @@ const MinutesDetail = () => {
                   </Text>
                   <Text className="text-gray-500 text-sm">
                     Raised By:{" "}
-                    {minute.raisedBy.map((r) => r.individualName).join(", ")}
+                    {minute.raisedBy
+                      .map((r: any) => r.individualName)
+                      .join(", ")}
                   </Text>
                   <Text className="text-gray-500 text-sm">
                     Responsible:{" "}
