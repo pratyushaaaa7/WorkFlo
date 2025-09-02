@@ -433,8 +433,11 @@ const CreateAgenda = () => {
           <Text className="text-lg font-bold text-gray-700 p-2">Agenda</Text>
 
           {agenda.map((a, index) => (
-            <Card key={index} className="mb-4  rounded-3xl shadow-sm "
-            style={{ backgroundColor: "#ECFDF5" }} >
+            <Card
+              key={index}
+              className="mb-4  rounded-3xl shadow-sm "
+              style={{ backgroundColor: "#ECFDF5" }}
+            >
               <Card.Content className="gap-2 ">
                 {/* Raised By Dropdown */}
                 <Dropdown
