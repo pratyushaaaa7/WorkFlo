@@ -271,7 +271,7 @@ const CreateAgenda = () => {
           {attendees.map((att, index) => (
             <Card
               key={index}
-              className="mb-4 rounded-3xl shadow-sm  overflow-hidden "
+              className="mb-4 rounded-3xl shadow  overflow-hidden "
             >
               <List.Accordion
                 title={`Attendee ${att.sNo}`}
@@ -447,7 +447,7 @@ const CreateAgenda = () => {
                     borderWidth: 1,
                     borderRadius: 12,
                     paddingHorizontal: 12,
-                    backgroundColor: "#F9FAFB",
+                    backgroundColor: "#FFF",
                   }}
                   placeholderStyle={{ fontSize: 14, color: "#888" }}
                   selectedTextStyle={{
@@ -476,7 +476,7 @@ const CreateAgenda = () => {
                   placeholderTextColor={"#888"}
                   value={a.subject}
                   onChangeText={(t) => updateAgenda(index, "subject", t)}
-                  className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                  className="border border-gray-200 rounded-xl px-3 py-3 bg-white text-gray-900"
                 />
 
                 {/* Remove Agenda */}
