@@ -46,7 +46,7 @@ const CreateAgenda = () => {
 
   const [users, setUsers] = useState<DirectoryUser[]>([]);
 
-  const [openDirectoryFor, setOpenDirectoryFor] = useState<string | null>(null);
+  const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
 
   // Attendees
   const [attendees, setAttendees] = useState<any[]>([
@@ -263,43 +263,43 @@ const CreateAgenda = () => {
         </View>
 
         {/* Attendees */}
-        <View className="bg-white rounded-xl p-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">Attendees</Text>
+        <View className="bg-white rounded-xl shadow p-4">
+          <Text className="text-lg font-bold text-gray-800 mb-3">
+            Attendees
+          </Text>
 
           {attendees.map((att, index) => (
-            <Card key={index} className="mb-4 rounded-3xl shadow-sm">
+            <Card
+              key={index}
+              className="mb-4 rounded-3xl shadow-sm  overflow-hidden "
+            >
               <List.Accordion
                 title={`Attendee ${att.sNo}`}
+                titleStyle={{ fontWeight: "600", color: "#0EA5E9" }}
+                style={{
+                  backgroundColor: "#F0F9FF",
+                  borderRadius: 12,
+                }}
                 expanded={expandedAttendee === index}
                 onPress={() =>
                   setExpandedAttendee(expandedAttendee === index ? null : index)
                 }
               >
-                <Card.Content className="bg-white px-3 py-4 gap-3">
-                  {/* Small button to pick from directory */}
-                  <TouchableOpacity
-                    onPress={() => setOpenDirectoryFor(index)} // <-- open dropdown for that attendee
-                    className="bg-indigo-500 py-2 px-4 rounded-xl items-center self-start mb-2"
-                  >
-                    <Text className="text-white text-sm font-medium">
-                      Select From Directory
-                    </Text>
-                  </TouchableOpacity>
-
-                  {/* Directory dropdown (only open for selected attendee) */}
-                  {openDirectoryFor === index && (
+                <Card.Content className="bg-white px-3 py-4 gap-4">
+                  {/* Select From Directory Button OR Dropdown */}
+                  {openDirectoryFor === index ? (
                     <Dropdown
                       style={{
-                        height: 40,
-                        borderColor: "#E5E7EB",
+                        height: 45,
+                        borderColor: "#0EA5E9",
                         borderWidth: 1,
                         borderRadius: 12,
                         paddingHorizontal: 12,
-                        backgroundColor: "#F9FAFB",
-                        marginBottom: 8,
+                        backgroundColor: "#FFF",
                       }}
-                      placeholderStyle={{ fontSize: 14, color: "#888" }}
-                      selectedTextStyle={{ fontSize: 13, color: "#0B0B0B" }}
+                      placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
+                      selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+                      activeColor="#F0F9FF"
                       data={users}
                       labelField="label"
                       valueField="value"
@@ -330,16 +330,30 @@ const CreateAgenda = () => {
                           updateAttendee(index, "email", user.email || "");
                           updateAttendee(index, "phone", user.phone || "");
                         }
-                        setOpenDirectoryFor(null);
+                        setOpenDirectoryFor(null); // close dropdown after selecting
                       }}
                     />
-                  )}
+                  ) : !att.userId ? ( // 👈 hide button if attendee already has userId
+                    <TouchableOpacity
+                      onPress={() => setOpenDirectoryFor(index)}
+                      className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center"
+                    >
+                      <Ionicons
+                        name="people-outline"
+                        size={18}
+                        color="#0EA5E9"
+                      />
+                      <Text className="ml-2 text-sky-500 font-medium text-sm">
+                        Select From Directory
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
 
-                  {/* Manual fields (always shown) */}
-                  <View className="gap-2">
+                  {/* Manual Fields */}
+                  <View className="gap-3">
                     <TextInput
                       placeholder="Full Name"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.attendeeName}
                       onChangeText={(t) =>
                         updateAttendee(index, "attendeeName", t)
@@ -348,14 +362,14 @@ const CreateAgenda = () => {
                     />
                     <TextInput
                       placeholder="Role"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.role}
                       onChangeText={(t) => updateAttendee(index, "role", t)}
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
                       placeholder="Organization"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.organization}
                       onChangeText={(t) =>
                         updateAttendee(index, "organization", t)
@@ -364,7 +378,7 @@ const CreateAgenda = () => {
                     />
                     <TextInput
                       placeholder="Designation"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.designation}
                       onChangeText={(t) =>
                         updateAttendee(index, "designation", t)
@@ -373,26 +387,29 @@ const CreateAgenda = () => {
                     />
                     <TextInput
                       placeholder="Email"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.email}
                       onChangeText={(t) => updateAttendee(index, "email", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       keyboardType="email-address"
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
                       placeholder="Phone"
-                      placeholderTextColor="#888"
+                      placeholderTextColor="#9CA3AF"
                       value={att.phone}
                       onChangeText={(t) => updateAttendee(index, "phone", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       keyboardType="phone-pad"
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                   </View>
 
                   {/* Remove Attendee */}
                   {attendees.length > 1 && (
-                    <TouchableOpacity onPress={() => deleteAttendee(index)}>
-                      <Text className="text-red-500 text-right px-4 mt-2">
+                    <TouchableOpacity
+                      onPress={() => deleteAttendee(index)}
+                      className="flex-row justify-end mt-3"
+                    >
+                      <Text className="text-red-500 font-medium">
                         Remove Attendee
                       </Text>
                     </TouchableOpacity>
@@ -416,8 +433,9 @@ const CreateAgenda = () => {
           <Text className="text-lg font-bold text-gray-700 p-2">Agenda</Text>
 
           {agenda.map((a, index) => (
-            <Card key={index} className="mb-4 rounded-3xl shadow-sm">
-              <Card.Content className="gap-2">
+            <Card key={index} className="mb-4  rounded-3xl shadow-sm "
+            style={{ backgroundColor: "#ECFDF5" }} >
+              <Card.Content className="gap-2 ">
                 {/* Raised By Dropdown */}
                 <Dropdown
                   style={{
@@ -461,7 +479,7 @@ const CreateAgenda = () => {
                 {/* Remove Agenda */}
                 {agenda.length > 1 && (
                   <TouchableOpacity onPress={() => deleteAgenda(index)}>
-                    <Text className="text-red-500 text-right px-4 mt-2">
+                    <Text className="text-red-500 text-right font-medium px-4 mt-2">
                       Remove Agenda
                     </Text>
                   </TouchableOpacity>
@@ -473,7 +491,7 @@ const CreateAgenda = () => {
           {/* Add Agenda */}
           <TouchableOpacity
             onPress={addAgenda}
-            className="bg-indigo-500 py-3 rounded-2xl items-center my-3"
+            className="bg-emerald-500 py-3 rounded-2xl items-center my-3"
           >
             <Text className="text-white font-semibold">+ Add Agenda</Text>
           </TouchableOpacity>
