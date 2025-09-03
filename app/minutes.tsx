@@ -97,24 +97,59 @@ const Minutes = () => {
           </Text>
         ) : (
           meetings.map((meeting) => (
-            <TouchableOpacity
-              key={meeting._id}
-              className="bg-white rounded-2xl shadow p-4 mb-4"
-              onPress={() =>
-                router.push(
-                  `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
-                )
-              }
-            >
-              <Text className="text-lg font-bold text-indigo-600 mb-1">
-                Meeting #{meeting.meetingNumber}
-              </Text>
-              <Text className="text-gray-700">
-                {new Date(meeting.meetingDate).toLocaleDateString()} |{" "}
-                {meeting.meetingTime}
-              </Text>
-              <Text className="text-gray-500">{meeting.meetingVenue}</Text>
-            </TouchableOpacity>
+            <View
+    key={meeting._id}
+    className="bg-white rounded-2xl shadow p-4 mb-4"
+  >
+    <TouchableOpacity
+      onPress={() =>
+        router.push(
+          `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+        )
+      }
+    >
+      <Text className="text-lg font-bold text-indigo-600 mb-1">
+        Meeting #{meeting.meetingNumber}
+      </Text>
+      <Text className="text-gray-700">
+        {new Date(meeting.meetingDate).toLocaleDateString()} | {meeting.meetingTime}
+      </Text>
+      <Text className="text-gray-500">{meeting.meetingVenue}</Text>
+    </TouchableOpacity>
+
+    {/* Meeting status */}
+    <View className="flex-row flex-wrap mt-2">
+      <View className="bg-yellow-100 px-2 py-1 rounded-full mr-2 mb-2">
+        <Text className="text-yellow-700 text-xs font-medium">Agenda Submitted</Text>
+      </View>
+      {meeting.meetingStage === "mom_published" && (
+        <View className="bg-green-100 px-2 py-1 rounded-full mb-2">
+          <Text className="text-green-700 text-xs font-medium">MoM Published</Text>
+        </View>
+      )}
+    </View>
+
+    {/* Action Buttons */}
+    <View className="flex-row mt-2">
+      {/* View Agenda button */}
+      {meeting.meetingStage === "agenda_submitted" || meeting.meetingStage === "mom_published" ? (
+        <TouchableOpacity
+          onPress={() => router.push(`/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`)}
+          className="bg-indigo-600 px-4 py-2 rounded-full mr-2"
+        >
+          <Text className="text-white font-medium">View Agenda</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {/* Publish MoM button */}
+      <TouchableOpacity
+        // onPress={() => router.push(`/publishMoM?meetingId=${meeting._id}`)}
+        className="bg-green-600 px-4 py-2 rounded-full"
+      >
+        <Text className="text-white font-medium">Publish MoM</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
           ))
         )}
       </ScrollView>

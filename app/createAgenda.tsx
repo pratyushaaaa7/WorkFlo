@@ -63,10 +63,9 @@ const CreateAgenda = () => {
     },
   ]);
 
-  // Agenda points
-  const [agenda, setAgenda] = useState<{ subject: string; raisedBy: string }[]>(
-    [{ subject: "", raisedBy: "" }]
-  );
+  const [agenda, setAgenda] = useState<
+    { subject: string; raisedBy: DirectoryUser | null }[]
+  >([{ subject: "", raisedBy: null }]);
 
   // Fetch users
   useEffect(() => {
@@ -129,7 +128,7 @@ const CreateAgenda = () => {
   const updateAgenda = (
     index: number,
     field: "subject" | "raisedBy",
-    value: string
+    value: any
   ) => {
     const updated = [...agenda];
     updated[index][field] = value;
@@ -137,53 +136,63 @@ const CreateAgenda = () => {
   };
 
   const addAgenda = () =>
-    setAgenda((prev) => [...prev, { subject: "", raisedBy: "" }]);
+    setAgenda((prev) => [...prev, { subject: "", raisedBy: null }]);
 
   const deleteAgenda = (index: number) => {
     const updated = agenda.filter((_, i) => i !== index);
     setAgenda(updated);
   };
 
-  // === Submit ===
   const handleSubmit = async () => {
+    if (!meetingDate || !meetingTime || !meetingVenue) {
+      Toast.show({ type: "error", text1: "Please fill meeting details" });
+      return;
+    }
+
+    if (attendees.length === 0) {
+      Toast.show({ type: "error", text1: "Please add at least one attendee" });
+      return;
+    }
+
     try {
-      if (!token) return;
-
-      const formattedAttendees = attendees.map((a) => ({
-        sNo: a.sNo,
-        attendeeName: a.attendeeName,
-        role: a.role,
-        organization: a.organization,
-        designation: a.designation,
-        email: a.email,
-        phone: a.phone,
-      }));
-
       const payload = {
         projectId,
-        meetingDate: meetingDate ? meetingDate.toISOString() : null,
+        meetingDate,
         meetingTime,
         meetingVenue,
-        attendees: formattedAttendees,
-        agenda: agenda.filter((a) => a.subject.trim() !== ""),
+        attendees: attendees.map((a) => ({
+          userId: a.userId,
+          attendeeName: a.attendeeName,
+          role: a.role,
+          organization: a.organization,
+          designation: a.designation,
+          email: a.email,
+          phone: a.phone,
+        })),
+        agenda: agenda.map((ag) => ({
+          subject: ag.subject,
+          raisedBy: ag.raisedBy ? ag.raisedBy.value : null,
+        })),
       };
 
-      await api.post("/minutes", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.post(
+        "/minutes", // 🔹 adjust endpoint name to your backend (e.g., `/api/minutes` or `/meeting`)
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      Toast.show({
-        type: "success",
-        text1: "Agenda created successfully",
-        position: "bottom",
-      });
-      router.back();
-    } catch (err) {
-      console.error("Agenda submit error:", err);
+      Toast.show({ type: "success", text1: "Agenda created successfully!" });
+
+      // Redirect after success
+      router.push(`/minutesDetails?meetingId=${res.data._id}`);
+    } catch (err: any) {
+      console.error("Error creating agenda:", err);
       Toast.show({
         type: "error",
         text1: "Failed to create agenda",
-        position: "bottom",
+        text2: err.response?.data?.message || err.message,
       });
     }
   };
@@ -450,10 +459,7 @@ const CreateAgenda = () => {
                     backgroundColor: "#FFF",
                   }}
                   placeholderStyle={{ fontSize: 14, color: "#888" }}
-                  selectedTextStyle={{
-                    fontSize: 13,
-                    color: "#0B0B0B",
-                  }}
+                  selectedTextStyle={{ fontSize: 13, color: "#0B0B0B" }}
                   containerStyle={{
                     borderRadius: 12,
                     backgroundColor: "#fff",
@@ -464,10 +470,15 @@ const CreateAgenda = () => {
                   labelField="label"
                   valueField="value"
                   data={users}
-                  value={a.raisedBy}
+                  value={a.raisedBy ? a.raisedBy.value : null}
                   placeholder="Select raised by"
                   searchPlaceholder="Search..."
-                  onChange={(val) => updateAgenda(index, "raisedBy", val.value)}
+                  onChange={(val) => {
+                    const user = users.find((u) => u.value === val.value);
+                    if (user) {
+                      updateAgenda(index, "raisedBy", user); // 👈 update state with full user object
+                    }
+                  }}
                 />
 
                 {/* Issue Subject */}
