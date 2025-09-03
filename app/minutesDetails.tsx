@@ -170,7 +170,7 @@ const MinutesDetail = () => {
                     {minute.serialNo}. {minute.issueSubject}
                   </Text>
                   <Text className="text-gray-700 mb-1">
-                    {minute.issueDescription}
+                    {minute.description}
                   </Text>
                   <Text className="text-gray-500 text-sm">
                     Raised By:{" "}

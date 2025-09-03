@@ -69,26 +69,6 @@ const Minutes = () => {
       </LinearGradient>
 
       <ScrollView className="p-4">
-        {/* <View>
-          <View className="bg-white p-4 rounded-2xl shadow mb-4">
-            <Text className="text-lg font-semibold text-gray-800">
-              Project Name
-            </Text>
-            <Text className="text-gray-500 mt-1">{projectName}</Text>
-          </View>
-
-          <View className="bg-white p-4 rounded-2xl shadow mb-4">
-            <Text className="text-lg font-semibold text-gray-800">Company</Text>
-            <Text className="text-gray-500 mt-1">{company}</Text>
-          </View>
-
-          <View className="bg-white p-4 rounded-2xl shadow mb-4">
-            <Text className="text-lg font-semibold text-gray-800">
-              Project ID
-            </Text>
-            <Text className="text-gray-500 mt-1">{projectId}</Text>
-          </View>
-        </View> */}
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" />
         ) : meetings.length === 0 ? (
@@ -101,13 +81,7 @@ const Minutes = () => {
               key={meeting._id}
               className="bg-white rounded-2xl shadow p-4 mb-4"
             >
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(
-                    `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
-                  )
-                }
-              >
+              <View>
                 <Text className="text-lg font-bold text-indigo-600 mb-1">
                   Meeting #{meeting.meetingNumber}
                 </Text>
@@ -116,7 +90,7 @@ const Minutes = () => {
                   {meeting.meetingTime}
                 </Text>
                 <Text className="text-gray-500">{meeting.meetingVenue}</Text>
-              </TouchableOpacity>
+              </View>
 
               {/* Meeting status */}
               <View className="flex-row flex-wrap mt-2">
@@ -125,7 +99,8 @@ const Minutes = () => {
                     Agenda Submitted
                   </Text>
                 </View>
-                {meeting.meetingStage === "mom_published" && (
+
+                {meeting.meetingStage === "mom_submitted" && (
                   <View className="bg-green-100 px-2 py-1 rounded-full mb-2">
                     <Text className="text-green-700 text-xs font-medium">
                       MoM Published
@@ -137,30 +112,45 @@ const Minutes = () => {
               {/* Action Buttons */}
               <View className="flex-row mt-2">
                 {/* View Agenda button */}
-  
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push(
-                        `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
-                      )
-                    }
-                    className="bg-indigo-600 px-4 py-2 rounded-full mr-2"
-                  >
-                    <Text className="text-white font-medium">View Agenda</Text>
-                  </TouchableOpacity>
-                
 
-                {/* Publish MoM button */}
                 <TouchableOpacity
                   onPress={() =>
                     router.push(
-                      `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
+                      `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                     )
                   }
-                  className="bg-green-600 px-4 py-2 rounded-full"
+                  className="bg-indigo-600 px-4 py-2 rounded-full mr-2"
                 >
-                  <Text className="text-white font-medium">Publish MoM</Text>
+                  <Text className="text-white font-medium">View Agenda</Text>
                 </TouchableOpacity>
+
+                {/* Publish MoM button */}
+                {meeting.meetingStage !== "mom_submitted" && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push(
+                        `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
+                      )
+                    }
+                    className="bg-green-600 px-4 py-2 rounded-full"
+                  >
+                    <Text className="text-white font-medium">Publish MoM</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* View Minutes button (only if MoM is published) */}
+                {meeting.meetingStage === "mom_submitted" && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push(
+                        `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+                      )
+                    }
+                    className="bg-green-500 px-4 py-2 rounded-full"
+                  >
+                    <Text className="text-white font-medium">View Minutes</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))
