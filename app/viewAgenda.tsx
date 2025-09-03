@@ -159,50 +159,40 @@ const MinutesDetail = () => {
             {/* Minutes */}
             <View className="bg-white p-4 rounded-2xl shadow mb-4">
               <Text className="text-lg font-semibold text-gray-800 mb-3">
-                Minutes of Meeting
+                Agenda
               </Text>
 
-              {meeting.minutes.map((minute: any) => (
-                <View
-                  key={minute._id}
-                  className="border border-gray-200 rounded-xl p-4 mb-3 bg-gray-50"
-                >
-                  {/* Serial No + Subject */}
-                  <Text className="text-base font-semibold text-indigo-700 mb-1">
-                    {minute.serialNo}. {minute.issueSubject}
-                  </Text>
-
-                  {/* Raised By */}
-                  <View className="flex-row items-center mb-1">
-                    <Text className="text-gray-600 font-medium mr-1">
-                      Raised By:
+              {meeting.agenda && meeting.agenda.length > 0 ? (
+                meeting.agenda.map((item: any) => (
+                  <View
+                    key={item._id}
+                    className="border border-gray-200 rounded-xl p-4 mb-3 bg-gray-50"
+                  >
+                    {/* Serial No + Subject */}
+                    <Text className="text-base font-semibold text-indigo-700 mb-2">
+                      {item.serialNo}. {item.issueSubject}
                     </Text>
+
+                    {/* Raised By */}
                     <Text className="text-gray-800">
-                      {minute.raisedBy && minute.raisedBy.length > 0
-                        ? minute.raisedBy
-                            .map((r: any) => r.individualName)
+                      {item.raisedBy && item.raisedBy.length > 0
+                        ? item.raisedBy
+                            .map(
+                              (r: any) =>
+                                `${r.individualName} (${
+                                  r.firmName || r.designation || ""
+                                })`
+                            )
                             .join(", ")
                         : "N/A"}
                     </Text>
                   </View>
-
-                  {/* Status */}
-                  {/* <View className="flex-row items-center">
-        <Text className="text-gray-600 font-medium mr-1">Status:</Text>
-        <Text
-          className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
-            minute.status === "closed"
-              ? "bg-green-100 text-green-700"
-              : minute.status === "open"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          {minute.status}
-        </Text>
-      </View> */}
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text className="text-gray-500 text-sm">
+                  No agenda items added yet.
+                </Text>
+              )}
             </View>
           </>
         ) : (

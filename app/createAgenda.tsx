@@ -142,60 +142,56 @@ const CreateAgenda = () => {
     const updated = agenda.filter((_, i) => i !== index);
     setAgenda(updated);
   };
+const handleSubmit = async () => {
+  if (!meetingDate || !meetingTime || !meetingVenue) {
+    Toast.show({ type: "error", text1: "Please fill meeting details" });
+    return;
+  }
 
-  const handleSubmit = async () => {
-    if (!meetingDate || !meetingTime || !meetingVenue) {
-      Toast.show({ type: "error", text1: "Please fill meeting details" });
-      return;
-    }
+  if (attendees.length === 0) {
+    Toast.show({ type: "error", text1: "Please add at least one attendee" });
+    return;
+  }
 
-    if (attendees.length === 0) {
-      Toast.show({ type: "error", text1: "Please add at least one attendee" });
-      return;
-    }
+  try {
+    const payload = {
+      projectId,
+      meetingDate,
+      meetingTime,
+      meetingVenue,
+      attendees: attendees.map((a) => ({
+        userId: a.userId,
+        attendeeName: a.attendeeName,
+        role: a.role,
+        organization: a.organization,
+        designation: a.designation,
+        email: a.email,
+        phone: a.phone,
+      })),
+      agenda: agenda.map((ag) => ({
+        subject: ag.subject,
+        raisedBy: ag.raisedBy ? ag.raisedBy.value : null,
+      })),
+    };
 
-    try {
-      const payload = {
-        projectId,
-        meetingDate,
-        meetingTime,
-        meetingVenue,
-        attendees: attendees.map((a) => ({
-          userId: a.userId,
-          attendeeName: a.attendeeName,
-          role: a.role,
-          organization: a.organization,
-          designation: a.designation,
-          email: a.email,
-          phone: a.phone,
-        })),
-        agenda: agenda.map((ag) => ({
-          subject: ag.subject,
-          raisedBy: ag.raisedBy ? ag.raisedBy.value : null,
-        })),
-      };
+    const res = await api.post("/minutes", payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const res = await api.post(
-        "/minutes", // 🔹 adjust endpoint name to your backend (e.g., `/api/minutes` or `/meeting`)
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+    Toast.show({ type: "success", text1: "Agenda created successfully!" });
 
-      Toast.show({ type: "success", text1: "Agenda created successfully!" });
+    // ✅ Updated to match backend response
+    router.push(`/minutesDetails?meetingId=${res.data.meeting._id}`);
+  } catch (err: any) {
+    console.error("Error creating agenda:", err);
+    Toast.show({
+      type: "error",
+      text1: "Failed to create agenda",
+      text2: err.response?.data?.message || err.message,
+    });
+  }
+};
 
-      // Redirect after success
-      router.push(`/minutesDetails?meetingId=${res.data._id}`);
-    } catch (err: any) {
-      console.error("Error creating agenda:", err);
-      Toast.show({
-        type: "error",
-        text1: "Failed to create agenda",
-        text2: err.response?.data?.message || err.message,
-      });
-    }
-  };
 
   return (
     <View className="flex-1 bg-gray-50">
