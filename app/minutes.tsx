@@ -68,9 +68,9 @@ const Minutes = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView className="p-4">
+      <ScrollView className="p-4 bg-gray-100">
         {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" />
+          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meetings.length === 0 ? (
           <Text className="text-gray-500 text-center mt-10">
             No meetings found
@@ -79,52 +79,68 @@ const Minutes = () => {
           meetings.map((meeting) => (
             <View
               key={meeting._id}
-              className="bg-white rounded-2xl shadow p-4 mb-4"
+              className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden"
             >
-              <View>
-                <Text className="text-lg font-bold text-indigo-600 mb-1">
+              {/* Meeting Header */}
+              <View className="px-4 py-3 bg-indigo-50">
+                <Text className="text-lg font-bold text-indigo-700">
                   Meeting #{meeting.meetingNumber}
                 </Text>
-                <Text className="text-gray-700">
+                <Text className="text-gray-700 mt-1">
                   {new Date(meeting.meetingDate).toLocaleDateString()} |{" "}
                   {meeting.meetingTime}
                 </Text>
-                <Text className="text-gray-500">{meeting.meetingVenue}</Text>
+                <Text className="text-gray-500 mt-1">
+                  {meeting.meetingVenue}
+                </Text>
               </View>
 
-              {/* Meeting status */}
-              <View className="flex-row flex-wrap mt-2">
-                <View className="bg-yellow-100 px-2 py-1 rounded-full mr-2 mb-2">
-                  <Text className="text-yellow-700 text-xs font-medium">
+              {/* Status Badges */}
+              <View className="flex-row flex-wrap px-4 py-2 gap-2">
+                {/* Agenda Submitted - Single Tick */}
+                <View className="bg-yellow-100 px-3 py-1 rounded-full flex-row items-center">
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color="#B45309"
+                    className="mr-1"
+                  />
+                  <Text className="text-yellow-700 text-xs font-semibold">
                     Agenda Submitted
                   </Text>
                 </View>
 
+                {/* Minutes Published - Double Tick */}
                 {meeting.meetingStage === "mom_submitted" && (
-                  <View className="bg-green-100 px-2 py-1 rounded-full mb-2">
-                    <Text className="text-green-700 text-xs font-medium">
-                      MoM Published
+                  <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
+                    <Ionicons
+                      name="checkmark-done"
+                      size={14}
+                      color="#047857"
+                      className="mr-1"
+                    />
+                    <Text className="text-green-700 text-xs font-semibold">
+                      Minutes Published
                     </Text>
                   </View>
                 )}
               </View>
 
               {/* Action Buttons */}
-              <View className="flex-row mt-2">
-                {/* View Agenda button */}
-
+              <View className="flex-row px-4 py-3 border-t border-gray-200 gap-3">
+                {/* View Agenda */}
                 <TouchableOpacity
                   onPress={() =>
                     router.push(
                       `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                     )
                   }
-                  className="bg-indigo-600 px-4 py-2 rounded-full mr-2"
+                  className="flex-1 bg-sky-500 px-4 py-3 rounded-lg items-center"
                 >
                   <Text className="text-white font-medium">View Agenda</Text>
                 </TouchableOpacity>
 
-                {/* Publish MoM button */}
+                {/* Publish MoM - prominent */}
                 {meeting.meetingStage !== "mom_submitted" && (
                   <TouchableOpacity
                     onPress={() =>
@@ -132,13 +148,22 @@ const Minutes = () => {
                         `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
                       )
                     }
-                    className="bg-green-600 px-4 py-2 rounded-full"
+                    className="flex-1 bg-gray-600 px-4 py-3 rounded-lg flex-row items-center justify-center"
+                    activeOpacity={0.8}
                   >
-                    <Text className="text-white font-medium">Publish MoM</Text>
+                    <Ionicons
+                      name="pencil-outline"
+                      size={20}
+                      color="#fff"
+                      className="mr-2"
+                    />
+                    <Text className="text-white font-medium">
+                      Publish Minutes
+                    </Text>
                   </TouchableOpacity>
                 )}
 
-                {/* View Minutes button (only if MoM is published) */}
+                {/* View Minutes - secondary action */}
                 {meeting.meetingStage === "mom_submitted" && (
                   <TouchableOpacity
                     onPress={() =>
@@ -146,7 +171,7 @@ const Minutes = () => {
                         `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                       )
                     }
-                    className="bg-green-500 px-4 py-2 rounded-full"
+                    className="flex-1 bg-green-600 px-4 py-3 rounded-lg items-center"
                   >
                     <Text className="text-white font-medium">View Minutes</Text>
                   </TouchableOpacity>
