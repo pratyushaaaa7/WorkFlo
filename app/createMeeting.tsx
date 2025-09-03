@@ -22,8 +22,8 @@ import { AuthContext } from "../context/AuthContext";
 
 const CreateMinutes = () => {
   const router = useRouter();
-  const { meetingId, projectId, projectName, company  } = useLocalSearchParams();
-  console.log(meetingId, projectId, projectName, company)
+  const { meetingId, projectId, projectName, company } = useLocalSearchParams();
+  console.log(meetingId, projectId, projectName, company);
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -160,47 +160,46 @@ const CreateMinutes = () => {
   };
 
   useEffect(() => {
-  const fetchMeetingData = async () => {
-    try {
-      if (!token || !meetingId) return;
-      const res = await api.get(`/minutes/${meetingId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const fetchMeetingData = async () => {
+      try {
+        if (!token || !meetingId) return;
+        const res = await api.get(`/minutes/${meetingId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const data = res.data;
+        const data = res.data;
 
-      // Prefill meeting info
-      if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
-      if (data.meetingTime) setMeetingTime(data.meetingTime);
-      if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
+        // Prefill meeting info
+        if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
+        if (data.meetingTime) setMeetingTime(data.meetingTime);
+        if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
 
-      // Prefill attendees if exist
-      if (data.attendees && data.attendees.length > 0) {
-        setAttendees(data.attendees);
+        // Prefill attendees if exist
+        if (data.attendees && data.attendees.length > 0) {
+          setAttendees(data.attendees);
+        }
+
+        // Prefill minutes (from agenda if exists)
+        if (data.agenda && data.agenda.length > 0) {
+          const formattedMinutes = data.agenda.map((a: any, idx: number) => ({
+            serialNo: idx + 1,
+            raisedBy: a.raisedBy?.map((r: any) => r._id) || [],
+            issueSubject: a.issueSubject || "",
+            issueDescription: a.issueDescription || "",
+            targetDate: a.targetDate || null,
+            responsibility: [], // will be filled later
+            remarks: "",
+          }));
+          setMinutes(formattedMinutes);
+        }
+      } catch (err) {
+        console.error("Error fetching meeting:", err);
+        Toast.show({ type: "error", text1: "Error loading meeting data" });
       }
+    };
 
-      // Prefill minutes (from agenda if exists)
-      if (data.agenda && data.agenda.length > 0) {
-        const formattedMinutes = data.agenda.map((a: any, idx: number) => ({
-          serialNo: idx + 1,
-          raisedBy: a.raisedBy?.map((r: any) => r._id) || [],
-          issueSubject: a.issueSubject || "",
-          issueDescription: a.issueDescription || "",
-          targetDate: a.targetDate || null,
-          responsibility: [], // will be filled later
-          remarks: "",
-        }));
-        setMinutes(formattedMinutes);
-      }
-    } catch (err) {
-      console.error("Error fetching meeting:", err);
-      Toast.show({ type: "error", text1: "Error loading meeting data" });
-    }
-  };
-
-  fetchMeetingData();
-}, [token, meetingId]);
-
+    fetchMeetingData();
+  }, [token, meetingId]);
 
   const handleSubmit = async () => {
     try {
@@ -238,7 +237,7 @@ const CreateMinutes = () => {
         // meetingNumber: let backend auto-generate
       };
 
-      await api.post("/minutes", payload, {
+      await api.put(`/minutes/${meetingId}/minutes`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -336,7 +335,7 @@ const CreateMinutes = () => {
             />
           </View>
         </View>
-        
+
         {/* Attendees */}
         <View className="bg-white rounded-xl p-2 shadow-md">
           <Text className="text-lg font-bold text-gray-700 p-2">Attendees</Text>
