@@ -20,7 +20,7 @@ type RaisedBy = { individualName: string; designation?: string };
 type Minute = {
   serialNo: number;
   issueSubject: string;
-  issueDescription: string;
+  description: string;
   raisedBy: RaisedBy[];
   responsibility: Responsibility[];
   targetDate: string;
@@ -160,7 +160,7 @@ export async function exportMinutesToExcel(
         minute.serialNo,
         minute.raisedBy.map((r) => r.individualName).join(", "),
         minute.issueSubject,
-        minute.issueDescription,
+           minute.description, // ✅ updated
         minute.responsibility.map((r) => r.individualName).join(", "),
         new Date(minute.targetDate).toLocaleDateString(),
         minute.status.toUpperCase(),
@@ -187,7 +187,7 @@ export async function exportMinutesToExcel(
       }
 
       // Increase row height if description is long
-      if (minute.issueDescription.length > 80) {
+      if (minute.description.length > 80) {
         row.height = 60;
       }
     });

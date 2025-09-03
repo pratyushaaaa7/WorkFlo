@@ -84,7 +84,7 @@ const MinutesDetail = () => {
             exportMinutesToExcel(
               meeting,
               auth?.user?.fullName ?? "Unknown", // accountName
-              projectName, // projectName
+              projectName, // projectName to be sent 
               company // company
             )
           }
