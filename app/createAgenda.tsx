@@ -142,6 +142,8 @@ const CreateAgenda = () => {
     const updated = agenda.filter((_, i) => i !== index);
     setAgenda(updated);
   };
+
+
   const handleSubmit = async () => {
     if (!meetingDate || !meetingTime || !meetingVenue) {
       Toast.show({ type: "error", text1: "Please fill meeting details" });
@@ -159,7 +161,8 @@ const CreateAgenda = () => {
         meetingDate,
         meetingTime,
         meetingVenue,
-        attendees: attendees.map((a) => ({
+        attendees: attendees.map((a,index) => ({
+           sNo: index + 1, // ✅ ensure serial number sent
           userId: a.userId,
           attendeeName: a.attendeeName,
           role: a.role,
@@ -178,11 +181,11 @@ const CreateAgenda = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      Toast.show({ type: "success", text1: "Agenda created successfully!" });
+      Toast.show({ type: "success", text1: "Agenda created successfully!",  position:"bottom"});
 
       // ✅ Updated to match backend response
       // router.push(`/minutesDetails?meetingId=${res.data.meeting._id}`);
-      router.push("/minutes");
+      router.back();
     } catch (err: any) {
       console.error("Error creating agenda:", err);
       Toast.show({

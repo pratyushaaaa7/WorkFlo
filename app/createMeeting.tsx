@@ -22,10 +22,9 @@ import { AuthContext } from "../context/AuthContext";
 
 const CreateMinutes = () => {
   const router = useRouter();
-  const { projectId, projectName } = useLocalSearchParams<{
-    projectId: string;
-    projectName: string;
-  }>();
+  const { meetingId, projectId, projectName, company  } = useLocalSearchParams();
+  console.log(meetingId, projectId, projectName, company)
+
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
@@ -159,6 +158,49 @@ const CreateMinutes = () => {
       setDateIndex(null);
     }
   };
+
+  useEffect(() => {
+  const fetchMeetingData = async () => {
+    try {
+      if (!token || !meetingId) return;
+      const res = await api.get(`/minutes/${meetingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data;
+
+      // Prefill meeting info
+      if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
+      if (data.meetingTime) setMeetingTime(data.meetingTime);
+      if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
+
+      // Prefill attendees if exist
+      if (data.attendees && data.attendees.length > 0) {
+        setAttendees(data.attendees);
+      }
+
+      // Prefill minutes (from agenda if exists)
+      if (data.agenda && data.agenda.length > 0) {
+        const formattedMinutes = data.agenda.map((a: any, idx: number) => ({
+          serialNo: idx + 1,
+          raisedBy: a.raisedBy?.map((r: any) => r._id) || [],
+          issueSubject: a.issueSubject || "",
+          issueDescription: a.issueDescription || "",
+          targetDate: a.targetDate || null,
+          responsibility: [], // will be filled later
+          remarks: "",
+        }));
+        setMinutes(formattedMinutes);
+      }
+    } catch (err) {
+      console.error("Error fetching meeting:", err);
+      Toast.show({ type: "error", text1: "Error loading meeting data" });
+    }
+  };
+
+  fetchMeetingData();
+}, [token, meetingId]);
+
 
   const handleSubmit = async () => {
     try {

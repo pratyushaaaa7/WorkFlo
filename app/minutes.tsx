@@ -143,7 +143,7 @@ const Minutes = () => {
 
       {/* Publish MoM button */}
       <TouchableOpacity
-        onPress={() => router.push(`/createMeeting?meetingId=${meeting._id}`)}
+        onPress={() => router.push(`/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`)}
         className="bg-green-600 px-4 py-2 rounded-full"
       >
         <Text className="text-white font-medium">Publish MoM</Text>
