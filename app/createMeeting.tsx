@@ -34,7 +34,7 @@ type DirectoryUser = {
 const CreateMinutes = () => {
   const router = useRouter();
   const { meetingId, projectId, projectName, company } = useLocalSearchParams();
-  console.log(meetingId, projectId, projectName, company);
+  // console.log(meetingId, projectId, projectName, company);
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
