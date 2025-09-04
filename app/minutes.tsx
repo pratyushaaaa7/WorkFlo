@@ -98,14 +98,14 @@ const Minutes = () => {
               {/* Status Badges */}
               <View className="flex-row flex-wrap px-4 py-2 gap-2">
                 {/* Agenda Submitted - Single Tick */}
-                <View className="bg-yellow-100 px-3 py-1 rounded-full flex-row items-center">
+                <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
                   <Ionicons
                     name="checkmark"
                     size={14}
-                    color="#B45309"
+                    color="#0369A1"
                     className="mr-1"
                   />
-                  <Text className="text-yellow-700 text-xs font-semibold">
+                  <Text className="text-sky-700 text-xs font-semibold">
                     Agenda Submitted
                   </Text>
                 </View>
