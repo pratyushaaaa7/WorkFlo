@@ -750,12 +750,25 @@ const CreateMinutes = () => {
         {/* Submit Button */}
 
         <View className="flex-row gap-3 my-10">
-          <TouchableOpacity
-            onPress={() => handleSubmit("agenda")}
-            className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
-          >
-            <Text className="text-white font-bold text-xl">Submit Agenda</Text>
-          </TouchableOpacity>
+          {meetingId ? (
+            <TouchableOpacity
+              // onPress={downloadAgenda}
+              className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
+            >
+              <Text className="text-white font-bold text-xl">
+                Download Agenda
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => handleSubmit("agenda")}
+              className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
+            >
+              <Text className="text-white font-bold text-xl">
+                Submit Agenda
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={() => handleSubmit("mom")}
