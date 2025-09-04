@@ -249,7 +249,6 @@ const CreateAgenda = () => {
                 }}
               />
             )}
-
             {/* Meeting Time */}
             <TextInput
               placeholder="Meeting Time"
