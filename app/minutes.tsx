@@ -115,13 +115,13 @@ const Minutes = () => {
               {/* Status Chips */}
               <View className="flex-row flex-wrap px-4 py-2 gap-2">
                 {meeting.agendaSubmitted && (
-  <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
-    <Ionicons name="checkmark" size={14} color="#0369A1" />
-    <Text className="text-sky-700 text-xs font-semibold ml-1">
-      Agenda Submitted
-    </Text>
-  </View>
-)}
+                  <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
+                    <Ionicons name="checkmark" size={14} color="#0369A1" />
+                    <Text className="text-sky-700 text-xs font-semibold ml-1">
+                      Agenda Submitted
+                    </Text>
+                  </View>
+                )}
 
                 {meeting.meetingStage === "mom_submitted" && (
                   <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
