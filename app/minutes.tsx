@@ -162,7 +162,7 @@ const Minutes = () => {
                         `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
                       )
                     }
-                    className="flex-1 bg-indigo-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
+                    className="flex-1 bg-sky-700 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
                   >
                     <Ionicons name="pencil-outline" size={18} color="white" />
                     <Text className="ml-2 text-white font-medium">

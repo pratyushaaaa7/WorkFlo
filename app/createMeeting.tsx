@@ -79,7 +79,7 @@ const CreateMinutes = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
 
-   //Users for Raised By dropdown
+  //Users for Raised By dropdown
   // const [raisedBy, setRaisedBy] = useState<{ label: string; value: string }[]>(
   //   []
   // );
@@ -301,17 +301,17 @@ const CreateMinutes = () => {
       };
 
       // ✅ Call API
-   if (type === "agenda" || !meetingId) {
-  // Create new meeting (agenda or full MOM)
-  await api.post(`/minutes`, payload, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-} else {
-  // Update existing meeting (after agenda)
-  await api.put(`/minutes/${meetingId}`, payload, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
+      if (type === "agenda" || !meetingId) {
+        // Create new meeting (agenda or full MOM)
+        await api.post(`/minutes`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // Update existing meeting (after agenda)
+        await api.put(`/minutes/${meetingId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
 
       Toast.show({
         type: "success",
@@ -550,7 +550,7 @@ const CreateMinutes = () => {
                     {/* Remove Attendee */}
                     {attendees.length > 1 && (
                       <TouchableOpacity onPress={() => deleteAttendee(index)}>
-                        <Text className="text-red-500 font-semibold text-right px-4 mt-2">
+                        <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
                           Remove Attendee
                         </Text>
                       </TouchableOpacity>
@@ -566,7 +566,7 @@ const CreateMinutes = () => {
             onPress={addAttendee}
             className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
           >
-            <Text className="text-white font-semibold">+ Add Attendee</Text>
+            <Text className="text-white font-pbold">+ Add Attendee</Text>
           </TouchableOpacity>
         </View>
 
@@ -728,7 +728,7 @@ const CreateMinutes = () => {
                     {/* 🗑 Delete Minute */}
                     {minutes.length > 1 && (
                       <TouchableOpacity onPress={() => deleteMinute(index)}>
-                        <Text className="text-red-500 font-semibold text-right px-4 mt-2">
+                        <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
                           Remove Minute
                         </Text>
                       </TouchableOpacity>
@@ -743,25 +743,25 @@ const CreateMinutes = () => {
             onPress={addMinute}
             className="bg-emerald-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
           >
-            <Text className="text-white font-semibold">+ Add Minute</Text>
+            <Text className="text-white  font-pbold">+ Add Minute</Text>
           </TouchableOpacity>
         </View>
 
         {/* Submit Button */}
 
-        <View className="flex-row gap-3 my-3">
+        <View className="flex-row gap-3 my-10">
           <TouchableOpacity
             onPress={() => handleSubmit("agenda")}
-            className="flex-1 px-4 py-3 bg-indigo-600 rounded-xl items-center"
+            className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
           >
-            <Text className="text-white font-bold">Submit Agenda</Text>
+            <Text className="text-white font-bold text-xl">Submit Agenda</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => handleSubmit("mom")}
-            className="flex-1 px-4 py-3 bg-green-600 rounded-xl items-center"
+            className="flex-1 px-4 py-4 bg-green-700 rounded-xl items-center"
           >
-            <Text className="text-white font-bold">Submit Minutes</Text>
+            <Text className="text-white font-bold text-xl">Submit Minutes</Text>
           </TouchableOpacity>
         </View>
 
