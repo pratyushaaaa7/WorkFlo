@@ -192,7 +192,7 @@ const Minutes = () => {
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/createAgenda?projectId=${projectId}&projectName=${projectName}`
+            `/createMeeting?projectId=${projectId}&projectName=${projectName}`
           )
         }
         className="bg-indigo-600"
