@@ -12,13 +12,24 @@ import { List, Card, Divider } from "react-native-paper";
 import Collapsible from "react-native-collapsible";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { MultiSelect } from "react-native-element-dropdown";
+import { MultiSelect, Dropdown } from "react-native-element-dropdown";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
+
+type DirectoryUser = {
+  label: string;
+  value: string;
+  attendeeName: string;
+  role?: string;
+  organization?: string;
+  designation?: string;
+  email?: string;
+  phone?: string;
+};
 
 const CreateMinutes = () => {
   const router = useRouter();
@@ -74,7 +85,9 @@ const CreateMinutes = () => {
   // );
 
   // Users for responsibility dropdown
-  const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
+  const [users, setUsers] = useState<DirectoryUser[]>([]);
+
+  const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
 
   // Fetch users
   useEffect(() => {
@@ -84,10 +97,18 @@ const CreateMinutes = () => {
         const res = await api.get(`/user-directory/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const formatted = res.data.map((u: any) => ({
           label: `${u.individualName} (${u.firmName})`,
           value: u._id,
+          attendeeName: u.individualName,
+          role: u.role || "",
+          organization: u.firmName || "",
+          designation: u.designation || "",
+          email: u.email || "",
+          phone: u.phone || "",
         }));
+
         setUsers(formatted);
       } catch (err) {
         Toast.show({ type: "error", text1: "Error fetching users" });
@@ -347,12 +368,9 @@ const CreateMinutes = () => {
             >
               <List.Accordion
                 title={`Attendee ${att.sNo}`}
-                titleStyle={{
-                  fontWeight: "600",
-                  fontSize: 16,
-                }}
+                titleStyle={{ fontWeight: "600", fontSize: 16 }}
                 style={{
-                  backgroundColor: "#F0F9FF", // Fuchsia-50
+                  backgroundColor: "#F0F9FF",
                   borderRadius: 12,
                 }}
                 expanded={expandedAttendee === index}
@@ -361,6 +379,71 @@ const CreateMinutes = () => {
                 }
               >
                 <Card.Content className="bg-white px-3 py-4">
+                  {/* Directory Select Option */}
+                  {openDirectoryFor === index ? (
+                    <Dropdown
+                      style={{
+                        height: 35,
+                        borderColor: "#0EA5E9",
+                        borderWidth: 1,
+                        borderRadius: 12,
+                        paddingHorizontal: 12,
+                        backgroundColor: "#FFF",
+                        marginBottom:8,
+                      }}
+                      placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
+                      selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+                      activeColor="#F0F9FF"
+                      data={users} // 👈 array of {label, value, attendeeName, role, etc.}
+                      labelField="label"
+                      valueField="value"
+                      value={att.userId}
+                      placeholder="Select attendee"
+                      search
+                      searchPlaceholder="Search..."
+                      onChange={(val) => {
+                        const user = users.find((u) => u.value === val.value);
+                        if (user) {
+                          updateAttendee(index, "userId", user.value);
+                          updateAttendee(
+                            index,
+                            "attendeeName",
+                            user.attendeeName || ""
+                          );
+                          updateAttendee(index, "role", user.role || "");
+                          updateAttendee(
+                            index,
+                            "organization",
+                            user.organization || ""
+                          );
+                          updateAttendee(
+                            index,
+                            "designation",
+                            user.designation || ""
+                          );
+                          updateAttendee(index, "email", user.email || "");
+                          updateAttendee(index, "phone", user.phone || "");
+                        }
+                        setOpenDirectoryFor(null);
+                      }}
+                    />
+                  ) : !att.userId ? (
+                    <TouchableOpacity
+                      onPress={() => setOpenDirectoryFor(index)}
+                      className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center mb-3"
+                    >
+                      <Ionicons
+                        name="people-outline"
+                        size={18}
+                        color="#0EA5E9"
+                      />
+                      <Text className="ml-2 text-sky-500 font-medium text-sm">
+                        Select From Directory
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+
+                  {/* Manual Fields */}
                   <View className="gap-2">
                     <TextInput
                       placeholder="Full Name"
@@ -401,18 +484,19 @@ const CreateMinutes = () => {
                       placeholderTextColor="#888"
                       value={att.email}
                       onChangeText={(t) => updateAttendee(index, "email", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       keyboardType="email-address"
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
                       placeholder="Phone"
                       placeholderTextColor="#888"
                       value={att.phone}
                       onChangeText={(t) => updateAttendee(index, "phone", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       keyboardType="phone-pad"
+                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
-                    {/* 🗑 Delete button */}
+
+                    {/* Remove Attendee */}
                     {attendees.length > 1 && (
                       <TouchableOpacity onPress={() => deleteAttendee(index)}>
                         <Text className="text-red-500 font-semibold text-right px-4 mt-2">
@@ -426,6 +510,7 @@ const CreateMinutes = () => {
             </Card>
           ))}
 
+          {/* Add Attendee Button */}
           <TouchableOpacity
             onPress={addAttendee}
             className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
