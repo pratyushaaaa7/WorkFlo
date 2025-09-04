@@ -79,47 +79,52 @@ const Minutes = () => {
           meetings.map((meeting) => (
             <View
               key={meeting._id}
-              className="bg-white rounded-2xl shadow-md mb-4 overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg mb-5 overflow-hidden border-l-4"
+              style={{
+                borderLeftColor:
+                  meeting.meetingStage === "mom_submitted"
+                    ? "#16A34A" // green
+                    : "#0284C7", // sky
+              }}
             >
               {/* Meeting Header */}
-              <View className="px-4 py-3 bg-indigo-50">
-                <Text className="text-lg font-bold text-indigo-700">
-                  Meeting #{meeting.meetingNumber}
-                </Text>
-                <Text className="text-gray-700 mt-1">
-                  {new Date(meeting.meetingDate).toLocaleDateString()} |{" "}
-                  {meeting.meetingTime}
-                </Text>
-                <Text className="text-gray-500 mt-1">
-                  {meeting.meetingVenue}
-                </Text>
+              <View className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100">
+                <View className="flex-row items-center">
+                  <Ionicons name="calendar-outline" size={20} color="#0369A1" />
+                  <Text className="ml-2 text-lg font-bold text-sky-800">
+                    Meeting #{meeting.meetingNumber}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center mt-1">
+                  <Ionicons name="time-outline" size={16} color="#475569" />
+                  <Text className="ml-1 text-gray-700 text-sm">
+                    {new Date(meeting.meetingDate).toLocaleDateString()} •{" "}
+                    {meeting.meetingTime}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center mt-1">
+                  <Ionicons name="location-outline" size={16} color="#94A3B8" />
+                  <Text className="ml-1 text-gray-500 text-sm">
+                    {meeting.meetingVenue}
+                  </Text>
+                </View>
               </View>
 
-              {/* Status Badges */}
+              {/* Status Chips */}
               <View className="flex-row flex-wrap px-4 py-2 gap-2">
-                {/* Agenda Submitted - Single Tick */}
                 <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
-                  <Ionicons
-                    name="checkmark"
-                    size={14}
-                    color="#0369A1"
-                    className="mr-1"
-                  />
-                  <Text className="text-sky-700 text-xs font-semibold">
+                  <Ionicons name="checkmark" size={14} color="#0369A1" />
+                  <Text className="text-sky-700 text-xs font-semibold ml-1">
                     Agenda Submitted
                   </Text>
                 </View>
 
-                {/* Minutes Published - Double Tick */}
                 {meeting.meetingStage === "mom_submitted" && (
                   <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
-                    <Ionicons
-                      name="checkmark-done"
-                      size={14}
-                      color="#047857"
-                      className="mr-1"
-                    />
-                    <Text className="text-green-700 text-xs font-semibold">
+                    <Ionicons name="checkmark-done" size={14} color="#15803D" />
+                    <Text className="text-green-700 text-xs font-semibold ml-1">
                       Minutes Published
                     </Text>
                   </View>
@@ -135,45 +140,46 @@ const Minutes = () => {
                       `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                     )
                   }
-                  className="flex-1 bg-sky-500 px-4 py-3 rounded-lg items-center"
+                  className="flex-1 bg-sky-500 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
                 >
-                  <Text className="text-white font-medium">View Agenda</Text>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={18}
+                    color="white"
+                  />
+                  <Text className="ml-2 text-white font-medium">
+                    View Agenda
+                  </Text>
                 </TouchableOpacity>
 
-                {/* Publish MoM - prominent */}
-                {meeting.meetingStage !== "mom_submitted" && (
+                {/* Publish / View Minutes */}
+                {meeting.meetingStage !== "mom_submitted" ? (
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
                         `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
                       )
                     }
-                    className="flex-1 bg-gray-600 px-4 py-3 rounded-lg flex-row items-center justify-center"
-                    activeOpacity={0.8}
+                    className="flex-1 bg-indigo-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
                   >
-                    <Ionicons
-                      name="pencil-outline"
-                      size={20}
-                      color="#fff"
-                      className="mr-2"
-                    />
-                    <Text className="text-white font-medium">
+                    <Ionicons name="pencil-outline" size={18} color="white" />
+                    <Text className="ml-2 text-white font-medium">
                       Publish Minutes
                     </Text>
                   </TouchableOpacity>
-                )}
-
-                {/* View Minutes - secondary action */}
-                {meeting.meetingStage === "mom_submitted" && (
+                ) : (
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
                         `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                       )
                     }
-                    className="flex-1 bg-green-600 px-4 py-3 rounded-lg items-center"
+                    className="flex-1 bg-green-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
                   >
-                    <Text className="text-white font-medium">View Minutes</Text>
+                    <Ionicons name="eye-outline" size={18} color="white" />
+                    <Text className="ml-2 text-white font-medium">
+                      View Minutes
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
