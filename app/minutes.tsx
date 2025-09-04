@@ -114,12 +114,14 @@ const Minutes = () => {
 
               {/* Status Chips */}
               <View className="flex-row flex-wrap px-4 py-2 gap-2">
-                <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
-                  <Ionicons name="checkmark" size={14} color="#0369A1" />
-                  <Text className="text-sky-700 text-xs font-semibold ml-1">
-                    Agenda Submitted
-                  </Text>
-                </View>
+                {meeting.agendaSubmitted && (
+  <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
+    <Ionicons name="checkmark" size={14} color="#0369A1" />
+    <Text className="text-sky-700 text-xs font-semibold ml-1">
+      Agenda Submitted
+    </Text>
+  </View>
+)}
 
                 {meeting.meetingStage === "mom_submitted" && (
                   <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
@@ -134,7 +136,7 @@ const Minutes = () => {
               {/* Action Buttons */}
               <View className="flex-row px-4 py-3 border-t border-gray-200 gap-3">
                 {/* View Agenda */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() =>
                     router.push(
                       `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
@@ -150,7 +152,7 @@ const Minutes = () => {
                   <Text className="ml-2 text-white font-medium">
                     View Agenda
                   </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 {/* Publish / View Minutes */}
                 {meeting.meetingStage !== "mom_submitted" ? (

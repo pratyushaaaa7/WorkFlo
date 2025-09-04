@@ -79,7 +79,7 @@ const CreateMinutes = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
 
-  // //Users for Raised By dropdown
+   //Users for Raised By dropdown
   // const [raisedBy, setRaisedBy] = useState<{ label: string; value: string }[]>(
   //   []
   // );
@@ -201,15 +201,15 @@ const CreateMinutes = () => {
         }
 
         // Prefill minutes (from agenda if exists)
-        if (data.agenda && data.agenda.length > 0) {
-          const formattedMinutes = data.agenda.map((a: any, idx: number) => ({
+        if (data.minutes && data.minutes.length > 0) {
+          const formattedMinutes = data.minutes.map((m: any, idx: number) => ({
             serialNo: idx + 1,
-            raisedBy: a.raisedBy?.map((r: any) => r._id) || [],
-            issueSubject: a.issueSubject || "",
-            issueDescription: a.issueDescription || "",
-            targetDate: a.targetDate || null,
-            responsibility: [], // will be filled later
-            remarks: "",
+            raisedBy: m.raisedBy?.map((r: any) => r._id) || [],
+            issueSubject: m.issueSubject || "",
+            issueDescription: m.description || "",
+            targetDate: m.targetDate || null,
+            responsibility: m.responsibility?.map((r: any) => r._id) || [],
+            remarks: m.remarks || "",
           }));
           setMinutes(formattedMinutes);
         }
@@ -222,11 +222,53 @@ const CreateMinutes = () => {
     fetchMeetingData();
   }, [token, meetingId]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (type: "agenda" | "mom") => {
     try {
       if (!token) return;
 
-      // Fix attendees mapping
+      // ✅ Validation
+      if (type === "agenda") {
+        const invalid = minutes.some(
+          (m) => !m.issueSubject || m.raisedBy.length === 0
+        );
+        if (invalid) {
+          return Toast.show({
+            type: "error",
+            text1: "Issue Subject & Raised By are required for agenda",
+            position: "bottom",
+          });
+        }
+      } else {
+        if (!meetingDate || !meetingTime || !meetingVenue) {
+          return Toast.show({
+            type: "error",
+            text1: "Meeting info is required",
+          });
+        }
+        if (attendees.length === 0) {
+          return Toast.show({
+            type: "error",
+            text1: "Add at least one attendee",
+            position: "bottom",
+          });
+        }
+        const invalid = minutes.some(
+          (m) =>
+            !m.issueSubject ||
+            !m.targetDate ||
+            m.raisedBy.length === 0 ||
+            m.responsibility.length === 0
+        );
+        if (invalid) {
+          return Toast.show({
+            type: "error",
+            text1: "All MOM fields are required",
+            position: "bottom",
+          });
+        }
+      }
+
+      // ✅ Format attendees
       const formattedAttendees = attendees.map((a) => ({
         sNo: a.sNo,
         attendeeName: a.attendeeName,
@@ -237,12 +279,12 @@ const CreateMinutes = () => {
         phone: a.phone,
       }));
 
-      // Fix minutes mapping
+      // ✅ Format minutes
       const formattedMinutes = minutes.map((m) => ({
         serialNo: m.serialNo,
         issueSubject: m.issueSubject,
-        issueDescription: m.issueDescription,
-        raisedBy: Array.isArray(m.raisedBy) ? m.raisedBy : [m.raisedBy], // ✅ always array
+        description: m.issueDescription, // backend expects "description"
+        raisedBy: Array.isArray(m.raisedBy) ? m.raisedBy : [m.raisedBy],
         responsibility: m.responsibility,
         targetDate: m.targetDate,
         remarks: m.remarks,
@@ -255,16 +297,25 @@ const CreateMinutes = () => {
         meetingVenue,
         attendees: formattedAttendees,
         minutes: formattedMinutes,
-        // meetingNumber: let backend auto-generate
+        actionType: type,
       };
 
-      await api.put(`/minutes/${meetingId}/minutes`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ Call API
+   if (type === "agenda" || !meetingId) {
+  // Create new meeting (agenda or full MOM)
+  await api.post(`/minutes`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+} else {
+  // Update existing meeting (after agenda)
+  await api.put(`/minutes/${meetingId}`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
 
       Toast.show({
         type: "success",
-        text1: "Minutes created successfully",
+        text1: type === "agenda" ? "Agenda submitted" : "MOM submitted",
         position: "bottom",
       });
       router.back();
@@ -272,7 +323,7 @@ const CreateMinutes = () => {
       console.error("Submit error:", err);
       Toast.show({
         type: "error",
-        text1: "Failed to create minutes",
+        text1: "Failed to submit minutes",
         position: "bottom",
       });
     }
@@ -389,7 +440,7 @@ const CreateMinutes = () => {
                         borderRadius: 12,
                         paddingHorizontal: 12,
                         backgroundColor: "#FFF",
-                        marginBottom:8,
+                        marginBottom: 8,
                       }}
                       placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
                       selectedTextStyle={{ fontSize: 14, color: "#111827" }}
@@ -697,12 +748,29 @@ const CreateMinutes = () => {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity
+
+        <View className="flex-row gap-3 my-3">
+          <TouchableOpacity
+            onPress={() => handleSubmit("agenda")}
+            className="flex-1 px-4 py-3 bg-indigo-600 rounded-xl items-center"
+          >
+            <Text className="text-white font-bold">Submit Agenda</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => handleSubmit("mom")}
+            className="flex-1 px-4 py-3 bg-green-600 rounded-xl items-center"
+          >
+            <Text className="text-white font-bold">Submit Minutes</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* <TouchableOpacity
           onPress={handleSubmit}
           className="bg-indigo-600 py-4 rounded-2xl items-center my-4"
         >
           <Text className="text-white font-bold">Submit MOM</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </KeyboardAwareScrollView>
     </View>
   );
