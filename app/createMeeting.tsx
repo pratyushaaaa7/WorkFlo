@@ -209,7 +209,12 @@ const CreateMinutes = () => {
         if (data.minutes && data.minutes.length > 0) {
           const formattedMinutes = data.minutes.map((m: any, idx: number) => ({
             serialNo: idx + 1,
-            raisedBy: m.raisedBy?.map((r: any) => r._id) || [],
+            raisedBy:
+              m.raisedBy?.map((r: any) => ({
+                _id: r._id,
+                individualName: r.individualName || "",
+                designation: r.designation || "",
+              })) || [],
             issueSubject: m.issueSubject || "",
             issueDescription: m.description || "",
             targetDate: m.targetDate || null,
@@ -641,10 +646,21 @@ const CreateMinutes = () => {
                       labelField="label"
                       valueField="value"
                       data={users}
-                      value={m.raisedBy} // bind to minute state
+                      value={m.raisedBy.map((r: any) => r._id)} // ✅ extract IDs
                       placeholder="Issue raised by"
                       searchPlaceholder="Search..."
-                      onChange={(val) => updateMinute(index, "raisedBy", val)}
+                      // onChange={(val) => updateMinute(index, "raisedBy", val)}
+                      // Raised By
+                      onChange={(selectedIds) => {
+                        const selectedUsers = users
+                          .filter((u) => selectedIds.includes(u.value))
+                          .map((u) => ({
+                            _id: u.value,
+                            individualName: u.attendeeName,
+                            designation: u.designation,
+                          }));
+                        updateMinute(index, "raisedBy", selectedUsers);
+                      }}
                     />
                     <TextInput
                       placeholder="Issue Subject"

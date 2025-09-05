@@ -150,7 +150,7 @@ export async function exportAgendaWithAttendees(
       const row = worksheet.addRow([
         item.serialNo,
         item.issueSubject,
-        item.raisedBy.map((r) => r.individualName || r).join(", "),
+        item.raisedBy.map((r) => r.individualName).join(", "),
       ]);
       row.getCell(2).alignment = { wrapText: true, vertical: "top" };
       row.getCell(3).alignment = { wrapText: true, vertical: "top" };
