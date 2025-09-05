@@ -19,6 +19,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
+import { exportAgendaWithAttendees } from "../utils/agendaExcel";
 
 type DirectoryUser = {
   label: string;
@@ -88,6 +89,7 @@ const CreateMinutes = () => {
   const [users, setUsers] = useState<DirectoryUser[]>([]);
 
   const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
+  const [meetingNumber, setMeetingNumber] = useState<number | null>(null);
 
   // Fetch users
   useEffect(() => {
@@ -194,6 +196,7 @@ const CreateMinutes = () => {
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
         if (data.meetingTime) setMeetingTime(data.meetingTime);
         if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
+        if (data.meetingNumber) setMeetingNumber(data.meetingNumber);
 
         // Prefill attendees if exist
         if (data.attendees && data.attendees.length > 0) {
@@ -752,7 +755,24 @@ const CreateMinutes = () => {
         <View className="flex-row gap-3 my-10">
           {meetingId ? (
             <TouchableOpacity
-              // onPress={downloadAgenda}
+              onPress={() => {
+                // Build the export payload
+                const exportData = {
+                  meetingDate,
+                  meetingTime,
+                  meetingVenue,
+                  meetingNumber: meetingNumber, // <-- from DB
+                  attendees, // already in correct state
+                  minutes, // already in correct state
+                };
+
+                exportAgendaWithAttendees(
+                  exportData,
+                  auth?.user?.fullName ?? "Unknown", // accountName
+                  projectName,
+                  company
+                );
+              }}
               className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
             >
               <Text className="text-white font-bold text-xl">

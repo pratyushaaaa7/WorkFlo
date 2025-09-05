@@ -16,10 +16,14 @@ type Attendee = {
 
 type RaisedBy = { individualName: string; designation?: string };
 
-type AgendaItem = {
+type MinuteItem = {
   serialNo: number;
   issueSubject: string;
+  issueDescription?: string;
   raisedBy: RaisedBy[];
+  responsibility: string[];
+  targetDate: string;
+  status: string;
 };
 
 type Meeting = {
@@ -29,7 +33,7 @@ type Meeting = {
   meetingTime: string;
   meetingVenue: string;
   attendees: Attendee[];
-  agenda: AgendaItem[];
+  minutes?: MinuteItem[]; // ✅ add this
 };
 
 export async function exportAgendaWithAttendees(
@@ -101,7 +105,11 @@ export async function exportAgendaWithAttendees(
     attendeeHeader.eachCell((cell) => {
       cell.font = { bold: true };
       cell.alignment = { horizontal: "center", vertical: "middle" };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "E0E0E0" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "E0E0E0" },
+      };
     });
 
     meeting.attendees.forEach((attendee, index) => {
@@ -119,28 +127,34 @@ export async function exportAgendaWithAttendees(
     worksheet.addRow([]);
 
     // --- Agenda Section ---
-    const agendaTitle = worksheet.addRow(["Agenda"]);
-    agendaTitle.font = { bold: true, size: 14 };
+    // --- Minutes / Agenda Section ---
+    const minutesTitle = worksheet.addRow(["Agenda"]);
+    minutesTitle.font = { bold: true, size: 14 };
 
-    const agendaHeader = worksheet.addRow(["S.No", "Agenda", "Raised By"]);
-    agendaHeader.eachCell((cell) => {
+    const minutesHeader = worksheet.addRow([
+      "S.No",
+      "Agenda / Issue Subject",
+      "Raised By",
+    ]);
+    minutesHeader.eachCell((cell) => {
       cell.font = { bold: true };
       cell.alignment = { horizontal: "center", vertical: "middle" };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "E0E0E0" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "E0E0E0" },
+      };
     });
 
-    meeting.agenda.forEach((item) => {
+    meeting.minutes?.forEach((item) => {
       const row = worksheet.addRow([
         item.serialNo,
         item.issueSubject,
-        item.raisedBy.map((r) => r.individualName).join(", "),
+        item.raisedBy.map((r) => r.individualName || r).join(", "),
       ]);
-
-      // Wrap text for readability
       row.getCell(2).alignment = { wrapText: true, vertical: "top" };
       row.getCell(3).alignment = { wrapText: true, vertical: "top" };
     });
-
     // --- Column widths ---
     const widths = [5, 50, 30, 20, 25, 25, 15]; // attendee + agenda columns
     worksheet.columns.forEach((col, i) => {
@@ -149,7 +163,9 @@ export async function exportAgendaWithAttendees(
 
     // --- Save & Share ---
     const buffer = await workbook.xlsx.writeBuffer();
-    const fileUri = FileSystem.documentDirectory + `Meeting_${meeting.meetingNumber}_agenda.xlsx`;
+    const fileUri =
+      FileSystem.documentDirectory +
+      `Meeting_${meeting.meetingNumber}_agenda.xlsx`;
 
     await FileSystem.writeAsStringAsync(
       fileUri,
@@ -159,7 +175,8 @@ export async function exportAgendaWithAttendees(
 
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(fileUri, {
-        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         dialogTitle: "Export Meeting Agenda",
         UTI: "com.microsoft.excel.xlsx",
       });
