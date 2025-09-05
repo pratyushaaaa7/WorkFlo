@@ -73,6 +73,8 @@ const CreateMinutes = () => {
       targetDate: null,
       responsibility: [],
       remarks: "",
+      targetDateForInfo: false, // ✅ new
+      responsibilityForInfo: false, // ✅ new
     },
   ]);
 
@@ -246,6 +248,7 @@ const CreateMinutes = () => {
           return Toast.show({
             type: "error",
             text1: "Meeting info is required",
+            position: "bottom",
           });
         }
         if (attendees.length === 0) {
@@ -257,10 +260,14 @@ const CreateMinutes = () => {
         }
         const invalid = minutes.some(
           (m) =>
+            // !m.issueSubject ||
+            // !m.targetDate ||
+            // m.raisedBy.length === 0 ||
+            // m.responsibility.length === 0
             !m.issueSubject ||
-            !m.targetDate ||
             m.raisedBy.length === 0 ||
-            m.responsibility.length === 0
+            (!m.targetDate && !m.targetDateForInfo) ||
+            (m.responsibility.length === 0 && !m.responsibilityForInfo)
         );
         if (invalid) {
           return Toast.show({
@@ -286,11 +293,13 @@ const CreateMinutes = () => {
       const formattedMinutes = minutes.map((m) => ({
         serialNo: m.serialNo,
         issueSubject: m.issueSubject,
-        description: m.issueDescription, // backend expects "description"
+        description: m.issueDescription,
         raisedBy: Array.isArray(m.raisedBy) ? m.raisedBy : [m.raisedBy],
-        responsibility: m.responsibility,
-        targetDate: m.targetDate,
+        responsibility: m.responsibilityForInfo ? [] : m.responsibility,
+        targetDate: m.targetDateForInfo ? null : m.targetDate,
         remarks: m.remarks,
+        targetDateForInfo: m.targetDateForInfo, // ✅ pass flags
+        responsibilityForInfo: m.responsibilityForInfo, // ✅ pass flags
       }));
 
       const payload = {
@@ -647,7 +656,7 @@ const CreateMinutes = () => {
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
-                      placeholder="Issue Description"
+                      placeholder="Issue Description (if any)"
                       placeholderTextColor="#888"
                       value={m.issueDescription}
                       onChangeText={(t) =>
@@ -657,7 +666,7 @@ const CreateMinutes = () => {
                     />
 
                     {/* Date Picker Field */}
-                    <TouchableOpacity onPress={() => openDatePicker(index)}>
+                    {/* <TouchableOpacity onPress={() => openDatePicker(index)}>
                       <TextInput
                         placeholder="Target Date (DD-MM-YYYY)"
                         placeholderTextColor="#888"
@@ -670,7 +679,7 @@ const CreateMinutes = () => {
                         pointerEvents="none"
                         className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     {showDatePicker && dateIndex === index && (
                       <DateTimePicker
                         value={
@@ -681,47 +690,120 @@ const CreateMinutes = () => {
                         onChange={onDateChange}
                       />
                     )}
+                    <View className="flex-row items-center">
+                      <TouchableOpacity
+                        onPress={() => openDatePicker(index)}
+                        style={{
+                          flex: 1,
+                          opacity: m.targetDateForInfo ? 0.5 : 1,
+                        }} // 🔹 decrease opacity
+                        disabled={m.targetDateForInfo}
+                      >
+                        <TextInput
+                          placeholder="Target Date (DD-MM-YYYY)"
+                          placeholderTextColor="#888"
+                          value={
+                            m.targetDate
+                              ? moment(m.targetDate).format("DD-MM-YYYY")
+                              : ""
+                          }
+                          editable={false}
+                          pointerEvents="none"
+                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700"
+                        />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (m.targetDateForInfo) {
+                            // 🔹 If already "For Info", just toggle off
+                            updateMinute(index, "targetDateForInfo", false);
+                          } else {
+                            // 🔹 If turning ON "For Info", clear the date
+                            updateMinute(index, "targetDate", null);
+                            updateMinute(index, "targetDateForInfo", true);
+                          }
+                        }}
+                        className={`ml-2 px-3 py-2 rounded-xl ${
+                          m.targetDateForInfo ? "bg-emerald-500" : "bg-gray-200"
+                        }`}
+                      >
+                        <Text className="text-white text-xs font-bold">
+                          {m.targetDateForInfo ? "For Info ✓" : "For Info"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
 
                     {/* MultiSelect */}
-                    <MultiSelect
-                      style={{
-                        height: 35,
-                        borderColor: "#E5E7EB", // gray-200
-                        borderWidth: 1,
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        backgroundColor: "#F9FAFB",
-                      }}
-                      placeholderStyle={{ fontSize: 14, color: "#888" }}
-                      selectedTextStyle={{
-                        fontSize: 12,
-                        color: "#0B0B0B",
-                      }}
-                      selectedStyle={{
-                        borderRadius: 10,
-                        backgroundColor: "#D1FADF", // light green (instead of light aqua)
-                        padding: 4,
-                      }}
-                      containerStyle={{
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        backgroundColor: "#fff",
-                      }}
-                      activeColor="#DCFCE7"
-                      inputSearchStyle={{ fontSize: 14 }}
-                      search
-                      labelField="label"
-                      valueField="value"
-                      data={users}
-                      value={m.responsibility} // bind to minute state
-                      placeholder="Select responsible users"
-                      searchPlaceholder="Search..."
-                      onChange={(val) =>
-                        updateMinute(index, "responsibility", val)
-                      }
-                    />
+                    <View className="flex-row items-center">
+                      <View
+                        style={{
+                          flex: 1,
+                          opacity: m.responsibilityForInfo ? 0.5 : 1,
+                        }}
+                      >
+                        <MultiSelect
+                          style={{
+                            height: 35,
+                            borderColor: "#E5E7EB", // gray-200
+                            borderWidth: 1,
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            backgroundColor: "#F9FAFB",
+                          }}
+                          placeholderStyle={{ fontSize: 14, color: "#888" }}
+                          selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
+                          selectedStyle={{
+                            borderRadius: 10,
+                            backgroundColor: "#D1FADF",
+                            padding: 4,
+                          }}
+                          containerStyle={{
+                            borderRadius: 12,
+                            overflow: "hidden",
+                            backgroundColor: "#fff",
+                          }}
+                          activeColor="#DCFCE7"
+                          inputSearchStyle={{ fontSize: 14 }}
+                          search
+                          labelField="label"
+                          valueField="value"
+                          data={users}
+                          value={m.responsibility}
+                          placeholder="Select responsible users"
+                          searchPlaceholder="Search..."
+                          onChange={(val) =>
+                            updateMinute(index, "responsibility", val)
+                          }
+                          disable={m.responsibilityForInfo} // 🔹 disable MultiSelect when For Info is active
+                        />
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (m.responsibilityForInfo) {
+                            // 🔹 If already "For Info", just toggle off
+                            updateMinute(index, "responsibilityForInfo", false);
+                          } else {
+                            // 🔹 If turning ON "For Info", clear selected responsibility
+                            updateMinute(index, "responsibility", []);
+                            updateMinute(index, "responsibilityForInfo", true);
+                          }
+                        }}
+                        className={`ml-2 px-3 py-2 rounded-xl ${
+                          m.responsibilityForInfo
+                            ? "bg-emerald-500"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        <Text className="text-white text-xs font-bold">
+                          {m.responsibilityForInfo ? "For Info ✓" : "For Info"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
                     <TextInput
-                      placeholder="Remarks (if any)"
+                      placeholder="Meeting Discussion*"
                       placeholderTextColor="#888"
                       value={m.remarks}
                       onChangeText={(t) => updateMinute(index, "remarks", t)}
