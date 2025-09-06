@@ -213,7 +213,9 @@ const MinutesDetail = () => {
                     className={`${
                       minute.status === "open"
                         ? "text-red-500"
-                        : "text-green-500"
+                        : minute.status === "closed"
+                        ? "text-green-500"
+                        : "text-yellow-500"
                     } font-semibold`}
                   >
                     {minute.status.toUpperCase()}
