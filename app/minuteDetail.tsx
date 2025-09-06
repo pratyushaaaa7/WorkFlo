@@ -248,11 +248,11 @@ const MinuteDetail = () => {
             </Text>
             <View className="flex-row items-center">
               <View
-                className={`px-3 py-1 rounded-full ${
+                className={`px-2 py-1 rounded-full ${
                   statusColors[status] || "bg-gray-400"
                 }`}
               >
-                <Text className="text-white font-semibold">
+                <Text className="text-white text-xs font-pbold">
                   {status.toUpperCase()}
                 </Text>
               </View>
