@@ -259,7 +259,7 @@ const MinuteDetail = () => {
             </View>
           </View>
           {description ? (
-            <Text className="text-gray-600 mb-4">{description}</Text>
+            <Text className="text-gray-600 mb-2">{description}</Text>
           ) : null}
           <Text className="text-sm text-gray-500">
             <Text className="font-semibold text-gray-700">Raised By: </Text>
