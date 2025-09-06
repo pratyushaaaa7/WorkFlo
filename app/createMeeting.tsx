@@ -306,8 +306,13 @@ const CreateMinutes = () => {
         responsibility: m.responsibilityForInfo
           ? []
           : Array.isArray(m.responsibility)
-          ? m.responsibility.map((r) => r._id) // ✅ only IDs
-          : [m.responsibility?._id],
+          ? m.responsibility
+              .map((r) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
+              .filter((id) => id) // remove null/undefined
+          : m.responsibility?._id
+          ? [m.responsibility._id]
+          : [],
+
         targetDate: m.targetDateForInfo ? null : m.targetDate,
         remarks: m.remarks || "",
         targetDateForInfo: !!m.targetDateForInfo,
