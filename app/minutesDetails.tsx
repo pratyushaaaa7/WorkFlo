@@ -39,6 +39,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -84,7 +85,7 @@ const MinutesDetail = () => {
             exportMinutesToExcel(
               meeting,
               auth?.user?.fullName ?? "Unknown", // accountName
-              projectName, // projectName to be sent 
+              projectName, // projectName to be sent
               company // company
             )
           }
@@ -169,9 +170,11 @@ const MinutesDetail = () => {
                   <Text className="font-bold text-indigo-600 mb-1">
                     {minute.serialNo}. {minute.issueSubject}
                   </Text>
-                  <Text className="text-gray-700 mb-1">
-                    {minute.description}
-                  </Text>
+                  {minute.description && (
+                    <Text className="text-gray-700 mb-1">
+                      {minute.description}
+                    </Text>
+                  )}
                   <Text className="text-gray-500 text-sm">
                     Raised By:{" "}
                     {minute.raisedBy
@@ -180,14 +183,20 @@ const MinutesDetail = () => {
                   </Text>
                   <Text className="text-gray-500 text-sm">
                     Responsible:{" "}
-                    {minute.responsibility
-                      .map((r: any) => r.individualName)
-                      .join(", ")}
+                    {minute.responsibilityForInfo
+                      ? "For Information"
+                      : minute.responsibility
+                          .map((r: any) => r.individualName)
+                          .join(", ")}
                   </Text>
+
                   <Text className="text-gray-500 text-sm">
                     Target Date:{" "}
-                    {new Date(minute.targetDate).toLocaleDateString()}
+                    {minute.targetDateForInfo
+                      ? "For Information"
+                      : new Date(minute.targetDate).toLocaleDateString()}
                   </Text>
+
                   <Text className="text-gray-500 text-sm">
                     Status:{" "}
                     <Text

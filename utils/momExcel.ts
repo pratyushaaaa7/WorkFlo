@@ -26,6 +26,8 @@ type Minute = {
   targetDate: string;
   status: string; // "open" | "closed"
   remarks?: string;
+  targetDateForInfo?: boolean;
+  responsibilityForInfo?: boolean;
 };
 
 type Meeting = {
@@ -160,9 +162,14 @@ export async function exportMinutesToExcel(
         minute.serialNo,
         minute.raisedBy.map((r) => r.individualName).join(", "),
         minute.issueSubject,
-           minute.description, // ✅ updated
-        minute.responsibility.map((r) => r.individualName).join(", "),
-        new Date(minute.targetDate).toLocaleDateString(),
+        minute.description, // ✅ updated
+        minute.responsibilityForInfo
+          ? "For Information"
+          : minute.responsibility.map((r) => r.individualName).join(", "),
+
+        minute.targetDateForInfo
+          ? "For Information"
+          : new Date(minute.targetDate).toLocaleDateString(),
         minute.status.toUpperCase(),
       ]);
 
