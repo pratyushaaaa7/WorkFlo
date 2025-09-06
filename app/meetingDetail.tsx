@@ -166,7 +166,7 @@ const MinutesDetail = () => {
                     pathname: "/minuteDetail",
                     params: {
                       id: minute._id,
-                         meetingId: meeting._id, // <-- important
+                      meetingId: meeting._id, // <-- important
                       serialNo: minute.serialNo,
                       issueSubject: minute.issueSubject,
                       description: minute.description ?? "",

@@ -279,7 +279,7 @@ const MinuteDetail = () => {
           </Text>
           {remarks ? (
             <Text className="text-sm text-gray-500 mt-2">
-              <Text className="font-semibold text-gray-700">Remarks: </Text>
+              <Text className="font-semibold text-gray-700">Meeting Discussion: </Text>
               {remarks}
             </Text>
           ) : null}
