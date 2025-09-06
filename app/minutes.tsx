@@ -173,7 +173,7 @@ const Minutes = () => {
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
-                        `/minutesDetails?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+                        `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
                       )
                     }
                     className="flex-1 bg-green-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"

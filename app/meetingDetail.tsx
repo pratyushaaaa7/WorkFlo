@@ -39,7 +39,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        console.log(res.data);
+        // console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -158,65 +158,69 @@ const MinutesDetail = () => {
             </View>
 
             {/* Minutes */}
-            <View className="bg-white p-4 rounded-2xl shadow mb-4">
-              <Text className="text-lg font-semibold text-gray-800 mb-2">
-                Minutes of Meeting
-              </Text>
-              {meeting.minutes.map((minute: any) => (
-                <View
-                  key={minute._id}
-                  className="border border-gray-200 rounded-xl p-3 mb-3"
-                >
-                  <Text className="font-bold text-indigo-600 mb-1">
-                    {minute.serialNo}. {minute.issueSubject}
+            {meeting.minutes.map((minute: any) => (
+              <TouchableOpacity
+                key={minute._id}
+                onPress={() =>
+                  router.push({
+                    pathname: "/minuteDetail",
+                    params: {
+                      id: minute._id,
+                         meetingId: meeting._id, // <-- important
+                      serialNo: minute.serialNo,
+                      issueSubject: minute.issueSubject,
+                      description: minute.description ?? "",
+                      raisedBy: JSON.stringify(minute.raisedBy), // arrays need to be stringified
+                      responsibility: JSON.stringify(minute.responsibility),
+                      responsibilityForInfo: minute.responsibilityForInfo
+                        ? "true"
+                        : "false",
+                      targetDate: minute.targetDate,
+                      targetDateForInfo: minute.targetDateForInfo
+                        ? "true"
+                        : "false",
+                      status: minute.status,
+                      remarks: minute.remarks ?? "",
+                    },
+                  })
+                }
+                activeOpacity={0.7}
+                className="border border-gray-200 bg-white rounded-xl p-3 mb-3"
+              >
+                <Text className="font-bold text-indigo-600 mb-1">
+                  {minute.serialNo}. {minute.issueSubject}
+                </Text>
+                {minute.description && (
+                  <Text className="text-gray-700 mb-1">
+                    {minute.description}
                   </Text>
-                  {minute.description && (
-                    <Text className="text-gray-700 mb-1">
-                      {minute.description}
-                    </Text>
-                  )}
-                  <Text className="text-gray-500 text-sm">
-                    Raised By:{" "}
-                    {minute.raisedBy
-                      .map((r: any) => r.individualName)
-                      .join(", ")}
+                )}
+                <Text className="text-gray-500 text-sm">
+                  Raised By:{" "}
+                  {minute.raisedBy.map((r: any) => r.individualName).join(", ")}
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  Responsible:{" "}
+                  {minute.responsibilityForInfo
+                    ? "For Information"
+                    : minute.responsibility
+                        .map((r: any) => r.individualName)
+                        .join(", ")}
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  Status:{" "}
+                  <Text
+                    className={`${
+                      minute.status === "open"
+                        ? "text-red-500"
+                        : "text-green-500"
+                    } font-semibold`}
+                  >
+                    {minute.status.toUpperCase()}
                   </Text>
-                  <Text className="text-gray-500 text-sm">
-                    Responsible:{" "}
-                    {minute.responsibilityForInfo
-                      ? "For Information"
-                      : minute.responsibility
-                          .map((r: any) => r.individualName)
-                          .join(", ")}
-                  </Text>
-
-                  <Text className="text-gray-500 text-sm">
-                    Target Date:{" "}
-                    {minute.targetDateForInfo
-                      ? "For Information"
-                      : new Date(minute.targetDate).toLocaleDateString()}
-                  </Text>
-
-                  <Text className="text-gray-500 text-sm">
-                    Status:{" "}
-                    <Text
-                      className={`${
-                        minute.status === "open"
-                          ? "text-red-500"
-                          : "text-green-500"
-                      } font-semibold`}
-                    >
-                      {minute.status.toUpperCase()}
-                    </Text>
-                  </Text>
-                  {minute.remarks ? (
-                    <Text className="text-gray-500 text-sm ">
-                      Remarks: {minute.remarks}
-                    </Text>
-                  ) : null}
-                </View>
-              ))}
-            </View>
+                </Text>
+              </TouchableOpacity>
+            ))}
           </>
         ) : (
           <Text className="text-center mt-10 text-gray-500">
