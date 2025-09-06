@@ -295,16 +295,23 @@ const CreateMinutes = () => {
       }));
 
       // ✅ Format minutes
-      const formattedMinutes = minutes.map((m) => ({
-        serialNo: m.serialNo,
+
+      const formattedMinutes = minutes.map((m, i) => ({
+        serialNo: m.serialNo ?? i + 1,
         issueSubject: m.issueSubject,
-        description: m.issueDescription,
-        raisedBy: Array.isArray(m.raisedBy) ? m.raisedBy : [m.raisedBy],
-        responsibility: m.responsibilityForInfo ? [] : m.responsibility,
+        description: m.issueDescription || "",
+        raisedBy: Array.isArray(m.raisedBy)
+          ? m.raisedBy.map((r) => r._id) // ✅ only IDs
+          : [m.raisedBy?._id],
+        responsibility: m.responsibilityForInfo
+          ? []
+          : Array.isArray(m.responsibility)
+          ? m.responsibility.map((r) => r._id) // ✅ only IDs
+          : [m.responsibility?._id],
         targetDate: m.targetDateForInfo ? null : m.targetDate,
-        remarks: m.remarks,
-        targetDateForInfo: m.targetDateForInfo, // ✅ pass flags
-        responsibilityForInfo: m.responsibilityForInfo, // ✅ pass flags
+        remarks: m.remarks || "",
+        targetDateForInfo: !!m.targetDateForInfo,
+        responsibilityForInfo: !!m.responsibilityForInfo,
       }));
 
       const payload = {
@@ -338,6 +345,8 @@ const CreateMinutes = () => {
       router.back();
     } catch (err) {
       console.error("Submit error:", err);
+      console.error("Submit error:", err?.response.data || err.message);
+
       Toast.show({
         type: "error",
         text1: "Failed to submit minutes",
