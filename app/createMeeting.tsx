@@ -5,6 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   Pressable,
+  Modal,
+  FlatList,
   Platform,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -82,16 +84,14 @@ const CreateMinutes = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
 
-  //Users for Raised By dropdown
-  // const [raisedBy, setRaisedBy] = useState<{ label: string; value: string }[]>(
-  //   []
-  // );
-
   // Users for responsibility dropdown
   const [users, setUsers] = useState<DirectoryUser[]>([]);
 
   const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
   const [meetingNumber, setMeetingNumber] = useState<number | null>(null);
+
+  const [forwardedModalVisible, setForwardedModalVisible] = useState(false);
+  const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
 
   // Fetch users
   useEffect(() => {
@@ -120,6 +120,20 @@ const CreateMinutes = () => {
     };
     fetchUsers();
   }, [token, projectId]);
+
+  const fetchForwardedMinutes = async () => {
+    try {
+      if (!token || !projectId) return;
+      const res = await api.get(`/minutes/forwarded/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setForwardedMinutes(res.data); // array of forwarded minutes
+      setForwardedModalVisible(true);
+    } catch (err) {
+      Toast.show({ type: "error", text1: "Error fetching forwarded minutes" });
+    }
+  };
 
   // Utility functions
   const updateAttendee = (index: number, field: string, value: any) => {
@@ -317,7 +331,9 @@ const CreateMinutes = () => {
         remarks: m.remarks || "",
         targetDateForInfo: !!m.targetDateForInfo,
         responsibilityForInfo: !!m.responsibilityForInfo,
+        fromForwardedId: m.fromForwardedId || null,
       }));
+      console.log("Submitting Minutes payload:", formattedMinutes);
 
       const payload = {
         projectId,
@@ -328,6 +344,8 @@ const CreateMinutes = () => {
         minutes: formattedMinutes,
         actionType: type,
       };
+
+      console.log("Full payload to API:", payload);
 
       // ✅ Call API
       if (type === "agenda" || !meetingId) {
@@ -606,6 +624,17 @@ const CreateMinutes = () => {
         {/* Minutes */}
         <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
           <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text>
+          <View className="flex-row justify-between items-center p-2">
+            <Text className="text-lg font-bold text-gray-700">Minutes</Text>
+            <TouchableOpacity
+              onPress={fetchForwardedMinutes}
+              className="bg-purple-500 px-3 py-1 rounded-xl"
+            >
+              <Text className="text-white text-sm font-semibold">
+                Fill from Forwarded
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {minutes.map((m, index) => (
             <Card
@@ -861,7 +890,71 @@ const CreateMinutes = () => {
             <Text className="text-white  font-pbold">+ Add Minute</Text>
           </TouchableOpacity>
         </View>
+        <Modal
+          visible={forwardedModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setForwardedModalVisible(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-center items-center">
+            <View className="bg-white w-11/12 rounded-2xl p-4 max-h-[70%]">
+              <Text className="text-lg font-bold mb-3">
+                Select Forwarded Issue
+              </Text>
 
+              <FlatList
+                data={forwardedMinutes}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    className="p-3 border-b border-gray-200"
+                    onPress={() => {
+                      setMinutes((prev) => [
+                        ...prev,
+                        {
+                          serialNo: prev.length + 1,
+                          raisedBy:
+                            item.raisedBy?.map((r: any) => ({
+                              _id: r._id,
+                              individualName: r.individualName || "",
+                              designation: r.designation || "",
+                            })) || [],
+                          issueSubject: item.issueSubject || "",
+                          issueDescription: item.description || "",
+                          targetDate: item.targetDate || null,
+                          responsibility:
+                            item.responsibility?.map((r: any) => r._id) || [],
+                          remarks: item.remarks || "",
+                          targetDateForInfo: item.targetDateForInfo || false,
+                          responsibilityForInfo:
+                            item.responsibilityForInfo || false,
+                          fromForwardedId: item._id, // 🔹 add this line
+                        },
+                      ]);
+                      setForwardedModalVisible(false); // close modal after selection
+                    }}
+                  >
+                    <Text className="font-semibold text-gray-800">
+                      {item.issueSubject || "Untitled Issue"}
+                    </Text>
+                    {item.description ? (
+                      <Text className="text-gray-600 text-sm">
+                        {item.description}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                )}
+              />
+
+              <TouchableOpacity
+                onPress={() => setForwardedModalVisible(false)}
+                className="mt-4 bg-gray-300 py-2 rounded-xl items-center"
+              >
+                <Text className="text-gray-800 font-semibold">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         {/* Submit Button */}
 
         <View className="flex-row gap-3 my-10">
