@@ -20,6 +20,34 @@ import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 
+// Delete handlers
+interface IUser {
+  _id: string;
+  individualName: string;
+  designation: string;
+  role: string;
+  roleDescription: string;
+  firmName: string;
+  email: string;
+  phone: string;
+}
+
+// Edit handlers
+interface EditUserData {
+  _id: string;
+  individualName: string;
+  designation: string;
+  role: string;
+  roleDescription: string;
+  firmName: string;
+  email: string;
+  phone: string;
+}
+
+interface EditFieldChangeHandler {
+  (field: keyof EditUserData, value: string): void;
+}
+
 const UserList = () => {
   const router = useRouter();
   const { projectId, projectName } = useLocalSearchParams();
@@ -77,18 +105,6 @@ const UserList = () => {
     }
   }, [projectId, token]);
 
-  // Delete handlers
-  interface IUser {
-    _id: string;
-    individualName: string;
-    designation: string;
-    role: string;
-    roleDescription: string;
-    firmName: string;
-    email: string;
-    phone: string;
-  }
-
   const handleDeletePress = (user: IUser) => {
     setSelectedUser(user);
     setDeleteModalVisible(true);
@@ -131,26 +147,11 @@ const UserList = () => {
       setLoading(false);
     }
   };
-  // Edit handlers
-  interface EditUserData {
-    _id: string;
-    individualName: string;
-    designation: string;
-    role: string;
-    roleDescription: string;
-    firmName: string;
-    email: string;
-    phone: string;
-  }
 
   const handleEditPress = (user: IUser) => {
     setEditUserData({ ...user } as EditUserData); // load user data into form state
     setEditModalVisible(true);
   };
-
-  interface EditFieldChangeHandler {
-    (field: keyof EditUserData, value: string): void;
-  }
 
   const handleEditChange: EditFieldChangeHandler = (field, value) => {
     setEditUserData((prev) => ({ ...prev, [field]: value }));
@@ -385,7 +386,7 @@ const UserList = () => {
           position: "absolute",
           bottom: 36,
           right: 20,
-       
+
           width: 56,
           height: 56,
           borderRadius: 28,
