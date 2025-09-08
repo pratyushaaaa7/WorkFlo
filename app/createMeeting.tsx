@@ -129,7 +129,7 @@ const CreateMinutes = () => {
       });
 
       setForwardedMinutes(res.data); // array of forwarded minutes
-      console.log(res.data);
+      // console.log(res.data);
       setForwardedModalVisible(true);
     } catch (err) {
       Toast.show({ type: "error", text1: "Error fetching forwarded minutes" });
@@ -316,14 +316,14 @@ const CreateMinutes = () => {
         issueSubject: m.issueSubject,
         description: m.issueDescription || "",
         raisedBy: Array.isArray(m.raisedBy)
-          ? m.raisedBy.map((r) => r._id) // ✅ only IDs
+          ? m.raisedBy.map((r:any) => r._id) // ✅ only IDs
           : [m.raisedBy?._id],
         responsibility: m.responsibilityForInfo
           ? []
           : Array.isArray(m.responsibility)
           ? m.responsibility
-              .map((r) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
-              .filter((id) => id) // remove null/undefined
+              .map((r:any) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
+              .filter((id:any) => id) // remove null/undefined
           : m.responsibility?._id
           ? [m.responsibility._id]
           : [],
