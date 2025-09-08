@@ -129,6 +129,7 @@ const CreateMinutes = () => {
       });
 
       setForwardedMinutes(res.data); // array of forwarded minutes
+      console.log(res.data);
       setForwardedModalVisible(true);
     } catch (err) {
       Toast.show({ type: "error", text1: "Error fetching forwarded minutes" });
@@ -333,7 +334,7 @@ const CreateMinutes = () => {
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
       }));
-      console.log("Submitting Minutes payload:", formattedMinutes);
+      // console.log("Submitting Minutes payload:", formattedMinutes);
 
       const payload = {
         projectId,
@@ -345,7 +346,7 @@ const CreateMinutes = () => {
         actionType: type,
       };
 
-      console.log("Full payload to API:", payload);
+      // console.log("Full payload to API:", payload);
 
       // ✅ Call API
       if (type === "agenda" || !meetingId) {
@@ -623,12 +624,12 @@ const CreateMinutes = () => {
 
         {/* Minutes */}
         <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text>
+          {/* <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text> */}
           <View className="flex-row justify-between items-center p-2">
             <Text className="text-lg font-bold text-gray-700">Minutes</Text>
             <TouchableOpacity
               onPress={fetchForwardedMinutes}
-              className="bg-purple-500 px-3 py-1 rounded-xl"
+              className="bg-yellow-500 px-3 py-1 rounded-xl"
             >
               <Text className="text-white text-sm font-semibold">
                 Fill from Forwarded
@@ -890,73 +891,87 @@ const CreateMinutes = () => {
             <Text className="text-white  font-pbold">+ Add Minute</Text>
           </TouchableOpacity>
         </View>
-        <Modal
-          visible={forwardedModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setForwardedModalVisible(false)}
+
+ <Modal
+  visible={forwardedModalVisible}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setForwardedModalVisible(false)}
+>
+  <View className="flex-1 bg-black/50 justify-center items-center">
+    <View className="bg-white w-11/12 rounded-2xl p-5 max-h-[70%] shadow-lg">
+      {/* Header with title + close button */}
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-xl font-bold text-center flex-1">
+          Select Forwarded Issue
+        </Text>
+        <TouchableOpacity
+          onPress={() => setForwardedModalVisible(false)}
+          className="ml-2 p-1"
         >
-          <View className="flex-1 bg-black/50 justify-center items-center">
-            <View className="bg-white w-11/12 rounded-2xl p-4 max-h-[70%]">
-              <Text className="text-lg font-bold mb-3">
-                Select Forwarded Issue
+          <Ionicons name="close" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      {/* List or Empty State */}
+      {!forwardedMinutes || forwardedMinutes.length === 0 ? (
+        <View className="justify-center items-center py-10">
+          <Ionicons name="document-text-outline" size={70} color="#c0c0c0" />
+          <Text className="text-gray-400 text-center mt-4 text-base">
+            No forwarded issues available.
+          </Text>
+          <Text className="text-gray-400 text-center mt-1 text-sm">
+            Forwarded issues will appear here once available.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={forwardedMinutes}
+          keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 10 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
+              onPress={() => {
+                setMinutes((prev) => [
+                  ...prev,
+                  {
+                    serialNo: prev.length + 1,
+                    raisedBy:
+                      item.raisedBy?.map((r: any) => ({
+                        _id: r._id,
+                        individualName: r.individualName || "",
+                        designation: r.designation || "",
+                      })) || [],
+                    issueSubject: item.issueSubject || "",
+                    issueDescription: item.description || "",
+                    targetDate: item.targetDate || null,
+                    responsibility:
+                      item.responsibility?.map((r: any) => r._id) || [],
+                    remarks: item.remarks || "",
+                    targetDateForInfo: item.targetDateForInfo || false,
+                    responsibilityForInfo:
+                      item.responsibilityForInfo || false,
+                    fromForwardedId: item._id,
+                  },
+                ]);
+                setForwardedModalVisible(false);
+              }}
+            >
+              <Text className="font-semibold text-gray-900 text-base">
+                {item.issueSubject || "Untitled Issue"}
               </Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+    </View>
+  </View>
+</Modal>
 
-              <FlatList
-                data={forwardedMinutes}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    className="p-3 border-b border-gray-200"
-                    onPress={() => {
-                      setMinutes((prev) => [
-                        ...prev,
-                        {
-                          serialNo: prev.length + 1,
-                          raisedBy:
-                            item.raisedBy?.map((r: any) => ({
-                              _id: r._id,
-                              individualName: r.individualName || "",
-                              designation: r.designation || "",
-                            })) || [],
-                          issueSubject: item.issueSubject || "",
-                          issueDescription: item.description || "",
-                          targetDate: item.targetDate || null,
-                          responsibility:
-                            item.responsibility?.map((r: any) => r._id) || [],
-                          remarks: item.remarks || "",
-                          targetDateForInfo: item.targetDateForInfo || false,
-                          responsibilityForInfo:
-                            item.responsibilityForInfo || false,
-                          fromForwardedId: item._id, // 🔹 add this line
-                        },
-                      ]);
-                      setForwardedModalVisible(false); // close modal after selection
-                    }}
-                  >
-                    <Text className="font-semibold text-gray-800">
-                      {item.issueSubject || "Untitled Issue"}
-                    </Text>
-                    {item.description ? (
-                      <Text className="text-gray-600 text-sm">
-                        {item.description}
-                      </Text>
-                    ) : null}
-                  </TouchableOpacity>
-                )}
-              />
 
-              <TouchableOpacity
-                onPress={() => setForwardedModalVisible(false)}
-                className="mt-4 bg-gray-300 py-2 rounded-xl items-center"
-              >
-                <Text className="text-gray-800 font-semibold">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
         {/* Submit Button */}
-
         <View className="flex-row gap-3 my-10">
           {meetingId ? (
             <TouchableOpacity
