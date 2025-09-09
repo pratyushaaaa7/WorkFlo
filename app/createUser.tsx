@@ -1,43 +1,185 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
+import React, { useState, useContext } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Dropdown } from "react-native-element-dropdown";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import api from "../lib/api";
+import { AuthContext } from "../context/AuthContext"; // adjust path
+import Toast from "react-native-toast-message";
 
-const AddUserForm = () => {
+type DynamicInputFieldProps = {
+  label: string;
+  list: string[];
+  setter: React.Dispatch<React.SetStateAction<string[]>>;
+  updateField: (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    list: string[],
+    index: number,
+    value: string
+  ) => void;
+  addField: (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    list: string[]
+  ) => void;
+};
+
+const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
+  label,
+  list,
+  setter,
+  updateField,
+  addField,
+}) => (
+  <View className="mb-4">
+    <Text className="text-gray-700 font-semibold mb-1">{label}</Text>
+    {list.map((item, index) => (
+      <View key={index} className="mb-2 relative">
+        <TextInput
+          placeholder={`Enter ${label.toLowerCase()}`}
+          placeholderTextColor="#888"
+          value={item}
+          onChangeText={(text) => updateField(setter, list, index, text)}
+          className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 pr-10"
+          // autoCapitalize="none"
+          keyboardType={
+            label.toLowerCase().includes("email")
+              ? "email-address"
+              : label.toLowerCase().includes("number")
+              ? "phone-pad"
+              : "default"
+          }
+          returnKeyType="next"
+        />
+        {list.length > 1 && (
+          <TouchableOpacity
+            onPress={() => {
+              const newList = [...list];
+              newList.splice(index, 1);
+              setter(newList);
+            }}
+            className="absolute right-3 top-3"
+          >
+            <Ionicons name="close-circle-outline" size={22} color="#EF4444" />
+          </TouchableOpacity>
+        )}
+      </View>
+    ))}
+    <TouchableOpacity
+      onPress={() => addField(setter, list)}
+      className="flex-row items-center space-x-2 mt-1"
+    >
+      <Ionicons name="add-circle-outline" size={22} color="#4F46E5" />
+      <Text className="text-indigo-600 font-semibold">Add {label}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+type RoleItem = {
+  label: string;
+  value: string;
+};
+
+const AddUserForm: React.FC = () => {
   const router = useRouter();
-  const [roleOpen, setRoleOpen] = useState(false);
-  const [roleValue, setRoleValue] = useState(null);
-  const [roleItems, setRoleItems] = useState([
-    { label: "Vendor", value: "vendor" },
-    { label: "Client", value: "client" },
-    { label: "Contractor", value: "contractor" },
+  const auth = useContext(AuthContext); // ✅ get JWT from context
+  const token = auth?.token;
+
+  // Role dropdown
+  const [roleValue, setRoleValue] = useState<string | null>(null);
+  const [roleItems] = useState<RoleItem[]>([
+    { label: "Vendor", value: "Vendor" },
+    { label: "Client", value: "Client" },
+    { label: "Consultant", value: "Consultant" },
   ]);
 
-  const [expertiseList, setExpertiseList] = useState([""]);
-  const [designationList, setDesignationList] = useState([""]);
-  const [emailList, setEmailList] = useState([""]);
-  const [addressList, setAddressList] = useState([""]);
-  const [officialNumberList, setOfficialNumberList] = useState([""]);
-  const [mobileNumberList, setMobileNumberList] = useState([""]);
+  // User fields
+  const [firmName, setFirmName] = useState("");
+  const [individualName, setIndividualName] = useState("");
 
-  const addField = (setter: any, list: any) => setter([...list, ""]);
-  const updateField = (setter, list, index, value) => {
+  const [expertiseList, setExpertiseList] = useState<string[]>([""]);
+  const [designationList, setDesignationList] = useState<string[]>([""]);
+  const [emailList, setEmailList] = useState<string[]>([""]);
+  const [addressList, setAddressList] = useState<string[]>([""]);
+  const [officialNumberList, setOfficialNumberList] = useState<string[]>([""]);
+  const [mobileNumberList, setMobileNumberList] = useState<string[]>([""]);
+
+  // Helpers
+  const addField = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    list: string[]
+  ) => setter([...list, ""]);
+  const updateField = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    list: string[],
+    index: number,
+    value: string
+  ) => {
     const newList = [...list];
     newList[index] = value;
     setter(newList);
   };
 
+  // Submit handler
+  const handleSubmit = async () => {
+    if (!roleValue) {
+      return Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Please select a role.",
+        position: "bottom",
+      });
+    }
+
+    if (individualName.trim() === "") {
+      return Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Name cannot be empty.",
+        position: "bottom",
+      });
+    }
+    try {
+      const payload = {
+        role: roleValue,
+        firmName,
+        individualName,
+        expertiseList: expertiseList.filter((e) => e.trim() !== ""),
+        designationList: designationList.filter((d) => d.trim() !== ""),
+        emailList: emailList.filter((e) => e.trim() !== ""),
+        addressList: addressList.filter((a) => a.trim() !== ""),
+        officialNumberList: officialNumberList.filter((n) => n.trim() !== ""),
+        mobileNumberList: mobileNumberList.filter((n) => n.trim() !== ""),
+      };
+
+      // 👉 call backend
+      await api.post(`/user-directory/add`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "User created successfully!",
+        position: "bottom",
+      });
+
+      // Navigate to central user directory
+      router.push("/(drawer)/centralUserDirectory");
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.response?.data?.message || "Something went wrong.",
+        position: "bottom",
+      });
+    }
+  };
+
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-gray-50">
+      {/* Header */}
       <LinearGradient
         colors={["#6366F1", "#8B5CF6"]}
         className="pt-16 pb-6 px-4 flex-row items-center justify-between"
@@ -50,25 +192,24 @@ const AddUserForm = () => {
           zIndex: 10,
         }}
       >
-        {/* Back Button */}
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/(drawer)/centralUserDirectory")}
           className="flex-row items-center"
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-bold text-white ml-4">
-            User Details
-          </Text>
+          <Text className="text-xl font-bold text-white ml-4">Create User</Text>
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView className=" bg-gray-50 px-4 py-6">
-        
-        <Text className="text-2xl font-bold text-gray-800 mb-6">
-          Create New User
-        </Text>
- {/* Role Dropdown */}
+      {/* Keyboard-aware scrollable form */}
+      <KeyboardAwareScrollView
+        className="px-4 py-6"
+        extraScrollHeight={100}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Role Dropdown */}
         <View className="mb-4 z-10">
           <Text className="text-gray-700 font-semibold mb-1">Role</Text>
           <Dropdown
@@ -100,16 +241,34 @@ const AddUserForm = () => {
 
         {/* Individual Name */}
         <View className="mb-4">
-          <Text className="text-gray-700 font-semibold mb-1">Name</Text>
+          <Text className="text-gray-700 font-semibold mb-1">
+            Individual Name
+          </Text>
           <TextInput
-            placeholder="Enter full name"
+            placeholder="Enter individual’s full name"
             placeholderTextColor="#888"
+            value={individualName}
+            onChangeText={setIndividualName}
             className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200"
+            returnKeyType="next"
+          />
+        </View>
+        {/* Firm / Company Name */}
+        <View className="mb-4">
+          <Text className="text-gray-700 font-semibold mb-1">
+            Firm / Company Name
+          </Text>
+          <TextInput
+            placeholder="Enter firm or company name"
+            placeholderTextColor="#888"
+            value={firmName}
+            onChangeText={setFirmName}
+            className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200"
+            returnKeyType="next"
           />
         </View>
 
-       
-        {/* Dynamic Fields Function */}
+        {/* Dynamic Fields */}
         {[
           { label: "Expertise", list: expertiseList, setter: setExpertiseList },
           {
@@ -130,62 +289,26 @@ const AddUserForm = () => {
             setter: setMobileNumberList,
           },
         ].map((field, idx) => (
-          <View className="mb-4" key={idx}>
-            <Text className="text-gray-700 font-semibold mb-1">
-              {field.label}
-            </Text>
-            {field.list.map((item, index) => (
-              <View key={index} className="mb-2 relative">
-                <TextInput
-                  placeholder={`Enter ${field.label.toLowerCase()}`}
-                  placeholderTextColor="#888"
-                  value={item}
-                  onChangeText={(text) =>
-                    updateField(field.setter, field.list, index, text)
-                  }
-                  className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 pr-10"
-                />
-                {field.list.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      const newList = [...field.list];
-                      newList.splice(index, 1);
-                      field.setter(newList);
-                    }}
-                    className="absolute right-3 top-3"
-                  >
-                    <Ionicons
-                      name="remove-circle-outline"
-                      size={24}
-                      color="#EF4444"
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-
-            <TouchableOpacity
-              onPress={() => addField(field.setter, field.list)}
-              className="flex-row items-center space-x-2 mt-1"
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#4F46E5" />
-              <Text className="text-indigo-600 font-semibold">
-                Add {field.label}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <DynamicInputField
+            key={idx}
+            {...field}
+            updateField={updateField}
+            addField={addField}
+          />
         ))}
 
         {/* Submit Button */}
         <TouchableOpacity
           activeOpacity={0.8}
+          onPress={handleSubmit}
           className="bg-indigo-600 py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-10"
         >
           <Ionicons name="checkmark-done-outline" size={24} color="white" />
           <Text className="text-white text-lg font-semibold">Create User</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 };
+
 export default AddUserForm;
