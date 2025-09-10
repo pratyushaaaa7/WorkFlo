@@ -128,37 +128,43 @@ const UserList = () => {
     setDeleteModalVisible(true);
   };
 
+  // Confirm deletion from project only
   const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !projectId || !token) return;
 
     try {
       setLoading(true);
-      await api.delete(`/user-directory/${selectedUser._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+
+      // DELETE request to remove user from project's projectUsers array
+      await api.delete(
+        `/projects/${projectId}/project-users/${selectedUser._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       Toast.show({
         type: "success",
-        text1: "User Deleted",
-        text2: "The user has been removed successfully.",
+        text1: "User Removed",
+        text2: "The user has been removed from the project successfully.",
         position: "bottom",
       });
 
       setDeleteModalVisible(false);
       setSelectedUser(null);
+
+      // Refresh the user list
       fetchUsers();
-    } catch (error) {
-      if (typeof error === "object" && error !== null && "response" in error) {
-        const err = error as any; // or AxiosError for strict typing
-        console.error("Error deleting user:", err.response?.data || err);
-      } else {
-        console.error("Error deleting user:", error);
-      }
+    } catch (error: any) {
+      console.error(
+        "Error removing user from project:",
+        error.response || error
+      );
 
       Toast.show({
         type: "error",
-        text1: "Delete Failed",
-        text2: "Unable to delete the user.",
+        text1: "Remove Failed",
+        text2: "Unable to remove the user from the project.",
         position: "bottom",
       });
     } finally {
@@ -166,59 +172,59 @@ const UserList = () => {
     }
   };
 
-  const handleEditPress = (user: IUser) => {
-    setEditUserData({ ...user } as EditUserData); // load user data into form state
-    setEditModalVisible(true);
-  };
+  // const handleEditPress = (user: IUser) => {
+  //   setEditUserData({ ...user } as EditUserData); // load user data into form state
+  //   setEditModalVisible(true);
+  // };
 
-  const handleEditChange: EditFieldChangeHandler = (field, value) => {
-    setEditUserData((prev) => ({ ...prev, [field]: value }));
-  };
+  // const handleEditChange: EditFieldChangeHandler = (field, value) => {
+  //   setEditUserData((prev) => ({ ...prev, [field]: value }));
+  // };
 
-  const handleSaveEdit = async () => {
-    try {
-      setLoading(true);
-      await api.put(`/user-directory/${editUserData._id}`, editUserData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  // const handleSaveEdit = async () => {
+  //   try {
+  //     setLoading(true);
+  //     await api.put(`/user-directory/${editUserData._id}`, editUserData, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
 
-      Toast.show({
-        type: "success",
-        text1: "User Updated",
-        text2: "The user details have been updated successfully.",
-        position: "bottom",
-      });
+  //     Toast.show({
+  //       type: "success",
+  //       text1: "User Updated",
+  //       text2: "The user details have been updated successfully.",
+  //       position: "bottom",
+  //     });
 
-      setEditModalVisible(false);
-      setEditUserData({
-        _id: "",
-        individualName: "",
-        designation: "",
-        role: "",
-        email: "",
-        phone: "",
-        roleDescription: "",
-        firmName: "",
-      });
-      fetchUsers();
-    } catch (error) {
-      if (typeof error === "object" && error !== null && "response" in error) {
-        const err = error; // or AxiosError if typed
-        console.error("Error updating user:", err.response?.data || err);
-      } else {
-        console.error("Error updating user:", error);
-      }
+  //     setEditModalVisible(false);
+  //     setEditUserData({
+  //       _id: "",
+  //       individualName: "",
+  //       designation: "",
+  //       role: "",
+  //       email: "",
+  //       phone: "",
+  //       roleDescription: "",
+  //       firmName: "",
+  //     });
+  //     fetchUsers();
+  //   } catch (error) {
+  //     if (typeof error === "object" && error !== null && "response" in error) {
+  //       const err = error; // or AxiosError if typed
+  //       console.error("Error updating user:", err.response?.data || err);
+  //     } else {
+  //       console.error("Error updating user:", error);
+  //     }
 
-      Toast.show({
-        type: "error",
-        text1: "Update Failed",
-        text2: "Unable to update the user details.",
-        position: "bottom",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     Toast.show({
+  //       type: "error",
+  //       text1: "Update Failed",
+  //       text2: "Unable to update the user details.",
+  //       position: "bottom",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
     <View key={index} className="bg-white rounded-xl p-4 mb-4 shadow-sm">
@@ -229,14 +235,14 @@ const UserList = () => {
         </Text>
 
         <View className="flex-row space-x-4 ml-4">
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => handleEditPress(item)}
             className="px-3 py-1 rounded hover:bg-blue-100"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             activeOpacity={0.7}
           >
             <Ionicons name="pencil-outline" size={20} color="#2563EB" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             onPress={() => handleDeletePress(item)}
@@ -472,7 +478,7 @@ const UserList = () => {
       </Modal>
 
       {/* Edit User Modal */}
-      <Modal
+      {/* <Modal
         transparent={true}
         visible={editModalVisible}
         animationType="fade"
@@ -578,7 +584,7 @@ const UserList = () => {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 };
