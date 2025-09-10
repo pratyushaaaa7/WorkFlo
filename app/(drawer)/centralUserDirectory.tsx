@@ -39,7 +39,7 @@ const Card = ({
 
 export default function CentralUserDirectory() {
   return (
-    <View className="flex-1 px-5 py-10 bg-gray-50">
+    <View className="flex-1 px-5 py-10 bg-white">
       
      
 
