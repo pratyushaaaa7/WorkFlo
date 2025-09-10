@@ -72,7 +72,7 @@ export default function AllUsersScreen() {
               {item.fullName}
             </Text>
             <Text className="text-gray-600">{item.email}</Text>
-            <Text className="text-gray-500">@{item.username}</Text>
+            {/* <Text className="text-gray-500">@{item.username}</Text> */}
             <Text
               className={`mt-1 px-2 py-1 rounded-lg text-sm font-medium w-20 text-center ${
                 item.role === "admin"
