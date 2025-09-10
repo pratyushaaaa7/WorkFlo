@@ -40,9 +40,6 @@ const Card = ({
 export default function CentralUserDirectory() {
   return (
     <View className="flex-1 px-5 py-10 bg-white">
-      
-     
-
       {/* Cards */}
       <Card
         title="Client"
@@ -88,7 +85,6 @@ export default function CentralUserDirectory() {
     </View>
   );
 }
-
 
 // import React from "react";
 // import { View, Text, TouchableOpacity } from "react-native";
