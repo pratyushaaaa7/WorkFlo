@@ -37,7 +37,7 @@ export default function UserDirectoryScreen() {
  const renderUser = ({ item }: { item: any }) => (
   <TouchableOpacity
     activeOpacity={0.8}
-    className="mb-4 rounded-2xl bg-white shadow-lg p-4"
+    className="mb-4 rounded-2xl bg-white shadow-sm p-4"
     onPress={() =>
       router.push({
         pathname: "/userDetail",
