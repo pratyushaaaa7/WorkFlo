@@ -74,20 +74,38 @@ const UserList = () => {
   });
 
   const fetchUsers = async () => {
+    if (!projectId || !token) return;
+
     try {
       setLoading(true);
-      const res = await api.get(`/user-directory/${projectId}`, {
+
+      const res = await api.get(`/projects/${projectId}/project-users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data);
-    } catch (error) {
-      if (typeof error === "object" && error !== null && "response" in error) {
-        const err = error as any; // or use AxiosError if you want strict typing
-        console.error("Error fetching users:", err.response?.data || err);
-      } else {
-        console.error("Error fetching users:", error);
-      }
 
+      const projectUsers = [
+        ...(res.data.users.leaders || []),
+        ...(res.data.users.members || []),
+        ...(res.data.users.others || []),
+      ];
+      console.log("Project Users Raw:", projectUsers);
+
+      const formattedUsers: IUser[] = projectUsers.map((pu: any) => ({
+        _id: pu._id || "", // use _id from API
+        individualName: pu.individualName || pu.fullName || "N/A",
+        designation: pu.designation || "-",
+        role: pu.role || "-",
+        roleDescription: pu.roleDescription || "-",
+        firmName: pu.firmName || "-",
+        email: pu.email || "-",
+        phone: pu.phone || "-",
+      }));
+
+      console.log(formattedUsers);
+
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
       Toast.show({
         type: "error",
         text1: "Failed to Load Users",
@@ -366,7 +384,7 @@ const UserList = () => {
         ) : (
           <FlatList
             data={users}
-            keyExtractor={(item, idx) => idx.toString()}
+            keyExtractor={(item, index) => item._id || String(index)}
             renderItem={renderUserItem}
             contentContainerStyle={{ paddingBottom: 80 }}
             showsVerticalScrollIndicator={false}
@@ -376,9 +394,14 @@ const UserList = () => {
 
       {/* Floating + Button */}
       <TouchableOpacity
+        // onPress={() =>
+        //   router.push(
+        //     `/addUserDirectory?projectId=${projectId}&projectName=${projectName}`
+        //   )
+        // }
         onPress={() =>
           router.push(
-            `/addUserDirectory?projectId=${projectId}&projectName=${projectName}`
+            `/addProjectUser?projectId=${projectId}&projectName=${projectName}`
           )
         }
         className="bg-indigo-600"

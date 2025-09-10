@@ -10,7 +10,6 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
 import { Dropdown } from "react-native-element-dropdown";
 import Toast from "react-native-toast-message";
 import api from "../lib/api";
