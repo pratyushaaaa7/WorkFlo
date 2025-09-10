@@ -1,5 +1,5 @@
 import { Drawer } from "expo-router/drawer";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";
@@ -43,17 +43,6 @@ export default function DrawerLayout() {
           ),
         }}
       />
-      {/* 
-      <Drawer.Screen
-        name="ilrForm"
-        options={{
-          drawerLabel: "ILR Form",
-          title: "ILR Form",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      /> */}
 
       {/* <Drawer.Screen
         name="createProject"
@@ -62,6 +51,17 @@ export default function DrawerLayout() {
           title: "Create Project",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="create-outline" size={size} color={color} />
+          ),
+        }}
+      /> */}
+      {/* 
+      <Drawer.Screen
+        name="ilrForm"
+        options={{
+          drawerLabel: "ILR Form",
+          title: "ILR Form",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="document-text-outline" size={size} color={color} />
           ),
         }}
       /> */}
@@ -105,6 +105,31 @@ export default function DrawerLayout() {
           title: "Master Project List",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="list-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="centralUserDirectory"
+        options={{
+          drawerLabel: "Central Directory",
+          title: "Central Directory",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="centralEmployeeDirectory"
+        options={{
+          drawerLabel: "Employee Directory",
+          title: "Employee Directory",
+          drawerIcon: ({ color, size }) => (
+             <MaterialCommunityIcons
+        name="account-tie-outline" // 👔 internal staff
+        size={size}
+        color={color}
+      />
           ),
         }}
       />
