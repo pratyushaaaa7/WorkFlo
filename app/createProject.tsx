@@ -84,6 +84,15 @@ const CreateProjectScreen = () => {
     { label: "MISC.", value: "Misc" },
   ];
 
+  // status state
+  const [status, setStatus] = useState(existingProject?.status || "active");
+
+  const statusOptions = [
+    { label: "Active", value: "active" },
+    { label: "On Hold", value: "hold" },
+    { label: "Closed", value: "closed" },
+  ];
+
   // 1. Define company-specific scopes
   const scopeOptionsByCompany: Record<
     string,
@@ -183,7 +192,7 @@ const CreateProjectScreen = () => {
       clientName,
       siteArea,
       designedArea,
-      // ⚡ no need to send status here, it defaults to "active" in DB
+      status, // ✅ send status to backend
     };
 
     try {
@@ -589,6 +598,37 @@ const CreateProjectScreen = () => {
             searchPlaceholder="Search users..."
             value={selectedMembers}
             onChange={(items) => setSelectedMembers(items)}
+          />
+        </View>
+
+        {/* Status Dropdown */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Status
+          </Text>
+          <Dropdown
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 10,
+              backgroundColor: "#fff",
+            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#fff",
+            }}
+            activeColor="#E0E7FF"
+            data={statusOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select status..."
+            value={status}
+            onChange={(item) => setStatus(item.value)}
           />
         </View>
 
