@@ -76,7 +76,7 @@ const UserList = () => {
         ...(res.data.users.members || []),
         ...(res.data.users.others || []),
       ];
-      console.log("Project Users Raw:", projectUsers);
+      // console.log("Project Users Raw:", projectUsers);
 
       const formattedUsers: IUser[] = projectUsers.map((pu: any) => ({
         _id: pu._id || "", // use _id from API
@@ -89,7 +89,7 @@ const UserList = () => {
         phone: pu.phone || "-",
       }));
 
-      console.log(formattedUsers);
+      // console.log(formattedUsers);
 
       setUsers(formattedUsers);
     } catch (error) {

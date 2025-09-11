@@ -41,19 +41,45 @@ export default function AddProjectUsersPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await api.get("/user-directory", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data);
-      } catch {
+        const [allUsersRes, projectUsersRes] = await Promise.all([
+          api.get("/user-directory", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          api.get(`/projects/${projectId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const projectUserIds = (
+          projectUsersRes.data.project?.projectUsers || []
+        ).map((u: any) => u.directoryUser._id);
+
+        console.log(
+          "Project users response:",
+          projectUsersRes.data.projectUsers
+        );
+
+        // Attach flag
+        const usersWithStatus = allUsersRes.data.map((u: DirectoryUser) => ({
+          ...u,
+          alreadyAdded: projectUserIds.includes(u._id),
+        }));
+
+        setUsers(usersWithStatus);
+      } catch (err) {
+        console.error("❌ Fetch users error:");
+        console.log("Message:", err.message);
+        // console.log("Config:", err.config?.url, err.config?.headers);
+        // console.log("Response:", err.response?.status, err.response?.data);
+
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "Failed to fetch directory users",
+          text2: "Failed to fetch users",
           position: "bottom",
         });
       }
     };
+
     fetchUsers();
   }, []);
 
@@ -125,6 +151,8 @@ export default function AddProjectUsersPage() {
   ];
 
   const filteredUsers = users.filter((u) => {
+    if (u.alreadyAdded) return false; // 🚀 hide users already in project
+
     const name = (u.individualName || u.firmName || "").toLowerCase();
     const email = (u.emailList?.[0] || "").toLowerCase();
     return (
