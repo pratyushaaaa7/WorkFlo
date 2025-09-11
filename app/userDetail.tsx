@@ -123,6 +123,7 @@ const UserDetail = () => {
         <ScrollView className="flex-1 p-4">
           {/* User Info */}
           <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
+            {/* Name + Role */}
             <View className="flex-row justify-between items-center mb-3">
               <Text className="text-xl font-bold text-gray-900">
                 {userData?.individualName || "Unnamed"}
@@ -136,66 +137,65 @@ const UserDetail = () => {
 
             {/* Role Description */}
             {userData?.roleDescription && (
-              <Text className="text-sm text-gray-500 mb-1">
+              <Text className="text-sm text-gray-500 mb-3">
                 {userData.roleDescription}
               </Text>
             )}
 
-            {/* Designations */}
-            <Text className="text-base text-gray-700 mb-1">
-              Designation:{" "}
-              {userData?.designationList?.length
-                ? userData.designationList.join(", ")
-                : userData?.designation || "N/A"}
-            </Text>
+            {/* Info Fields */}
+            <View className="gap-1">
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Designation: </Text>
+                {userData?.designationList?.length
+                  ? userData.designationList.join(", ")
+                  : userData?.designation || "N/A"}
+              </Text>
 
-            {/* Firm Name */}
-            <Text className="text-base text-gray-700 mb-1">
-              Firm: {userData?.firmName || "N/A"}
-            </Text>
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Firm: </Text>
+                {userData?.firmName || "N/A"}
+              </Text>
 
-            {/* Expertise */}
-            <Text className="text-base text-gray-700 mb-1">
-              Expertise:{" "}
-              {userData?.expertiseList?.length
-                ? userData.expertiseList.join(", ")
-                : "N/A"}
-            </Text>
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Expertise: </Text>
+                {userData?.expertiseList?.length
+                  ? userData.expertiseList.join(", ")
+                  : "N/A"}
+              </Text>
 
-            {/* Emails */}
-            <Text className="text-base text-gray-700 mb-1">
-              Emails:{" "}
-              {userData?.emailList?.length
-                ? userData.emailList.join(", ")
-                : userData?.email || "N/A"}
-            </Text>
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Email: </Text>
+                {userData?.emailList?.length
+                  ? userData.emailList.join(", ")
+                  : userData?.email || "N/A"}
+              </Text>
 
-            {/* Phone Numbers */}
-            <Text className="text-base text-gray-700 mb-1">
-              Mobile Numbers:{" "}
-              {userData?.mobileNumberList?.length
-                ? userData.mobileNumberList.join(", ")
-                : "N/A"}
-            </Text>
-            <Text className="text-base text-gray-700 mb-1">
-              Official Numbers:{" "}
-              {userData?.officialNumberList?.length
-                ? userData.officialNumberList.join(", ")
-                : "N/A"}
-            </Text>
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Mobile Number: </Text>
+                {userData?.mobileNumberList?.length
+                  ? userData.mobileNumberList.join(", ")
+                  : "N/A"}
+              </Text>
 
-            {/* Address */}
-            <Text className="text-base text-gray-700 mb-1">
-              Address:{" "}
-              {userData?.addressList?.length
-                ? userData.addressList.join(", ")
-                : "N/A"}
-            </Text>
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Official Number: </Text>
+                {userData?.officialNumberList?.length
+                  ? userData.officialNumberList.join(", ")
+                  : "N/A"}
+              </Text>
+
+              <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Address: </Text>
+                {userData?.addressList?.length
+                  ? userData.addressList.join(", ")
+                  : "N/A"}
+              </Text>
+            </View>
 
             {/* Created At */}
             {userData?.createdAt && (
-              <Text className="text-xs text-gray-400 mt-1">
-                Created At:{" "}
+              <Text className="text-xs text-gray-400 mt-4">
+                Created on{" "}
                 {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
               </Text>
             )}
@@ -203,66 +203,66 @@ const UserDetail = () => {
 
           {/* Overall Rating */}
           <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
-            <Text className="text-lg font-bold text-gray-800 mb-2">
-              Overall Rating
-            </Text>
-            <View className="flex-row justify-between items-centre">
-              <View className="flex-row items-center">
-                {userData.averageRating && userData.averageRating > 0 ? (
-                  <>
-                    {[...Array(5)].map((_, i) => {
-                      const fill = Math.min(
-                        Math.max(userData.averageRating - i, 0),
-                        1
-                      ); // 0 to 1
-                      return (
-                        <View
-                          key={i}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            marginRight: 2,
-                            overflow: "hidden",
-                          }}
-                        >
-                          {/* Outline star */}
-                          <Ionicons
-                            name="star-outline"
-                            size={16}
-                            color="#FACC15"
-                            style={{ position: "absolute" }}
-                          />
-                          {/* Filled star (partial) */}
-                          <Ionicons
-                            name="star"
-                            size={16}
-                            color="#FACC15"
-                            style={{
-                              width: `${fill * 100}%`,
-                              overflow: "hidden",
-                            }}
-                          />
-                        </View>
-                      );
-                    })}
-                    <Text className="ml-2 text-gray-700 text-lg font-semibold">
-                      {userData.averageRating.toFixed(1)} / 5
-                    </Text>
-                  </>
-                ) : (
-                  <Text className="text-gray-400 text-lg italic">
-                    No rating available
-                  </Text>
-                )}
-              </View>
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-lg font-bold text-gray-800">
+                Overall Rating
+              </Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
-                className=" bg-indigo-500 px-4 py-2 rounded-xl"
+                className="bg-indigo-500 px-4 py-2 rounded-xl"
               >
-                <Text className="text-white text-center font-semibold">
+                <Text className="text-white text-sm font-semibold">
                   Add Rating / Feedback
                 </Text>
               </TouchableOpacity>
+            </View>
+
+            <View className="flex-row items-center">
+              {userData.averageRating && userData.averageRating > 0 ? (
+                <>
+                  {[...Array(5)].map((_, i) => {
+                    const fill = Math.min(
+                      Math.max(userData.averageRating - i, 0),
+                      1
+                    );
+                    return (
+                      <View
+                        key={i}
+                        style={{
+                          width: 20,
+                          height: 20,
+                          marginRight: 3,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {/* Outline star */}
+                        <Ionicons
+                          name="star-outline"
+                          size={20}
+                          color="#FACC15"
+                          style={{ position: "absolute" }}
+                        />
+                        {/* Filled star */}
+                        <View
+                          style={{
+                            width: `${fill * 100}%`,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Ionicons name="star" size={20} color="#FACC15" />
+                        </View>
+                      </View>
+                    );
+                  })}
+                  <Text className="ml-2 text-gray-700 text-base font-semibold">
+                    {userData.averageRating.toFixed(1)} / 5
+                  </Text>
+                </>
+              ) : (
+                <Text className="text-gray-400 text-base italic">
+                  No rating available
+                </Text>
+              )}
             </View>
           </View>
 
