@@ -102,7 +102,8 @@ const UserDetail = () => {
         className="pt-16 pb-6 px-4 flex-row items-center justify-between"
       >
         <TouchableOpacity
-          onPress={() => router.push("/masterUserDirectory")}
+          // onPress={() => router.push("/masterUserDirectory")}
+          onPress={() => router.back()}
           className="flex-row items-center"
           activeOpacity={0.7}
         >
@@ -207,48 +208,53 @@ const UserDetail = () => {
             </Text>
             <View className="flex-row justify-between items-centre">
               <View className="flex-row items-center">
-               {userData.averageRating && userData.averageRating > 0 ? (
-                 <>
-                   {[...Array(5)].map((_, i) => {
-                     const fill = Math.min(Math.max(userData.averageRating - i, 0), 1); // 0 to 1
-                     return (
-                       <View
-                         key={i}
-                         style={{
-                           width: 16,
-                           height: 16,
-                           marginRight: 2,
-                           overflow: "hidden",
-                         }}
-                       >
-                         {/* Outline star */}
-                         <Ionicons
-                           name="star-outline"
-                           size={16}
-                           color="#FACC15"
-                           style={{ position: "absolute" }}
-                         />
-                         {/* Filled star (partial) */}
-                         <Ionicons
-                           name="star"
-                           size={16}
-                           color="#FACC15"
-                           style={{
-                             width: `${fill * 100}%`,
-                             overflow: "hidden",
-                           }}
-                         />
-                       </View>
-                     );
-                   })}
-                   <Text className="ml-2 text-gray-700 text-lg font-semibold">
-                     {userData.averageRating.toFixed(1)} / 5
-                   </Text>
-                 </>
-               ) : (
-                 <Text className="text-gray-400 text-lg italic">No rating available</Text>
-               )}
-             </View>
+                {userData.averageRating && userData.averageRating > 0 ? (
+                  <>
+                    {[...Array(5)].map((_, i) => {
+                      const fill = Math.min(
+                        Math.max(userData.averageRating - i, 0),
+                        1
+                      ); // 0 to 1
+                      return (
+                        <View
+                          key={i}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            marginRight: 2,
+                            overflow: "hidden",
+                          }}
+                        >
+                          {/* Outline star */}
+                          <Ionicons
+                            name="star-outline"
+                            size={16}
+                            color="#FACC15"
+                            style={{ position: "absolute" }}
+                          />
+                          {/* Filled star (partial) */}
+                          <Ionicons
+                            name="star"
+                            size={16}
+                            color="#FACC15"
+                            style={{
+                              width: `${fill * 100}%`,
+                              overflow: "hidden",
+                            }}
+                          />
+                        </View>
+                      );
+                    })}
+                    <Text className="ml-2 text-gray-700 text-lg font-semibold">
+                      {userData.averageRating.toFixed(1)} / 5
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-gray-400 text-lg italic">
+                    No rating available
+                  </Text>
+                )}
+              </View>
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
                 className=" bg-indigo-500 px-4 py-2 rounded-xl"
