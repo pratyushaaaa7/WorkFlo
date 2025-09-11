@@ -207,19 +207,54 @@ const UserDetail = () => {
             </Text>
             <View className="flex-row justify-between items-centre">
               <View className="flex-row items-center">
-                <Ionicons name="star" size={20} color="#FACC15" />
-                <Text className="ml-2 text-gray-700 text-lg font-semibold">
-                  {userData.averageRating && userData.averageRating > 0
-                    ? `${userData.averageRating} / 5`
-                    : "No rating available"}
-                </Text>
-              </View>
+               {userData.averageRating && userData.averageRating > 0 ? (
+                 <>
+                   {[...Array(5)].map((_, i) => {
+                     const fill = Math.min(Math.max(userData.averageRating - i, 0), 1); // 0 to 1
+                     return (
+                       <View
+                         key={i}
+                         style={{
+                           width: 16,
+                           height: 16,
+                           marginRight: 2,
+                           overflow: "hidden",
+                         }}
+                       >
+                         {/* Outline star */}
+                         <Ionicons
+                           name="star-outline"
+                           size={16}
+                           color="#FACC15"
+                           style={{ position: "absolute" }}
+                         />
+                         {/* Filled star (partial) */}
+                         <Ionicons
+                           name="star"
+                           size={16}
+                           color="#FACC15"
+                           style={{
+                             width: `${fill * 100}%`,
+                             overflow: "hidden",
+                           }}
+                         />
+                       </View>
+                     );
+                   })}
+                   <Text className="ml-2 text-gray-700 text-lg font-semibold">
+                     {userData.averageRating.toFixed(1)} / 5
+                   </Text>
+                 </>
+               ) : (
+                 <Text className="text-gray-400 text-lg italic">No rating available</Text>
+               )}
+             </View>
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
                 className=" bg-indigo-500 px-4 py-2 rounded-xl"
               >
                 <Text className="text-white text-center font-semibold">
-                  Add Rating / Note
+                  Add Rating / Feedback
                 </Text>
               </TouchableOpacity>
             </View>
@@ -231,8 +266,8 @@ const UserDetail = () => {
               Feedback Log
             </Text>
             {ratings?.length === 0 ? (
-              <Text className="text-gray-500 italic mb-10">
-                No ratings or notes yet.
+              <Text className="text-gray-500 p-4 italic mb-5">
+                No ratings or feedback yet.
               </Text>
             ) : (
               ratings.map((r: any, idx: number) => (
@@ -273,7 +308,7 @@ const UserDetail = () => {
             {/* Header */}
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-bold text-gray-900">
-                Add Rating & Note
+                Add Rating & Feedback
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#9CA3AF" />
@@ -302,7 +337,7 @@ const UserDetail = () => {
 
             {/* Note Input */}
             <TextInput
-              placeholder="Write a note..."
+              placeholder="Write a feedback..."
               value={newNote}
               onChangeText={setNewNote}
               multiline

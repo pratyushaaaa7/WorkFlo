@@ -34,36 +34,54 @@ export default function UserDirectoryScreen() {
     fetchUsers();
   }, []);
 
- const renderUser = ({ item }: { item: any }) => (
-  <TouchableOpacity
-    activeOpacity={0.8}
-    className="mb-4 rounded-2xl bg-white shadow-sm p-4"
-    onPress={() =>
-      router.push({
-        pathname: "/userDetail",
-        params: { user: JSON.stringify(item) },
-      })
-    }
-  >
-    {/* Name + Role */}
-    <View className="flex-row justify-between items-center mb-2">
-      <Text className="text-lg font-semibold text-gray-900">
-        {item.individualName || "Unnamed"}
-      </Text>
-      <View className="bg-indigo-100 px-3 py-1 rounded-full">
-        <Text className="text-indigo-700 text-xs font-semibold">
-          {item.role}
+  const renderUser = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      className="mb-4 rounded-2xl bg-white shadow-sm p-4"
+      onPress={() =>
+        router.push({
+          pathname: "/userDetail",
+          params: { user: JSON.stringify(item) },
+        })
+      }
+    >
+      {/* Name + Role */}
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-lg font-semibold text-gray-900">
+          {item.individualName || "Unnamed"}
         </Text>
+        <View className="bg-indigo-100 px-3 py-1 rounded-full">
+          <Text className="text-indigo-700 text-xs font-semibold">
+            {item.role}
+          </Text>
+        </View>
       </View>
-    </View>
 
-    {/* Firm + Designation */}
-    <Text className="text-sm text-gray-700 mb-1">
-      {item.designation} @ {item.firmName}
-    </Text>
-  </TouchableOpacity>
-);
+      {/* Firm + Designation */}
+      <View className="flex-row justify-between mt-2 items-center">
+        <Text className="text-sm text-gray-700 ">
+          {item.designationList?.join(", ") || "N/A"} @ {item.firmName || "N/A"}
+        </Text>
 
+        {/* Average Rating */}
+        <View className="flex-row items-center">
+          {item.averageRating && item.averageRating > 0 ? (
+            <Ionicons name="star" size={18} color="#FACC15" />
+          ) : null}
+          <Text className="ml-2 text-gray-700 text-sm font-semibold">
+            {item.averageRating && item.averageRating > 0
+              ? `${item.averageRating.toFixed(1)} / 5`
+              : // : (
+                //   <Text className="text-gray-400  italic">
+                //     No rating available
+                //   </Text>
+                // )
+                null}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
