@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,60 +6,93 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialIcons,
+  FontAwesome5,
+  Feather,
+} from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import moment from "moment";
 import api from "../lib/api";
 import { AuthContext } from "@/context/AuthContext";
 
 const UserDetail = () => {
-  const auth = useContext(AuthContext);
-  const token = auth?.token;
+  const { token } = useContext(AuthContext) || {};
   const { user } = useLocalSearchParams();
   const router = useRouter();
-  const userData = user ? JSON.parse(user as string) : {};
 
-  // ⭐ Mock data for ratings (replace with API data)
-  const [ratings, setRatings] = useState(userData.ratings || []);
+  // parse preloaded user from params (for instant display)
+  const preloadedUser = user ? JSON.parse(user as string) : {};
 
-  // Modal state
+  // state
+  const [userData, setUserData] = useState<any>(preloadedUser);
+  const [ratings, setRatings] = useState(preloadedUser?.ratings || []);
+  const [loading, setLoading] = useState(false);
+
+  // modal states
   const [modalVisible, setModalVisible] = useState(false);
   const [newStars, setNewStars] = useState<number | null>(null);
   const [newNote, setNewNote] = useState("");
 
-  // Calculate average stars
-  const averageStars =
-    ratings.length > 0
-      ? (
-          ratings.reduce((sum: any, r: any) => sum + (r.stars || 0), 0) /
-          ratings.filter((r: any) => r.stars).length
-        ).toFixed(1)
-      : "N/A";
+  // fetch latest user details from backend using ID
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!token || !preloadedUser?._id) return;
+      setLoading(true);
+      try {
+        const res = await api.get(`/user-directory/${preloadedUser._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-  const handleSubmit = () => {
-    if (!newStars && !newNote.trim()) return;
+        const fetchedUser = res?.data || preloadedUser;
 
-    const newEntry = {
-      stars: newStars,
-      note: newNote.trim(),
-      givenBy: { username: "You" }, // replace with logged-in user
-      createdAt: new Date(),
+        setUserData(fetchedUser);
+        setRatings(fetchedUser?.ratings || []);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setUserData(preloadedUser);
+        setRatings(preloadedUser?.ratings || []);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setRatings((prev: any) => [newEntry, ...prev]);
-    setNewStars(null);
-    setNewNote("");
-    setModalVisible(false);
+    fetchUser();
+  }, [token, preloadedUser?._id]);
 
-    // TODO: send API request here (POST /:userId/rate)
+  // submit new rating/note
+  const handleSubmit = async () => {
+    if (!newStars && !newNote.trim()) return;
+
+    if (!token) {
+      alert("You must be logged in");
+      return;
+    }
+
+    try {
+      const res = await api.post(
+        `/user-directory/${userData._id}/rate`,
+        { stars: newStars, note: newNote.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // console.log(res?.data?.data)
+
+      const updatedUser = res?.data?.data || [];
+      if (!updatedUser) return;
+      setUserData(updatedUser); // update main user data
+      setRatings(updatedUser?.ratings || []);
+      setNewStars(null);
+      setNewNote("");
+      setModalVisible(false);
+    } catch (err) {
+      console.error("Error submitting rating/note:", err);
+      alert("Something went wrong");
+    }
   };
-
-  // const handleSubmit = async() => {
-  //   if (!newStars && !newNote.trim() ) return;
-    
-  // }
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -80,126 +113,188 @@ const UserDetail = () => {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Body */}
-      <ScrollView className="flex-1 p-4">
-        <View className="bg-white rounded-2xl shadow-lg p-6 mb-4">
-          {/* Name + Role */}
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-xl font-bold text-gray-900">
-              {userData.individualName || "Unnamed"}
-            </Text>
-            <View className="bg-indigo-100 px-3 py-1 rounded-full">
-              <Text className="text-indigo-700 text-xs font-semibold">
-                {userData.role}
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#6366F1" />
+          <Text className="mt-2 text-gray-500">Fetching User</Text>
+        </View>
+      ) : (
+        <ScrollView className="flex-1 p-4">
+          {/* User Info */}
+          <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-xl font-bold text-gray-900">
+                {userData?.individualName || "Unnamed"}
               </Text>
-            </View>
-          </View>
-
-          {/* Firm + Designation */}
-          <Text className="text-base text-gray-700 mb-2">
-            {userData.designation} @ {userData.firmName}
-          </Text>
-
-          {/* Contact Info */}
-          {userData.phone && (
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="call-outline" size={16} color="#6B7280" />
-              <Text className="ml-2 text-gray-700">{userData.phone}</Text>
-            </View>
-          )}
-
-          {userData.email && (
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="mail-outline" size={16} color="#6B7280" />
-              <Text className="ml-2 text-gray-700">{userData.email}</Text>
-            </View>
-          )}
-
-          {/* Created Date */}
-          {userData.createdAt && (
-            <Text className="text-xs text-gray-400">
-              Added {moment(userData.createdAt).fromNow()}
-            </Text>
-          )}
-        </View>
-
-        {/* ⭐ Average Rating */}
-        <View className="bg-white rounded-2xl shadow-lg p-6 mb-4">
-          <Text className="text-lg font-bold text-gray-800 mb-2">
-            Overall Rating
-          </Text>
-          <View className="flex-row items-center">
-            <Ionicons name="star" size={20} color="#FACC15" />
-            <Text className="ml-2 text-gray-700 text-lg font-semibold">
-              {averageStars} / 5
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="mt-3 bg-indigo-500 px-4 py-2 rounded-xl"
-          >
-            <Text className="text-white text-center font-semibold">
-              Add Rating / Note
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 📜 Activity Log */}
-        <View className="bg-white rounded-2xl shadow-lg p-6 mb-20">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
-            Activity Log
-          </Text>
-          {ratings.length === 0 ? (
-            <Text className="text-gray-500 italic">
-              No ratings or notes yet.
-            </Text>
-          ) : (
-            ratings.map((r: any, idx: any) => (
-              <View key={idx} className="mb-4 border-b border-gray-200 pb-2">
-                {r.stars && (
-                  <View className="flex-row items-center mb-1">
-                    {[...Array(r.stars)].map((_, i) => (
-                      <Ionicons key={i} name="star" size={16} color="#FACC15" />
-                    ))}
-                  </View>
-                )}
-                {r.note && <Text className="text-gray-700">{r.note}</Text>}
-                <Text className="text-xs text-gray-400 mt-1">
-                  by {r.givenBy?.username || "Unknown"} •{" "}
-                  {moment(r.createdAt).fromNow()}
+              <View className="bg-indigo-100 px-3 py-1 rounded-full">
+                <Text className="text-indigo-700 text-xs font-semibold">
+                  {userData?.role || "N/A"}
                 </Text>
               </View>
-            ))
-          )}
-        </View>
-      </ScrollView>
+            </View>
 
-      {/* ⭐ Modal */}
+            {/* Role Description */}
+            {userData?.roleDescription && (
+              <Text className="text-sm text-gray-500 mb-1">
+                {userData.roleDescription}
+              </Text>
+            )}
+
+            {/* Designations */}
+            <Text className="text-base text-gray-700 mb-1">
+              Designation:{" "}
+              {userData?.designationList?.length
+                ? userData.designationList.join(", ")
+                : userData?.designation || "N/A"}
+            </Text>
+
+            {/* Firm Name */}
+            <Text className="text-base text-gray-700 mb-1">
+              Firm: {userData?.firmName || "N/A"}
+            </Text>
+
+            {/* Expertise */}
+            <Text className="text-base text-gray-700 mb-1">
+              Expertise:{" "}
+              {userData?.expertiseList?.length
+                ? userData.expertiseList.join(", ")
+                : "N/A"}
+            </Text>
+
+            {/* Emails */}
+            <Text className="text-base text-gray-700 mb-1">
+              Emails:{" "}
+              {userData?.emailList?.length
+                ? userData.emailList.join(", ")
+                : userData?.email || "N/A"}
+            </Text>
+
+            {/* Phone Numbers */}
+            <Text className="text-base text-gray-700 mb-1">
+              Mobile Numbers:{" "}
+              {userData?.mobileNumberList?.length
+                ? userData.mobileNumberList.join(", ")
+                : "N/A"}
+            </Text>
+            <Text className="text-base text-gray-700 mb-1">
+              Official Numbers:{" "}
+              {userData?.officialNumberList?.length
+                ? userData.officialNumberList.join(", ")
+                : "N/A"}
+            </Text>
+
+            {/* Address */}
+            <Text className="text-base text-gray-700 mb-1">
+              Address:{" "}
+              {userData?.addressList?.length
+                ? userData.addressList.join(", ")
+                : "N/A"}
+            </Text>
+
+            {/* Created At */}
+            {userData?.createdAt && (
+              <Text className="text-xs text-gray-400 mt-1">
+                Created At:{" "}
+                {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
+              </Text>
+            )}
+          </View>
+
+          {/* Overall Rating */}
+          <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
+            <Text className="text-lg font-bold text-gray-800 mb-2">
+              Overall Rating
+            </Text>
+            <View className="flex-row justify-between items-centre">
+              <View className="flex-row items-center">
+                <Ionicons name="star" size={20} color="#FACC15" />
+                <Text className="ml-2 text-gray-700 text-lg font-semibold">
+                  {userData.averageRating && userData.averageRating > 0
+                    ? `${userData.averageRating} / 5`
+                    : "No rating available"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                className=" bg-indigo-500 px-4 py-2 rounded-xl"
+              >
+                <Text className="text-white text-center font-semibold">
+                  Add Rating / Note
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Activity Log */}
+          <View className="bg-white rounded-2xl shadow-lg pt-2 mb-20">
+            <Text className="text-xl p-4 font-bold text-gray-800 ">
+              Feedback Log
+            </Text>
+            {ratings?.length === 0 ? (
+              <Text className="text-gray-500 italic mb-10">
+                No ratings or notes yet.
+              </Text>
+            ) : (
+              ratings.map((r: any, idx: number) => (
+                <View key={idx} className=" px-5 py-4 border-t border-gray-200">
+                  {r.stars && (
+                    <View className="flex-row items-center mb-1">
+                      {[...Array(r.stars)].map((_, i) => (
+                        <MaterialIcons
+                          key={i}
+                          name="star"
+                          size={16}
+                          color="#FACC15"
+                        />
+                      ))}
+                    </View>
+                  )}
+                  {r.note && <Text className="text-gray-700">{r.note}</Text>}
+                  <Text className="text-xs text-gray-400 mt-1">
+                    by {r.givenBy?.username || "Unknown"} •{" "}
+                    {moment(r.createdAt).fromNow()}
+                  </Text>
+                </View>
+              ))
+            )}
+          </View>
+        </ScrollView>
+      )}
+
+      {/* Add Rating Modal */}
       <Modal
         transparent
         visible={modalVisible}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-2xl p-6">
-            <Text className="text-lg font-bold mb-4">Add Rating / Note</Text>
+        <View className="flex-1 justify-center items-center bg-black/40 px-4">
+          <View className="bg-white w-full max-w-md rounded-3xl p-6 shadow-lg">
+            {/* Header */}
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xl font-bold text-gray-900">
+                Add Rating & Note
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
 
-            {/* Stars */}
-            <View className="flex-row mb-4">
+            {/* Star Rating */}
+            <View className="flex-row justify-center mb-4">
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
                   key={star}
                   onPress={() => setNewStars(star)}
-                  className="mr-2"
+                  activeOpacity={0.7}
                 >
                   <Ionicons
                     name={
                       newStars && newStars >= star ? "star" : "star-outline"
                     }
-                    size={28}
+                    size={36}
                     color="#FACC15"
+                    className="mx-1"
                   />
                 </TouchableOpacity>
               ))}
@@ -210,21 +305,23 @@ const UserDetail = () => {
               placeholder="Write a note..."
               value={newNote}
               onChangeText={setNewNote}
-              className="border border-gray-300 rounded-lg p-2 mb-4"
               multiline
+              numberOfLines={4}
+              className="border border-gray-300 rounded-xl p-3 text-gray-700 mb-6 bg-gray-50"
+              placeholderTextColor="#9CA3AF"
             />
 
-            {/* Buttons */}
-            <View className="flex-row justify-end">
+            {/* Action Buttons */}
+            <View className="flex-row justify-end gap-3">
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                className="px-4 py-2 mr-2"
+                className="px-4 py-2 rounded-lg bg-gray-200"
               >
-                <Text className="text-gray-500">Cancel</Text>
+                <Text className="text-gray-700 font-semibold">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSubmit}
-                className="bg-indigo-500 px-4 py-2 rounded-lg"
+                className="px-4 py-2 rounded-lg bg-indigo-600 shadow-md"
               >
                 <Text className="text-white font-semibold">Submit</Text>
               </TouchableOpacity>
