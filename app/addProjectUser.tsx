@@ -22,11 +22,12 @@ type DirectoryUser = {
   firmName: string;
   emailList?: string[];
   role?: string;
+  averageRating?: any;
 };
 
 export default function AddProjectUsersPage() {
   const { projectId } = useLocalSearchParams();
-  console.log(projectId)
+  console.log(projectId);
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const router = useRouter();
@@ -178,13 +179,58 @@ export default function AddProjectUsersPage() {
             >
               <View className="flex-row items-center justify-between">
                 {/* User Info */}
-                <View className="flex-1  pr-3">
+                <View className="flex-1 pr-3">
                   <Text className="font-semibold text-gray-900 text-base">
                     {item.individualName || item.firmName}
                   </Text>
-                  {/* <Text className="text-gray-500 text-sm">
-                    {item.emailList?.[0]}
-                  </Text> */}
+
+                  {/* Star Rating */}
+                  <View className="flex-row items-center mt-1">
+                    {item.averageRating && item.averageRating > 0 ? (
+                      <>
+                        {[...Array(5)].map((_, i) => {
+                          const filledStars = Math.floor(item.averageRating);
+                          const hasHalfStar =
+                            item.averageRating - filledStars >= 0.5;
+                          if (i < filledStars) {
+                            return (
+                              <Ionicons
+                                key={i}
+                                name="star"
+                                size={16}
+                                color="#FACC15"
+                              />
+                            );
+                          } else if (i === filledStars && hasHalfStar) {
+                            return (
+                              <Ionicons
+                                key={i}
+                                name="star-half"
+                                size={16}
+                                color="#FACC15"
+                              />
+                            );
+                          } else {
+                            return (
+                              <Ionicons
+                                key={i}
+                                name="star-outline"
+                                size={16}
+                                color="#FACC15"
+                              />
+                            );
+                          }
+                        })}
+                        <Text className="ml-2 text-gray-700 text-sm font-semibold">
+                          {item.averageRating.toFixed(1)} / 5
+                        </Text>
+                      </>
+                    ) : (
+                      <Text className="text-gray-400 text-sm italic">
+                        No rating available
+                      </Text>
+                    )}
+                  </View>
                 </View>
 
                 {/* Role Dropdown (only when selected) */}
@@ -204,6 +250,7 @@ export default function AddProjectUsersPage() {
                         borderRadius: 8,
                         borderColor: "#E2E8F0",
                       }}
+                        activeColor="#E0E7FF"
                       itemTextStyle={{ fontSize: 12, color: "#374151" }}
                       data={roleOptions}
                       labelField="label"
@@ -221,7 +268,7 @@ export default function AddProjectUsersPage() {
                 <Checkbox
                   status={isSelected ? "checked" : "unchecked"}
                   onPress={() => toggleUserSelection(item)}
-                  color="#2563EB"
+                  color="#4F46E5"
                 />
               </View>
             </TouchableOpacity>
@@ -233,7 +280,7 @@ export default function AddProjectUsersPage() {
       <View className="absolute bottom-0 left-0 right-0 p-4 bg-white shadow-lg">
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-blue-600 py-4 rounded-2xl"
+          className="bg-indigo-600 py-4 rounded-2xl"
         >
           <Text className="text-white text-center font-bold text-lg">
             Save Users
