@@ -104,7 +104,7 @@ export default function AddProjectUsersPage() {
         position: "bottom",
       });
 
-      router.push(`/userDirectory`);
+      router.back();
     } catch (err: any) {
       Toast.show({
         type: "error",
@@ -250,7 +250,7 @@ export default function AddProjectUsersPage() {
                         borderRadius: 8,
                         borderColor: "#E2E8F0",
                       }}
-                        activeColor="#E0E7FF"
+                      activeColor="#E0E7FF"
                       itemTextStyle={{ fontSize: 12, color: "#374151" }}
                       data={roleOptions}
                       labelField="label"

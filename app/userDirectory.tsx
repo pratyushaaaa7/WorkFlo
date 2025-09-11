@@ -60,18 +60,6 @@ const UserList = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
-  // Edit modal state & form data
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editUserData, setEditUserData] = useState({
-    _id: "",
-    individualName: "",
-    designation: "",
-    role: "",
-    roleDescription: "",
-    firmName: "",
-    email: "",
-    phone: "",
-  });
 
   const fetchUsers = async () => {
     if (!projectId || !token) return;
@@ -171,60 +159,6 @@ const UserList = () => {
       setLoading(false);
     }
   };
-
-  // const handleEditPress = (user: IUser) => {
-  //   setEditUserData({ ...user } as EditUserData); // load user data into form state
-  //   setEditModalVisible(true);
-  // };
-
-  // const handleEditChange: EditFieldChangeHandler = (field, value) => {
-  //   setEditUserData((prev) => ({ ...prev, [field]: value }));
-  // };
-
-  // const handleSaveEdit = async () => {
-  //   try {
-  //     setLoading(true);
-  //     await api.put(`/user-directory/${editUserData._id}`, editUserData, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-
-  //     Toast.show({
-  //       type: "success",
-  //       text1: "User Updated",
-  //       text2: "The user details have been updated successfully.",
-  //       position: "bottom",
-  //     });
-
-  //     setEditModalVisible(false);
-  //     setEditUserData({
-  //       _id: "",
-  //       individualName: "",
-  //       designation: "",
-  //       role: "",
-  //       email: "",
-  //       phone: "",
-  //       roleDescription: "",
-  //       firmName: "",
-  //     });
-  //     fetchUsers();
-  //   } catch (error) {
-  //     if (typeof error === "object" && error !== null && "response" in error) {
-  //       const err = error; // or AxiosError if typed
-  //       console.error("Error updating user:", err.response?.data || err);
-  //     } else {
-  //       console.error("Error updating user:", error);
-  //     }
-
-  //     Toast.show({
-  //       type: "error",
-  //       text1: "Update Failed",
-  //       text2: "Unable to update the user details.",
-  //       position: "bottom",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
     <View key={index} className="bg-white rounded-xl p-4 mb-4 shadow-sm">
