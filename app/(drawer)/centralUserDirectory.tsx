@@ -42,20 +42,20 @@ export default function CentralUserDirectory() {
     <View className="flex-1 px-5 py-10 bg-white">
       {/* Cards */}
       <Card
-        title="Client"
+        title="  Client"
         icon="account-group-outline"
         bgColor="#4F8EF7" // soft Asana-style blue
         borderColor="#376ED7"
       />
       <Card
-        title="Vendor"
+        title="  Vendor"
         icon="storefront-outline"
         bgColor="#22B07D" // modern teal
         borderColor="#1D8A63"
       />
       <Card
-        title="Contractor"
-        icon="hammer-wrench"
+        title="  Consultant"
+        icon="account-tie"
         bgColor="#8B5CF6" // nice violet
         borderColor="#6D28D9"
       />
