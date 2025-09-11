@@ -97,7 +97,7 @@ export default function UserDirectoryScreen() {
       )}
 
       {/* Floating + Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         className="bg-indigo-600"
         style={{
           position: "absolute",
@@ -116,7 +116,7 @@ export default function UserDirectoryScreen() {
         }}
       >
         <Ionicons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }
