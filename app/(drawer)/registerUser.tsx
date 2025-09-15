@@ -45,7 +45,7 @@ const RegisterUserScreen = () => {
   const [designation, setDesignation] = useState("");
   const [level, setLevel] = useState("");
   // const [company, setCompany] = useState(null);
-const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
 
   // Contact
   const [contactNumbers, setContactNumbers] = useState([""]);
@@ -56,7 +56,7 @@ const [status, setStatus] = useState<string>("");
   const [gender, setGender] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [motherName, setMotherName] = useState("");
-const [maritalStatus, setMaritalStatus] = useState<string | null>(null);
+  const [maritalStatus, setMaritalStatus] = useState<string | null>(null);
 
   const [spouseName, setSpouseName] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
@@ -128,92 +128,87 @@ const [maritalStatus, setMaritalStatus] = useState<string | null>(null);
   const [joiningDate, setJoiningDate] = useState<Date | null>(null);
   const [showJoinPicker, setShowJoinPicker] = useState(false);
 
-const handleRegister = async () => {
-  Keyboard.dismiss();
+  const handleRegister = async () => {
+    Keyboard.dismiss();
 
-  try {
-    const res = await api.post(
-      "/auth/register",
-      {
-        fullName,
-        username,
-        password,
-        role,
-        email,
-        personalEmail,
-        employeeCode,
-        designation,
-        level,
-        company: selectedCompany,
-        status,
-        contactNumbers,
-        emergencyContact,
-        birthDate: birthDate ? birthDate.toISOString() : null,
-        joiningDate: joiningDate ? joiningDate.toISOString() : null,
-        gender,
-        fatherName,
-        motherName,
-        maritalStatus,
-        spouseName,
-        homeAddress,
-        aadhar,
-        pan,
-        education,
-        experience,
-        additionalInfo,
-       
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    try {
+      const res = await api.post(
+        "/auth/register",
+        {
+          fullName,
+          username,
+          password,
+          role,
+          email,
+          personalEmail,
+          employeeCode,
+          designation,
+          level,
+          company: selectedCompany,
+          status,
+          contactNumbers,
+          emergencyContact,
+          birthDate: birthDate ? birthDate.toISOString() : null,
+          joiningDate: joiningDate ? joiningDate.toISOString() : null,
+          gender,
+          fatherName,
+          motherName,
+          maritalStatus,
+          spouseName,
+          homeAddress,
+          aadhar,
+          pan,
+          education,
+          experience,
+          additionalInfo,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    Toast.show({
-      type: "success",
-      text1: "Success",
-      text2: res.data.message || "User registered successfully!",
-      position: "bottom",
-    });
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: res.data.message || "User registered successfully!",
+        position: "bottom",
+      });
 
-    // 🔹 Reset all fields here
-    setFullName("");
-    setUsername("");
-    setPassword("");
-    setRole("");
-    setEmail("");
-    setPersonalEmail("");
-    setEmployeeCode("");
-    setDesignation("");
-    setLevel("");
-    setSelectedCompany(null);
-    setStatus("");
-    setContactNumbers([]);
-    setEmergencyContact("");
-    setBirthDate(null);
-    setJoiningDate(null);
-    setGender("");
-    setFatherName("");
-    setMotherName("");
-    setMaritalStatus("");
-    setSpouseName("");
-    setHomeAddress("");
-    setAadhar("");
-    setPan("");
-    setEducation("");
-    setExperience("");
-    setAdditionalInfo("");
-    
-    
-  } catch (err: any) {
-    console.error("Registration error:", err.response?.data || err.message);
-    Toast.show({
-      type: "error",
-      text1: "Error",
-      text2: err.response?.data?.message || "Registration failed.",
-      position: "bottom",
-    });
-  }
-};
-
-
+      // 🔹 Reset all fields here
+      setFullName("");
+      setUsername("");
+      setPassword("");
+      setRole("");
+      setEmail("");
+      setPersonalEmail("");
+      setEmployeeCode("");
+      setDesignation("");
+      setLevel("");
+      setSelectedCompany(null);
+      setStatus("");
+      setContactNumbers([]);
+      setEmergencyContact("");
+      setBirthDate(null);
+      setJoiningDate(null);
+      setGender("");
+      setFatherName("");
+      setMotherName("");
+      setMaritalStatus("");
+      setSpouseName("");
+      setHomeAddress("");
+      setAadhar("");
+      setPan("");
+      setEducation("");
+      setExperience("");
+      setAdditionalInfo("");
+    } catch (err: any) {
+      console.error("Registration error:", err.response?.data || err.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err.response?.data?.message || "Registration failed.",
+        position: "bottom",
+      });
+    }
+  };
 
   return (
     <KeyboardAwareScrollView
@@ -331,14 +326,14 @@ const handleRegister = async () => {
         {/* EMPLOYEE CODE */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
           <Text className="text-gray-700 mb-2 font-medium">Employee Code</Text>
-         <TextInput
-  value={employeeCode}
-  onChangeText={setEmployeeCode} // keep as string
-  placeholder="Enter employee code"
-  placeholderTextColor="#9CA3AF"
-  keyboardType="numeric"
-  className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-/>
+          <TextInput
+            value={employeeCode}
+            onChangeText={setEmployeeCode} // keep as string
+            placeholder="Enter employee code"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+          />
         </View>
         {/* DESIGNATION */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
