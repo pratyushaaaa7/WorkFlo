@@ -1,8 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { AuthContext } from "../../context/AuthContext"; // adjust path if needed
 import api from "../../lib/api"; // axios instance with baseURL
 import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router"; // if you are using expo-router
 
 type User = {
   _id: string;
@@ -15,6 +22,7 @@ type User = {
 export default function AllUsersScreen() {
   const auth = useContext(AuthContext);
   const token = auth?.token;
+  const router = useRouter(); // expo-router navigation
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,12 +75,19 @@ export default function AllUsersScreen() {
         data={users}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-200">
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/employeeDetail",
+                params: { userId: item._id },
+              })
+            }
+            className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-200"
+          >
             <Text className="text-lg font-semibold text-gray-800">
               {item.fullName}
             </Text>
             <Text className="text-gray-600">{item.email}</Text>
-            {/* <Text className="text-gray-500">@{item.username}</Text> */}
             <Text
               className={`mt-1 px-2 py-1 rounded-lg text-sm font-medium w-20 text-center ${
                 item.role === "admin"
@@ -82,7 +97,7 @@ export default function AllUsersScreen() {
             >
               {item.role}
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
