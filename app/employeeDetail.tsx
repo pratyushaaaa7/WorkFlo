@@ -40,13 +40,6 @@ const UserDetails = () => {
     fetchUser();
   }, [userId]);
 
-  if (loading)
-    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
-  if (!user)
-    return (
-      <Text style={{ textAlign: "center", marginTop: 50 }}>User not found</Text>
-    );
-
   // Reusable Section card
   const Section = ({ icon, title, children }: any) => (
     <View className="bg-white p-5 rounded-2xl shadow-md mb-5">
@@ -80,133 +73,145 @@ const UserDetails = () => {
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-3">
+          <Text className="text-xl font-bold text-white ml-3">
             Employee Information
           </Text>
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView className="flex-1 px-4 py-4">
-        {/* Profile Card */}
-        <LinearGradient
-          colors={["#EEF2FF", "#E0E7FF"]}
-          className="rounded-2xl p-6 mb-6 shadow-md"
-        >
-          <Text className="text-2xl font-bold text-gray-900">
-            {user.fullName}
-          </Text>
-          <Text className="text-gray-700 text-base mt-1">
-            {user.designation} • {user.level}
-          </Text>
-          <Text className="text-gray-500 mt-1 text-sm">
-            Employee Code: {user.employeeCode}
-          </Text>
-        </LinearGradient>
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#6366F1" />
+        </View>
+      ) : !user ? (
+        <Text style={{ textAlign: "center", marginTop: 50 }}>
+          User not found
+        </Text>
+      ) : (
+        <ScrollView className="flex-1 px-4 py-4">
+          {/* Profile Card */}
+          <LinearGradient
+            colors={["#EEF2FF", "#E0E7FF"]}
+            className="rounded-2xl p-6 mb-6 shadow-md"
+          >
+            <Text className="text-2xl font-bold text-gray-900">
+              {user.fullName}
+            </Text>
+            <Text className="text-gray-700 text-base mt-1">
+              {user.designation} • {user.level}
+            </Text>
+            <Text className="text-gray-500 mt-1 text-sm">
+              Employee Code: {user.employeeCode}
+            </Text>
+          </LinearGradient>
 
-        {/* Contact Info */}
-        <Section icon="call-outline" title="Contact">
-          <View className="space-y-2">
-            <Text className="text-gray-700">
-              <Text className="font-medium">Official: </Text>
-              {user.email}
-            </Text>
-            <Text className="text-gray-700">
-              <Text className="font-medium">Personal: </Text>
-              {user.personalEmail}
-            </Text>
-            <Text className="text-gray-700">
-              <Text className="font-medium">Phone: </Text>
-              {user.contactNumbers?.join(", ")}
-            </Text>
-            <Text className="text-gray-700 ">
-              <Text className="font-medium">Phone: </Text>{" "}
-              {user.emergencyContact}
-            </Text>
-          </View>
-        </Section>
-
-        {/* Personal Info */}
-        <Section icon="person-circle-outline" title="Personal Info">
-          <View className="space-y-2">
-            <Text className="text-gray-700">
-              <Text className="font-medium">Gender: </Text>
-              {user.gender}
-            </Text>
-            <Text className="text-gray-700">
-              <Text className="font-medium">Father: </Text>
-              {user.fatherName}
-            </Text>
-            <Text className="text-gray-700">
-              <Text className="font-medium">Mother: </Text>
-              {user.motherName}
-            </Text>
-            <Text className="text-gray-700">
-              <Text className="font-medium">Marital: </Text>
-              {user.maritalStatus}
-            </Text>
-            {user.maritalStatus === "married" && (
+          {/* Contact Info */}
+          <Section icon="call-outline" title="Contact">
+            <View className="space-y-2">
               <Text className="text-gray-700">
-                <Text className="font-medium">Spouse: </Text>
-                {user.spouseName}
+                <Text className="font-medium">Official: </Text>
+                {user.email}
               </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Personal: </Text>
+                {user.personalEmail}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Phone: </Text>
+                {user.contactNumbers?.join(", ")}
+              </Text>
+              <Text className="text-gray-700 ">
+                <Text className="font-medium">Phone: </Text>{" "}
+                {user.emergencyContact}
+              </Text>
+            </View>
+          </Section>
+
+          {/* Personal Info */}
+          <Section icon="person-circle-outline" title="Personal Info">
+            <View className="space-y-2">
+              <Text className="text-gray-700">
+                <Text className="font-medium">Gender: </Text>
+                {user.gender}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Father: </Text>
+                {user.fatherName}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Mother: </Text>
+                {user.motherName}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Marital: </Text>
+                {user.maritalStatus}
+              </Text>
+              {user.maritalStatus === "married" && (
+                <Text className="text-gray-700">
+                  <Text className="font-medium">Spouse: </Text>
+                  {user.spouseName}
+                </Text>
+              )}
+              <Text className="text-gray-700">
+                <Text className="font-medium">Address: </Text>
+                {user.homeAddress}
+              </Text>
+            </View>
+          </Section>
+
+          {/* Education */}
+          <Section icon="school-outline" title="Education">
+            {user.education?.length > 0 ? (
+              user.education.map((edu: any, i: number) => (
+                <View
+                  key={i}
+                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
+                >
+                  <Text className="text-gray-900 font-medium">
+                    {edu.qualification}
+                  </Text>
+                  <Text className="text-gray-600">{edu.college}</Text>
+                  <Text className="text-gray-500 text-sm mt-1">
+                    {edu.graduationDate
+                      ? new Date(edu.graduationDate).toLocaleDateString()
+                      : "N/A"}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text className="text-gray-500">No education records</Text>
             )}
-            <Text className="text-gray-700">
-              <Text className="font-medium">Address: </Text>
-              {user.homeAddress}
-            </Text>
-          </View>
-        </Section>
+          </Section>
 
-        {/* Education */}
-        <Section icon="school-outline" title="Education">
-          {user.education?.length > 0 ? (
-            user.education.map((edu: any, i: number) => (
-              <View
-                key={i}
-                className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
-              >
-                <Text className="text-gray-900 font-medium">
-                  {edu.qualification}
-                </Text>
-                <Text className="text-gray-600">{edu.college}</Text>
-                <Text className="text-gray-500 text-sm mt-1">
-                  {edu.graduationDate
-                    ? new Date(edu.graduationDate).toLocaleDateString()
-                    : "N/A"}
-                </Text>
-              </View>
-            ))
-          ) : (
-            <Text className="text-gray-500">No education records</Text>
-          )}
-        </Section>
-
-        {/* Experience */}
-        <Section icon="briefcase-outline" title="Experience">
-          {user.experience?.length > 0 ? (
-            user.experience.map((exp: any, i: number) => (
-              <View
-                key={i}
-                className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
-              >
-                <Text className="text-gray-900 font-medium">{exp.company}</Text>
-                <Text className="text-gray-600">{exp.designation}</Text>
-                <Text className="text-gray-500 text-sm mt-1">
-                  {exp.fromDate
-                    ? new Date(exp.fromDate).toLocaleDateString()
-                    : "?"}{" "}
-                  -{" "}
-                  {exp.toDate
-                    ? new Date(exp.toDate).toLocaleDateString()
-                    : "Present"}
-                </Text>
-              </View>
-            ))
-          ) : (
-            <Text className="text-gray-500">No past experience</Text>
-          )}
-        </Section>
-      </ScrollView>
+          {/* Experience */}
+          <Section icon="briefcase-outline" title="Experience">
+            {user.experience?.length > 0 ? (
+              user.experience.map((exp: any, i: number) => (
+                <View
+                  key={i}
+                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
+                >
+                  <Text className="text-gray-900 font-medium">
+                    {exp.company}
+                  </Text>
+                  <Text className="text-gray-600">{exp.designation}</Text>
+                  <Text className="text-gray-500 text-sm mt-1">
+                    {exp.fromDate
+                      ? new Date(exp.fromDate).toLocaleDateString()
+                      : "?"}{" "}
+                    -{" "}
+                    {exp.toDate
+                      ? new Date(exp.toDate).toLocaleDateString()
+                      : "Present"}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text className="text-gray-500">No past experience</Text>
+            )}
+          </Section>
+        </ScrollView>
+      )}
     </View>
   );
 };
