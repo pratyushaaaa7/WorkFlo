@@ -428,7 +428,7 @@ const handleRegister = async () => {
         </View>
 
         {/* Company Dropdown */}
-        <View className="mb-5 bg-white rounded-xl shadow-md p-4">
+        <View className="mb-5 bg-white rounded-xl shadow-sm p-4">
           <Text className="text-base font-semibold text-gray-700 mb-2">
             Select Company
           </Text>
@@ -560,16 +560,16 @@ const handleRegister = async () => {
         </View>
 
         {/* EDUCATION  QUALIFICATION + COLLEGE + DATE OF PASSING */}
-        <View className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+        <View className="mb-6 bg-white rounded-2xl shadow-sm  p-4">
           {/* Title inside box */}
-          <Text className="font-semibold text-gray-800 text-base mb-3">
+          <Text className="font-medium text-gray-800  mb-3">
             Educational Qualifications
           </Text>
 
           {education.map((edu, index) => (
             <View
               key={index}
-              className="mb-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 relative"
+              className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
             >
               {/* Remove Button (only if more than 1 item) */}
               {education.length > 1 && (
@@ -823,7 +823,7 @@ const handleRegister = async () => {
         </View>
 
         {/* PAST EXPERIENCE */}
-        <View className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+        <View className="mb-6 bg-white rounded-2xl shadow-sm  p-4">
           {/* Title inside box */}
           <Text className="font-semibold text-gray-800 text-base mb-3">
             Past Experience
@@ -832,7 +832,7 @@ const handleRegister = async () => {
           {experience.map((exp, index) => (
             <View
               key={index}
-              className="mb-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 relative"
+              className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
             >
               {/* Remove Button */}
               {experience.length > 1 && (
