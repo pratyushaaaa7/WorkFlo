@@ -203,35 +203,23 @@ const ILRForm = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        if (!token || !projectId) return;
-        setLoadingUsers(true);
-
-        const res = await api.get(`/user-directory/${projectId}`, {
+        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // 🔹 Format for dropdown
         const formatted = res.data.map((u: any) => ({
-          label: `${u.individualName}  (${u.firmName})`,
+          label: `${u.individualName} (${u.firmName})`,
           value: u._id,
         }));
 
         setUsers(formatted);
       } catch (err) {
         console.error("Error fetching users:", err);
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Unable to fetch users for responsibility dropdown.",
-          position: "bottom",
-        });
-      } finally {
-        setLoadingUsers(false);
       }
     };
 
     fetchUsers();
-  }, [token, projectId]);
+  }, [projectId]);
 
   return (
     <View className="flex-1 bg-gray-50">
