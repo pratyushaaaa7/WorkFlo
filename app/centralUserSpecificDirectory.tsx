@@ -54,6 +54,8 @@ export default function UserRoleList() {
       {/* Name + Role */}
       <View className="flex-row justify-between  items-center mb-2">
         <Text className="text-lg font-semibold text-gray-900">
+          <Text className="text-sm text-red-500">#{item.userCode || ""}</Text>
+          {"   "}
           {item.individualName || "Unnamed"}
         </Text>
         <View className="bg-indigo-100 px-3 py-1 rounded-full">
