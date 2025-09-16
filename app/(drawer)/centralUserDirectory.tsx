@@ -24,7 +24,7 @@ export default function CentralUserDirectory() {
       description: "All registered vendors",
     },
     {
-      title: "Consultant",
+      title: "Contractor",
       icon: "account-tie",
       bgColor: "#EDE9FE", // violet-100
       borderColor: "#C4B5FD", // violet-300
@@ -87,7 +87,7 @@ export default function CentralUserDirectory() {
                 >
                   {tab.title}
                 </Text>
-                <Text
+                {/* <Text
                   style={{
                     fontSize: 14,
                     color: "#4B5563", // gray-700
@@ -95,7 +95,7 @@ export default function CentralUserDirectory() {
                   }}
                 >
                   {tab.description}
-                </Text>
+                </Text> */}
               </View>
             </View>
             <Entypo name="chevron-right" size={26} color="#6B7280" />
