@@ -22,6 +22,7 @@ type Responsibility = {
   individualName: string;
   designation: string;
   firmName: string;
+  name: string;
 };
 
 // --- Define color map outside the component ---
@@ -59,7 +60,7 @@ const IlrActivities = () => {
     ilrCreatedAt: params.createdAt as string,
     ilrNumber: params.ilrNumber as string,
   }); // stores current ILR details
-  // console.log("Initial ILR from params:", ilr);
+  console.log("Initial ILR from params:", ilr);
 
   const [activities, setActivities] = useState<Activity[]>([]); // activity logs (who changed what)
   const [activitiesLoading, setActivitiesLoading] = useState(false); // loading spinner
@@ -399,7 +400,7 @@ const IlrActivities = () => {
               Responsibility:{" "}
               <Text className="font-medium">
                 {ilr.responsibility
-                  .map((u) => `${u.individualName} (${u.firmName})`)
+                  .map((u) => u.name) // ✅ use 'name' directly
                   .join(", ")}
               </Text>
             </Text>

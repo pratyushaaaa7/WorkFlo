@@ -102,7 +102,7 @@ const RegisterUserScreen = () => {
   }));
 
   const companyOptions = [
-    { label: "WAL+L", value: "WAL" },
+    { label: "WAL+L", value: "WAL+L" },
     { label: "WP", value: "WP" },
   ];
 
