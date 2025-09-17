@@ -10,6 +10,7 @@ import { AuthContext } from "../../context/AuthContext"; // adjust path if neede
 import api from "../../lib/api"; // axios instance with baseURL
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router"; // if you are using expo-router
+import { Ionicons } from "@expo/vector-icons";
 
 type User = {
   _id: string;
@@ -84,19 +85,37 @@ export default function AllUsersScreen() {
             }
             className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-200"
           >
-            <Text className="text-lg font-semibold text-gray-800">
-              {item.fullName}
-            </Text>
-            <Text className="text-gray-600">{item.email}</Text>
-            <Text
-              className={`mt-1 px-2 py-1 rounded-lg text-sm font-medium w-20 text-center ${
-                item.role === "admin"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {item.role}
-            </Text>
+            <View className="flex-row justify-between items-center">
+              {/* Left Side - User Info */}
+              <View>
+                <Text className="text-lg font-semibold text-gray-800">
+                  {item.fullName}
+                </Text>
+                <Text className="text-gray-600">{item.email}</Text>
+                <Text
+                  className={`mt-1 px-2 py-1 rounded-lg text-sm font-medium w-20 text-center ${
+                    item.role === "admin"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {item.role}
+                </Text>
+              </View>
+
+              {/* Right Side - Edit Button */}
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/registerUser", // same form screen
+                    params: { userId: item._id }, // pass id for editing
+                  })
+                }
+                className="p-4 bg-indigo-50 rounded-full"
+              >
+                <Ionicons name="create-outline" size={22} color="#4F46E5" />
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         )}
       />

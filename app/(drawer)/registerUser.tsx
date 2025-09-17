@@ -15,6 +15,7 @@ import { AuthContext } from "../../context/AuthContext";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 type Experience = {
   company: string;
@@ -28,6 +29,9 @@ type Experience = {
 const RegisterUserScreen = () => {
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
+
+  const { userId } = useLocalSearchParams(); // 👈 check if we are editing
+  const router = useRouter();
 
   // Basic Info
   const [fullName, setFullName] = useState("");
