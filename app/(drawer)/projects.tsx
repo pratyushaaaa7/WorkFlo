@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
@@ -14,7 +20,9 @@ const CompanyProjectSelectionScreen = () => {
 
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [projectName, setProjectName] = useState("");
+  // const [projectName, setProjectName] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   const [companyOptions, setCompanyOptions] = useState([
     { label: "WP", value: "WP" },
@@ -33,6 +41,7 @@ const CompanyProjectSelectionScreen = () => {
 
     const fetchProjects = async () => {
       try {
+        setLoading(true); // start spinner
         const res = await api.get("/projects", {
           headers: { Authorization: `Bearer ${token}` },
           params: { company: selectedCompany },
@@ -56,6 +65,8 @@ const CompanyProjectSelectionScreen = () => {
         }
         setAssignedProjects([]);
         setSelectedProject(null);
+      } finally {
+        setLoading(false); // stop spinner
       }
     };
 
@@ -158,7 +169,7 @@ const CompanyProjectSelectionScreen = () => {
             data={assignedProjects}
             labelField="label"
             valueField="value"
-            placeholder="Choose project"
+            placeholder={loading ? "Loading projects..." : "Choose project"}
             value={selectedProject}
             onChange={(item) => setSelectedProject(item.value)}
             style={{
@@ -181,6 +192,11 @@ const CompanyProjectSelectionScreen = () => {
               elevation: 4,
             }}
             activeColor="#E0E7FF"
+            renderRightIcon={() =>
+              loading ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : null
+            }
           />
         </View>
 

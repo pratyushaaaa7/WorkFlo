@@ -60,7 +60,7 @@ const IlrActivities = () => {
     ilrCreatedAt: params.createdAt as string,
     ilrNumber: params.ilrNumber as string,
   }); // stores current ILR details
-  console.log("Initial ILR from params:", ilr);
+  // console.log("Initial ILR from params:", ilr);
 
   const [activities, setActivities] = useState<Activity[]>([]); // activity logs (who changed what)
   const [activitiesLoading, setActivitiesLoading] = useState(false); // loading spinner
