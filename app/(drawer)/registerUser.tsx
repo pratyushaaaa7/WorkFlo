@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Text,
   TextInput,
@@ -31,7 +31,11 @@ const RegisterUserScreen = () => {
   const token = authContext?.token;
 
   const { userId } = useLocalSearchParams(); // 👈 check if we are editing
+  console.log(userId);
+
   const router = useRouter();
+
+  const existingUser = !!userId; // 👈 determines edit mode
 
   // Basic Info
   const [fullName, setFullName] = useState("");
@@ -99,15 +103,18 @@ const RegisterUserScreen = () => {
     { label: "User", value: "user" },
     { label: "Admin", value: "admin" },
   ];
-
-  const levelOptions = Array.from({ length: 10 }, (_, i) => ({
-    label: `W${i + 1}`,
-    value: `W${i + 1}`,
-  }));
+  const levelOptions = [
+    ...Array.from({ length: 10 }, (_, i) => ({
+      label: `W${i + 1}`,
+      value: `W${i + 1}`,
+    })),
+    { label: "S", value: "S" },
+  ];
 
   const companyOptions = [
     { label: "WAL+L", value: "WAL+L" },
     { label: "WP", value: "WP" },
+    { label: "WCorp", value: "WCorp" },
   ];
 
   const statusOptions = [
@@ -132,83 +139,177 @@ const RegisterUserScreen = () => {
   const [joiningDate, setJoiningDate] = useState<Date | null>(null);
   const [showJoinPicker, setShowJoinPicker] = useState(false);
 
+  useEffect(() => {
+    if (userId) {
+      api
+        .get(`/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const user = res.data;
+          console.log(user);
+
+          // ✅ Prefill all fields
+          setFullName(user.fullName || "");
+          setUsername(user.username || "");
+          setEmail(user.email || "");
+          setPersonalEmail(user.personalEmail || "");
+          setEmployeeCode(user.employeeCode || "");
+          setDesignation(user.designation || "");
+          setLevel(user.level || "");
+          setSelectedCompany(user.company || null);
+          setStatus(user.status || "");
+          setContactNumbers(
+            user.contactNumbers?.length ? user.contactNumbers : [""]
+          );
+          setEmergencyContact(user.emergencyContact || "");
+          setBirthDate(user.birthDate ? new Date(user.birthDate) : null);
+          setJoiningDate(user.joiningDate ? new Date(user.joiningDate) : null);
+          setGender(user.gender || "");
+          setFatherName(user.fatherName || "");
+          setMotherName(user.motherName || "");
+          setMaritalStatus(user.maritalStatus || "");
+          setSpouseName(user.spouseName || "");
+          setHomeAddress(user.homeAddress || "");
+          setAadhar(user.aadhar || "");
+          setPan(user.pan || "");
+          setEducation(user.education || []);
+          setExperience(user.experience || []);
+          setAdditionalInfo(user.additionalInfo || []);
+
+          // ✅ Prefill role
+          setRole(user.role || "user");
+        })
+        .catch((err) => {
+          console.error(
+            "Failed to fetch user:",
+            err.response?.data || err.message
+          );
+        });
+    }
+  }, [userId, token]);
+
   const handleRegister = async () => {
     Keyboard.dismiss();
 
     try {
-      const res = await api.post(
-        "/auth/register",
-        {
-          fullName,
-          username,
-          password,
-          role,
-          email,
-          personalEmail,
-          employeeCode,
-          designation,
-          level,
-          company: selectedCompany,
-          status,
-          contactNumbers,
-          emergencyContact,
-          birthDate: birthDate ? birthDate.toISOString() : null,
-          joiningDate: joiningDate ? joiningDate.toISOString() : null,
-          gender,
-          fatherName,
-          motherName,
-          maritalStatus,
-          spouseName,
-          homeAddress,
-          aadhar,
-          pan,
-          education,
-          experience,
-          additionalInfo,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const payload: any = {
+        fullName,
+        username,
+        role,
+        email,
+        personalEmail,
+        employeeCode,
+        designation,
+        level,
+        company: selectedCompany,
+        status,
+        contactNumbers,
+        emergencyContact,
+        birthDate: birthDate ? birthDate.toISOString() : null,
+        joiningDate: joiningDate ? joiningDate.toISOString() : null,
+        gender,
+        fatherName,
+        motherName,
+        maritalStatus,
+        spouseName,
+        homeAddress,
+        aadhar,
+        pan,
+        education,
+        experience,
+        additionalInfo,
+      };
+
+      if (!userId && !password?.trim()) {
+        Toast.show({
+          type: "error",
+          text1: "Validation",
+          text2: "Password is required for new users.",
+          position: "bottom",
+        });
+        return;
+      }
+
+      if (password?.trim()) {
+        payload.password = password;
+      }
+
+      let res;
+      if (userId) {
+        res = await api.put(`/auth/${userId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        res = await api.post("/auth/register", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
 
       Toast.show({
         type: "success",
         text1: "Success",
-        text2: res.data.message || "User registered successfully!",
+        text2:
+          res.data.message || (userId ? "User updated!" : "User registered!"),
         position: "bottom",
       });
 
-      // 🔹 Reset all fields here
-      setFullName("");
-      setUsername("");
-      setPassword("");
-      setRole("");
-      setEmail("");
-      setPersonalEmail("");
-      setEmployeeCode("");
-      setDesignation("");
-      setLevel("");
-      setSelectedCompany(null);
-      setStatus("");
-      setContactNumbers([]);
-      setEmergencyContact("");
-      setBirthDate(null);
-      setJoiningDate(null);
-      setGender("");
-      setFatherName("");
-      setMotherName("");
-      setMaritalStatus("");
-      setSpouseName("");
-      setHomeAddress("");
-      setAadhar("");
-      setPan("");
-      setEducation("");
-      setExperience("");
-      setAdditionalInfo("");
+      // Redirect after a short delay to show the toast
+      setTimeout(() => {
+        router.push("/centralEmployeeDirectory");
+      }, 800);
+
+      // Reset only for new users
+      if (!userId) {
+        setFullName("");
+        setUsername("");
+        setPassword("");
+        setRole("");
+        setEmail("");
+        setPersonalEmail("");
+        setEmployeeCode("");
+        setDesignation("");
+        setLevel("");
+        setSelectedCompany(null);
+        setStatus("");
+        setContactNumbers([]);
+        setEmergencyContact("");
+        setBirthDate(null);
+        setJoiningDate(null);
+        setGender("");
+        setFatherName("");
+        setMotherName("");
+        setMaritalStatus("");
+        setSpouseName("");
+        setHomeAddress("");
+        setAadhar("");
+        setPan("");
+        setEducation([
+          {
+            qualification: "",
+            college: "",
+            graduationDate: "",
+            showPicker: false,
+          },
+        ]);
+        setExperience([
+          {
+            company: "",
+            designation: "",
+            fromDate: "",
+            toDate: "",
+            showFromPicker: false,
+            showToPicker: false,
+          },
+        ]);
+        setAdditionalInfo([""]);
+      }
     } catch (err: any) {
       console.error("Registration error:", err.response?.data || err.message);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: err.response?.data?.message || "Registration failed.",
+        text2: err.response?.data?.message || "Operation failed.",
         position: "bottom",
       });
     }
@@ -236,9 +337,63 @@ const RegisterUserScreen = () => {
           </Text>
         </View> */}
 
+        {/* EMPLOYEE CODE */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">
+            Employee Code <Text className="text-red-500">*</Text>
+          </Text>
+          <TextInput
+            value={employeeCode}
+            onChangeText={setEmployeeCode} // keep as string
+            placeholder="Enter employee code"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+          />
+        </View>
+
+        {/* Company Dropdown */}
+        <View className="mb-5 bg-white rounded-xl shadow-sm p-4">
+          <Text className="text-base font-semibold text-gray-700 mb-2">
+            Select Company <Text className="text-red-500">*</Text>
+          </Text>
+          <Dropdown
+            data={companyOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Choose company"
+            value={selectedCompany}
+            onChange={(item) => setSelectedCompany(item.value)}
+            style={{
+              height: 35,
+              borderRadius: 12,
+              paddingHorizontal: 10,
+              borderColor: "#D1D5DB",
+              borderWidth: 1,
+              // backgroundColor: "#F9FAFB",
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: "#9CA3AF",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: "#111827",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: "#fff",
+              elevation: 4,
+            }}
+            activeColor="#E0E7FF"
+          />
+        </View>
+
         {/* FULL NAME */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Full Name</Text>
+          <Text className="text-gray-700 mb-2 font-medium">
+            Full Name <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             value={fullName}
             onChangeText={setFullName}
@@ -250,7 +405,9 @@ const RegisterUserScreen = () => {
 
         {/* USERNAME */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Username</Text>
+          <Text className="text-gray-700 mb-2 font-medium">
+            Username <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             value={username}
             onChangeText={setUsername}
@@ -262,7 +419,9 @@ const RegisterUserScreen = () => {
 
         {/* PASSWORD */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Password</Text>
+          <Text className="text-gray-700 mb-2 font-medium">
+            Password <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             value={password}
             onChangeText={setPassword}
@@ -275,7 +434,9 @@ const RegisterUserScreen = () => {
 
         {/* ROLE DROPDOWN */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Role</Text>
+          <Text className="text-gray-700 mb-2 font-medium">
+            Role <Text className="text-red-500">*</Text>
+          </Text>
           <Dropdown
             data={roleOptions}
             labelField="label"
@@ -303,7 +464,9 @@ const RegisterUserScreen = () => {
 
         {/* OFFICIAL EMAIL */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Official Email</Text>
+          <Text className="text-gray-700 mb-2 font-medium">
+            Official Email <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -327,18 +490,6 @@ const RegisterUserScreen = () => {
           />
         </View>
 
-        {/* EMPLOYEE CODE */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Employee Code</Text>
-          <TextInput
-            value={employeeCode}
-            onChangeText={setEmployeeCode} // keep as string
-            placeholder="Enter employee code"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          />
-        </View>
         {/* DESIGNATION */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
           <Text className="text-gray-700 mb-2 font-medium">Designation</Text>
@@ -426,74 +577,6 @@ const RegisterUserScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Company Dropdown */}
-        <View className="mb-5 bg-white rounded-xl shadow-sm p-4">
-          <Text className="text-base font-semibold text-gray-700 mb-2">
-            Select Company
-          </Text>
-          <Dropdown
-            data={companyOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Choose company"
-            value={selectedCompany}
-            onChange={(item) => setSelectedCompany(item.value)}
-            style={{
-              height: 35,
-              borderRadius: 12,
-              paddingHorizontal: 10,
-              borderColor: "#D1D5DB",
-              borderWidth: 1,
-              // backgroundColor: "#F9FAFB",
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: "#9CA3AF",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: "#111827",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            activeColor="#E0E7FF"
-          />
-        </View>
-
-        {/* BIRTH DATE */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Birth Date</Text>
-          <TouchableOpacity
-            onPress={() => setShowBirthPicker(true)}
-            className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-          >
-            <Icon name="calendar" size={18} color="#9CA3AF" />
-            <Text
-              className={`ml-2 ${
-                birthDate ? "text-gray-800" : "text-gray-400"
-              }`}
-            >
-              {birthDate ? birthDate.toDateString() : "Select birth date"}
-            </Text>
-          </TouchableOpacity>
-          {showBirthPicker && (
-            <DateTimePicker
-              value={birthDate || new Date()} // picker must have a Date, but birthDate not set ye
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                if (event.type === "set" && date) {
-                  setBirthDate(date);
-                }
-                setShowBirthPicker(false);
-              }}
-            />
-          )}
-        </View>
-
         {/* JOINING DATE */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
           <Text className="text-gray-700 mb-2 font-medium">Joining Date</Text>
@@ -555,6 +638,183 @@ const RegisterUserScreen = () => {
             onChange={(item) => {
               setStatus(item.value);
             }}
+          />
+        </View>
+
+        {/* AADHAR */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Aadhar Number</Text>
+          <TextInput
+            value={aadhar}
+            onChangeText={setAadhar}
+            placeholder="Enter aadhar number"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* PAN */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">PAN Number</Text>
+          <TextInput
+            value={pan}
+            onChangeText={setPan}
+            placeholder="Enter PAN number"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* BIRTH DATE */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Birth Date</Text>
+          <TouchableOpacity
+            onPress={() => setShowBirthPicker(true)}
+            className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
+          >
+            <Icon name="calendar" size={18} color="#9CA3AF" />
+            <Text
+              className={`ml-2 ${
+                birthDate ? "text-gray-800" : "text-gray-400"
+              }`}
+            >
+              {birthDate ? birthDate.toDateString() : "Select birth date"}
+            </Text>
+          </TouchableOpacity>
+          {showBirthPicker && (
+            <DateTimePicker
+              value={birthDate || new Date()} // picker must have a Date, but birthDate not set ye
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                if (event.type === "set" && date) {
+                  setBirthDate(date);
+                }
+                setShowBirthPicker(false);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Address */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Home Address</Text>
+          <TextInput
+            value={homeAddress}
+            onChangeText={setHomeAddress}
+            placeholder="Enter Home Address"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* Emergency Contact */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">
+            Emergency Contact
+          </Text>
+          <TextInput
+            value={emergencyContact}
+            onChangeText={setEmergencyContact}
+            placeholder="Enter emergency contact"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* FATHER NAME */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Father's Name</Text>
+          <TextInput
+            value={fatherName}
+            onChangeText={setFatherName}
+            placeholder="Enter father's name"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* MOTHER NAME */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Mother's Name</Text>
+          <TextInput
+            value={motherName}
+            onChangeText={setMotherName}
+            placeholder="Enter mother's name"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* Marital Status */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Marital Status</Text>
+          <Dropdown
+            style={{
+              height: 35,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "#D1D5DB",
+              paddingHorizontal: 12,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: "#fff",
+              elevation: 4,
+            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+            activeColor="#E0E7FF"
+            data={maritalOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select status"
+            value={maritalStatus}
+            onChange={(item) => setMaritalStatus(item.value)}
+          />
+
+          {/* Conditional Field */}
+          {maritalStatus === "married" && (
+            <View className="mt-4">
+              <Text className="text-gray-700 mb-2 font-medium">
+                Spouse Name
+              </Text>
+              <TextInput
+                placeholder="Enter spouse name"
+                value={spouseName}
+                onChangeText={setSpouseName}
+                className="border border-gray-300 rounded-xl px-3 py-3 text-gray-800"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+          )}
+        </View>
+
+        {/* GENDER*/}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Gender</Text>
+          <Dropdown
+            style={{
+              height: 35,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "#D1D5DB",
+              paddingHorizontal: 12,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: "#fff",
+              elevation: 4,
+            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+            activeColor="#E0E7FF"
+            data={genderOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select gender"
+            value={gender}
+            onChange={(item) => setGender(item.value)}
           />
         </View>
 
@@ -673,152 +933,6 @@ const RegisterUserScreen = () => {
               Add Qualification
             </Text>
           </TouchableOpacity>
-        </View>
-
-        {/* AADHAR */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Aadhar Number</Text>
-          <TextInput
-            value={aadhar}
-            onChangeText={setAadhar}
-            placeholder="Enter aadhar number"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* PAN */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">PAN Number</Text>
-          <TextInput
-            value={pan}
-            onChangeText={setPan}
-            placeholder="Enter PAN number"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* Address */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Home Address</Text>
-          <TextInput
-            value={homeAddress}
-            onChangeText={setHomeAddress}
-            placeholder="Enter Home Address"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* Emergency Contact */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">
-            Emergency Contact
-          </Text>
-          <TextInput
-            value={emergencyContact}
-            onChangeText={setEmergencyContact}
-            placeholder="Enter emergency contact"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* FATHER NAME */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Father Name</Text>
-          <TextInput
-            value={fatherName}
-            onChangeText={setFatherName}
-            placeholder="Enter father's name"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* MOTHER NAME */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Mother Name</Text>
-          <TextInput
-            value={motherName}
-            onChangeText={setMotherName}
-            placeholder="Enter mother's name"
-            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* Marital Status */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Marital Status</Text>
-          <Dropdown
-            style={{
-              height: 35,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: "#D1D5DB",
-              paddingHorizontal: 12,
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-            activeColor="#E0E7FF"
-            data={maritalOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select status"
-            value={maritalStatus}
-            onChange={(item) => setMaritalStatus(item.value)}
-          />
-
-          {/* Conditional Field */}
-          {maritalStatus === "married" && (
-            <View className="mt-4">
-              <Text className="text-gray-700 mb-2 font-medium">
-                Spouse Name
-              </Text>
-              <TextInput
-                placeholder="Enter spouse name"
-                value={spouseName}
-                onChangeText={setSpouseName}
-                className="border border-gray-300 rounded-xl px-3 py-3 text-gray-800"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-          )}
-        </View>
-
-        {/* GENDER*/}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Gender</Text>
-          <Dropdown
-            style={{
-              height: 35,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: "#D1D5DB",
-              paddingHorizontal: 12,
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-            activeColor="#E0E7FF"
-            data={genderOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select gender"
-            value={gender}
-            onChange={(item) => setGender(item.value)}
-          />
         </View>
 
         {/* PAST EXPERIENCE */}
