@@ -79,24 +79,20 @@ const RegisterUserScreen = () => {
   const [pan, setPan] = useState("");
 
   // Education
-  const [education, setEducation] = useState([
-    { qualification: "", college: "", graduationDate: "", showPicker: false },
-  ]);
+  const [education, setEducation] = useState<
+    {
+      qualification: string;
+      college: string;
+      graduationDate: string;
+      showPicker: boolean;
+    }[]
+  >([]);
 
   // Experience
-  const [experience, setExperience] = useState<Experience[]>([
-    {
-      company: "",
-      designation: "",
-      fromDate: "",
-      toDate: "",
-      showFromPicker: false,
-      showToPicker: false,
-    },
-  ]);
+  const [experience, setExperience] = useState<Experience[]>([]);
 
   // Additional Info
-  const [additionalInfo, setAdditionalInfo] = useState([""]);
+  const [additionalInfo, setAdditionalInfo] = useState<string[]>([]);
 
   // Dropdown options
   const roleOptions = [
@@ -173,9 +169,11 @@ const RegisterUserScreen = () => {
           setHomeAddress(user.homeAddress || "");
           setAadhar(user.aadhar || "");
           setPan(user.pan || "");
-          setEducation(user.education || []);
-          setExperience(user.experience || []);
-          setAdditionalInfo(user.additionalInfo || []);
+          setEducation(user.education?.length ? user.education : []);
+          setExperience(user.experience?.length ? user.experience : []);
+          setAdditionalInfo(
+            user.additionalInfo?.length ? user.additionalInfo : []
+          );
 
           // ✅ Prefill role
           setRole(user.role || "user");
