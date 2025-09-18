@@ -28,7 +28,7 @@ const UserDetails = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
-        console.log(res.data);
+        // console.log(res.data);
       } catch (err) {
         console.error(
           "Error fetching user:",

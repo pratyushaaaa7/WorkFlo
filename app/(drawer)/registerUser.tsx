@@ -7,6 +7,7 @@ import {
   Platform,
   Keyboard,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -36,6 +37,8 @@ const RegisterUserScreen = () => {
 
   const existingUser = !!userId; // 👈 determines edit mode
   console.log(existingUser);
+
+  const [loading, setLoading] = useState(false);
 
   // Basic Info
   const [fullName, setFullName] = useState("");
@@ -191,6 +194,7 @@ const RegisterUserScreen = () => {
     Keyboard.dismiss();
 
     try {
+      setLoading(true); // ✅ start loading
       const payload: any = {
         fullName,
         username,
@@ -310,6 +314,8 @@ const RegisterUserScreen = () => {
         text2: err.response?.data?.message || "Operation failed.",
         position: "bottom",
       });
+    } finally {
+      setLoading(false); // ✅ stop loading
     }
   };
 
@@ -1132,16 +1138,25 @@ const RegisterUserScreen = () => {
             className="flex-row items-center justify-center mt-2 bg-indigo-100 px-4 py-2 rounded-full"
           >
             <Icon name="plus" size={18} color="#4F46E5" />
-            <Text className="ml-2 text-indigo-600 font-medium">Add More</Text>
+            <Text className="ml-2 text-indigo-600 font-medium">Add Info</Text>
           </TouchableOpacity>
         </View>
 
         {/* REGISTER BUTTON */}
         <TouchableOpacity
           onPress={handleRegister}
-          className="bg-indigo-600 py-3 rounded-2xl items-center shadow-md mb-10"
+          disabled={loading} // ✅ disable when loading
+          className={`py-3 rounded-2xl items-center shadow-md mb-10 ${
+            loading ? "bg-gray-400" : "bg-indigo-600"
+          }`}
         >
-          <Text className="text-white text-lg font-bold">Register</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white text-lg font-bold">
+              {userId ? "Update" : "Register"}
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAwareScrollView>
