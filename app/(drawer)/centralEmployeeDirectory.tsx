@@ -19,6 +19,7 @@ type User = {
   email: string;
   username: string;
   role: string;
+  employeeCode: string;
 };
 
 export default function AllUsersScreen() {
@@ -75,10 +76,11 @@ export default function AllUsersScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50 p-4">
+    <View className="flex-1 bg-gray-50 px-4 pt-4">
       <FlatList
         data={users}
         keyExtractor={(item) => item._id}
+        contentContainerStyle={{ paddingBottom: 40 }} // 👈 adds bottom padding
         renderItem={({ item }) => (
           <TouchableOpacity
             disabled={auth?.user?.role !== "admin"} // disable press if not admin
@@ -97,15 +99,17 @@ export default function AllUsersScreen() {
                   {item.fullName}
                 </Text>
                 <Text className="text-gray-600">{item.email}</Text>
-                <Text
-                  className={`mt-1 px-2 py-1 rounded-lg text-sm font-medium w-20 text-center ${
-                    item.role === "admin"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {item.role}
-                </Text>
+                {item.employeeCode && (
+                  <Text
+                    className={`mt-1 p-1 rounded-lg text-sm font-medium w-20 text-center ${
+                      item.role === "admin"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {item.employeeCode}
+                  </Text>
+                )}
               </View>
 
               {/* Right Side - Edit Button */}
