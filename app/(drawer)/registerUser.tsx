@@ -772,7 +772,7 @@ const RegisterUserScreen = () => {
           />
 
           {/* Conditional Field */}
-          {maritalStatus === "married" && (
+          {maritalStatus === "Married" && (
             <View className="mt-4">
               <Text className="text-gray-700 mb-2 font-medium">
                 Spouse Name

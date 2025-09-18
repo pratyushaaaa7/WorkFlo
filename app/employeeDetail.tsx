@@ -28,6 +28,7 @@ const UserDetails = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error(
           "Error fetching user:",
@@ -88,42 +89,88 @@ const UserDetails = () => {
           User not found
         </Text>
       ) : (
-        <ScrollView className="flex-1 px-4 py-4 "
-         contentContainerStyle={{ paddingBottom: 40 }} 
+        <ScrollView
+          className="flex-1 px-4 py-4 "
+          contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* Profile Card */}
           <LinearGradient
-            colors={["#EEF2FF", "#E0E7FF"]}
-            className="rounded-2xl p-6 mb-6 shadow-md"
+            colors={["#EDE9FE", "#FCE7F3"]} // soft lavender → blush pink
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 16,
+              padding: 24,
+              marginBottom: 24,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.08,
+              shadowRadius: 6,
+              elevation: 3,
+            }}
           >
-            <Text className="text-2xl font-bold text-gray-900">
+            <Text
+              style={{ fontSize: 22, fontWeight: "bold", color: "#1F2937" }}
+            >
               {user.fullName}
             </Text>
-            <Text className="text-gray-700 text-base mt-1">
+            <Text style={{ fontSize: 16, marginTop: 4, color: "#4B5563" }}>
               {user.designation} • {user.level}
             </Text>
-            <Text className="text-gray-500 mt-1 text-sm">
+            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
               Employee Code: {user.employeeCode}
+            </Text>
+            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
+              Username: {user.username}
+            </Text>
+            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
+              Status: {user.status}
             </Text>
           </LinearGradient>
 
-          {/* Contact Info */}
-          <Section icon="call-outline" title="Contact">
+          {/* Employment Info */}
+          <Section icon="business-outline" title="Employment Info">
             <View className="space-y-2">
               <Text className="text-gray-700">
-                <Text className="font-medium">Official: </Text>
+                <Text className="font-medium">Company: </Text>
+                {user.company}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Joining Date: </Text>
+                {user.joiningDate
+                  ? new Date(user.joiningDate).toLocaleDateString()
+                  : "N/A"}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Created By: </Text>
+                {user.createdBy?.fullName} ({user.createdBy?.role})
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Created At: </Text>
+                {user.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString()
+                  : "N/A"}
+              </Text>
+            </View>
+          </Section>
+
+          {/* Contact Info */}
+          <Section icon="call-outline" title="Contact Info">
+            <View className="space-y-2">
+              <Text className="text-gray-700">
+                <Text className="font-medium">Official Email: </Text>
                 {user.email}
               </Text>
               <Text className="text-gray-700">
-                <Text className="font-medium">Personal: </Text>
+                <Text className="font-medium">Personal Email: </Text>
                 {user.personalEmail}
               </Text>
               <Text className="text-gray-700">
-                <Text className="font-medium">Phone: </Text>
+                <Text className="font-medium">Phone Number: </Text>
                 {user.contactNumbers?.join(", ")}
               </Text>
               <Text className="text-gray-700 ">
-                <Text className="font-medium">Phone: </Text>{" "}
+                <Text className="font-medium">Emergency Contact:</Text>{" "}
                 {user.emergencyContact}
               </Text>
             </View>
@@ -135,6 +182,12 @@ const UserDetails = () => {
               <Text className="text-gray-700">
                 <Text className="font-medium">Gender: </Text>
                 {user.gender}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Birth Date: </Text>
+                {user.birthDate
+                  ? new Date(user.birthDate).toLocaleDateString()
+                  : "N/A"}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Father: </Text>
@@ -157,6 +210,20 @@ const UserDetails = () => {
               <Text className="text-gray-700">
                 <Text className="font-medium">Address: </Text>
                 {user.homeAddress}
+              </Text>
+            </View>
+          </Section>
+
+          {/* Identity Info */}
+          <Section icon="id-card-outline" title="Identity">
+            <View className="space-y-2">
+              <Text className="text-gray-700">
+                <Text className="font-medium">Aadhar: </Text>
+                {user.aadhar}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">PAN: </Text>
+                {user.pan}
               </Text>
             </View>
           </Section>
