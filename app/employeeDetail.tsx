@@ -210,6 +210,22 @@ const UserDetails = () => {
               <Text className="text-gray-500">No past experience</Text>
             )}
           </Section>
+
+          {/* Additional Info */}
+          <Section icon="information-circle-outline" title="Additional Info">
+            {user.additionalInfo?.length > 0 ? (
+              user.additionalInfo.map((info: string, i: number) => (
+                <View
+                  key={i}
+                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
+                >
+                  <Text className="text-gray-700">{info}</Text>
+                </View>
+              ))
+            ) : (
+              <Text className="text-gray-500">No additional info</Text>
+            )}
+          </Section>
         </ScrollView>
       )}
     </View>
