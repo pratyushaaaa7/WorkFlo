@@ -88,7 +88,9 @@ const UserDetails = () => {
           User not found
         </Text>
       ) : (
-        <ScrollView className="flex-1 px-4 py-4">
+        <ScrollView className="flex-1 px-4 py-4 "
+         contentContainerStyle={{ paddingBottom: 40 }} 
+        >
           {/* Profile Card */}
           <LinearGradient
             colors={["#EEF2FF", "#E0E7FF"]}
