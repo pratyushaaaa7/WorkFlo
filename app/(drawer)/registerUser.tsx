@@ -31,11 +31,11 @@ const RegisterUserScreen = () => {
   const token = authContext?.token;
 
   const { userId } = useLocalSearchParams(); // 👈 check if we are editing
-  console.log(userId);
 
   const router = useRouter();
 
   const existingUser = !!userId; // 👈 determines edit mode
+  console.log(existingUser);
 
   // Basic Info
   const [fullName, setFullName] = useState("");
