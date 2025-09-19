@@ -107,7 +107,7 @@ export default function AllUsersScreen() {
                         : "bg-blue-100 text-blue-700"
                     }`}
                   >
-                    {item.employeeCode}
+                    W{item.employeeCode}
                   </Text>
                 )}
               </View>

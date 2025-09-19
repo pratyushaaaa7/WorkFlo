@@ -118,7 +118,7 @@ const UserDetails = () => {
               {user.designation} • {user.level}
             </Text>
             <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
-              Employee Code: {user.employeeCode}
+              Employee Code: W{user.employeeCode}
             </Text>
             <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
               Username: {user.username}
