@@ -88,8 +88,7 @@ const RegisterUserScreen = () => {
     {
       qualification: string;
       college: string;
-      graduationDate: string;
-      showPicker: boolean;
+      graduationYear: string;
     }[]
   >([]);
 
@@ -292,8 +291,7 @@ const RegisterUserScreen = () => {
           {
             qualification: "",
             college: "",
-            graduationDate: "",
-            showPicker: false,
+            graduationYear: "",
           },
         ]);
         setExperience([
@@ -854,31 +852,20 @@ const RegisterUserScreen = () => {
                 placeholderTextColor="#9CA3AF"
               />
 
-              {/* Graduation Date - Web Version */}
-              <div className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-                <label className="text-gray-700 mb-2 font-medium block">
-                  Graduation Date
-                </label>
-
-                <ReactDatePicker
-                  selected={
-                    edu.graduationDate ? new Date(edu.graduationDate) : null
-                  }
-                  onChange={(date: Date | null) => {
-                    const newEdu = [...education];
-                    newEdu[index].graduationDate = date
-                      ? date.toISOString()
-                      : "";
-                    setEducation(newEdu);
-                  }}
-                  dateFormat="dd/MM/yyyy"
-                  placeholderText="Select passing date"
-                  showYearDropdown
-                  scrollableYearDropdown
-                  yearDropdownItemNumber={100}
-                  className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800 w-full"
-                />
-              </div>
+              {/* Graduation Year */}
+              <TextInput
+                placeholder="Year of Passing (e.g., 2025)"
+                keyboardType="numeric"
+                maxLength={4}
+                value={edu.graduationYear}
+                onChangeText={(val) => {
+                  const newEdu = [...education];
+                  newEdu[index].graduationYear = val;
+                  setEducation(newEdu);
+                }}
+                className="border border-gray-300 rounded-xl px-3 py-2 mb-3 text-gray-800"
+                placeholderTextColor="#9CA3AF"
+              />
             </View>
           ))}
 
@@ -890,8 +877,7 @@ const RegisterUserScreen = () => {
                 {
                   qualification: "",
                   college: "",
-                  graduationDate: "",
-                  showPicker: false,
+                  graduationYear: "",
                 },
               ])
             }

@@ -86,8 +86,7 @@ const RegisterUserScreen = () => {
     {
       qualification: string;
       college: string;
-      graduationDate: string;
-      showPicker: boolean;
+      graduationYear: string;
     }[]
   >([]);
 
@@ -290,8 +289,7 @@ const RegisterUserScreen = () => {
           {
             qualification: "",
             college: "",
-            graduationDate: "",
-            showPicker: false,
+            graduationYear: "",
           },
         ]);
         setExperience([
@@ -874,46 +872,20 @@ const RegisterUserScreen = () => {
                 placeholderTextColor="#9CA3AF"
               />
 
-              {/* Graduation Date */}
-              <TouchableOpacity
-                onPress={() => {
+              {/* Graduation Year */}
+              <TextInput
+                placeholder="Year of Passing (e.g., 2025)"
+                keyboardType="numeric"
+                maxLength={4}
+                value={edu.graduationYear}
+                onChangeText={(val) => {
                   const newEdu = [...education];
-                  newEdu[index].showPicker = true;
+                  newEdu[index].graduationYear = val;
                   setEducation(newEdu);
                 }}
-                className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-              >
-                <Icon name="calendar" size={18} color="#9CA3AF" />
-                <Text
-                  className={`ml-2 ${
-                    edu.graduationDate ? "text-gray-800" : "text-gray-400"
-                  }`}
-                >
-                  {edu.graduationDate
-                    ? new Date(edu.graduationDate).toDateString()
-                    : "Select passing date"}
-                </Text>
-              </TouchableOpacity>
-
-              {edu.showPicker && (
-                <DateTimePicker
-                  value={
-                    edu.graduationDate
-                      ? new Date(edu.graduationDate)
-                      : new Date()
-                  }
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
-                    const newEdu = [...education];
-                    newEdu[index].showPicker = false;
-                    if (event.type === "set" && date) {
-                      newEdu[index].graduationDate = date.toISOString();
-                    }
-                    setEducation(newEdu);
-                  }}
-                />
-              )}
+                className="border border-gray-300 rounded-xl px-3 py-2 mb-3 text-gray-800"
+                placeholderTextColor="#9CA3AF"
+              />
             </View>
           ))}
 
@@ -925,8 +897,7 @@ const RegisterUserScreen = () => {
                 {
                   qualification: "",
                   college: "",
-                  graduationDate: "",
-                  showPicker: false,
+                  graduationYear: "",
                 },
               ])
             }
