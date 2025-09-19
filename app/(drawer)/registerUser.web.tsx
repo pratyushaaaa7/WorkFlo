@@ -813,18 +813,18 @@ const RegisterUserScreen = () => {
               className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
             >
               {/* Remove Button (only if more than 1 item) */}
-              {education.length > 1 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    const newEdu = [...education];
-                    newEdu.splice(index, 1);
-                    setEducation(newEdu);
-                  }}
-                  className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
-                >
-                  <Icon name="x" size={18} color="#EF4444" />
-                </TouchableOpacity>
-              )}
+              {/* {education.length > 1 && ( */}
+              <TouchableOpacity
+                onPress={() => {
+                  const newEdu = [...education];
+                  newEdu.splice(index, 1);
+                  setEducation(newEdu);
+                }}
+                className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
+              >
+                <Icon name="x" size={18} color="#EF4444" />
+              </TouchableOpacity>
+              {/* )} */}
 
               {/* Qualification */}
               <TextInput
@@ -903,18 +903,18 @@ const RegisterUserScreen = () => {
               className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
             >
               {/* Remove Button */}
-              {experience.length > 1 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    const newExp = [...experience];
-                    newExp.splice(index, 1);
-                    setExperience(newExp);
-                  }}
-                  className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
-                >
-                  <Icon name="x" size={18} color="#EF4444" />
-                </TouchableOpacity>
-              )}
+              {/* {experience.length > 1 && ( */}
+              <TouchableOpacity
+                onPress={() => {
+                  const newExp = [...experience];
+                  newExp.splice(index, 1);
+                  setExperience(newExp);
+                }}
+                className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
+              >
+                <Icon name="x" size={18} color="#EF4444" />
+              </TouchableOpacity>
+              {/* )} */}
 
               {/* Company Name */}
               <TextInput
@@ -1030,19 +1030,17 @@ const RegisterUserScreen = () => {
               />
 
               {/* ❌ Show only if more than 1 field */}
-              {additionalInfo.length > 1 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    const newInfo = additionalInfo.filter(
-                      (_, i) => i !== index
-                    );
-                    setAdditionalInfo(newInfo.length ? newInfo : [""]);
-                  }}
-                  className="ml-2 bg-red-100 p-2 rounded-full"
-                >
-                  <Icon name="x" size={18} color="#EF4444" />
-                </TouchableOpacity>
-              )}
+              {/* {additionalInfo.length > 1 && ( */}
+              <TouchableOpacity
+                onPress={() => {
+                  const newInfo = additionalInfo.filter((_, i) => i !== index);
+                  setAdditionalInfo(newInfo.length ? newInfo : [""]);
+                }}
+                className="ml-2 bg-red-100 p-2 rounded-full"
+              >
+                <Icon name="x" size={18} color="#EF4444" />
+              </TouchableOpacity>
+              {/* )} */}
             </View>
           ))}
 

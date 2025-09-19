@@ -31,6 +31,7 @@ type ILR = {
     individualName: string;
     designation: string;
     firmName: string;
+    name: string;
   }[];
 
   status: "Open" | "Closed";
@@ -59,6 +60,8 @@ const ILRs = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIlrs(res.data);
+        // console.log(res.data)
+        console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -154,6 +157,10 @@ const ILRs = () => {
 
   const parsedILRs = filteredILRs.map((ilr) => ({
     ...ilr,
+    responsibility: ilr.responsibility.map((r) => ({
+      ...r,
+      individualName: r.name, // 👈 map "name" into "individualName"
+    })),
     activities:
       typeof ilr.activities === "string"
         ? JSON.parse(ilr.activities)

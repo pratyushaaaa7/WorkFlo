@@ -5,7 +5,7 @@ import { Buffer } from "buffer";
 import { Asset } from "expo-asset";
 
 // Types
-type Responsibility = { individualName: string; designation: string };
+type Responsibility = { individualName: string; designation: string ; name:string};
 type Activity = {
   fieldChanged: string;
   createdAt: string;
@@ -160,9 +160,7 @@ export async function exportILRsToExcel(
         ilr.createdBy?.username || "N/A",
         ilr.description,
         ilr.remarks || "No remarks",
-        ilr.responsibility
-          .map((r) => `${r.individualName} (${r.designation})`)
-          .join(", "),
+         ilr.responsibility.map((r) => r.name).join(", "), 
         formatDate(ilr.targetDate),
         ilr.status,
         ilr.delayDays ?? 0,
