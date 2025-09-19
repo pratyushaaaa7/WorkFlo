@@ -246,9 +246,7 @@ const UserDetails = () => {
                   </Text>
                   <Text className="text-gray-600">{edu.college}</Text>
                   <Text className="text-gray-500 text-sm mt-1">
-                    {edu.graduationDate
-                      ? new Date(edu.graduationDate).toLocaleDateString()
-                      : "N/A"}
+                    {edu.graduationYear}
                   </Text>
                 </View>
               ))
