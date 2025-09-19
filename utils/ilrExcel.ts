@@ -5,12 +5,17 @@ import { Buffer } from "buffer";
 import { Asset } from "expo-asset";
 
 // Types
-type Responsibility = { individualName: string; designation: string ; name:string};
+type Responsibility = {
+  individualName: string;
+  designation: string;
+  name: string;
+};
 type Activity = {
   fieldChanged: string;
   createdAt: string;
   note?: string;
   newValue?: string;
+  oldValue?: string;
 };
 
 export type ILR = {
@@ -56,13 +61,14 @@ export async function exportILRsToExcel(
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("ILRs");
+    console.log(company)
 
     // --- ADD LOGO BASED ON COMPANY ---
     let logoPath;
     if (company.toLowerCase() === "wp") {
       logoPath = require("../assets/images/logoWP.png");
     } else if (company.toLowerCase() === "wal") {
-      logoPath = require("../assets/images/logoWPicon.png");
+      logoPath = require("../assets/images/logoWAL.jpg");
     } else {
       logoPath = require("../assets/images/react-logo.png"); // fallback logo
     }
@@ -149,7 +155,9 @@ export async function exportILRsToExcel(
         return a
           ? `Date - ${formatDate(a.createdAt)}\nNote - ${
               a.note || "N/A"
-            }\nNew Target Date - ${formatDate(a.newValue ?? "")}`
+            }\nOld Target Date - ${formatDate(
+              a.oldValue ?? ""
+            )}\nNew Target Date - ${formatDate(a.newValue ?? "")}`
           : "";
       });
 
@@ -160,7 +168,7 @@ export async function exportILRsToExcel(
         ilr.createdBy?.username || "N/A",
         ilr.description,
         ilr.remarks || "No remarks",
-         ilr.responsibility.map((r) => r.name).join(", "), 
+        ilr.responsibility.map((r) => r.name).join(", "),
         formatDate(ilr.targetDate),
         ilr.status,
         ilr.delayDays ?? 0,

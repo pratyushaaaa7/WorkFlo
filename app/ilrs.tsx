@@ -61,7 +61,7 @@ const ILRs = () => {
         });
         setIlrs(res.data);
         // console.log(res.data)
-        console.log(JSON.stringify(res.data, null, 2));
+        // console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
