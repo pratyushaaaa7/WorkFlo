@@ -154,7 +154,7 @@ const RegisterUserScreen = () => {
           setUsername(user.username || "");
           setEmail(user.email || "");
           setPersonalEmail(user.personalEmail || "");
-          setEmployeeCode(user.employeeCode || "");
+          setEmployeeCode(user.employeeCode?.toString() || "");
           setDesignation(user.designation || "");
           setLevel(user.level || "");
           setSelectedCompany(user.company || null);
@@ -202,7 +202,7 @@ const RegisterUserScreen = () => {
         role,
         email,
         personalEmail,
-        employeeCode,
+        employeeCode: Number(employeeCode), // convert back to number
         designation,
         level,
         company: selectedCompany,
