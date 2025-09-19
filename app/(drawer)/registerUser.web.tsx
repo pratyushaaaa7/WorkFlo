@@ -660,36 +660,25 @@ const RegisterUserScreen = () => {
           />
         </View>
 
-        {/* BIRTH DATE */}
-        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-          <Text className="text-gray-700 mb-2 font-medium">Birth Date</Text>
-          <TouchableOpacity
-            onPress={() => setShowBirthPicker(true)}
-            className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-          >
-            <Icon name="calendar" size={18} color="#9CA3AF" />
-            <Text
-              className={`ml-2 ${
-                birthDate ? "text-gray-800" : "text-gray-400"
-              }`}
-            >
-              {birthDate ? birthDate.toDateString() : "Select birth date"}
-            </Text>
-          </TouchableOpacity>
-          {showBirthPicker && (
-            <DateTimePicker
-              value={birthDate || new Date()} // picker must have a Date, but birthDate not set ye
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                if (event.type === "set" && date) {
-                  setBirthDate(date);
-                }
-                setShowBirthPicker(false);
-              }}
-            />
-          )}
-        </View>
+        {/* BIRTH DATE - Web Version */}
+        <div className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <label className="text-gray-700 mb-2 font-medium block">
+            Birth Date
+          </label>
+
+          <ReactDatePicker
+            selected={birthDate}
+            onChange={(date: Date | null) => {
+              if (date) setBirthDate(date); // only set if date is not null
+            }}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select Birth Date"
+            showYearDropdown // ✅ Year dropdown
+            scrollableYearDropdown // ✅ Scrollable dropdown
+            yearDropdownItemNumber={100} // ✅ Show 100 years
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800 w-full"
+          />
+        </div>
 
         {/* Address */}
         <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
@@ -865,46 +854,31 @@ const RegisterUserScreen = () => {
                 placeholderTextColor="#9CA3AF"
               />
 
-              {/* Graduation Date */}
-              <TouchableOpacity
-                onPress={() => {
-                  const newEdu = [...education];
-                  newEdu[index].showPicker = true;
-                  setEducation(newEdu);
-                }}
-                className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-              >
-                <Icon name="calendar" size={18} color="#9CA3AF" />
-                <Text
-                  className={`ml-2 ${
-                    edu.graduationDate ? "text-gray-800" : "text-gray-400"
-                  }`}
-                >
-                  {edu.graduationDate
-                    ? new Date(edu.graduationDate).toDateString()
-                    : "Select passing date"}
-                </Text>
-              </TouchableOpacity>
+              {/* Graduation Date - Web Version */}
+              <div className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+                <label className="text-gray-700 mb-2 font-medium block">
+                  Graduation Date
+                </label>
 
-              {edu.showPicker && (
-                <DateTimePicker
-                  value={
-                    edu.graduationDate
-                      ? new Date(edu.graduationDate)
-                      : new Date()
+                <ReactDatePicker
+                  selected={
+                    edu.graduationDate ? new Date(edu.graduationDate) : null
                   }
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
+                  onChange={(date: Date | null) => {
                     const newEdu = [...education];
-                    newEdu[index].showPicker = false;
-                    if (event.type === "set" && date) {
-                      newEdu[index].graduationDate = date.toISOString();
-                    }
+                    newEdu[index].graduationDate = date
+                      ? date.toISOString()
+                      : "";
                     setEducation(newEdu);
                   }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Select passing date"
+                  showYearDropdown
+                  scrollableYearDropdown
+                  yearDropdownItemNumber={100}
+                  className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800 w-full"
                 />
-              )}
+              </div>
             </View>
           ))}
 
@@ -982,83 +956,46 @@ const RegisterUserScreen = () => {
                 placeholderTextColor="#9CA3AF"
               />
 
-              {/* Tenure */}
-              <View className="flex-row justify-between">
-                {/* From Date */}
-                <TouchableOpacity
-                  onPress={() => {
-                    const newExp = [...experience];
-                    newExp[index].showFromPicker = true;
-                    setExperience(newExp);
-                  }}
-                  className="flex-1 flex-row items-center border border-gray-300 rounded-xl px-3 py-2 mr-2"
-                >
-                  {/* <Icon name="calendar" size={18} color="#9CA3AF" /> */}
-                  <Text
-                    className={` ${
-                      exp.fromDate ? "text-gray-800" : "text-gray-400"
-                    }`}
-                  >
-                    {exp.fromDate
-                      ? new Date(exp.fromDate).toDateString()
-                      : "From date"}
-                  </Text>
-                </TouchableOpacity>
+              {/* Tenure - Web Version */}
+              <div className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+                <label className="text-gray-700 mb-2 font-medium block">
+                  Tenure
+                </label>
 
-                {/* To Date */}
-                <TouchableOpacity
-                  onPress={() => {
-                    const newExp = [...experience];
-                    newExp[index].showToPicker = true;
-                    setExperience(newExp);
-                  }}
-                  className="flex-1 flex-row items-center border border-gray-300 rounded-xl px-3 py-2 ml-2"
-                >
-                  {/* <Icon name="calendar" size={18} color="#9CA3AF" /> */}
-                  <Text
-                    className={` ${
-                      exp.toDate ? "text-gray-800" : "text-gray-400"
-                    }`}
-                  >
-                    {exp.toDate
-                      ? new Date(exp.toDate).toDateString()
-                      : "To date"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                <div className="flex flex-row justify-between">
+                  {/* From Date */}
+                  <ReactDatePicker
+                    selected={exp.fromDate ? new Date(exp.fromDate) : null}
+                    onChange={(date: Date | null) => {
+                      const newExp = [...experience];
+                      newExp[index].fromDate = date ? date.toISOString() : "";
+                      setExperience(newExp);
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="From date"
+                    showYearDropdown
+                    scrollableYearDropdown
+                    yearDropdownItemNumber={100}
+                    className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-gray-800 mr-2"
+                  />
 
-              {/* Date Pickers */}
-              {exp.showFromPicker && (
-                <DateTimePicker
-                  value={exp.fromDate ? new Date(exp.fromDate) : new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
-                    const newExp = [...experience];
-                    newExp[index].showFromPicker = false;
-                    if (event.type === "set" && date) {
-                      newExp[index].fromDate = date.toISOString();
-                    }
-                    setExperience(newExp);
-                  }}
-                />
-              )}
-
-              {exp.showToPicker && (
-                <DateTimePicker
-                  value={exp.toDate ? new Date(exp.toDate) : new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
-                    const newExp = [...experience];
-                    newExp[index].showToPicker = false;
-                    if (event.type === "set" && date) {
-                      newExp[index].toDate = date.toISOString();
-                    }
-                    setExperience(newExp);
-                  }}
-                />
-              )}
+                  {/* To Date */}
+                  <ReactDatePicker
+                    selected={exp.toDate ? new Date(exp.toDate) : null}
+                    onChange={(date: Date | null) => {
+                      const newExp = [...experience];
+                      newExp[index].toDate = date ? date.toISOString() : "";
+                      setExperience(newExp);
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="To date"
+                    showYearDropdown
+                    scrollableYearDropdown
+                    yearDropdownItemNumber={100}
+                    className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-gray-800 ml-2"
+                  />
+                </div>
+              </div>
             </View>
           ))}
 
