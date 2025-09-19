@@ -21,6 +21,11 @@ const UserDetails = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const formatEmployeeCode = (code?: number) =>
+    code !== undefined && code !== null
+      ? code.toString().padStart(3, "0")
+      : "---";
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -118,7 +123,7 @@ const UserDetails = () => {
               {user.designation} • {user.level}
             </Text>
             <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
-              Employee Code: W{user.employeeCode}
+              Employee Code: W{formatEmployeeCode(user.employeeCode)}
             </Text>
             <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
               Username: {user.username}

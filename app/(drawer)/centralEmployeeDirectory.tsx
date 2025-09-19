@@ -19,7 +19,7 @@ type User = {
   email: string;
   username: string;
   role: string;
-  employeeCode: string;
+  employeeCode: number;
 };
 
 export default function AllUsersScreen() {
@@ -50,6 +50,11 @@ export default function AllUsersScreen() {
       setLoading(false);
     }
   };
+
+  const formatEmployeeCode = (code?: number) =>
+    code !== undefined && code !== null
+      ? code.toString().padStart(3, "0")
+      : "---";
 
   // inside AllUsersScreen
   useFocusEffect(
@@ -107,7 +112,7 @@ export default function AllUsersScreen() {
                         : "bg-blue-100 text-blue-700"
                     }`}
                   >
-                    W{item.employeeCode}
+                    W{formatEmployeeCode(item.employeeCode)}
                   </Text>
                 )}
               </View>
