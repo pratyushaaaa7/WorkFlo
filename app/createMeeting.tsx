@@ -94,32 +94,33 @@ const CreateMinutes = () => {
   const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
 
   // Fetch users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        if (!token || !projectId) return;
-        const res = await api.get(`/user-directory/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      if (!token || !projectId) return;
+      const res = await api.get(`/projects/${projectId}/users-dropdown`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const formatted = res.data.map((u: any) => ({
-          label: `${u.individualName} (${u.firmName})`,
-          value: u._id,
-          attendeeName: u.individualName,
-          role: u.role || "",
-          organization: u.firmName || "",
-          designation: u.designation || "",
-          email: u.email || "",
-          phone: u.phone || "",
-        }));
+      const formatted = res.data.map((u: any) => ({
+        label: `${u.individualName} (${u.firmName})`,
+        value: u._id,
+        attendeeName: u.individualName,
+        role: u.role || "",
+        organization: u.firmName || "",
+        designation: u.designation || "",
+        email: u.email || "",
+        phone: u.phone || "",
+      }));
 
-        setUsers(formatted);
-      } catch (err) {
-        Toast.show({ type: "error", text1: "Error fetching users" });
-      }
-    };
-    fetchUsers();
-  }, [token, projectId]);
+      setUsers(formatted);
+    } catch (err) {
+      Toast.show({ type: "error", text1: "Error fetching users" });
+    }
+  };
+  fetchUsers();
+}, [token, projectId]);
+
 
   const fetchForwardedMinutes = async () => {
     try {
