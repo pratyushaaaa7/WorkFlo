@@ -5,6 +5,7 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext"; // adjust path if needed
 import api from "../../lib/api"; // axios instance with baseURL
@@ -32,7 +33,38 @@ export default function AllUsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const downloadExcelWeb = async () => {
+    try {
+      const response = await fetch(`${api.defaults.baseURL}/users/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to download file");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "users.xlsx"; // ✅ filename
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Excel download error:", error);
+    }
+  };
+
   const downloadExcel = async () => {
+    if (Platform.OS === "web") {
+      return downloadExcelWeb();
+    }
+
+    // ✅ Mobile flow
     try {
       const url = `${api.defaults.baseURL}/users/download`;
       const fileUri = FileSystem.documentDirectory + "users.xlsx";
