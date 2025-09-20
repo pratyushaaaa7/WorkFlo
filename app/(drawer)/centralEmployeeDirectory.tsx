@@ -12,6 +12,8 @@ import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router"; // if you are using expo-router
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 type User = {
   _id: string;
@@ -29,6 +31,40 @@ export default function AllUsersScreen() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const downloadExcel = async () => {
+    try {
+      const url = `${api.defaults.baseURL}/users/download`;
+      const fileUri = FileSystem.documentDirectory + "users.xlsx";
+
+      const downloadResumable = FileSystem.createDownloadResumable(
+        url,
+        fileUri,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const { uri } = await downloadResumable.downloadAsync();
+
+      if (uri && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Downloaded",
+          text2: "Excel saved at " + uri,
+        });
+      }
+    } catch (error) {
+      console.error("Excel download error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to download Excel",
+      });
+    }
+  };
 
   const fetchUsers = async () => {
     if (!token) return;
@@ -82,6 +118,16 @@ export default function AllUsersScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 px-4 pt-4">
+      {auth?.user?.role === "admin" && (
+        <TouchableOpacity
+          onPress={downloadExcel}
+          className="flex-row items-center bg-green-500 px-4 py-2 mb-4 rounded-lg self-start"
+        >
+          <Ionicons name="download-outline" size={20} color="white" />
+          <Text className="text-white ml-2">Download Excel</Text>
+        </TouchableOpacity>
+      )}
+
       <FlatList
         data={users}
         keyExtractor={(item) => item._id}
