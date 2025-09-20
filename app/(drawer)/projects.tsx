@@ -12,6 +12,7 @@ import api from "../../lib/api";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
@@ -195,7 +196,9 @@ const CompanyProjectSelectionScreen = () => {
             renderRightIcon={() =>
               loading ? (
                 <ActivityIndicator size="small" color="#6366F1" />
-              ) : null
+              ) : (
+                <Ionicons name="chevron-down" size={18} color="#6B7280" /> // gray-500
+              )
             }
           />
         </View>
