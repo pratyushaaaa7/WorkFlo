@@ -206,7 +206,7 @@ const ILRs = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const responsibilityMatch = ilr.responsibility.some((r) =>
-        r.individualName.toLowerCase().includes(q)
+        (r.name || "").toLowerCase().includes(q)
       );
       const descriptionMatch = ilr.description.toLowerCase().includes(q);
       // Add more fields if needed, like ilrNumber
@@ -223,7 +223,7 @@ const ILRs = () => {
     ...ilr,
     responsibility: ilr.responsibility.map((r) => ({
       ...r,
-      individualName: r.name, // 👈 map "name" into "individualName"
+      individualName: r.name || "", // 👈 map "name" into "individualName"
     })),
     activities:
       typeof ilr.activities === "string"
