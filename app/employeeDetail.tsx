@@ -196,11 +196,11 @@ const UserDetails = () => {
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Father: </Text>
-                {user.fatherName}
+                Mr. {user.fatherName}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Mother: </Text>
-                {user.motherName}
+                Mrs. {user.motherName}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Marital: </Text>
