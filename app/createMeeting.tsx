@@ -61,7 +61,7 @@ const CreateMinutes = () => {
       organization: "",
       designation: "",
       email: "",
-      phone: "",
+      contactNumbers: [""], // first number only
     },
   ]);
 
@@ -94,33 +94,33 @@ const CreateMinutes = () => {
   const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
 
   // Fetch users
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      if (!token || !projectId) return;
-      const res = await api.get(`/projects/${projectId}/users-dropdown`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (!token || !projectId) return;
+        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const formatted = res.data.map((u: any) => ({
-        label: `${u.individualName} (${u.firmName})`,
-        value: u._id,
-        attendeeName: u.individualName,
-        role: u.role || "",
-        organization: u.firmName || "",
-        designation: u.designation || "",
-        email: u.email || "",
-        phone: u.phone || "",
-      }));
+        const formatted = res.data.map((u: any) => ({
+          label: `${u.individualName} (${u.firmName})`,
+          value: u._id,
+          attendeeName: u.individualName,
+          role: u.role || "",
+          organization: u.firmName || "",
+          designation: u.designation || "",
+          email: u.email || "",
+          contactNumbers: u.contactNumbers?.length ? u.contactNumbers : [""], // ✅ use existing array
+        }));
 
-      setUsers(formatted);
-    } catch (err) {
-      Toast.show({ type: "error", text1: "Error fetching users" });
-    }
-  };
-  fetchUsers();
-}, [token, projectId]);
-
+        setUsers(formatted);
+        // console.log(formatted);
+      } catch (err) {
+        Toast.show({ type: "error", text1: "Error fetching users" });
+      }
+    };
+    fetchUsers();
+  }, [token, projectId]);
 
   const fetchForwardedMinutes = async () => {
     try {
@@ -140,9 +140,18 @@ useEffect(() => {
   // Utility functions
   const updateAttendee = (index: number, field: string, value: any) => {
     const updated = [...attendees];
-    updated[index][field] = value;
+
+    if (field === "phone") {
+      // ensure contactNumbers array exists
+      if (!updated[index].contactNumbers) updated[index].contactNumbers = [""];
+      updated[index].contactNumbers[0] = value; // only first number
+    } else {
+      updated[index][field] = value;
+    }
+
     setAttendees(updated);
   };
+
   const addAttendee = () =>
     setAttendees((prev) => [
       ...prev,
@@ -153,7 +162,7 @@ useEffect(() => {
         organization: "",
         designation: "",
         email: "",
-        phone: "",
+        contactNumbers: [""], // first number
       },
     ]);
   const deleteAttendee = (index: number) => {
@@ -209,6 +218,9 @@ useEffect(() => {
         });
 
         const data = res.data;
+        // console.log (data)
+        console.log("Meeting data:", JSON.stringify(data, null, 2));
+
 
         // Prefill meeting info
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
@@ -307,7 +319,7 @@ useEffect(() => {
         organization: a.organization,
         designation: a.designation,
         email: a.email,
-        phone: a.phone,
+        contactNumbers: a.contactNumbers || [""], // ✅ send full array
       }));
 
       // ✅ Format minutes
@@ -317,14 +329,14 @@ useEffect(() => {
         issueSubject: m.issueSubject,
         description: m.issueDescription || "",
         raisedBy: Array.isArray(m.raisedBy)
-          ? m.raisedBy.map((r:any) => r._id) // ✅ only IDs
+          ? m.raisedBy.map((r: any) => r._id) // ✅ only IDs
           : [m.raisedBy?._id],
         responsibility: m.responsibilityForInfo
           ? []
           : Array.isArray(m.responsibility)
           ? m.responsibility
-              .map((r:any) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
-              .filter((id:any) => id) // remove null/undefined
+              .map((r: any) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
+              .filter((id: any) => id) // remove null/undefined
           : m.responsibility?._id
           ? [m.responsibility._id]
           : [],
@@ -524,7 +536,11 @@ useEffect(() => {
                             user.designation || ""
                           );
                           updateAttendee(index, "email", user.email || "");
-                          updateAttendee(index, "phone", user.phone || "");
+                          updateAttendee(
+                            index,
+                            "contactNumbers",
+                            user.contactNumbers || [""]
+                          );
                         }
                         setOpenDirectoryFor(null);
                       }}
@@ -592,7 +608,7 @@ useEffect(() => {
                     <TextInput
                       placeholder="Phone"
                       placeholderTextColor="#888"
-                      value={att.phone}
+                      value={att.contactNumbers[0] || ""}
                       onChangeText={(t) => updateAttendee(index, "phone", t)}
                       keyboardType="phone-pad"
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
@@ -893,84 +909,87 @@ useEffect(() => {
           </TouchableOpacity>
         </View>
 
- <Modal
-  visible={forwardedModalVisible}
-  animationType="slide"
-  transparent={true}
-  onRequestClose={() => setForwardedModalVisible(false)}
->
-  <View className="flex-1 bg-black/50 justify-center items-center">
-    <View className="bg-white w-11/12 rounded-2xl p-5 max-h-[70%] shadow-lg">
-      {/* Header with title + close button */}
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-xl font-bold text-center flex-1">
-          Select Forwarded Issue
-        </Text>
-        <TouchableOpacity
-          onPress={() => setForwardedModalVisible(false)}
-          className="ml-2 p-1"
+        <Modal
+          visible={forwardedModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setForwardedModalVisible(false)}
         >
-          <Ionicons name="close" size={24} color="#333" />
-        </TouchableOpacity>
-      </View>
+          <View className="flex-1 bg-black/50 justify-center items-center">
+            <View className="bg-white w-11/12 rounded-2xl p-5 max-h-[70%] shadow-lg">
+              {/* Header with title + close button */}
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-xl font-bold text-center flex-1">
+                  Select Forwarded Issue
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setForwardedModalVisible(false)}
+                  className="ml-2 p-1"
+                >
+                  <Ionicons name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
 
-      {/* List or Empty State */}
-      {!forwardedMinutes || forwardedMinutes.length === 0 ? (
-        <View className="justify-center items-center py-10">
-          <Ionicons name="document-text-outline" size={70} color="#c0c0c0" />
-          <Text className="text-gray-400 text-center mt-4 text-base">
-            No forwarded issues available.
-          </Text>
-          <Text className="text-gray-400 text-center mt-1 text-sm">
-            Forwarded issues will appear here once available.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={forwardedMinutes}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 10 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
-              onPress={() => {
-                setMinutes((prev) => [
-                  ...prev,
-                  {
-                    serialNo: prev.length + 1,
-                    raisedBy:
-                      item.raisedBy?.map((r: any) => ({
-                        _id: r._id,
-                        individualName: r.individualName || "",
-                        designation: r.designation || "",
-                      })) || [],
-                    issueSubject: item.issueSubject || "",
-                    issueDescription: item.description || "",
-                    targetDate: item.targetDate || null,
-                    responsibility:
-                      item.responsibility?.map((r: any) => r._id) || [],
-                    remarks: item.remarks || "",
-                    targetDateForInfo: item.targetDateForInfo || false,
-                    responsibilityForInfo:
-                      item.responsibilityForInfo || false,
-                    fromForwardedId: item._id,
-                  },
-                ]);
-                setForwardedModalVisible(false);
-              }}
-            >
-              <Text className="font-semibold text-gray-900 text-base">
-                {item.issueSubject || "Untitled Issue"}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      )}
-    </View>
-  </View>
-</Modal>
-
+              {/* List or Empty State */}
+              {!forwardedMinutes || forwardedMinutes.length === 0 ? (
+                <View className="justify-center items-center py-10">
+                  <Ionicons
+                    name="document-text-outline"
+                    size={70}
+                    color="#c0c0c0"
+                  />
+                  <Text className="text-gray-400 text-center mt-4 text-base">
+                    No forwarded issues available.
+                  </Text>
+                  <Text className="text-gray-400 text-center mt-1 text-sm">
+                    Forwarded issues will appear here once available.
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={forwardedMinutes}
+                  keyExtractor={(item) => item._id}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 10 }}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
+                      onPress={() => {
+                        setMinutes((prev) => [
+                          ...prev,
+                          {
+                            serialNo: prev.length + 1,
+                            raisedBy:
+                              item.raisedBy?.map((r: any) => ({
+                                _id: r._id,
+                                individualName: r.individualName || "",
+                                designation: r.designation || "",
+                              })) || [],
+                            issueSubject: item.issueSubject || "",
+                            issueDescription: item.description || "",
+                            targetDate: item.targetDate || null,
+                            responsibility:
+                              item.responsibility?.map((r: any) => r._id) || [],
+                            remarks: item.remarks || "",
+                            targetDateForInfo: item.targetDateForInfo || false,
+                            responsibilityForInfo:
+                              item.responsibilityForInfo || false,
+                            fromForwardedId: item._id,
+                          },
+                        ]);
+                        setForwardedModalVisible(false);
+                      }}
+                    >
+                      <Text className="font-semibold text-gray-900 text-base">
+                        {item.issueSubject || "Untitled Issue"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </View>
+          </View>
+        </Modal>
 
         {/* Submit Button */}
         <View className="flex-row gap-3 my-10">
