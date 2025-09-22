@@ -33,22 +33,23 @@ export default function AllUsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [downloading, setDownloading] = useState(false); // ✅ state to track download
+
   const downloadExcelWeb = async () => {
     try {
+      setDownloading(true); // start loader
       const response = await fetch(`${api.defaults.baseURL}/users/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to download file");
-      }
+      if (!response.ok) throw new Error("Failed to download file");
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = "users.xlsx"; // ✅ filename
+      a.download = "users.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -56,6 +57,8 @@ export default function AllUsersScreen() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Excel download error:", error);
+    } finally {
+      setDownloading(false); // stop loader
     }
   };
 
@@ -64,17 +67,16 @@ export default function AllUsersScreen() {
       return downloadExcelWeb();
     }
 
-    // ✅ Mobile flow
     try {
+      setDownloading(true); // start loader
+
       const url = `${api.defaults.baseURL}/users/download`;
       const fileUri = FileSystem.documentDirectory + "users.xlsx";
 
       const downloadResumable = FileSystem.createDownloadResumable(
         url,
         fileUri,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const { uri } = await downloadResumable.downloadAsync();
@@ -95,6 +97,8 @@ export default function AllUsersScreen() {
         text1: "Error",
         text2: "Failed to download Excel",
       });
+    } finally {
+      setDownloading(false); // stop loader
     }
   };
 
@@ -154,9 +158,15 @@ export default function AllUsersScreen() {
         <TouchableOpacity
           onPress={downloadExcel}
           className="flex-row items-center bg-green-500 px-4 py-2 mb-4 rounded-lg self-start"
+          disabled={downloading} // disable while downloading
         >
           <Ionicons name="download-outline" size={20} color="white" />
-          <Text className="text-white ml-2">Download Excel</Text>
+          <Text className="text-white ml-2">
+            {downloading ? "Downloading..." : "Download Excel"}
+          </Text>
+          {downloading && (
+            <ActivityIndicator size="small" color="#fff" className="ml-2" />
+          )}
         </TouchableOpacity>
       )}
 
