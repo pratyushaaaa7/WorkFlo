@@ -6,8 +6,8 @@ import {
   FlatList,
   ActivityIndicator,
   TextInput,
+  Platform,
 } from "react-native";
-
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import api from "../lib/api";
@@ -16,8 +16,10 @@ import { LinearGradient } from "expo-linear-gradient";
 // import Toast from "react-native-toast-message";
 import Activity from "@/types/ILRActivity";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import * as FileSystem from "expo-file-system"; // for mobile download
+import * as Sharing from "expo-sharing";
 
-import { exportILRsToExcel } from "../utils/ilrExcel";
+// import { exportILRsToExcel } from "../utils/ilrExcel";
 
 type ILR = {
   _id: string;
@@ -72,9 +74,71 @@ const ILRs = () => {
     fetchILRs();
   }, [token, projectId]);
 
-  const handleDownloadExcel = () => {
-    exportILRsToExcel(parsedILRs, projectName, auth?.user?.fullName, company); // 👈 one-line call
+  const handleDownloadExcel = async () => {
+    try {
+      const payload = {
+        ilrs: parsedILRs,
+        projectName,
+        accountName: auth?.user?.fullName,
+        company,
+      };
+
+      // Call backend
+      const response = await api.post("/ilrs/ilrs-download", payload, {
+        responseType: "blob", // important for binary files
+        headers: {
+          Authorization: `Bearer ${auth?.token}`,
+        },
+      });
+
+      const fileName = `ILRs_${projectName}.xlsx`;
+
+      if (Platform.OS === "web") {
+        // Web: download via anchor tag
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        // Mobile: write to cache and share
+        const fileUri = FileSystem.cacheDirectory + fileName;
+
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64data = reader.result?.toString().split(",")[1]; // remove data prefix
+          if (!base64data) return;
+
+          await FileSystem.writeAsStringAsync(fileUri, base64data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          await Sharing.shareAsync(fileUri, {
+            mimeType:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            dialogTitle: "Share ILRs Excel",
+            UTI: "com.microsoft.excel.xlsx",
+          });
+        };
+        reader.readAsDataURL(response.data);
+      }
+    } catch (err) {
+      console.error("Failed to download Excel:", err);
+      alert("Failed to download Excel");
+    }
   };
+
+  // Helper: convert blob to base64 (for mobile)
+  const blobToBase64 = (blob: Blob) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result?.toString() || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
 
   const renderCard = ({ item }: { item: ILR }) => {
     const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
