@@ -12,6 +12,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
+function toProperCase(name) {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 const UserDetails = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -196,11 +205,11 @@ const UserDetails = () => {
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Father: </Text>
-                Mr. {user.fatherName}
+                Mr. {toProperCase(user.fatherName)}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Mother: </Text>
-                Mrs. {user.motherName}
+                Mrs. {toProperCase(user.motherName)}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Marital: </Text>
@@ -209,12 +218,12 @@ const UserDetails = () => {
               {user.maritalStatus === "married" && (
                 <Text className="text-gray-700">
                   <Text className="font-medium">Spouse: </Text>
-                  {user.spouseName}
+                  {toProperCase(user.spouseName)}
                 </Text>
               )}
               <Text className="text-gray-700">
                 <Text className="font-medium">Address: </Text>
-                {user.homeAddress}
+                {toProperCase(user.homeAddress)}
               </Text>
             </View>
           </Section>
