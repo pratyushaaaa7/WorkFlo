@@ -12,12 +12,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
-function toProperCase(name) {
+function toProperCase(name:any) {
   if (!name) return "";
   return name
     .toLowerCase()
     .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word:any) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
