@@ -300,45 +300,44 @@ const ILRForm = () => {
               </TouchableOpacity>
 
               {/* Responsibility MultiSelect */}
-             <MultiSelect
-  style={{
-    height: 35,
-    borderColor: "#E5E7EB",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#F9FAFB",
-    marginBottom: 2,
-  }}
-  placeholderStyle={{ fontSize: 14, color: "#888" }}
-  selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
-  selectedStyle={{
-    borderRadius: 10,
-    backgroundColor: "#b9EBF1",
-    padding: 5,
-  }}
-  containerStyle={{
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-  }}
-  activeColor="#E0F7FA"
-  inputSearchStyle={{ fontSize: 14 }}
-  search
-  labelField="label"
-  valueField="value"
-  data={users}
-  value={issue.responsibility.map((r) => r._id)} // array of IDs
-  placeholder="Select responsible users"
-  searchPlaceholder="Search..."
-  onChange={(selectedIds: string[]) => {
-    const selectedObjects = users
-      .filter((u) => selectedIds.includes(u.value))
-      .map((u) => ({ _id: u.value, name: u.label })); // full objects
-    updateIssue(index, "responsibility", selectedObjects);
-  }}
-/>
-
+              <MultiSelect
+                style={{
+                  height: 35,
+                  borderColor: "#E5E7EB",
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: "#F9FAFB",
+                  marginBottom: 2,
+                }}
+                placeholderStyle={{ fontSize: 14, color: "#888" }}
+                selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
+                selectedStyle={{
+                  borderRadius: 10,
+                  backgroundColor: "#b9EBF1",
+                  padding: 5,
+                }}
+                containerStyle={{
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  backgroundColor: "#fff",
+                }}
+                activeColor="#E0F7FA"
+                inputSearchStyle={{ fontSize: 14 }}
+                search
+                labelField="label"
+                valueField="value"
+                data={users}
+                value={issue.responsibility.map((r) => r._id)} // array of IDs
+                placeholder="Select responsible users"
+                searchPlaceholder="Search..."
+                onChange={(selectedIds: string[]) => {
+                  const selectedObjects = users
+                    .filter((u) => selectedIds.includes(u.value))
+                    .map((u) => ({ _id: u.value, name: u.label })); // full objects
+                  updateIssue(index, "responsibility", selectedObjects);
+                }}
+              />
 
               <TextInput
                 placeholder="Issue Description"
