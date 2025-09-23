@@ -29,6 +29,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+*.code-workspace
 
 # local env files
 .env*.local
@@ -50,3 +51,4 @@ android/build/
 
 # Local Android SDK path config
 android/local.properties
+
