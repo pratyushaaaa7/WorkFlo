@@ -12,17 +12,24 @@ type Attendee = {
   role?: string;
   email?: string;
   phone?: string;
+  contactNumbers?: any;
 };
 
-type Responsibility = { individualName: string; designation?: string };
-type RaisedBy = { individualName: string; designation?: string };
+// type Responsibility = { individualName: string; designation?: string };
+// type RaisedBy = { individualName: string; designation?: string };
 
 type Minute = {
   serialNo: number;
   issueSubject: string;
   description: string;
-  raisedBy: RaisedBy[];
-  responsibility: Responsibility[];
+  raisedBy: {
+    _id: string;
+    name: string;
+  }[];
+  responsibility: {
+    _id: string;
+    name: string;
+  }[];
   targetDate: string;
   status: string; // "open" | "closed"
   remarks?: string;
@@ -55,7 +62,7 @@ export async function exportMinutesToExcel(
     if (company.toLowerCase() === "wp") {
       logoPath = require("../assets/images/logoWP.png");
     } else if (company.toLowerCase() === "wal") {
-      logoPath = require("../assets/images/logoWPicon.png");
+      logoPath = require("../assets/images/logoWAL.jpg");
     } else {
       logoPath = require("../assets/images/react-logo.png");
     }
@@ -101,7 +108,6 @@ export async function exportMinutesToExcel(
     const attendeeHeader = worksheet.addRow([
       "S.No",
       "Name",
-      "Role",
       "Company",
       "Designation",
       "Email",
@@ -122,11 +128,10 @@ export async function exportMinutesToExcel(
       worksheet.addRow([
         index + 1,
         attendee.attendeeName,
-        attendee.role || "",
         attendee.organization,
         attendee.designation,
         attendee.email || "",
-        attendee.phone || "",
+        attendee.contactNumbers?.join(", ") || "", // ✅ join array
       ]);
     });
 
@@ -145,6 +150,7 @@ export async function exportMinutesToExcel(
       "Responsibility",
       "Target Date",
       "Status",
+      "Meeting Discussions",
     ]);
 
     minutesHeader.eachCell((cell) => {
@@ -160,17 +166,18 @@ export async function exportMinutesToExcel(
     meeting.minutes.forEach((minute) => {
       const row = worksheet.addRow([
         minute.serialNo,
-        minute.raisedBy.map((r) => r.individualName).join(", "),
+        minute.raisedBy.map((r) => r.name).join(", "), // <-- use label
         minute.issueSubject,
         minute.description, // ✅ updated
         minute.responsibilityForInfo
           ? "For Information"
-          : minute.responsibility.map((r) => r.individualName).join(", "),
+          : minute.responsibility.map((r) => r.name).join(", "),
 
         minute.targetDateForInfo
           ? "For Information"
           : new Date(minute.targetDate).toLocaleDateString(),
         minute.status.toUpperCase(),
+        minute.remarks,
       ]);
 
       // Wrap text for Issue Description

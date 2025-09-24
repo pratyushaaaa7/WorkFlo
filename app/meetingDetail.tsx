@@ -56,7 +56,7 @@ const MinutesDetail = () => {
     };
 
     if (meetingId) fetchMeeting();
-  }, [meetingId]);
+  }, [meetingId, token]);
 
   return (
     <View className="flex-1 bg-gray-100">

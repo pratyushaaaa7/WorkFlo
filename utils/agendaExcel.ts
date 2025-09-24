@@ -12,6 +12,7 @@ type Attendee = {
   role?: string;
   email?: string;
   phone?: string;
+  contactNumbers?: any;
 };
 
 // type RaisedBy = { individualName: string; designation?: string };
@@ -118,7 +119,7 @@ export async function exportAgendaWithAttendees(
         attendee.organization,
         attendee.designation,
         attendee.email || "",
-        attendee.phone || "",
+        attendee.contactNumbers?.join(", ") || "",
       ]);
     });
 
