@@ -4,14 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
   Modal,
   FlatList,
   Platform,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { List, Card, Divider } from "react-native-paper";
-import Collapsible from "react-native-collapsible";
+import { List, Card } from "react-native-paper";
+// import Collapsible from "react-native-collapsible";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MultiSelect, Dropdown } from "react-native-element-dropdown";
@@ -32,6 +31,7 @@ type DirectoryUser = {
   designation?: string;
   email?: string;
   phone?: string;
+  contactNumbers?: any;
 };
 
 const CreateMinutes = () => {
@@ -57,7 +57,7 @@ const CreateMinutes = () => {
     {
       sNo: 1,
       attendeeName: "",
-      role: "",
+      // role: "",
       organization: "",
       designation: "",
       email: "",
@@ -106,7 +106,7 @@ const CreateMinutes = () => {
           label: `${u.individualName} (${u.firmName})`,
           value: u._id,
           attendeeName: u.individualName,
-          role: u.role || "",
+          // role: u.role || "",
           organization: u.firmName || "",
           designation: u.designation || "",
           email: u.email || "",
@@ -117,6 +117,7 @@ const CreateMinutes = () => {
         // console.log(formatted);
       } catch (err) {
         Toast.show({ type: "error", text1: "Error fetching users" });
+        console.log(err);
       }
     };
     fetchUsers();
@@ -135,6 +136,7 @@ const CreateMinutes = () => {
       setForwardedModalVisible(true);
     } catch (err) {
       Toast.show({ type: "error", text1: "Error fetching forwarded minutes" });
+      console.log(err);
     }
   };
 
@@ -159,7 +161,7 @@ const CreateMinutes = () => {
       {
         sNo: prev.length + 1,
         attendeeName: "",
-        role: "",
+        // role: "",
         organization: "",
         designation: "",
         email: "",
@@ -234,7 +236,7 @@ const CreateMinutes = () => {
             data.attendees.map((a: any, idx: number) => ({
               sNo: a.sNo || idx + 1,
               attendeeName: a.attendeeName || "",
-              role: a.role || "",
+              // role: a.role || "",
               organization: a.organization || "",
               designation: a.designation || "",
               email: a.email || "",
@@ -336,7 +338,7 @@ const CreateMinutes = () => {
       const formattedAttendees = attendees.map((a) => ({
         sNo: a.sNo,
         attendeeName: a.attendeeName,
-        role: a.role,
+        // role: a.role,
         organization: a.organization,
         designation: a.designation,
         email: a.email,
@@ -399,7 +401,7 @@ const CreateMinutes = () => {
         position: "bottom",
       });
       router.back();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Submit error:", err);
       console.error("Submit error:", err?.response.data || err.message);
 
@@ -543,7 +545,7 @@ const CreateMinutes = () => {
                             "attendeeName",
                             user.attendeeName || ""
                           );
-                          updateAttendee(index, "role", user.role || "");
+                          // updateAttendee(index, "role", user.role || "");
                           updateAttendee(
                             index,
                             "organization",
@@ -591,13 +593,13 @@ const CreateMinutes = () => {
                       }
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
-                    <TextInput
+                    {/* <TextInput
                       placeholder="Role"
                       placeholderTextColor="#888"
                       value={att.role}
                       onChangeText={(t) => updateAttendee(index, "role", t)}
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
+                    /> */}
                     <TextInput
                       placeholder="Organization"
                       placeholderTextColor="#888"

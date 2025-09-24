@@ -14,14 +14,14 @@ type Attendee = {
   phone?: string;
 };
 
-type RaisedBy = { individualName: string; designation?: string };
+// type RaisedBy = { individualName: string; designation?: string };
 
 type MinuteItem = {
   serialNo: number;
   issueSubject: string;
   issueDescription?: string;
-  raisedBy: RaisedBy[];
-  responsibility: string[];
+  raisedBy: { label: string; value: string }[]; // changed
+  responsibility: { label: string; value: string }[]; // changed
   targetDate: string;
   status: string;
 };
@@ -51,7 +51,7 @@ export async function exportAgendaWithAttendees(
     if (company.toLowerCase() === "wp") {
       logoPath = require("../assets/images/logoWP.png");
     } else if (company.toLowerCase() === "wal") {
-      logoPath = require("../assets/images/logoWPicon.png");
+      logoPath = require("../assets/images/logoWAL.jpg");
     } else {
       logoPath = require("../assets/images/react-logo.png");
     }
@@ -95,7 +95,6 @@ export async function exportAgendaWithAttendees(
     const attendeeHeader = worksheet.addRow([
       "S.No",
       "Name",
-      "Role",
       "Company",
       "Designation",
       "Email",
@@ -116,7 +115,6 @@ export async function exportAgendaWithAttendees(
       worksheet.addRow([
         index + 1,
         attendee.attendeeName,
-        attendee.role || "",
         attendee.organization,
         attendee.designation,
         attendee.email || "",
@@ -150,7 +148,7 @@ export async function exportAgendaWithAttendees(
       const row = worksheet.addRow([
         item.serialNo,
         item.issueSubject,
-        item.raisedBy.map((r) => r.individualName).join(", "),
+        item.raisedBy.map((r) => r.label).join(", "), // <-- use label
       ]);
       row.getCell(2).alignment = { wrapText: true, vertical: "top" };
       row.getCell(3).alignment = { wrapText: true, vertical: "top" };
