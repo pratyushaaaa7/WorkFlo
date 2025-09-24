@@ -12,12 +12,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
-function toProperCase(name:any) {
+function toProperCase(name: any) {
   if (!name) return "";
   return name
     .toLowerCase()
     .split(" ")
-    .map((word:any) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
@@ -43,7 +43,7 @@ const UserDetails = () => {
         });
         setUser(res.data);
         // console.log(res.data);
-      } catch (err) {
+      } catch (err:any) {
         console.error(
           "Error fetching user:",
           err.response?.data || err.message
@@ -53,7 +53,7 @@ const UserDetails = () => {
       }
     };
     fetchUser();
-  }, [userId]);
+  }, [userId, token]);
 
   // Reusable Section card
   const Section = ({ icon, title, children }: any) => (
@@ -215,7 +215,7 @@ const UserDetails = () => {
                 <Text className="font-medium">Marital: </Text>
                 {user.maritalStatus}
               </Text>
-              {user.maritalStatus === "married" && (
+              {user.maritalStatus === "Married" && (
                 <Text className="text-gray-700">
                   <Text className="font-medium">Spouse: </Text>
                   {toProperCase(user.spouseName)}
@@ -224,6 +224,10 @@ const UserDetails = () => {
               <Text className="text-gray-700">
                 <Text className="font-medium">Address: </Text>
                 {toProperCase(user.homeAddress)}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-medium">Blood Group: </Text>
+                {user.bloodGroup}
               </Text>
             </View>
           </Section>
