@@ -39,7 +39,7 @@ const Minutes = () => {
     };
 
     if (projectId) fetchMeetings();
-  }, [projectId]);
+  }, [projectId, token]);
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
