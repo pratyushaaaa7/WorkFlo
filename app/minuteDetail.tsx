@@ -49,6 +49,7 @@ const fmtDate = (d?: string | Date) => {
 
 const MinuteDetail = () => {
   const params = useLocalSearchParams();
+  // console.log(params, "hellooo")
   const router = useRouter();
   const auth = useContext(AuthContext);
 

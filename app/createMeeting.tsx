@@ -131,6 +131,7 @@ const CreateMinutes = () => {
 
       setForwardedMinutes(res.data); // array of forwarded minutes
       // console.log(res.data);
+      // console.log(JSON.stringify(res.data, null, 2));
       setForwardedModalVisible(true);
     } catch (err) {
       Toast.show({ type: "error", text1: "Error fetching forwarded minutes" });
