@@ -13,6 +13,14 @@ import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
 import { exportMinutesToExcel } from "../utils/momExcel";
 
+const capitalizeFirst = (str: string) => {
+  if (!str) return "";
+  return str
+    .split(" ") // split string into words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // capitalize each word
+    .join(" "); // join words back into a single string
+};
+
 const MinutesDetail = () => {
   // Get local params from previous screen
   const {
@@ -39,7 +47,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        // console.log(res.data);
+        console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -166,11 +174,11 @@ const MinutesDetail = () => {
                     pathname: "/minuteDetail",
                     params: {
                       id: minute._id,
-                      meetingId: meeting._id, // <-- important
+                      meetingId: meeting._id,
                       serialNo: minute.serialNo,
                       issueSubject: minute.issueSubject,
                       description: minute.description ?? "",
-                      raisedBy: JSON.stringify(minute.raisedBy), // arrays need to be stringified
+                      raisedBy: JSON.stringify(minute.raisedBy),
                       responsibility: JSON.stringify(minute.responsibility),
                       responsibilityForInfo: minute.responsibilityForInfo
                         ? "true"
@@ -197,14 +205,16 @@ const MinutesDetail = () => {
                 )}
                 <Text className="text-gray-500 text-sm">
                   Raised By:{" "}
-                  {minute.raisedBy.map((r: any) => r.individualName).join(", ")}
+                  {minute.raisedBy
+                    .map((r: any) => capitalizeFirst(r.name))
+                    .join(", ")}
                 </Text>
                 <Text className="text-gray-500 text-sm">
                   Responsible:{" "}
                   {minute.responsibilityForInfo
                     ? "For Information"
                     : minute.responsibility
-                        .map((r: any) => r.individualName)
+                        .map((r: any) => capitalizeFirst(r.name))
                         .join(", ")}
                 </Text>
                 <Text className="text-gray-500 text-sm">
