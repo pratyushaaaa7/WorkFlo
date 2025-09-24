@@ -47,7 +47,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        console.log(JSON.stringify(res.data, null, 2));
+        // console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
