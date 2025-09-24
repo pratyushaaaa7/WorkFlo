@@ -20,7 +20,73 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
-import { exportAgendaWithAttendees } from "../utils/agendaExcel";
+// import { exportAgendaWithAttendees } from "../utils/agendaExcel";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+
+const handleDownloadAgenda = async (
+  meeting: any,
+  projectName: any,
+  accountName: any,
+  company: any,
+  token: any
+) => {
+  try {
+    const payload = {
+      meeting,
+      projectName,
+      accountName,
+      company,
+    };
+
+    const response = await api.post("/minutes/export/agenda", payload, {
+      responseType: "blob", // important for binary files
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const fileName = `Meeting_${meeting.meetingNumber}_Agenda.xlsx`;
+
+    if (Platform.OS === "web") {
+      // Web: download via anchor tag
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } else {
+      // Mobile: write to cache and share
+      const blobToBase64 = (blob: Blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () =>
+            resolve(reader.result?.toString().split(",")[1] || "");
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+      const base64data = await blobToBase64(response.data);
+
+      const fileUri = FileSystem.cacheDirectory + fileName;
+      await FileSystem.writeAsStringAsync(fileUri, base64data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await Sharing.shareAsync(fileUri, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share Meeting Agenda",
+        UTI: "com.microsoft.excel.xlsx",
+      });
+    }
+  } catch (err) {
+    console.error("Failed to download agenda:", err);
+    alert("Failed to download agenda");
+  }
+};
 
 type DirectoryUser = {
   label: string;
@@ -1031,24 +1097,22 @@ const CreateMinutes = () => {
         <View className="flex-row gap-3 my-10">
           {meetingId ? (
             <TouchableOpacity
-              onPress={() => {
-                // Build the export payload
-                const exportData = {
-                  meetingDate,
-                  meetingTime,
-                  meetingVenue,
-                  meetingNumber: meetingNumber, // <-- from DB
-                  attendees, // already in correct state
-                  minutes, // already in correct state
-                };
-
-                exportAgendaWithAttendees(
-                  exportData,
-                  auth?.user?.fullName ?? "Unknown", // accountName
+              onPress={() =>
+                handleDownloadAgenda(
+                  {
+                    meetingDate,
+                    meetingTime,
+                    meetingVenue,
+                    meetingNumber,
+                    attendees,
+                    minutes,
+                  },
                   projectName,
-                  company
-                );
-              }}
+                  auth?.user?.fullName ?? "Unknown",
+                  company,
+                  auth?.token
+                )
+              }
               className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
             >
               <Text className="text-white font-bold text-xl">
