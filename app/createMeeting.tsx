@@ -221,33 +221,53 @@ const CreateMinutes = () => {
         // console.log (data)
         console.log("Meeting data:", JSON.stringify(data, null, 2));
 
-
         // Prefill meeting info
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
         if (data.meetingTime) setMeetingTime(data.meetingTime);
         if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
         if (data.meetingNumber) setMeetingNumber(data.meetingNumber);
 
-        // Prefill attendees if exist
+        // ✅ Normalize attendees
         if (data.attendees && data.attendees.length > 0) {
-          setAttendees(data.attendees);
+          setAttendees(
+            data.attendees.map((a: any, idx: number) => ({
+              sNo: a.sNo || idx + 1,
+              attendeeName: a.attendeeName || "",
+              role: a.role || "",
+              organization: a.organization || "",
+              designation: a.designation || "",
+              email: a.email || "",
+              status: a.status || "",
+              userId: a.userId || null,
+              contactNumbers: a.contactNumbers || [""], // 👈 prevent crash
+            }))
+          );
         }
 
         // Prefill minutes (from agenda if exists)
         if (data.minutes && data.minutes.length > 0) {
           const formattedMinutes = data.minutes.map((m: any, idx: number) => ({
             serialNo: idx + 1,
-            raisedBy:
-              m.raisedBy?.map((r: any) => ({
-                _id: r._id,
-                individualName: r.individualName || "",
-                designation: r.designation || "",
-              })) || [],
             issueSubject: m.issueSubject || "",
             issueDescription: m.description || "",
             targetDate: m.targetDate || null,
-            responsibility: m.responsibility?.map((r: any) => r._id) || [],
             remarks: m.remarks || "",
+            raisedBy: Array.isArray(m.raisedBy)
+              ? m.raisedBy.map((r: any) => ({
+                  value: r._id,
+                  label: r.name,
+                }))
+              : [],
+            responsibility: Array.isArray(m.responsibility)
+              ? m.responsibility.map((r: any) => ({
+                  value: r._id,
+                  label: r.name,
+                }))
+              : [],
+
+            targetDateForInfo: m.targetDateForInfo,
+            responsibilityForInfo: m.responsibilityForInfo,
+            fromForwardedId: m.fromForwardedId || null,
           }));
           setMinutes(formattedMinutes);
         }
@@ -328,18 +348,14 @@ const CreateMinutes = () => {
         serialNo: m.serialNo ?? i + 1,
         issueSubject: m.issueSubject,
         description: m.issueDescription || "",
-        raisedBy: Array.isArray(m.raisedBy)
-          ? m.raisedBy.map((r: any) => r._id) // ✅ only IDs
-          : [m.raisedBy?._id],
-        responsibility: m.responsibilityForInfo
-          ? []
-          : Array.isArray(m.responsibility)
-          ? m.responsibility
-              .map((r: any) => (typeof r === "object" ? r._id : r)) // handle both objects and strings
-              .filter((id: any) => id) // remove null/undefined
-          : m.responsibility?._id
-          ? [m.responsibility._id]
-          : [],
+        raisedBy: m.raisedBy.map((r: any) => ({
+          _id: r.value, // backend expects _id
+          name: r.label,
+        })),
+        responsibility: m.responsibility.map((r: any) => ({
+          _id: r.value,
+          name: r.label,
+        })),
 
         targetDate: m.targetDateForInfo ? null : m.targetDate,
         remarks: m.remarks || "",
@@ -347,6 +363,7 @@ const CreateMinutes = () => {
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
       }));
+
       // console.log("Submitting Minutes payload:", formattedMinutes);
 
       const payload = {
@@ -360,6 +377,7 @@ const CreateMinutes = () => {
       };
 
       // console.log("Full payload to API:", payload);
+      // console.log("Submitting payload:", JSON.stringify(payload, null, 2));
 
       // ✅ Call API
       if (type === "agenda" || !meetingId) {
@@ -707,18 +725,16 @@ const CreateMinutes = () => {
                       labelField="label"
                       valueField="value"
                       data={users}
-                      value={m.raisedBy.map((r: any) => r._id)} // ✅ extract IDs
+                      value={m.raisedBy.map((r: any) => r.value)} // ✅ use .value
                       placeholder="Issue raised by"
                       searchPlaceholder="Search..."
-                      // onChange={(val) => updateMinute(index, "raisedBy", val)}
                       // Raised By
-                      onChange={(selectedIds) => {
+                      onChange={(selectedIds: string[]) => {
                         const selectedUsers = users
                           .filter((u) => selectedIds.includes(u.value))
                           .map((u) => ({
-                            _id: u.value,
-                            individualName: u.attendeeName,
-                            designation: u.designation,
+                            value: u.value,
+                            label: u.label,
                           }));
                         updateMinute(index, "raisedBy", selectedUsers);
                       }}
@@ -846,12 +862,27 @@ const CreateMinutes = () => {
                           labelField="label"
                           valueField="value"
                           data={users}
-                          value={m.responsibility}
+                          // value={m.responsibility}
+                          value={m.responsibility.map((r: any) => r.value)}
                           placeholder="Select responsible users"
                           searchPlaceholder="Search..."
-                          onChange={(val) =>
-                            updateMinute(index, "responsibility", val)
-                          }
+                          // onChange={(val) =>
+                          //   updateMinute(index, "responsibility", val)
+                          // }
+                          // Raised By
+                          onChange={(selectedIds: string[]) => {
+                            const selectedUsers = users
+                              .filter((u) => selectedIds.includes(u.value))
+                              .map((u) => ({
+                                value: u.value,
+                                label: u.label,
+                              }));
+                            updateMinute(
+                              index,
+                              "responsibility",
+                              selectedUsers
+                            );
+                          }}
                           disable={m.responsibilityForInfo} // 🔹 disable MultiSelect when For Info is active
                         />
                       </View>
@@ -961,15 +992,17 @@ const CreateMinutes = () => {
                             serialNo: prev.length + 1,
                             raisedBy:
                               item.raisedBy?.map((r: any) => ({
-                                _id: r._id,
-                                individualName: r.individualName || "",
-                                designation: r.designation || "",
+                                label: r.individualName || r.name || "",
+                                value: r._id || "",
                               })) || [],
                             issueSubject: item.issueSubject || "",
                             issueDescription: item.description || "",
                             targetDate: item.targetDate || null,
                             responsibility:
-                              item.responsibility?.map((r: any) => r._id) || [],
+                              item.responsibility?.map((r: any) => ({
+                                label: r.individualName || r.name || "",
+                                value: r._id || "",
+                              })) || [],
                             remarks: item.remarks || "",
                             targetDateForInfo: item.targetDateForInfo || false,
                             responsibilityForInfo:
