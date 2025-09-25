@@ -73,6 +73,7 @@ const RegisterUserScreen = () => {
 
   const [spouseName, setSpouseName] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
 
   const maritalOptions = [
     { label: "Single", value: "Single" },
@@ -171,6 +172,7 @@ const RegisterUserScreen = () => {
           setMaritalStatus(user.maritalStatus || "");
           setSpouseName(user.spouseName || "");
           setHomeAddress(user.homeAddress || "");
+          setBloodGroup(user.bloodGroup || "");
           setAadhar(user.aadhar || "");
           setPan(user.pan || "");
           setEducation(user.education?.length ? user.education : []);
@@ -217,6 +219,7 @@ const RegisterUserScreen = () => {
         maritalStatus,
         spouseName,
         homeAddress,
+        bloodGroup,
         aadhar,
         pan,
         education,
@@ -285,6 +288,7 @@ const RegisterUserScreen = () => {
         setMaritalStatus("");
         setSpouseName("");
         setHomeAddress("");
+        setBloodGroup("");
         setAadhar("");
         setPan("");
         setEducation([
@@ -685,6 +689,18 @@ const RegisterUserScreen = () => {
             value={homeAddress}
             onChangeText={setHomeAddress}
             placeholder="Enter Home Address"
+            className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+
+        {/* Blood Group  */}
+        <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
+          <Text className="text-gray-700 mb-2 font-medium">Blood Group</Text>
+          <TextInput
+            value={bloodGroup}
+            onChangeText={setBloodGroup}
+            placeholder="Enter Blood Group"
             className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
             placeholderTextColor="#9CA3AF"
           />
