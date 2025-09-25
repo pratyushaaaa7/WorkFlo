@@ -5,13 +5,17 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
-import { exportMinutesToExcel } from "../utils/momExcel";
+// import { exportMinutesToExcel } from "../utils/momExcel";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import Toast from "react-native-toast-message";
 
 const capitalizeFirst = (str: string) => {
   if (!str) return "";
@@ -19,6 +23,70 @@ const capitalizeFirst = (str: string) => {
     .split(" ") // split string into words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // capitalize each word
     .join(" "); // join words back into a single string
+};
+
+const handleDownloadMinutes = async (
+  meeting: any,
+  projectName: any,
+  accountName: any,
+  company: any,
+  token: any
+) => {
+  try {
+    const payload = {
+      meeting,
+      projectName,
+      accountName,
+      company,
+    };
+
+    const response = await api.post("/minutes/export/minutes", payload, {
+      responseType: "blob", // important for binary files
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const fileName = `Meeting_${meeting.meetingNumber}_Minutes.xlsx`;
+
+    if (Platform.OS === "web") {
+      // --- Web: download via anchor tag ---
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } else {
+      // --- Mobile: convert blob → base64, write to cache, then share ---
+      const blobToBase64 = (blob: Blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () =>
+            resolve(reader.result?.toString().split(",")[1] || "");
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+      const base64data = await blobToBase64(response.data);
+
+      const fileUri = FileSystem.cacheDirectory + fileName;
+      await FileSystem.writeAsStringAsync(fileUri, base64data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await Sharing.shareAsync(fileUri, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share Meeting Minutes",
+        UTI: "com.microsoft.excel.xlsx",
+      });
+    }
+  } catch (err) {
+    console.error("Failed to download minutes:", err);
+    alert("Failed to download minutes");
+  }
 };
 
 const MinutesDetail = () => {
@@ -86,15 +154,15 @@ const MinutesDetail = () => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className=" px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-          // onPress={() => meeting && exportMinutesToExcel(meeting, projectName, company, auth?.user?.fullName ?? "Unknown")}
+          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
           onPress={() =>
             meeting &&
-            exportMinutesToExcel(
-              meeting,
-              auth?.user?.fullName ?? "Unknown", // accountName
-              projectName, // projectName to be sent
-              company // company
+            handleDownloadMinutes(
+              meeting, // meeting object
+              projectName, // project name
+              auth?.user?.fullName ?? "Unknown", // accountName (who triggered the export)
+              company, // company
+              token // JWT token
             )
           }
           activeOpacity={0.7}
