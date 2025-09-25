@@ -126,6 +126,8 @@ const MinutesDetail = () => {
     if (meetingId) fetchMeeting();
   }, [meetingId, token]);
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
   return (
     <View className="flex-1 bg-gray-100">
       {/* Header */}
@@ -154,20 +156,31 @@ const MinutesDetail = () => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-          onPress={() =>
-            meeting &&
-            handleDownloadMinutes(
-              meeting, // meeting object
-              projectName, // project name
-              auth?.user?.fullName ?? "Unknown", // accountName (who triggered the export)
-              company, // company
-              token // JWT token
-            )
-          }
+          disabled={isDownloading} // disable press while downloading
+          className={`px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
+          }`}
+          onPress={async () => {
+            if (!meeting) return;
+            setIsDownloading(true);
+            try {
+              await handleDownloadMinutes(
+                meeting,
+                projectName,
+                auth?.user?.fullName ?? "Unknown",
+                company,
+                token
+              );
+            } finally {
+              setIsDownloading(false);
+            }
+          }}
           activeOpacity={0.7}
         >
-          <Feather name="download" size={22} color="white" />
+          {isDownloading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Feather name="download" size={22} color="white" />
+          )}
         </TouchableOpacity>
       </LinearGradient>
 

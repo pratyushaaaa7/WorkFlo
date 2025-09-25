@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { List, Card } from "react-native-paper";
@@ -110,6 +111,7 @@ const CreateMinutes = () => {
 
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
   const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
+  const [isAgendaDownloading, setIsAgendaDownloading] = useState(false);
 
   // ✅ Meeting-level state
   const [meetingDate, setMeetingDate] = useState<Date | null>(null);
@@ -1097,27 +1099,38 @@ const CreateMinutes = () => {
         <View className="flex-row gap-3 my-10">
           {meetingId ? (
             <TouchableOpacity
-              onPress={() =>
-                handleDownloadAgenda(
-                  {
-                    meetingDate,
-                    meetingTime,
-                    meetingVenue,
-                    meetingNumber,
-                    attendees,
-                    minutes,
-                  },
-                  projectName,
-                  auth?.user?.fullName ?? "Unknown",
-                  company,
-                  auth?.token
-                )
-              }
-              className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
+              disabled={isAgendaDownloading}
+              onPress={async () => {
+                setIsAgendaDownloading(true);
+                try {
+                  await handleDownloadAgenda(
+                    {
+                      meetingDate,
+                      meetingTime,
+                      meetingVenue,
+                      meetingNumber,
+                      attendees,
+                      minutes,
+                    },
+                    projectName,
+                    auth?.user?.fullName ?? "Unknown",
+                    company,
+                    auth?.token
+                  );
+                } finally {
+                  setIsAgendaDownloading(false);
+                }
+              }}
+              className={`flex-1 px-4 py-4 rounded-xl items-center  bg-sky-700
+              `}
             >
-              <Text className="text-white font-bold text-xl">
-                Download Agenda
-              </Text>
+              {isAgendaDownloading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-bold text-xl">
+                  Download Agenda
+                </Text>
+              )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
