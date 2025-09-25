@@ -5,6 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
@@ -43,7 +44,7 @@ const UserDetails = () => {
         });
         setUser(res.data);
         // console.log(res.data);
-      } catch (err:any) {
+      } catch (err: any) {
         console.error(
           "Error fetching user:",
           err.response?.data || err.message
@@ -73,8 +74,9 @@ const UserDetails = () => {
       {/* Header */}
       <LinearGradient
         colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+        className="pb-6 px-4 flex-row items-center justify-between"
         style={{
+          paddingTop: Platform.OS === "ios" ? 64 : 16, // ← iOS-specific padding
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
@@ -93,6 +95,7 @@ const UserDetails = () => {
           </Text>
         </TouchableOpacity>
       </LinearGradient>
+
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
