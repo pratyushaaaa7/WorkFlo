@@ -74,9 +74,9 @@ const UserDetails = () => {
       {/* Header */}
       <LinearGradient
         colors={["#6366F1", "#8B5CF6"]}
-        className="pb-6 px-4 flex-row items-center justify-between"
+        className="pb-6 pt-16 px-4 flex-row items-center justify-between"
         style={{
-          paddingTop: Platform.OS === "ios" ? 64 : 16, // ← iOS-specific padding
+          // paddingTop: Platform.OS === "ios" ? 64 : 40, // ← iOS-specific padding
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
