@@ -61,21 +61,24 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header Gradient with Avatar */}
-      <LinearGradient
-        colors={["#8B5CF6", "#9333EA"]}
-        className="h-64 justify-center items-center"
-        style={{
-          borderBottomLeftRadius: 150,
-          borderBottomRightRadius: 150,
-          overflow: "hidden",
-        }}
-      >
-        <View className="w-28 h-28 bg-white rounded-full justify-center items-center shadow-md">
-          <Text className="text-4xl font-bold text-indigo-600">{initials}</Text>
+      <LinearGradient colors={["#8B5CF6", "#9333EA"]}>
+        <View
+          className="h-64 justify-center items-center"
+          style={{
+            borderBottomLeftRadius: 150,
+            borderBottomRightRadius: 150,
+            overflow: "hidden",
+          }}
+        >
+          <View className="w-28 h-28 bg-white rounded-full justify-center items-center shadow-md">
+            <Text className="text-4xl font-bold text-indigo-600">
+              {initials}
+            </Text>
+          </View>
+          <Text className="text-white text-2xl font-semibold mt-4">
+            {fullName}
+          </Text>
         </View>
-        <Text className="text-white text-2xl font-semibold mt-4">
-          {fullName}
-        </Text>
       </LinearGradient>
 
       {/* Info Section */}
