@@ -235,16 +235,16 @@ const ILRs = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
+        colors={["#6366F1", "#8B5CF6"]}>
+        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md"
+        // style={{
+        //   shadowColor: "#000",
+        //   shadowOffset: { width: 0, height: 3 },
+        //   shadowOpacity: 0.25,
+        //   shadowRadius: 4,
+        //   elevation: 6,
+        //   zIndex: 10,
+        // }}
       >
         {/* Back Button */}
         <TouchableOpacity
@@ -266,6 +266,7 @@ const ILRs = () => {
         >
           <Feather name="download" size={22} color="#fff" />
         </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Status filter pills */}
