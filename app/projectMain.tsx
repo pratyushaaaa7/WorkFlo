@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
   Animated,
+  Platform,
 } from "react-native";
 import {
   Ionicons,
@@ -18,6 +19,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { Project } from "../types/Project";
+// import {styled} from "nativewind"
 
 const { width } = Dimensions.get("window");
 const ITEMS_PER_ROW = 2; // fewer items per row for larger, card-like buttons
@@ -97,9 +99,11 @@ const ProjectMain = () => {
     <View className="flex-1 bg-gray-50">
       {/* Gradient Header */}
       <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="rounded-b-3xl px-6 pt-14 pb-10"
-      >
+        colors={["#6366F1", "#8B5CF6"]}>
+        <View className="rounded-b-3xl px-6 pt-14 pb-10" >
+        
+        {/* // style={{ padding: Platform.OS === "ios" ? 30 : 40 }} // or whatever works for your design/ */}
+      
         <TouchableOpacity
           onPress={() => router.push("/projects")}
           className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
@@ -110,6 +114,7 @@ const ProjectMain = () => {
           {projectName || "Loading..."}
         </Text>
         <Text className="text-white/80 mt-1">{company}</Text>
+        </View>
       </LinearGradient>
 
       {/* Menu Grid */}
