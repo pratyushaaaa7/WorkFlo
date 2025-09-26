@@ -132,56 +132,57 @@ const MinutesDetail = () => {
     <View className="flex-1 bg-gray-100">
       {/* Header */}
 
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button + Title */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            {projectName} Meeting #{meetingNumber}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          disabled={isDownloading} // disable press while downloading
-          className={`px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-          }`}
-          onPress={async () => {
-            if (!meeting) return;
-            setIsDownloading(true);
-            try {
-              await handleDownloadMinutes(
-                meeting,
-                projectName,
-                auth?.user?.fullName ?? "Unknown",
-                company,
-                token
-              );
-            } finally {
-              setIsDownloading(false);
-            }
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
           }}
-          activeOpacity={0.7}
         >
-          {isDownloading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Feather name="download" size={22} color="white" />
-          )}
-        </TouchableOpacity>
+          {/* Back Button + Title */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              {projectName} Meeting #{meetingNumber}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isDownloading} // disable press while downloading
+            className={`px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
+          }`}
+            onPress={async () => {
+              if (!meeting) return;
+              setIsDownloading(true);
+              try {
+                await handleDownloadMinutes(
+                  meeting,
+                  projectName,
+                  auth?.user?.fullName ?? "Unknown",
+                  company,
+                  token
+                );
+              } finally {
+                setIsDownloading(false);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            {isDownloading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Feather name="download" size={22} color="white" />
+            )}
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Content */}

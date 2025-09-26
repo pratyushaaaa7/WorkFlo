@@ -237,34 +237,35 @@ const CreateProjectScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/masterProjectList",
-            })
-          }
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            {" "}
-            Create Project
-          </Text>
-        </TouchableOpacity>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/masterProjectList",
+              })
+            }
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              {" "}
+              Create Project
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       <KeyboardAwareScrollView

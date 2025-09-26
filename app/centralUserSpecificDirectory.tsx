@@ -92,29 +92,30 @@ export default function UserRoleList() {
 
   return (
     <View className="flex-1 bg-gray-50 ">
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 mb-4 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button + Title */}
-        <TouchableOpacity
-          onPress={() => router.push("/(drawer)/centralUserDirectory")}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16  mb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            {role} Directory
-          </Text>
-        </TouchableOpacity>
+          {/* Back Button + Title */}
+          <TouchableOpacity
+            onPress={() => router.push("/(drawer)/centralUserDirectory")}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              {role} Directory
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {loading ? (

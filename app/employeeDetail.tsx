@@ -72,30 +72,30 @@ const UserDetails = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pb-6 pt-16 px-4 flex-row items-center justify-between"
-        style={{
-          // paddingTop: Platform.OS === "ios" ? 64 : 40, // ← iOS-specific padding
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.push("/centralEmployeeDirectory")}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pb-6 pt-16 px-4 flex-row items-center justify-between"
+          style={{
+            // paddingTop: Platform.OS === "ios" ? 64 : 40, // ← iOS-specific padding
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-bold text-white ml-3">
-            Employee Information
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/centralEmployeeDirectory")}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-bold text-white ml-3">
+              Employee Information
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
-
 
       {loading ? (
         <View className="flex-1 justify-center items-center">

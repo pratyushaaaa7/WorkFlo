@@ -60,7 +60,6 @@ const UserList = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
-
   const fetchUsers = async () => {
     if (!projectId || !token) return;
 
@@ -279,35 +278,36 @@ const UserList = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">Back</Text>
-        </TouchableOpacity>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">Back</Text>
+          </TouchableOpacity>
 
-        {/* Download Icon */}
-        <TouchableOpacity
-          onPress={handleDownloadExcel}
-          className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
-        >
-          <Feather name="download" size={22} color="#fff" />
-        </TouchableOpacity>
+          {/* Download Icon */}
+          <TouchableOpacity
+            onPress={handleDownloadExcel}
+            className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
+          >
+            <Feather name="download" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       <View className="px-4 pt-5 flex-1">

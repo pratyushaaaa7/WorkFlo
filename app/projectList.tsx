@@ -109,7 +109,9 @@ const ProjectList = () => {
         Area: proj.area,
         Typology: proj.typology,
         Scopes: proj.scopes.join(", "),
-        StartDate: proj.startDate ? new Date(proj.startDate).toLocaleDateString() : "",
+        StartDate: proj.startDate
+          ? new Date(proj.startDate).toLocaleDateString()
+          : "",
         TeamLeaders: proj.teamLeaders
           .map((u) => u.username ?? u._id)
           .join(", "),
@@ -197,37 +199,38 @@ const ProjectList = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
 
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => router.push("/(drawer)/masterProjectList")}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-bold text-white ml-4">
-            Project List
-          </Text>
-        </TouchableOpacity>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => router.push("/(drawer)/masterProjectList")}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-bold text-white ml-4">
+              Project List
+            </Text>
+          </TouchableOpacity>
 
-        {/* Download Icon */}
-        <TouchableOpacity
-          onPress={exportToExcel}
-          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-        >
-          <Feather name="download" size={22} color="#fff" />
-        </TouchableOpacity>
+          {/* Download Icon */}
+          <TouchableOpacity
+            onPress={exportToExcel}
+            className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
+          >
+            <Feather name="download" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Content */}

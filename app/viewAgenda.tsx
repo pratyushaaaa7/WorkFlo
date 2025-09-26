@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
-import { exportAgendaWithAttendees } from "../utils/agendaExcel";
+// import { exportAgendaWithAttendees } from "../utils/agendaExcel";
 
 const MinutesDetail = () => {
   // Get local params from previous screen

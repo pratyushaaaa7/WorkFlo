@@ -484,19 +484,18 @@ const CreateMinutes = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center"
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            Create {projectName} Minutes
-          </Text>
-        </TouchableOpacity>
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View className="pt-16 pb-6 px-4 flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              Create {projectName} Minutes
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Content */}

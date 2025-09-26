@@ -272,30 +272,31 @@ const IlrActivities = () => {
   return (
     <View className="flex-1 bg-gray-100">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 6,
-          zIndex: 10,
-        }}
-      >
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 6,
+            zIndex: 10,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            {" "}
-            ILR Activities
-          </Text>
-        </TouchableOpacity>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              {" "}
+              ILR Activities
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       <ScrollView className="flex-1 px-3 py-3">
@@ -428,11 +429,12 @@ const IlrActivities = () => {
                 colors={["#93C5FD", "#3B82F6"]} // Blue gradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="py-2 rounded-xl"
               >
-                <Text className="text-center text-white font-medium text-sm">
-                  Edit Description
-                </Text>
+                <View className="py-2 rounded-xl">
+                  <Text className="text-center text-white font-medium text-sm">
+                    Edit Description
+                  </Text>
+                </View>
               </LinearGradient>
             </TouchableOpacity>
           )}
@@ -476,9 +478,12 @@ const IlrActivities = () => {
                 colors={["#93C5FD", "#3B82F6"]} // Blue gradient (matches Edit Remark)
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="py-2 rounded-lg"
               >
-                <Text className="text-center text-white font-medium">Save</Text>
+                <View className="py-2 rounded-lg">
+                  <Text className="text-center text-white font-medium">
+                    Save
+                  </Text>
+                </View>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -516,9 +521,10 @@ const IlrActivities = () => {
                 colors={["#34D399", "#059669"]} // Green gradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="w-full py-2 rounded-lg items-center"
               >
-                <Text className="text-white font-medium">Add Note</Text>
+                <View className="w-full py-2 rounded-lg items-center">
+                  <Text className="text-white font-medium">Add Note</Text>
+                </View>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -534,9 +540,10 @@ const IlrActivities = () => {
                 colors={["#C084FC", "#7C3AED"]} // Purple gradient
                 start={{ x: 1, y: 0 }}
                 end={{ x: 0, y: 1 }}
-                className="w-full py-2 rounded-lg items-center"
               >
-                <Text className="text-white font-medium">Change Date</Text>
+                <View className="w-full py-2 rounded-lg items-center">
+                  <Text className="text-white font-medium">Change Date</Text>
+                </View>
               </LinearGradient>
             </TouchableOpacity>
           </View>

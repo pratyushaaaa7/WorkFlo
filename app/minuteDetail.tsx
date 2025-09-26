@@ -211,27 +211,28 @@ const MinuteDetail = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.12,
-          shadowRadius: 6,
-          elevation: 6,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.12,
+            shadowRadius: 6,
+            elevation: 6,
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            Minutes of Meeting
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              Minutes of Meeting
+            </Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Content */}
@@ -280,7 +281,9 @@ const MinuteDetail = () => {
           </Text>
           {remarks ? (
             <Text className="text-sm text-gray-500 mt-2">
-              <Text className="font-semibold text-gray-700">Meeting Discussion: </Text>
+              <Text className="font-semibold text-gray-700">
+                Meeting Discussion:{" "}
+              </Text>
               {remarks}
             </Text>
           ) : null}
