@@ -93,27 +93,43 @@ const ProjectMain = () => {
         });
       },
     },
+
+    {
+      key: "dpr",
+      label: "Reports",
+      icon: (
+        <MaterialCommunityIcons
+          name="file-image-outline"
+          size={40}
+          color="#EF4444"
+        />
+      ),
+      onPress: () => {
+        router.push({
+          pathname: "/reportForm",
+          params: { company, projectId, projectName },
+        });
+      },
+    },
   ];
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* Gradient Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}>
-        <View className="rounded-b-3xl px-6 pt-14 pb-10" >
-        
-        {/* // style={{ padding: Platform.OS === "ios" ? 30 : 40 }} // or whatever works for your design/ */}
-      
-        <TouchableOpacity
-          onPress={() => router.push("/projects")}
-          className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
-        >
-          <Ionicons name="arrow-back" size={22} color="#fff" />
-        </TouchableOpacity>
-        <Text className="text-3xl font-bold text-white">
-          {projectName || "Loading..."}
-        </Text>
-        <Text className="text-white/80 mt-1">{company}</Text>
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View className="rounded-b-3xl px-6 pt-14 pb-10">
+          {/* // style={{ padding: Platform.OS === "ios" ? 30 : 40 }} // or whatever works for your design/ */}
+
+          <TouchableOpacity
+            onPress={() => router.push("/projects")}
+            className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
+          >
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+          </TouchableOpacity>
+          <Text className="text-3xl font-bold text-white">
+            {projectName || "Loading..."}
+          </Text>
+          <Text className="text-white/80 mt-1">{company}</Text>
         </View>
       </LinearGradient>
 
