@@ -120,6 +120,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
           value={title}
           onChangeText={setTitle}
           placeholder="Enter report title"
+          placeholderTextColor={"#999"}
           className="border rounded-lg px-3 py-2 mb-4 bg-white"
         />
 
@@ -155,6 +156,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
               />
               <TextInput
                 placeholder="Add caption"
+                placeholderTextColor={"#999"}
                 value={item.caption}
                 onChangeText={(text) => updateCaption(item.id, text)}
                 className="border rounded-lg px-3 py-2 bg-gray-50 mb-2"
