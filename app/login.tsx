@@ -68,7 +68,8 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={["#6366F1", "#8B5CF6"]} className="flex-1">
+    <LinearGradient colors={["#6366F1", "#8B5CF6"]} className="flex-1"
+    style={{flex:1}}>
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
