@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
@@ -35,7 +36,7 @@ const ProjectList = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProjects(res.data.projects);
-      console.log(res.data);
+      //   console.log(JSON.stringify(res.data, null , 2));
     } catch (err) {
       console.error("Failed to fetch projects", err);
     } finally {
@@ -46,6 +47,104 @@ const ProjectList = () => {
   useEffect(() => {
     fetchProjects();
   }, [token]);
+
+  const [downloading, setDownloading] = useState(false);
+
+const downloadAllProjects = async () => {
+  console.log("downloadAllProjects called");
+  setDownloading(true);
+
+  try {
+    const url = `${api.defaults.baseURL}/export/allProjectsExcel`;
+    console.log("Download URL:", url);
+    console.log("Platform:", Platform.OS);
+    console.log("Token:", token);
+
+    if (!token) {
+      console.warn("No token found! Download may fail.");
+    }
+
+    if (Platform.OS === "web") {
+      // --- Web ---
+      console.log("Starting web download...");
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Fetch response status:", response.status);
+      if (!response.ok) throw new Error("Failed to download file");
+
+      const blob = await response.blob();
+      console.log("Blob received. Size:", blob.size);
+
+      if (blob.size === 0) {
+        console.warn("Blob is empty!");
+      }
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      console.log("Object URL created:", downloadUrl);
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = "AllProjects.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      
+      window.URL.revokeObjectURL(downloadUrl);
+
+      console.log("Web download triggered successfully");
+
+      Toast.show({
+        type: "success",
+        text1: "Downloaded",
+        text2: "All projects Excel downloaded successfully",
+      });
+    } else {
+      // --- Native ---
+      console.log("Starting native download...");
+      const fileUri = FileSystem.documentDirectory + "AllProjects.xlsx";
+      console.log("File URI:", fileUri);
+
+      const downloadResumable = FileSystem.createDownloadResumable(
+        url,
+        fileUri,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const { uri } = await downloadResumable.downloadAsync();
+      console.log("Downloaded file URI:", uri);
+
+      if (!uri) {
+        console.warn("Downloaded URI is empty!");
+      }
+
+      if (uri && (await Sharing.isAvailableAsync())) {
+        console.log("Sharing available. Opening share dialog...");
+        await Sharing.shareAsync(uri);
+      } else {
+        Toast.show({
+          type: "success",
+          text1: "Downloaded",
+          text2: "Excel saved at " + uri,
+        });
+      }
+    }
+  } catch (err: any) {
+    console.error("Download error:", err);
+    Toast.show({
+      type: "error",
+      text1: "Error",
+      text2: err.message,
+    });
+  } finally {
+    console.log("Download process ended");
+    setDownloading(false);
+  }
+};
+
+
 
   const renderItem = ({ item }: { item: Project }) => (
     <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
@@ -61,7 +160,7 @@ const ProjectList = () => {
             },
           })
         }
-        activeOpacity={0.7}
+        // activeOpacity={0.7}
       >
         <Text className="text-lg font-semibold text-gray-900">
           {item.projectName}
@@ -100,12 +199,17 @@ const ProjectList = () => {
           </TouchableOpacity>
 
           {/* Download Icon */}
-          {/* <TouchableOpacity
-            onPress={exportToExcel}
-            className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
+          <TouchableOpacity
+            onPress={downloadAllProjects}
+            disabled={downloading}
+            className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50 flex-row items-center justify-center"
           >
-            <Feather name="download" size={22} color="#fff" />
-          </TouchableOpacity> */}
+            {downloading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Feather name="download" size={22} color="#fff" />
+            )}
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
