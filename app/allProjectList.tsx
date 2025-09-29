@@ -50,78 +50,69 @@ const ProjectList = () => {
 
   const [downloading, setDownloading] = useState(false);
 
-const downloadAllProjects = async () => {
-  console.log("downloadAllProjects called");
-  setDownloading(true);
+  // --- Web download ---
+  const downloadAllProjectsWeb = async () => {
+    try {
+      setDownloading(true);
 
-  try {
-    const url = `${api.defaults.baseURL}/export/allProjectsExcel`;
-    console.log("Download URL:", url);
-    console.log("Platform:", Platform.OS);
-    console.log("Token:", token);
+      const response = await fetch(
+        `${api.defaults.baseURL}/export/allProjectsExcel`,
+        {
+          method: "GET", // ✅ changed to GET
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    if (!token) {
-      console.warn("No token found! Download may fail.");
-    }
-
-    if (Platform.OS === "web") {
-      // --- Web ---
-      console.log("Starting web download...");
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log("Fetch response status:", response.status);
       if (!response.ok) throw new Error("Failed to download file");
 
       const blob = await response.blob();
-      console.log("Blob received. Size:", blob.size);
-
-      if (blob.size === 0) {
-        console.warn("Blob is empty!");
-      }
-
-      const downloadUrl = window.URL.createObjectURL(blob);
-      console.log("Object URL created:", downloadUrl);
+      const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
-      a.href = downloadUrl;
+      a.href = url;
       a.download = "AllProjects.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      
-      window.URL.revokeObjectURL(downloadUrl);
 
-      console.log("Web download triggered successfully");
+      window.URL.revokeObjectURL(url);
 
       Toast.show({
         type: "success",
         text1: "Downloaded",
         text2: "All projects Excel downloaded successfully",
       });
-    } else {
-      // --- Native ---
-      console.log("Starting native download...");
+    } catch (error) {
+      console.error("Excel download error (web):", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to download Excel",
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // --- Native download ---
+  const downloadAllProjectsNative = async () => {
+    try {
+      setDownloading(true);
+
+      const url = `${api.defaults.baseURL}/export/allProjectsExcel`;
       const fileUri = FileSystem.documentDirectory + "AllProjects.xlsx";
-      console.log("File URI:", fileUri);
 
       const downloadResumable = FileSystem.createDownloadResumable(
         url,
         fileUri,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       const { uri } = await downloadResumable.downloadAsync();
-      console.log("Downloaded file URI:", uri);
-
-      if (!uri) {
-        console.warn("Downloaded URI is empty!");
-      }
 
       if (uri && (await Sharing.isAvailableAsync())) {
-        console.log("Sharing available. Opening share dialog...");
         await Sharing.shareAsync(uri);
       } else {
         Toast.show({
@@ -130,21 +121,25 @@ const downloadAllProjects = async () => {
           text2: "Excel saved at " + uri,
         });
       }
+    } catch (error) {
+      console.error("Excel download error (native):", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to download Excel",
+      });
+    } finally {
+      setDownloading(false);
     }
-  } catch (err: any) {
-    console.error("Download error:", err);
-    Toast.show({
-      type: "error",
-      text1: "Error",
-      text2: err.message,
-    });
-  } finally {
-    console.log("Download process ended");
-    setDownloading(false);
-  }
-};
+  };
 
-
+  // --- Unified function ---
+  const downloadAllProjects = async () => {
+    if (Platform.OS === "web") {
+      return downloadAllProjectsWeb();
+    }
+    return downloadAllProjectsNative();
+  };
 
   const renderItem = ({ item }: { item: Project }) => (
     <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
