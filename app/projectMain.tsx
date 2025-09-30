@@ -94,23 +94,23 @@ const ProjectMain = () => {
       },
     },
 
-    // {
-    //   key: "dpr",
-    //   label: "Reports",
-    //   icon: (
-    //     <MaterialCommunityIcons
-    //       name="file-image-outline"
-    //       size={40}
-    //       color="#EF4444"
-    //     />
-    //   ),
-    //   onPress: () => {
-    //     router.push({
-    //       pathname: "/reportForm",
-    //       params: { company, projectId, projectName },
-    //     });
-    //   },
-    // },
+    {
+      key: "dpr",
+      label: "Reports",
+      icon: (
+        <MaterialCommunityIcons
+          name="file-image-outline"
+          size={40}
+          color="#EF4444"
+        />
+      ),
+      onPress: () => {
+        router.push({
+          pathname: "/reportForm",
+          params: { company, projectId, projectName },
+        });
+      },
+    },
   ];
 
   return (
