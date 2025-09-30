@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import bitaLogo from "../assets/images/bitaLogo.png";
+import Logo from "../assets/images/logoWPicon.png";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
 import Toast from "react-native-toast-message";
 
@@ -87,7 +87,7 @@ export default function LoginScreen() {
           className="mb-8 items-center"
         >
           <View className="bg-black rounded-full p-5 shadow-md shadow-black/10">
-            <Image source={bitaLogo} className="w-20 h-20" resizeMode="contain" />
+            <Image source={Logo} className="w-20 h-20" resizeMode="contain" />
           </View>
           <Text className="text-white text-2xl mt-20 font-medium">
             Login to your account
