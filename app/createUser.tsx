@@ -168,6 +168,7 @@ const AddUserForm: React.FC = () => {
       // Navigate to central user directory
       router.push("/(drawer)/centralUserDirectory");
     } catch (error: any) {
+      console.log(error);
       Toast.show({
         type: "error",
         text1: "Error",

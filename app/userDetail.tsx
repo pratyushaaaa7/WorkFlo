@@ -49,6 +49,7 @@ const UserDetail = () => {
         });
 
         const fetchedUser = res?.data || preloadedUser;
+        // console.log(fetchedUser)
 
         setUserData(fetchedUser);
         setRatings(fetchedUser?.ratings || []);
@@ -191,13 +192,16 @@ const UserDetail = () => {
               </Text>
             </View>
 
-            {/* Created At */}
-            {userData?.createdAt && (
-              <Text className="text-xs text-gray-400 mt-4">
-                Created on{" "}
-                {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
-              </Text>
-            )}
+          {/* Created At & Created By */}
+{userData?.createdAt && (
+  <Text className="text-xs text-gray-400 mt-4">
+    Created on {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
+    {userData.createdBy && (
+      <> by {userData.createdBy.fullName} </>
+    )}
+  </Text>
+)}
+
           </View>
 
           {/* Overall Rating */}
