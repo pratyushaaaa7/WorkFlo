@@ -43,6 +43,7 @@ export default function UserRoleList() {
   const renderUser = ({ item }: { item: any }) => (
     <TouchableOpacity
       activeOpacity={0.8}
+      // disabled={auth?.user?.role !== "admin"}
       className="mb-4 rounded-2xl bg-white shadow-sm mx-4 p-4"
       onPress={() =>
         router.push({
@@ -68,7 +69,7 @@ export default function UserRoleList() {
       {/* Firm + Designation */}
       <View className="flex-row justify-between mt-2 items-center">
         <Text className="text-sm text-gray-700 ">
-          {item.designationList?.join(", ") || "N/A"} @ {item.firmName || "N/A"}
+          {item.designationList?.join(", ") || ""} @ {item.firmName || "N/A"}
         </Text>
 
         {/* Average Rating */}
