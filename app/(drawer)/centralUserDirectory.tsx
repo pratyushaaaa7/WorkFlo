@@ -24,13 +24,13 @@ export default function CentralUserDirectory() {
       description: "All registered vendors",
     },
     {
-      title: "Contractor",
+      title: "Consultant",
       icon: "account-tie",
       bgColor: "#EDE9FE", // violet-100
       borderColor: "#C4B5FD", // violet-300
       textColor: "#6D28D9", // violet-700
       iconColor: "#6D28D9",
-      description: "Your contractors directory",
+      description: "Your consultants directory",
     },
   ];
 
