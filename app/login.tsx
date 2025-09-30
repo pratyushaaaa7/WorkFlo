@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import Logo from "../assets/images/logoWPicon.png";
+import Logo from "../assets/images/bita.png";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
 import Toast from "react-native-toast-message";
 
@@ -68,8 +68,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={["#6366F1", "#8B5CF6"]} className="flex-1"
-    style={{flex:1}}>
+    <LinearGradient
+      colors={["#6366F1", "#8B5CF6"]}
+      className="flex-1"
+      style={{ flex: 1 }}
+    >
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -86,7 +89,7 @@ export default function LoginScreen() {
           style={{ transform: [{ scale: logoScale }] }}
           className="mb-8 items-center"
         >
-          <View className="bg-black rounded-full p-5 shadow-md shadow-black/10">
+          <View className="bg-slate-950 rounded-full p-5 shadow-md shadow-black/10">
             <Image source={Logo} className="w-20 h-20" resizeMode="contain" />
           </View>
           <Text className="text-white text-2xl mt-20 font-medium">

@@ -4,7 +4,7 @@
     "slug": "WTech",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logoWPicon.png",
+    "icon": "./assets/images/bita.png",
     "scheme": "wtech",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,8 +14,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logoWPicon.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/bita.png",
+        "backgroundColor": "#020618"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.WTech"
@@ -23,17 +23,17 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logoWPicon.png"
+      "favicon": "./assets/images/bita.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logoWPicon.png",
+          "image": "./assets/images/bita.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#020618"
         }
       ]
     ],
