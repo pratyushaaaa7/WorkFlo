@@ -106,7 +106,7 @@ const ProjectMain = () => {
       ),
       onPress: () => {
         router.push({
-          pathname: "/reportForm",
+          pathname: "/dprLaborForm",
           params: { company, projectId, projectName },
         });
       },

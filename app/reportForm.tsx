@@ -39,7 +39,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsMultipleSelection: true, // ✅ Enable multi-select
+      // allowsMultipleSelection: true, // ✅ Enable multi-select
       allowsEditing: true,
       quality: 0.7,
     });
