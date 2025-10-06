@@ -294,7 +294,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
                   <img src="${p.base64}" />
                   <div class="caption"  style="
             margin-top: 12px; 
-            font-size: 18px; 
+            font-size: 22px; 
             color: #222; 
             font-weight: 500; 
             text-align: center;
