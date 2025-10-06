@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -15,15 +15,21 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import uuid from "react-native-uuid";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
+import { useAuth } from "./../context/AuthContext";
 
 interface Photo {
   id: string;
   uri: string;
   caption: string;
+}
+
+interface Vendor {
+  name: string;
+  laborCount: number;
 }
 
 interface ReportFormProps {
@@ -34,9 +40,24 @@ interface ReportFormProps {
 const { width } = Dimensions.get("window");
 
 const ReportForm = ({ navigation }: ReportFormProps) => {
+  const { user } = useAuth(); // ✅ use the custom hook at the top-level
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [title, setTitle] = useState<string>("");
+  // const [title, setTitle] = useState<string>("");
+  const {
+    projectName,
+    company,
+    projectId,
+    vendors: vendorsParam,
+    totalLabor: totalLaborParam,
+  } = useLocalSearchParams();
+  // Parse string back to array
+
+  const vendors: Vendor[] = vendorsParam
+    ? JSON.parse(vendorsParam as string)
+    : [];
+  const totalLabor = totalLaborParam ? parseInt(totalLaborParam as string) : 0;
+  // console.log(totalLabor);
 
   const uriToBase64 = async (uri: string) => {
     const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -49,8 +70,8 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      // allowsMultipleSelection: true, // ✅ Enable multi-select
-      allowsEditing: true,
+      allowsMultipleSelection: true, // ✅ Enable multi-select
+      // allowsEditing: true,
       quality: 0.7,
     });
 
@@ -92,17 +113,10 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!title) {
-      Alert.alert("Error", "Please enter a report title");
-      return;
-    }
-    if (photos.length === 0) {
-      Alert.alert("Error", "Please add at least one photo");
-      return;
-    }
-
     try {
-      // convert each photo URI to base64
+      const createdBy = user?.fullName || "Unknown";
+
+      // Convert photos to base64
       const photosWithBase64 = await Promise.all(
         photos.map(async (p) => ({
           ...p,
@@ -110,28 +124,73 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
         }))
       );
 
-      // Build HTML
+      const today = new Date();
+      const dateStr = today.toLocaleDateString();
+      const timeStr = today.toLocaleTimeString();
+
+      // Build HTML for PDF
       const html = `
       <html>
         <head>
           <style>
-            body { font-family: Arial; padding: 20px; }
-            h1 { text-align: center; margin-bottom: 30px; }
-            .photo { margin-bottom: 30px; }
-            .photo img { width: 100%; border-radius: 8px; }
+            body { font-family: Arial; margin: 20px; }
+            h1 { text-align: center; margin-bottom: 20px; }
+            .page { page-break-after: always; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #999; padding: 8px; text-align: left; }
+            th { background-color: #f0f0f0; }
+            .photo { text-align: center; page-break-after: always; }
+            .photo img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
             .caption { margin-top: 8px; font-size: 14px; color: #333; }
           </style>
         </head>
         <body>
-          <h1>${title}</h1>
+          <!-- Page 1: Project Info -->
+          <div class="page">
+   
+            <p><strong>Project Name:</strong> ${projectName || ""}</p>
+            <p><strong>Created By:</strong> ${createdBy}</p>
+            <p><strong>Date:</strong> ${dateStr}</p>
+            <p><strong>Time:</strong> ${timeStr}</p>
+          </div>
+
+         <!-- Page 2: Labor Report -->
+<div class="page">
+  <h2>Labor Report</h2>
+  <table>
+    <tr>
+      <th>S.No</th>
+      <th>Vendor Name</th>
+      <th>Number of Labors</th>
+    </tr>
+    ${vendors
+      .map(
+        (v, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${v.name}</td>
+        <td>${v.laborCount}</td>
+      </tr>
+    `
+      )
+      .join("")}
+    <tr>
+      <td colspan="2" style="text-align:right;font-weight:bold">Total Labors</td>
+      <td><strong>${totalLabor}</strong></td>
+    </tr>
+  </table>
+</div>
+
+
+          <!-- Subsequent Pages: Photos -->
           ${photosWithBase64
             .map(
               (p) => `
-              <div class="photo">
-                <img src="${p.base64}" />
-                <div class="caption">${p.caption || ""}</div>
-              </div>
-            `
+            <div class="photo">
+              <img src="${p.base64}" />
+              <div class="caption">${p.caption || ""}</div>
+            </div>
+          `
             )
             .join("")}
         </body>
@@ -139,16 +198,20 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     `;
 
       // Generate PDF
-      const { uri } = await Print.printToFileAsync({ html });
+      const { uri } = await Print.printToFileAsync({
+        html,
+        fileName: `DPR_${projectName || "Project"}_${Date.now()}.pdf`,
+      });
       console.log("PDF saved to:", uri);
 
+      // Share PDF
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
         Alert.alert("PDF Generated", `Saved at: ${uri}`);
       }
-    } catch (error) {
-      console.error("PDF generation error:", error);
+    } catch (err) {
+      console.error("PDF generation error:", err);
       Alert.alert("Error", "Failed to generate PDF.");
     }
   };
@@ -173,14 +236,14 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
 
       <View className="p-4 flex-1">
         {/* Report Title */}
-        <Text className="text-lg font-semibold mb-2">Report Title</Text>
+        {/* <Text className="text-lg font-semibold mb-2">Report Title</Text>
         <TextInput
           value={title}
           onChangeText={setTitle}
           placeholder="Enter report title"
           placeholderTextColor={"#999"}
           className="border rounded-lg px-3 py-2 mb-4 bg-white"
-        />
+        /> */}
 
         {/* Photo Buttons */}
         <View className="flex-row justify-around mb-6">
