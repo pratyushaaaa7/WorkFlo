@@ -24,7 +24,10 @@ interface Vendor {
 
 const LaborForm = () => {
   const router = useRouter();
-  const { projectName, company, projectId } = useLocalSearchParams();
+  const { projectName, company, projectId, teamLeaders, teamMembers } =
+    useLocalSearchParams();
+
+  // console.log(teamLeaders, teamMembers);
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -92,6 +95,8 @@ const LaborForm = () => {
         projectName,
         projectId,
         company,
+        teamLeaders,
+        teamMembers,
         vendors: JSON.stringify(vendors),
         totalLabor: totalLabor.toString(),
       }, // pass as string},
@@ -106,7 +111,7 @@ const LaborForm = () => {
     );
     router.push({
       pathname: "/reportForm",
-      params: { projectName, projectId, company },
+      params: { projectName, projectId, company, teamLeaders, teamMembers },
     });
   };
 

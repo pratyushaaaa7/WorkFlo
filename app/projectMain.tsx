@@ -165,7 +165,13 @@ const ProjectMain = () => {
       onPress: () =>
         router.push({
           pathname: "/dprLaborForm",
-          params: { company, projectId, projectName },
+          params: {
+            company,
+            projectId,
+            projectName,
+            teamLeaders: JSON.stringify(project?.teamLeaders || []),
+            teamMembers: JSON.stringify(project?.teamMembers || []),
+          },
         }),
     },
   ];

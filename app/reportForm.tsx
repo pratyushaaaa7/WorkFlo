@@ -21,6 +21,17 @@ import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { useAuth } from "./../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Asset } from "expo-asset";
+
+// --- Convert local asset to base64 ---
+const localImageToBase64 = async (image: any) => {
+  const asset = Asset.fromModule(image);
+  await asset.downloadAsync(); // ensure the asset is available
+  const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return `data:image/png;base64,${base64}`;
+};
 
 interface Photo {
   id: string;
@@ -59,10 +70,14 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     projectName,
     company,
     projectId,
+    teamLeaders,
+    teamMembers,
     vendors: vendorsParam,
     totalLabor: totalLaborParam,
   } = useLocalSearchParams();
   // Parse string back to array
+
+  console.log(teamLeaders, teamMembers);
 
   const vendors: Vendor[] = vendorsParam
     ? JSON.parse(vendorsParam as string)
@@ -157,6 +172,24 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     try {
       const createdBy = user?.fullName || "Unknown";
 
+      // --- 1. Determine company logo ---
+      let logoImage;
+      let companyStr = Array.isArray(company) ? company[0] : company;
+
+      if (typeof companyStr === "string" && companyStr.toLowerCase() === "wp") {
+        logoImage = require("../assets/images/logoWP.png");
+      } else if (
+        typeof companyStr === "string" &&
+        companyStr.toLowerCase() === "wal"
+      ) {
+        logoImage = require("../assets/images/logoWAL.jpg");
+      } else {
+        logoImage = require("../assets/images/react-logo.png"); // fallback
+      }
+
+      // Convert logo to base64
+      const logoBase64 = await localImageToBase64(logoImage);
+
       // Convert photos to base64
       const photosWithBase64 = await Promise.all(
         photos.map(async (p) => ({
@@ -169,7 +202,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       const dateStr = today.toLocaleDateString();
       const timeStr = today.toLocaleTimeString();
 
-      // Build HTML for PDF
+      // --- 3. Build HTML for PDF ---
       const html = `
       <html>
         <head>
@@ -186,52 +219,54 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
           </style>
         </head>
         <body>
-          <!-- Page 1: Project Info -->
+          <!-- Page 1: Project Info + Logo -->
           <div class="page">
-   
+            <div style="text-align:center; margin-bottom: 20px;">
+              <img src="${logoBase64}" style="width:150px; height:auto;" />
+            </div>
             <p><strong>Project Name:</strong> ${projectName || ""}</p>
             <p><strong>Created By:</strong> ${createdBy}</p>
+            <p><strong>Company:</strong> ${company || ""}</p>
             <p><strong>Date:</strong> ${dateStr}</p>
             <p><strong>Time:</strong> ${timeStr}</p>
           </div>
 
-         <!-- Page 2: Labor Report -->
-<div class="page">
-  <h2>Labor Report</h2>
-  <table>
-    <tr>
-      <th>S.No</th>
-      <th>Vendor Name</th>
-      <th>Number of Labors</th>
-    </tr>
-    ${vendors
-      .map(
-        (v, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${v.name}</td>
-        <td>${v.laborCount}</td>
-      </tr>
-    `
-      )
-      .join("")}
-    <tr>
-      <td colspan="2" style="text-align:right;font-weight:bold">Total Labors</td>
-      <td><strong>${totalLabor}</strong></td>
-    </tr>
-  </table>
-</div>
-
+          <!-- Page 2: Labor Report -->
+          <div class="page">
+            <h2>Labor Report</h2>
+            <table>
+              <tr>
+                <th>S.No</th>
+                <th>Vendor Name</th>
+                <th>Number of Labors</th>
+              </tr>
+              ${vendors
+                .map(
+                  (v, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>${v.name}</td>
+                  <td>${v.laborCount}</td>
+                </tr>
+              `
+                )
+                .join("")}
+              <tr>
+                <td colspan="2" style="text-align:right;font-weight:bold">Total Labors</td>
+                <td><strong>${totalLabor}</strong></td>
+              </tr>
+            </table>
+          </div>
 
           <!-- Subsequent Pages: Photos -->
           ${photosWithBase64
             .map(
               (p) => `
-            <div class="photo">
-              <img src="${p.base64}" />
-              <div class="caption">${p.caption || ""}</div>
-            </div>
-          `
+                <div class="photo">
+                  <img src="${p.base64}" />
+                  <div class="caption">${p.caption || ""}</div>
+                </div>
+              `
             )
             .join("")}
         </body>
