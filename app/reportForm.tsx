@@ -20,6 +20,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { useAuth } from "./../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Photo {
   id: string;
@@ -38,6 +39,16 @@ interface ReportFormProps {
 }
 
 const { width } = Dimensions.get("window");
+
+// Returns date in "DD_MMM_YYYY" format, e.g., "06_Oct_2025"
+const getFormattedDate = (): string => {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0"); // 01, 02, ...
+  const month = today.toLocaleString("default", { month: "short" }); // Jan, Feb, ...
+  const year = today.getFullYear();
+
+  return `${day}_${month}_${year}`;
+};
 
 const ReportForm = ({ navigation }: ReportFormProps) => {
   const { user } = useAuth(); // ✅ use the custom hook at the top-level
@@ -65,6 +76,13 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     });
     return `data:image/jpeg;base64,${base64}`;
   };
+  const savePhotos = async (photosToSave: Photo[]) => {
+    try {
+      await AsyncStorage.setItem("@saved_photos", JSON.stringify(photosToSave));
+    } catch (err) {
+      console.error("Failed to save photos", err);
+    }
+  };
 
   // Pick photo from gallery
   const pickImage = async () => {
@@ -82,8 +100,9 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
         uri: asset.uri,
         caption: "",
       }));
-
-      setPhotos([...photos, ...newPhotos]); // append all selected images
+      const updatedPhotos = [...photos, ...newPhotos];
+      setPhotos(updatedPhotos);
+      savePhotos(updatedPhotos); // persist
     }
   };
 
@@ -100,17 +119,39 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
         uri: result.assets[0].uri,
         caption: "",
       };
-      setPhotos([...photos, newPhoto]);
+      const updatedPhotos = [...photos, newPhoto];
+      setPhotos(updatedPhotos);
+      savePhotos(updatedPhotos); // persist
     }
   };
 
   const updateCaption = (id: string, caption: string) => {
-    setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, caption } : p)));
+    const updatedPhotos = photos.map((p) =>
+      p.id === id ? { ...p, caption } : p
+    );
+    setPhotos(updatedPhotos);
+    savePhotos(updatedPhotos); // persist
   };
 
   const removePhoto = (id: string) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== id));
+    const updatedPhotos = photos.filter((p) => p.id !== id);
+    setPhotos(updatedPhotos);
+    savePhotos(updatedPhotos); // persist
   };
+
+  React.useEffect(() => {
+    const loadSavedPhotos = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("@saved_photos");
+        if (saved) {
+          setPhotos(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error("Failed to load photos", err);
+      }
+    };
+    loadSavedPhotos();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -200,16 +241,33 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       // Generate PDF
       const { uri } = await Print.printToFileAsync({
         html,
-        fileName: `DPR_${projectName || "Project"}_${Date.now()}.pdf`,
       });
-      console.log("PDF saved to:", uri);
+      // console.log("PDF saved to:", uri);
+
+      // Create custom file name
+      const newFileName = `DPR_${
+        projectName || "Project"
+      }_${getFormattedDate()}.pdf`;
+      const newUri = FileSystem.cacheDirectory + newFileName;
+
+      // Move/rename file
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newUri,
+      });
+
+      console.log("PDF saved with custom name:", newUri);
 
       // Share PDF
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
+        await Sharing.shareAsync(newUri);
       } else {
-        Alert.alert("PDF Generated", `Saved at: ${uri}`);
+        Alert.alert("PDF Generated", `Saved at: ${newUri}`);
       }
+      // Clear photos and labor data after PDF generation
+      await AsyncStorage.removeItem("@saved_photos"); // photos
+      await AsyncStorage.removeItem("reportData"); // labor/vendors
+      setPhotos([]); // optional: reset state
     } catch (err) {
       console.error("PDF generation error:", err);
       Alert.alert("Error", "Failed to generate PDF.");

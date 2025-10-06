@@ -96,7 +96,7 @@ const LaborForm = () => {
         totalLabor: totalLabor.toString(),
       }, // pass as string},
     });
-    console.log(JSON.stringify(vendors));
+    // console.log(JSON.stringify(vendors));
   };
 
   const skipAndNext = async () => {
