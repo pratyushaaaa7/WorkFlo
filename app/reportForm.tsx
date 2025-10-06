@@ -76,7 +76,17 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     totalLabor: totalLaborParam,
   } = useLocalSearchParams();
   // Parse string back to array
+  // ✅ Ensure we have a single string (not an array)
+  const teamLeadersStr = Array.isArray(teamLeaders)
+    ? teamLeaders[0]
+    : teamLeaders;
+  const teamMembersStr = Array.isArray(teamMembers)
+    ? teamMembers[0]
+    : teamMembers;
 
+  // ✅ Parse safely
+  const leaders = JSON.parse(teamLeadersStr || "[]");
+  const members = JSON.parse(teamMembersStr || "[]");
   console.log(teamLeaders, teamMembers);
 
   const vendors: Vendor[] = vendorsParam
@@ -220,16 +230,34 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
         </head>
         <body>
           <!-- Page 1: Project Info + Logo -->
-          <div class="page">
-            <div style="text-align:center; margin-bottom: 20px;">
-              <img src="${logoBase64}" style="width:150px; height:auto;" />
-            </div>
-            <p><strong>Project Name:</strong> ${projectName || ""}</p>
-            <p><strong>Created By:</strong> ${createdBy}</p>
-            <p><strong>Company:</strong> ${company || ""}</p>
-            <p><strong>Date:</strong> ${dateStr}</p>
-            <p><strong>Time:</strong> ${timeStr}</p>
-          </div>
+<div class="page">
+  <div style="text-align:center; margin-bottom: 20px;">
+    <img src="${logoBase64}" style="width:150px; height:auto;" />
+  </div>
+  <p><strong>Project Name:</strong> ${projectName || ""}</p>
+  <p><strong>Created By:</strong> ${createdBy}</p>
+  <p><strong>Company:</strong> ${company || ""}</p>
+  <p><strong>Date:</strong> ${dateStr}</p>
+  <p><strong>Time:</strong> ${timeStr}</p>
+
+ <h3 style="margin-top: 20px;">Team Leaders</h3>
+<ul>
+  ${
+    leaders.length > 0
+      ? leaders.map((leader: any) => `<li>${leader.fullName}</li>`).join("")
+      : "<li>None</li>"
+  }
+</ul>
+
+<h3 style="margin-top: 20px;">Team Members</h3>
+<ul>
+  ${
+    members.length > 0
+      ? members.map((member: any) => `<li>${member.fullName}</li>`).join("")
+      : "<li>None</li>"
+  }
+</ul>
+</div>
 
           <!-- Page 2: Labor Report -->
           <div class="page">
@@ -264,7 +292,13 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
               (p) => `
                 <div class="photo">
                   <img src="${p.base64}" />
-                  <div class="caption">${p.caption || ""}</div>
+                  <div class="caption"  style="
+            margin-top: 12px; 
+            font-size: 18px; 
+            color: #222; 
+            font-weight: 500; 
+            text-align: center;
+          ">${p.caption || ""}</div>
                 </div>
               `
             )
