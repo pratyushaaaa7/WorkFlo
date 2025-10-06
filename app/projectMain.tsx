@@ -7,7 +7,8 @@ import {
   Modal,
   ScrollView,
   Animated,
-  Platform,
+  Image,
+  Alert,
 } from "react-native";
 import {
   Ionicons,
@@ -19,39 +20,100 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { Project } from "../types/Project";
-// import {styled} from "nativewind"
+import * as ImagePicker from "expo-image-picker";
 
 const { width } = Dimensions.get("window");
-const ITEMS_PER_ROW = 2; // fewer items per row for larger, card-like buttons
+const ITEMS_PER_ROW = 2;
 const ITEM_MARGIN = 16;
 const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
 
 const ProjectMain = () => {
   const router = useRouter();
-  const { company, projectId, projectName } = useLocalSearchParams();
+  const { projectId, company, projectName } = useLocalSearchParams();
+
+  console.log(projectId);
   const { token } = useContext(AuthContext) || {};
   const [modalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
-  // console.log("Project name from params:", projectId, projectName);
+  const [images, setImages] = useState<string[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
 
-  // Fetch project details by ID
+  // ✅ Fetch Project Details + Project Images
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const res = await api.get(`/projects/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProject(res.data.project);
-        // console.log("Fetched project:", res.data.project);
-      } catch (err: any) {
-        console.error("Failed to fetch project details:", err.message || err);
-      }
-    };
-
     if (projectId && token) {
-      fetchProject();
+      const fetchData = async () => {
+        try {
+          // Fetch project details
+          const res = await api.get(`/projects/${projectId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setProject(res.data.project);
+
+          // Fetch project images from unified upload API
+          setLoadingImages(true);
+          const imgRes = await api.get(`/upload/project-images`, {
+            params: { projectId }, // only this
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          // Extract URLs from response
+          setImages(imgRes.data.map((f: any) => f.url));
+        } catch (err: any) {
+          console.error(
+            "Failed to fetch project data/images:",
+            err.message || err
+          );
+        } finally {
+          setLoadingImages(false);
+        }
+      };
+      fetchData();
     }
   }, [projectId, token]);
+
+  // ✅ Pick an Image from Device
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (result.canceled) return;
+    const file = result.assets[0];
+    uploadImage(file);
+  };
+
+  // ✅ Upload Image to Backend
+  const uploadImage = async (file: any) => {
+    if (!token || !projectId) return;
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      {
+        uri: file.uri,
+        name: file.fileName || `image_${Date.now()}.jpg`,
+        type: "image/jpeg",
+      } as any // Cast to any to satisfy TypeScript
+    );
+    formData.append("module", "projectImage"); // important
+    formData.append("referenceId", String(projectId));
+    formData.append("fileType", "image");
+
+    try {
+      const res = await api.post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setImages((prev) => [...prev, res.data.file.url]); // update with new image
+    } catch (err: any) {
+      console.error("Upload failed:", err.response?.data || err.message);
+      Alert.alert("Error", "Image upload failed. Please try again.");
+    }
+  };
 
   const menuItems = [
     {
@@ -64,36 +126,32 @@ const ProjectMain = () => {
           color="#6366F1"
         />
       ),
-      onPress: () => {
+      onPress: () =>
         router.push({
           pathname: "/userDirectory",
           params: { company, projectId, projectName: project?.projectName },
-        });
-      },
+        }),
     },
     {
       key: "ilr",
       label: "ILR",
       icon: <Ionicons name="clipboard-outline" size={40} color="#F59E0B" />,
-      onPress: () => {
+      onPress: () =>
         router.push({
           pathname: "/ilrs",
           params: { company, projectId, projectName: project?.projectName },
-        });
-      },
+        }),
     },
     {
       key: "mom",
       label: "Minutes",
       icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
-      onPress: () => {
+      onPress: () =>
         router.push({
           pathname: "/minutes",
           params: { company, projectId, projectName },
-        });
-      },
+        }),
     },
-
     {
       key: "dpr",
       label: "Reports",
@@ -104,22 +162,18 @@ const ProjectMain = () => {
           color="#EF4444"
         />
       ),
-      onPress: () => {
+      onPress: () =>
         router.push({
           pathname: "/dprLaborForm",
           params: { company, projectId, projectName },
-        });
-      },
+        }),
     },
   ];
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Gradient Header */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View className="rounded-b-3xl px-6 pt-14 pb-10">
-          {/* // style={{ padding: Platform.OS === "ios" ? 30 : 40 }} // or whatever works for your design/ */}
-
           <TouchableOpacity
             onPress={() => router.push("/projects")}
             className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
@@ -133,7 +187,47 @@ const ProjectMain = () => {
         </View>
       </LinearGradient>
 
-      {/* Menu Grid */}
+      {/* ✅ Project Images */}
+      <View className="pt-4 px-4">
+        <View className="flex-row items-center mb-2">
+          <MaterialIcons name="photo-library" size={20} color="#EF4444" />
+          <Text className="ml-2 font-semibold text-gray-800 text-lg">
+            Project Images
+          </Text>
+          <TouchableOpacity
+            onPress={pickImage}
+            className="ml-auto bg-indigo-500 px-3 py-1 rounded"
+          >
+            <Text className="text-white text-sm">Upload</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loadingImages && <Text>Loading images...</Text>}
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-2"
+        >
+          {images.length === 0 && !loadingImages && (
+            <Text className="text-gray-500">No images yet.</Text>
+          )}
+          {images.map((img, i) => (
+            <Image
+              key={i}
+              source={{ uri: img }}
+              style={{
+                width: 120,
+                height: 120,
+                marginRight: 10,
+                borderRadius: 10,
+              }}
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* ✅ Menu Grid */}
       <View
         className="flex-row flex-wrap px-4 mt-6 justify-between"
         style={{ gap: ITEM_MARGIN }}
@@ -152,6 +246,7 @@ const ProjectMain = () => {
           </TouchableOpacity>
         ))}
       </View>
+
 
       {/* Project Info Modal (Bottom Sheet Style) */}
       <Modal
@@ -310,7 +405,10 @@ const ProjectMain = () => {
       >
         <Ionicons name="information-circle" size={28} color="#fff" />
       </TouchableOpacity>
+
     </View>
+
+    
   );
 };
 

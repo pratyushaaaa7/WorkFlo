@@ -98,14 +98,9 @@ const CompanyProjectSelectionScreen = () => {
     //   projectName,
     // });
 
-    router.push({
-      pathname: "/projectMain",
-      params: {
-        projectId: selectedProject,
-        company: selectedCompany,
-        projectName,
-      },
-    });
+    router.push(
+      `/projectMain?projectId=${selectedProject}&company=${selectedCompany}&projectName=${projectName}`
+    );
   };
 
   return (

@@ -16,6 +16,9 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import uuid from "react-native-uuid";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 
 interface Photo {
   id: string;
@@ -34,6 +37,13 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const router = useRouter();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [title, setTitle] = useState<string>("");
+
+  const uriToBase64 = async (uri: string) => {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return `data:image/jpeg;base64,${base64}`;
+  };
 
   // Pick photo from gallery
   const pickImage = async () => {
@@ -81,7 +91,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title) {
       Alert.alert("Error", "Please enter a report title");
       return;
@@ -91,8 +101,56 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       return;
     }
 
-    console.log("Report Data:", { title, photos });
-    Alert.alert("Success", "Report prepared. (Backend integration pending)");
+    try {
+      // convert each photo URI to base64
+      const photosWithBase64 = await Promise.all(
+        photos.map(async (p) => ({
+          ...p,
+          base64: await uriToBase64(p.uri),
+        }))
+      );
+
+      // Build HTML
+      const html = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial; padding: 20px; }
+            h1 { text-align: center; margin-bottom: 30px; }
+            .photo { margin-bottom: 30px; }
+            .photo img { width: 100%; border-radius: 8px; }
+            .caption { margin-top: 8px; font-size: 14px; color: #333; }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          ${photosWithBase64
+            .map(
+              (p) => `
+              <div class="photo">
+                <img src="${p.base64}" />
+                <div class="caption">${p.caption || ""}</div>
+              </div>
+            `
+            )
+            .join("")}
+        </body>
+      </html>
+    `;
+
+      // Generate PDF
+      const { uri } = await Print.printToFileAsync({ html });
+      console.log("PDF saved to:", uri);
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Alert.alert("PDF Generated", `Saved at: ${uri}`);
+      }
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      Alert.alert("Error", "Failed to generate PDF.");
+    }
   };
 
   return (
