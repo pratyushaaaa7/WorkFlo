@@ -247,7 +247,6 @@ const ProjectMain = () => {
         ))}
       </View>
 
-
       {/* Project Info Modal (Bottom Sheet Style) */}
       <Modal
         visible={modalVisible}
@@ -405,10 +404,7 @@ const ProjectMain = () => {
       >
         <Ionicons name="information-circle" size={28} color="#fff" />
       </TouchableOpacity>
-
     </View>
-
-    
   );
 };
 
