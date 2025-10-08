@@ -164,7 +164,7 @@ const ProjectMain = () => {
       ),
       onPress: () =>
         router.push({
-          pathname: "/dprLaborForm",
+          pathname: "/dprs",
           params: {
             company,
             projectId,
