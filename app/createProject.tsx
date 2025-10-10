@@ -193,7 +193,6 @@ const CreateProjectScreen = () => {
       projectName,
       projectCode,
       location: projectLocation,
-      // area: projectArea,
       teamLeaders: selectedLeaders,
       teamMembers: selectedMembers,
       startDate: startDate?.toISOString(),
