@@ -45,6 +45,12 @@ const CreateProjectScreen = () => {
 
   const [siteArea, setSiteArea] = useState(existingProject?.siteArea || "");
 
+  // 🔹 New states
+  const [fileNumber, setFileNumber] = useState(
+    existingProject?.fileNumber || ""
+  );
+  const [webName, setWebName] = useState(existingProject?.webName || "");
+
   const [designedArea, setDesignedArea] = useState(
     existingProject?.designedArea || ""
   );
@@ -75,13 +81,17 @@ const CreateProjectScreen = () => {
   ];
 
   const typologyOptions = [
-    { label: "RESIDENCE", value: "Residence" },
-    { label: "COMMERCIAL", value: "Commercial" },
-    { label: "HOSPITALITY", value: "Hospitality" },
-    { label: "INDUSTRIAL", value: "Industrial" },
-    { label: "HEALTHCARE", value: "Healthcare" },
-    { label: "HOUSING", value: "Housing" },
-    { label: "MISC.", value: "Misc" },
+    { label: "Residence", value: "Residence" },
+    { label: "Commercial", value: "Commercial" },
+    { label: "Hospitality", value: "Hospitality" },
+    { label: "Industrial", value: "Industrial" },
+    { label: "Healthcare", value: "Healthcare" },
+    { label: "Housing", value: "Housing" },
+    { label: "Sports Infrastructure", value: "Sports Infrastructure" },
+    { label: "Assembly", value: "Assembly" },
+    { label: "Research", value: "Research" },
+    { label: "Institutional", value: "Institutional" },
+    { label: "Misc.", value: "Miscellaneous" },
   ];
 
   // status state
@@ -89,7 +99,7 @@ const CreateProjectScreen = () => {
 
   const statusOptions = [
     { label: "Active", value: "active" },
-    { label: "On Hold", value: "hold" },
+    { label: "Inactive", value: "inactive" },
     { label: "Closed", value: "closed" },
   ];
 
@@ -193,6 +203,8 @@ const CreateProjectScreen = () => {
       siteArea,
       designedArea,
       status, // ✅ send status to backend
+      fileNumber, // ✅ new field
+      webName, // ✅ new field
     };
 
     try {
@@ -382,7 +394,7 @@ const CreateProjectScreen = () => {
         {/*Project Code*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Code
+            Project Internal Code
           </Text>
           <TextInput
             className="border border-gray-600 rounded-lg px-4 py-2 text-black"
@@ -390,6 +402,34 @@ const CreateProjectScreen = () => {
             placeholderTextColor="#999"
             value={projectCode}
             onChangeText={setProjectCode}
+          />
+        </View>
+
+        {/*file number*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            File Number
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="File Number"
+            placeholderTextColor="#999"
+            value={fileNumber}
+            onChangeText={setFileNumber}
+          />
+        </View>
+
+        {/*web name*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Web Name
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Web Name"
+            placeholderTextColor="#999"
+            value={webName}
+            onChangeText={setWebName}
           />
         </View>
 
