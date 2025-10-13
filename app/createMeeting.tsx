@@ -109,6 +109,10 @@ const CreateMinutes = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
+  const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
+const [isMomSubmitting, setIsMomSubmitting] = useState(false);
+
+
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
   const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
   const [isAgendaDownloading, setIsAgendaDownloading] = useState(false);
@@ -119,6 +123,7 @@ const CreateMinutes = () => {
   const [meetingVenue, setMeetingVenue] = useState<string>("");
 
   const [showMeetingDatePicker, setShowMeetingDatePicker] = useState(false);
+  const [showMeetingTimePicker, setShowMeetingTimePicker] = useState(false);
 
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
@@ -540,13 +545,30 @@ const CreateMinutes = () => {
             )}
 
             {/* Meeting Time */}
-            <TextInput
-              placeholder="Meeting Time"
-              placeholderTextColor="#888"
-              value={meetingTime}
-              onChangeText={setMeetingTime}
-              className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-            />
+            {/* ✅ Meeting Time */}
+            <TouchableOpacity onPress={() => setShowMeetingTimePicker(true)}>
+              <TextInput
+                placeholder="Meeting Time"
+                placeholderTextColor="#888"
+                value={meetingTime ? moment(meetingTime).format("hh:mm A") : ""}
+                editable={false} // prevent typing
+                pointerEvents="none"
+                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+              />
+            </TouchableOpacity>
+
+            {showMeetingTimePicker && (
+              <DateTimePicker
+                value={meetingTime || new Date()}
+                mode="time" // important for time picker
+                display="default"
+                is24Hour={false} // set true if you want 24-hour format
+                onChange={(_, selectedTime) => {
+                  setShowMeetingTimePicker(false);
+                  if (selectedTime) setMeetingTime(selectedTime);
+                }}
+              />
+            )}
 
             {/* Venue */}
             <TextInput

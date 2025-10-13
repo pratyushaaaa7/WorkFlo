@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -179,7 +179,88 @@ const MinutesDetail = () => {
             {isDownloading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Feather name="download" size={22} color="white" />
+              <MaterialCommunityIcons
+                name="microsoft-excel"
+                size={26}
+                color="white"
+              />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isDownloading}
+            className={`px-2 mr-2 rounded-full bg-white/20`}
+            onPress={async () => {
+              if (!meeting) return;
+              setIsDownloading(true);
+              try {
+                // --- PDF download ---
+                const payload = {
+                  meeting,
+                  projectName,
+                  accountName: auth?.user?.fullName ?? "Unknown",
+                  company,
+                };
+
+                const response = await api.post(
+                  "/minutes/export/minutes/pdf",
+                  payload,
+                  {
+                    responseType: "blob",
+                    headers: { Authorization: `Bearer ${token}` },
+                  }
+                );
+
+                const fileName = `Meeting_${meeting.meetingNumber}_Minutes.pdf`;
+
+                if (Platform.OS === "web") {
+                  const url = window.URL.createObjectURL(
+                    new Blob([response.data], { type: "application/pdf" })
+                  );
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                } else {
+                  const blobToBase64 = (blob: Blob) =>
+                    new Promise<string>((resolve, reject) => {
+                      const reader = new FileReader();
+                      reader.onloadend = () =>
+                        resolve(reader.result?.toString().split(",")[1] || "");
+                      reader.onerror = reject;
+                      reader.readAsDataURL(blob);
+                    });
+
+                  const base64data = await blobToBase64(response.data);
+                  const fileUri = FileSystem.cacheDirectory + fileName;
+                  await FileSystem.writeAsStringAsync(fileUri, base64data, {
+                    encoding: FileSystem.EncodingType.Base64,
+                  });
+
+                  await Sharing.shareAsync(fileUri, {
+                    mimeType: "application/pdf",
+                    dialogTitle: "Share Meeting Minutes (PDF)",
+                    UTI: "com.adobe.pdf",
+                  });
+                }
+              } catch (err) {
+                console.error("Failed to download PDF minutes:", err);
+                alert("Failed to download PDF minutes");
+              } finally {
+                setIsDownloading(false);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            {isDownloading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialCommunityIcons
+                name={"file-pdf-box"}
+                size={28}
+                color="white"
+              />
             )}
           </TouchableOpacity>
         </View>
