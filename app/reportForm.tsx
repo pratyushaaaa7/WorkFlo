@@ -22,6 +22,7 @@ import * as FileSystem from "expo-file-system";
 import { useAuth } from "./../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Asset } from "expo-asset";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 // --- Convert local asset to base64 ---
 const localImageToBase64 = async (image: any) => {
@@ -42,6 +43,7 @@ interface Photo {
 interface Vendor {
   name: string;
   laborCount: number;
+  expertise?: string;
 }
 
 interface ReportFormProps {
@@ -92,6 +94,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const vendors: Vendor[] = vendorsParam
     ? JSON.parse(vendorsParam as string)
     : [];
+  // console.log(vendors);
   const totalLabor = totalLaborParam ? parseInt(totalLaborParam as string) : 0;
   // console.log(totalLabor);
 
@@ -213,99 +216,198 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       const timeStr = today.toLocaleTimeString();
 
       // --- 3. Build HTML for PDF ---
-      const html = `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial; margin: 20px; }
-            h1 { text-align: center; margin-bottom: 20px; }
-            .page { page-break-after: always; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #999; padding: 8px; text-align: left; }
-            th { background-color: #f0f0f0; }
-            .photo { text-align: center; page-break-after: always; }
-            .photo img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
-            .caption { margin-top: 8px; font-size: 14px; color: #333; }
-          </style>
-        </head>
-        <body>
-          <!-- Page 1: Project Info + Logo -->
-<div class="page">
-  <div style="text-align:center; margin-bottom: 20px;">
-    <img src="${logoBase64}" style="width:150px; height:auto;" />
-  </div>
-  <p><strong>Project Name:</strong> ${projectName || ""}</p>
-  <p><strong>Created By:</strong> ${createdBy}</p>
-  <p><strong>Company:</strong> ${company || ""}</p>
-  <p><strong>Date:</strong> ${dateStr}</p>
-  <p><strong>Time:</strong> ${timeStr}</p>
+const html = `
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        position: relative;
+      }
+      .page {
+        page-break-after: always;
+        position: relative;
+        padding: 120px 20px 40px 20px; /* reduced left/right margins */
+        box-sizing: border-box;
+        height: 100vh;
+      }
 
- <h3 style="margin-top: 20px;">Team Leaders</h3>
-<ul>
-  ${
-    leaders.length > 0
-      ? leaders.map((leader: any) => `<li>${leader.fullName}</li>`).join("")
-      : "<li>None</li>"
-  }
-</ul>
+      /* Fixed top-left header (project info) for subsequent pages only */
+      .header-left {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        font-size: 16px; /* increased font size */
+        font-weight: bold;
+        color: #000; /* black */
+        line-height: 1.5;
+        background: white;
+        padding: 8px 12px;
+      }
 
-<h3 style="margin-top: 20px;">Team Members</h3>
-<ul>
-  ${
-    members.length > 0
-      ? members.map((member: any) => `<li>${member.fullName}</li>`).join("")
-      : "<li>None</li>"
-  }
-</ul>
-</div>
+      /* Fixed top-right logo */
+      .header-right {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+      }
+      .header-right img {
+        width: 180px;
+        height: auto;
+      }
 
-          <!-- Page 2: Labor Report -->
-          <div class="page">
-            <h2>Labor Report</h2>
-            <table>
-              <tr>
-                <th>S.No</th>
-                <th>Vendor Name</th>
-                <th>Number of Labors</th>
-              </tr>
-              ${vendors
-                .map(
-                  (v, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${v.name}</td>
-                  <td>${v.laborCount}</td>
-                </tr>
-              `
-                )
-                .join("")}
-              <tr>
-                <td colspan="2" style="text-align:right;font-weight:bold">Total Labors</td>
-                <td><strong>${totalLabor}</strong></td>
-              </tr>
-            </table>
-          </div>
+      /* Table styling */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th, td {
+        border: 1px solid #999;
+        padding: 8px;
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        background-color: #f0f0f0;
+      }
 
-          <!-- Subsequent Pages: Photos -->
-          ${photosWithBase64
+      /* Photo page layout */
+      .photo {
+        display: flex;
+        flex-direction: column;
+    align-items: flex-start; /* <-- changed from center to flex-start */
+        justify-content: center;
+        height: 100%;
+      }
+      .photo img {
+        max-height: 66vh; /* 2/3 page height */
+        max-width: 90%;
+        object-fit: contain;
+        border-radius: 8px;
+      }
+
+      /* Caption styling */
+      .caption {
+        margin-top: 16px;
+        font-size: 20px;
+        color: #222;
+        font-weight: 500;
+     
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- PAGE 1: Project Info -->
+    <div class="page">
+      <div class="header-right">
+        <img src="${logoBase64}" />
+      </div>
+
+      <h2>Project Information</h2>
+      <p><strong>Project Name:</strong> ${projectName || ""}</p>
+      <p><strong>Created By:</strong> ${createdBy}</p>
+      <p><strong>Company:</strong> ${company || ""}</p>
+      <p><strong>Date:</strong> ${dateStr}</p>
+      <p><strong>Time:</strong> ${timeStr}</p>
+
+      <h3 style="margin-top: 20px;">Team Leaders</h3>
+      <ul>
+        ${
+          leaders.length > 0
+            ? leaders.map((l: any) => `<li>${l.fullName}</li>`).join("")
+            : "<li>None</li>"
+        }
+      </ul>
+
+      <h3 style="margin-top: 20px;">Team Members</h3>
+      <ul>
+        ${
+          members.length > 0
+            ? members.map((m: any) => `<li>${m.fullName}</li>`).join("")
+            : "<li>None</li>"
+        }
+      </ul>
+    </div>
+
+    <!-- CONDITIONAL LABOR REPORT PAGE -->
+    ${
+      vendors.length > 0
+        ? `
+      <div class="page">
+        <div class="header-left">
+          <div><strong>Project:</strong> ${projectName || ""}</div>
+          <div><strong>Created By:</strong> ${createdBy || ""}</div>
+        </div>
+        <div class="header-right">
+          <img src="${logoBase64}" />
+        </div>
+
+        <h2 style="margin-top: 80px;">Labor Report</h2>
+        <table>
+          <tr>
+            <th>S.No</th>
+            <th>Vendor Name</th>
+            <th>Expertise</th>
+            <th>Number of Labors</th>
+          </tr>
+          ${vendors
             .map(
-              (p) => `
-                <div class="photo">
-                  <img src="${p.base64}" />
-                  <div class="caption"  style="
-            margin-top: 12px; 
-            font-size: 22px; 
-            color: #222; 
-            font-weight: 500; 
-            text-align: center;
-          ">${p.caption || ""}</div>
-                </div>
-              `
+              (v, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${v.name || "-"}</td>
+                <td>${v.expertise || "-"}</td>
+                <td>${v.laborCount || 0}</td>
+              </tr>
+            `
             )
             .join("")}
-        </body>
-      </html>
-    `;
+          <tr>
+            <td colspan="3" style="text-align:right;font-weight:bold;">Total Labors</td>
+            <td><strong>${totalLabor}</strong></td>
+          </tr>
+        </table>
+      </div>
+      `
+        : ""
+    }
+
+   <!-- PHOTO PAGES -->
+${photosWithBase64
+  .map(
+    (p) => `
+      <div class="page photo">
+        <div class="header-left">
+          <div><strong>Project:</strong> ${projectName || ""}</div>
+          <div><strong>Created By:</strong> ${createdBy || ""}</div>
+        </div>
+        <div class="header-right">
+          <img src="${logoBase64}" />
+        </div>
+
+<!-- Left-aligned image with black border and caption -->
+<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; margin-top: 20px; width: auto;">
+  <!-- Image container with black border -->
+  <div style="border: 2px solid #000; border-radius: 8px; padding: 6px; display: inline-block;">
+    <img src="${p.base64}" style="max-height: 66vh; max-width: 90vw; object-fit: contain; display: block;" />
+  </div>
+  <!-- Caption below image, left-aligned -->
+  <div class="caption" style=" text-align: left; display: block;">
+     ${p.caption?.trimStart() || ""}
+  </div>
+</div>
+      </div>
+    `
+  )
+  .join("")}
+  </body>
+</html>
+`;
 
       // Generate PDF
       const { uri } = await Print.printToFileAsync({
@@ -361,7 +463,13 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
         </View>
       </LinearGradient>
 
-      <View className="p-4 flex-1">
+      <KeyboardAwareScrollView
+        className="flex-1 p-4"
+        enableOnAndroid={true}
+        extraScrollHeight={100} // how much to scroll above keyboard
+        keyboardOpeningTime={0}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {/* Report Title */}
         {/* <Text className="text-lg font-semibold mb-2">Report Title</Text>
         <TextInput
@@ -391,8 +499,8 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
           </TouchableOpacity>
         </View>
 
-        {/* Selected Photos */}
-        <FlatList
+        {/* Selected Photos (no FlatList to avoid nested scroll warning) */}
+        {/* <FlatList
           data={photos}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
@@ -403,12 +511,17 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
                 resizeMode="cover"
               />
               <TextInput
-                placeholder="Add caption"
-                placeholderTextColor={"#999"}
+                placeholder="Write caption here..."
+                placeholderTextColor="#888"
                 value={item.caption}
                 onChangeText={(text) => updateCaption(item.id, text)}
-                className="border rounded-lg px-3 py-2 bg-gray-50 mb-2"
+                multiline
+                textAlignVertical="top" // ensures text starts at the top, not middle
+                returnKeyType="default" // enables Enter key for new lines
+                blurOnSubmit={false} // keeps focus after pressing Enter
+                className="border rounded-2xl px-4 py-3 bg-gray-50 mb-2 min-h-[40px] text-base"
               />
+
               <TouchableOpacity
                 onPress={() => removePhoto(item.id)}
                 className="absolute top-2 right-2 bg-red-500 p-2 rounded-full"
@@ -417,7 +530,38 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
               </TouchableOpacity>
             </View>
           )}
-        />
+        /> */}
+
+        {photos.map((item) => (
+          <View key={item.id} className="bg-white rounded-2xl shadow p-3 mb-4">
+            <Image
+              source={{ uri: item.uri }}
+              className="w-full h-52 rounded-lg mb-3"
+              resizeMode="cover"
+            />
+
+            {/* Bigger vertical caption box */}
+            <TextInput
+              placeholder="Write caption here..."
+              placeholderTextColor="#888"
+              value={item.caption}
+              onChangeText={(text) => updateCaption(item.id, text)}
+              multiline
+              textAlignVertical="top"
+              returnKeyType="default"
+              blurOnSubmit={false}
+              className="border rounded-2xl px-4 py-3 bg-gray-50 mb-2 min-h-[40px] text-base"
+            />
+
+            {/* Delete button */}
+            <TouchableOpacity
+              onPress={() => removePhoto(item.id)}
+              className="absolute top-2 right-2 bg-red-500 p-2 rounded-full"
+            >
+              <Ionicons name="trash" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ))}
 
         {/* Submit Button */}
         <TouchableOpacity
@@ -431,7 +575,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
           />
           <Text className="text-white font-semibold ml-2">Generate Report</Text>
         </TouchableOpacity>
-      </View>
+      </KeyboardAwareScrollView>
     </View>
   );
 };

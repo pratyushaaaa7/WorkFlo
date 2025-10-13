@@ -19,6 +19,7 @@ import uuid from "react-native-uuid";
 interface Vendor {
   id: string;
   name: string;
+  expertise: string;
   laborCount: number;
 }
 
@@ -57,7 +58,7 @@ const LaborForm = () => {
   const addVendor = () => {
     setVendors((prev) => [
       ...prev,
-      { id: uuid.v4().toString(), name: "", laborCount: 0 },
+      { id: uuid.v4().toString(), name: "", expertise: "", laborCount: 0 },
     ]);
   };
 
@@ -99,6 +100,7 @@ const LaborForm = () => {
         teamMembers,
         vendors: JSON.stringify(vendors),
         totalLabor: totalLabor.toString(),
+        
       }, // pass as string},
     });
     // console.log(JSON.stringify(vendors));
@@ -168,6 +170,16 @@ const LaborForm = () => {
                     placeholderTextColor="#9ca3af"
                     value={item.name}
                     onChangeText={(text) => updateVendor(item.id, "name", text)}
+                    className="border-b border-gray-200 pb-1 mb-2 text-sm pr-6"
+                  />
+
+                  <TextInput
+                    placeholder="Expertise "
+                    placeholderTextColor="#9ca3af"
+                    value={item.expertise}
+                    onChangeText={(text) =>
+                      updateVendor(item.id, "expertise", text)
+                    }
                     className="border-b border-gray-200 pb-1 mb-2 text-sm pr-6"
                   />
                   <TextInput
