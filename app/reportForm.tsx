@@ -515,48 +515,22 @@ ${photosWithBase64
           </TouchableOpacity>
         </View>
 
-        {/* Selected Photos (no FlatList to avoid nested scroll warning) */}
-        {/* <FlatList
-          data={photos}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="bg-white rounded-2xl shadow p-3 mb-4">
+        {photos.map((item) => (
+          <View
+            key={item.id}
+            className="bg-white rounded-2xl shadow p-3 mb-4 relative"
+          >
+            {/* Image container with fixed width and flexible height */}
+            <View className="w-full rounded-lg overflow-hidden bg-white">
               <Image
                 source={{ uri: item.uri }}
-                className="w-full h-52 rounded-lg mb-2"
-                resizeMode="cover"
+                className="w-full"
+                style={{ height: undefined, aspectRatio: 1 }} // 1:1 default, adjusts for landscape/portrait
+                resizeMode="contain" // ensures full image is visible
               />
-              <TextInput
-                placeholder="Write caption here..."
-                placeholderTextColor="#888"
-                value={item.caption}
-                onChangeText={(text) => updateCaption(item.id, text)}
-                multiline
-                textAlignVertical="top" // ensures text starts at the top, not middle
-                returnKeyType="default" // enables Enter key for new lines
-                blurOnSubmit={false} // keeps focus after pressing Enter
-                className="border rounded-2xl px-4 py-3 bg-gray-50 mb-2 min-h-[40px] text-base"
-              />
-
-              <TouchableOpacity
-                onPress={() => removePhoto(item.id)}
-                className="absolute top-2 right-2 bg-red-500 p-2 rounded-full"
-              >
-                <Ionicons name="trash" size={18} color="#fff" />
-              </TouchableOpacity>
             </View>
-          )}
-        /> */}
 
-        {photos.map((item) => (
-          <View key={item.id} className="bg-white rounded-2xl shadow p-3 mb-4">
-            <Image
-              source={{ uri: item.uri }}
-              className="w-full h-52 rounded-lg mb-3"
-              resizeMode="cover"
-            />
-
-            {/* Bigger vertical caption box */}
+            {/* Caption box */}
             <TextInput
               placeholder="Write caption here..."
               placeholderTextColor="#888"
@@ -566,13 +540,13 @@ ${photosWithBase64
               textAlignVertical="top"
               returnKeyType="default"
               blurOnSubmit={false}
-              className="border rounded-2xl px-4 py-3 bg-gray-50 mb-2 min-h-[40px] text-base"
+              className="border rounded-2xl px-4 py-3 bg-gray-50 mb-2 min-h-[40px] text-base mt-2"
             />
 
             {/* Delete button */}
             <TouchableOpacity
               onPress={() => removePhoto(item.id)}
-              className="absolute top-2 right-2 bg-red-500 p-2 rounded-full"
+              className="absolute top-3 right-3 bg-red-500 p-2 rounded-full shadow-md"
             >
               <Ionicons name="trash" size={18} color="#fff" />
             </TouchableOpacity>
