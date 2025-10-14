@@ -599,8 +599,18 @@ const CreateMinutes = () => {
               className="mb-4 rounded-3xl shadow-sm overflow-hidden"
             >
               <List.Accordion
-                title={`Attendee ${att.sNo}`}
-                titleStyle={{ fontWeight: "600", fontSize: 16 }}
+                title={
+                  <View>
+                    <Text className="font-semibold text-gray-700 text-lg">
+                      Attendee {att.sNo}
+                    </Text>
+                    {att.attendeeName ? (
+                      <Text className=" text-sm text-gray-500">
+                        {att.attendeeName}
+                      </Text>
+                    ) : null}
+                  </View>
+                }
                 style={{
                   backgroundColor: "#F0F9FF",
                   borderRadius: 12,
@@ -778,11 +788,18 @@ const CreateMinutes = () => {
               className="mb-4 rounded-3xl shadow-sm overflow-hidden"
             >
               <List.Accordion
-                title={`Minute ${m.serialNo}`}
-                titleStyle={{
-                  fontWeight: "600",
-                  fontSize: 16,
-                }}
+                title={
+                  <View>
+                    <Text className="font-semibold text-gray-700 text-lg">
+                      Minute {m.serialNo}
+                    </Text>
+                    {m.issueSubject ? (
+                      <Text className="text-sm text-gray-500">
+                        {m.issueSubject}
+                      </Text>
+                    ) : null}
+                  </View>
+                }
                 style={{
                   backgroundColor: "#ECFDF5", // Emerald-50 like light green
                   borderRadius: 12,
