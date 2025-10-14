@@ -110,8 +110,7 @@ const CreateMinutes = () => {
   const token = auth?.token;
 
   const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
-const [isMomSubmitting, setIsMomSubmitting] = useState(false);
-
+  const [isMomSubmitting, setIsMomSubmitting] = useState(false);
 
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
   const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
@@ -360,50 +359,54 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
     try {
       if (!token) return;
 
+      // Start loading based on type
+      if (type === "agenda") setIsAgendaSubmitting(true);
+      else setIsMomSubmitting(true);
+
       // ✅ Validation
       if (type === "agenda") {
         const invalid = minutes.some(
           (m) => !m.issueSubject || m.raisedBy.length === 0
         );
         if (invalid) {
-          return Toast.show({
+          Toast.show({
             type: "error",
             text1: "Issue Subject & Raised By are required for agenda",
             position: "bottom",
           });
+          return;
         }
       } else {
         if (!meetingDate || !meetingTime || !meetingVenue) {
-          return Toast.show({
+          Toast.show({
             type: "error",
             text1: "Meeting info is required",
             position: "bottom",
           });
+          return;
         }
         if (attendees.length === 0) {
-          return Toast.show({
+          Toast.show({
             type: "error",
             text1: "Add at least one attendee",
             position: "bottom",
           });
+          return;
         }
         const invalid = minutes.some(
           (m) =>
-            // !m.issueSubject ||
-            // !m.targetDate ||
-            // m.raisedBy.length === 0 ||
-            // m.responsibility.length === 0
             !m.issueSubject ||
             m.raisedBy.length === 0 ||
             (!m.targetDate && !m.targetDateForInfo) ||
             (m.responsibility.length === 0 && !m.responsibilityForInfo)
         );
         if (invalid) {
-          return Toast.show({
+          Toast.show({
             type: "error",
             text1: "All MOM fields are required",
             position: "bottom",
           });
+          return;
         }
       }
 
@@ -411,36 +414,31 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
       const formattedAttendees = attendees.map((a) => ({
         sNo: a.sNo,
         attendeeName: a.attendeeName,
-        // role: a.role,
         organization: a.organization,
         designation: a.designation,
         email: a.email,
-        contactNumbers: a.contactNumbers || [""], // ✅ send full array
+        contactNumbers: a.contactNumbers || [""],
       }));
 
       // ✅ Format minutes
-
       const formattedMinutes = minutes.map((m, i) => ({
         serialNo: m.serialNo ?? i + 1,
         issueSubject: m.issueSubject,
         description: m.issueDescription || "",
         raisedBy: m.raisedBy.map((r: any) => ({
-          _id: r.value, // backend expects _id
+          _id: r.value,
           name: r.label,
         })),
         responsibility: m.responsibility.map((r: any) => ({
           _id: r.value,
           name: r.label,
         })),
-
         targetDate: m.targetDateForInfo ? null : m.targetDate,
         remarks: m.remarks || "",
         targetDateForInfo: !!m.targetDateForInfo,
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
       }));
-
-      // console.log("Submitting Minutes payload:", formattedMinutes);
 
       const payload = {
         projectId,
@@ -452,17 +450,12 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
         actionType: type,
       };
 
-      // console.log("Full payload to API:", payload);
-      // console.log("Submitting payload:", JSON.stringify(payload, null, 2));
-
       // ✅ Call API
       if (type === "agenda" || !meetingId) {
-        // Create new meeting (agenda or full MOM)
         await api.post(`/minutes`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        // Update existing meeting (after agenda)
         await api.put(`/minutes/${meetingId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -473,16 +466,26 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
         text1: type === "agenda" ? "Agenda submitted" : "MOM submitted",
         position: "bottom",
       });
+
       router.back();
     } catch (err: any) {
-      console.error("Submit error:", err);
-      console.error("Submit error:", err?.response.data || err.message);
+      console.error("Submit error:", err?.response?.data || err.message);
+
+      // Extract message from backend response
+      const errorMsg =
+        err?.response?.data?.message || // backend returned validation message
+        err?.response?.data?.error || // fallback if error object
+        "Failed to submit minutes"; // ultimate fallback
 
       Toast.show({
         type: "error",
-        text1: "Failed to submit minutes",
+        text1: errorMsg, // <-- show exact backend message
         position: "bottom",
       });
+    } finally {
+      // Stop loading
+      setIsAgendaSubmitting(false);
+      setIsMomSubmitting(false);
     }
   };
 
@@ -550,7 +553,7 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
               <TextInput
                 placeholder="Meeting Time"
                 placeholderTextColor="#888"
-                value={meetingTime ? moment(meetingTime).format("hh:mm A") : ""}
+                value={meetingTime} // 👈 directly use string
                 editable={false} // prevent typing
                 pointerEvents="none"
                 className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
@@ -559,13 +562,18 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
 
             {showMeetingTimePicker && (
               <DateTimePicker
-                value={meetingTime || new Date()}
+                value={new Date()}
                 mode="time" // important for time picker
                 display="default"
                 is24Hour={false} // set true if you want 24-hour format
                 onChange={(_, selectedTime) => {
                   setShowMeetingTimePicker(false);
-                  if (selectedTime) setMeetingTime(selectedTime);
+                  if (selectedTime) {
+                    // format and store as text like “01:19 PM”
+                    const formattedTime =
+                      moment(selectedTime).format("hh:mm A");
+                    setMeetingTime(formattedTime);
+                  }
                 }}
               />
             )}
@@ -1117,6 +1125,7 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
         </Modal>
 
         {/* Submit Button */}
+        {/* Submit Button */}
         <View className="flex-row gap-3 my-10">
           {meetingId ? (
             <TouchableOpacity
@@ -1142,8 +1151,9 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
                   setIsAgendaDownloading(false);
                 }
               }}
-              className={`flex-1 px-4 py-4 rounded-xl items-center  bg-sky-700
-              `}
+              className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
+              }`}
             >
               {isAgendaDownloading ? (
                 <ActivityIndicator size="small" color="white" />
@@ -1156,19 +1166,35 @@ const [isMomSubmitting, setIsMomSubmitting] = useState(false);
           ) : (
             <TouchableOpacity
               onPress={() => handleSubmit("agenda")}
-              className="flex-1 px-4 py-4 bg-sky-700 rounded-xl items-center"
+              disabled={isAgendaSubmitting}
+              className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                isAgendaSubmitting ? "bg-gray-400" : "bg-sky-700"
+              }`}
             >
-              <Text className="text-white font-bold text-xl">
-                Submit Agenda
-              </Text>
+              {isAgendaSubmitting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-bold text-xl">
+                  Submit Agenda
+                </Text>
+              )}
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
             onPress={() => handleSubmit("mom")}
-            className="flex-1 px-4 py-4 bg-green-700 rounded-xl items-center"
+            disabled={isMomSubmitting}
+            className={`flex-1 px-4 py-4 rounded-xl items-center ${
+              isMomSubmitting ? "bg-gray-400" : "bg-green-700"
+            }`}
           >
-            <Text className="text-white font-bold text-xl">Submit Minutes</Text>
+            {isMomSubmitting ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text className="text-white font-bold text-xl">
+                Submit Minutes
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
