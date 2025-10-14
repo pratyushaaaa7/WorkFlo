@@ -19,10 +19,18 @@ const DPRs = () => {
   const router = useRouter();
   const { projectId, projectName, company, teamLeaders, teamMembers } =
     useLocalSearchParams();
-  const { token } = useContext(AuthContext);
+  const auth = useContext(AuthContext);
+  const token = auth?.token;
+
+  type DprItem = {
+    _id: string;
+    fileName: string;
+    url: string;
+    // add other fields if needed
+  };
 
   const [uploading, setUploading] = useState(false);
-  const [dprs, setDprs] = useState([]);
+  const [dprs, setDprs] = useState<DprItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ✅ Fetch DPRs for this project
@@ -130,7 +138,11 @@ const DPRs = () => {
                 <Text className="text-gray-800 font-medium">
                   {item.fileName}
                 </Text>
-                <Ionicons name="document-text-outline" size={22} color="#6366F1" />
+                <Ionicons
+                  name="document-text-outline"
+                  size={22}
+                  color="#6366F1"
+                />
               </TouchableOpacity>
             )}
           />

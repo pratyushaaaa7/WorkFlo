@@ -216,7 +216,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       const timeStr = today.toLocaleTimeString();
 
       // --- 3. Build HTML for PDF ---
-const html = `
+      const html = `
 <html>
   <head>
     <style>
@@ -377,34 +377,50 @@ const html = `
         : ""
     }
 
-   <!-- PHOTO PAGES -->
+  <!-- PHOTO PAGES -->
 ${photosWithBase64
   .map(
     (p) => `
-      <div class="page photo">
-        <div class="header-left">
-          <div><strong>Project:</strong> ${projectName || ""}</div>
-          <div><strong>Created By:</strong> ${createdBy || ""}</div>
-        </div>
-        <div class="header-right">
-          <img src="${logoBase64}" />
-        </div>
-
-<!-- Left-aligned image with black border and caption -->
-<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; margin-top: 20px; width: auto;">
-  <!-- Image container with black border -->
-  <div style="border: 2px solid #000; border-radius: 8px; padding: 6px; display: inline-block;">
-    <img src="${p.base64}" style="max-height: 66vh; max-width: 90vw; object-fit: contain; display: block;" />
+     <div class="page photo">
+  <div class="header-left">
+    <div><strong>Project:</strong> ${projectName || ""}</div>
+    <div><strong>Created By:</strong> ${createdBy || ""}</div>
   </div>
-  <!-- Caption below image, left-aligned -->
-  <div class="caption" style=" text-align: left; display: block;">
-     ${p.caption?.trimStart() || ""}
+  <div class="header-right">
+    <img src="${logoBase64}" />
+  </div>
+
+  <!-- Image container -->
+  <div style="
+    width: 94%;
+    height: 66vh;          /* 2/3 of viewport height */
+    border: 2px solid #000;
+    border-radius: 8px;
+    margin: 20px auto 0 auto; /* center container horizontally */
+    padding: 6px;
+    display: flex;
+    justify-content: flex-start; /* LEFT align the image */
+    align-items: flex-start;     /* align top */
+    overflow: hidden;
+  ">
+    <img src="${p.base64}" style="
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    " />
+  </div>
+
+  <!-- Caption below image -->
+  <div class="caption" style="text-align: left; margin-top: 12px;">
+    ${p.caption?.trimStart() || ""}
   </div>
 </div>
-      </div>
+
     `
   )
   .join("")}
+
   </body>
 </html>
 `;
