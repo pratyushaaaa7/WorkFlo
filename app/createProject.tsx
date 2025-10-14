@@ -109,23 +109,29 @@ const CreateProjectScreen = () => {
     { label: string; value: string }[]
   > = {
     WAL: [
-      { label: "MASTER PLANNING", value: "Master Planning" },
-      { label: "ARCHITECTURE", value: "Architecture" },
-      { label: "FAÇADE", value: "Facade" },
-      { label: "INTERIORS", value: "Interiors" },
-      { label: "DESIGN MANAGEMENT", value: "Design Management" },
+      { label: "Master Planning", value: "Master Planning" },
+      { label: "Architecture", value: "Architecture" },
+      { label: "Interior Design", value: "Interior Design" },
+      { label: "Interior Decoration", value: "Interior Decoration" },
+      { label: "Design Management", value: "Design Management" },
     ],
+
     WP: [
-      { label: "DESIGN MANAGEMENT", value: "Design Management" },
+      { label: "Project Management", value: "Project Management" },
+      { label: "Project Feasibility", value: "Project Feasibility" },
+      { label: "Design Management", value: "Design Management" },
       {
-        label: "TENDER AND CONTRACTS MANAGEMENT",
-        value: "Tender and Contracts Management",
+        label: "Cost Control and Monitoring",
+        value: "Cost Control and Monitoring",
       },
-      { label: "CONSTRUCTION MANAGEMENT", value: "Construction Management" },
-      { label: "QS AND COST CONSULTANCY", value: "QS and Cost Consultancy" },
-      { label: "HANDOVER MANAGEMENT", value: "Handover Management" },
-      { label: "AUDITORS", value: "Auditors" },
-      { label: "DLP MANAGEMENT", value: "DLP Management" },
+      {
+        label: "Tender and Contract Management",
+        value: "Tender and Contract Management",
+      },
+
+      { label: "Construction Management", value: "Construction Management" },
+
+      { label: "Post Construction Audit", value: "Post Construction Audit" },
     ],
   };
 
