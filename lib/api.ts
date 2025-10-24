@@ -31,13 +31,10 @@ export default api;
 
 
 //FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
-
 // import axios from "axios";
-
 // const api = axios.create({
 //   baseURL: "https://api.wprojects.in/api",  // Production API through Nginx + HTTPS
 // });
-
 // export default api;
 
 
