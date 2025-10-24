@@ -29,7 +29,7 @@ const DPRs = () => {
     // add other fields if needed
   };
 
-  const [uploading, setUploading] = useState(false);
+  // const [uploading, setUploading] = useState(false);
   const [dprs, setDprs] = useState<DprItem[]>([]);
   const [loading, setLoading] = useState(true);
 
