@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,11 +19,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import api from "../lib/api";
 import * as FileSystem from "expo-file-system";
 import { useAuth } from "./../context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Asset } from "expo-asset";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
 
 // --- Convert local asset to base64 ---
 const localImageToBase64 = async (image: any) => {
@@ -64,9 +67,11 @@ const getFormattedDate = (): string => {
 };
 
 const ReportForm = ({ navigation }: ReportFormProps) => {
-  const { user } = useAuth(); // ✅ use the custom hook at the top-level
+  const { user, token } = useAuth(); // ✅ use the custom hook at the top-level
   const router = useRouter();
+
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [uploading, setUploading] = useState(false);
   // const [title, setTitle] = useState<string>("");
   const {
     projectName,
@@ -77,6 +82,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     vendors: vendorsParam,
     totalLabor: totalLaborParam,
   } = useLocalSearchParams();
+  console.log(projectId);
   // Parse string back to array
   // ✅ Ensure we have a single string (not an array)
   const teamLeadersStr = Array.isArray(teamLeaders)
@@ -89,7 +95,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   // ✅ Parse safely
   const leaders = JSON.parse(teamLeadersStr || "[]");
   const members = JSON.parse(teamMembersStr || "[]");
-  console.log(teamLeaders, teamMembers);
+  // console.log(teamLeaders, teamMembers);
 
   const vendors: Vendor[] = vendorsParam
     ? JSON.parse(vendorsParam as string)
@@ -183,6 +189,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
 
   const handleSubmit = async () => {
     try {
+      setUploading(true); // start loader
       const createdBy = user?.fullName || "Unknown";
 
       // --- 1. Determine company logo ---
@@ -445,11 +452,52 @@ ${photosWithBase64
 
       console.log("PDF saved with custom name:", newUri);
 
-      // Share PDF
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newUri);
+      // // Share PDF
+      // if (await Sharing.isAvailableAsync()) {
+      //   await Sharing.shareAsync(newUri);
+      // } else {
+      //   Alert.alert("PDF Generated", `Saved at: ${newUri}`);
+      // }
+
+      // --- Auto Upload ---
+      const formData = new FormData();
+      formData.append("file", {
+        uri: newUri,
+        name: newFileName,
+        type: "application/pdf",
+      });
+      formData.append("projectId", projectId);
+
+      const response = await api.post("/dpr", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "DPR uploaded successfully",
+          position: "bottom",
+        });
+        // Navigate after 2 seconds so the user sees the toast
+        setTimeout(() => {
+          router.push({
+            pathname: "/dprs", // the page you want to navigate to
+            params: {
+              projectId, // now it’s an object
+            }, // pass as query param
+          });
+        }, 2000);
       } else {
-        Alert.alert("PDF Generated", `Saved at: ${newUri}`);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Upload failed",
+          position: "bottom",
+        });
       }
       // Clear photos and labor data after PDF generation
       await AsyncStorage.removeItem("@saved_photos"); // photos
@@ -457,7 +505,14 @@ ${photosWithBase64
       setPhotos([]); // optional: reset state
     } catch (err) {
       console.error("PDF generation error:", err);
-      Alert.alert("Error", "Failed to generate PDF.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to upload DPR",
+        position: "bottom",
+      });
+    } finally {
+      setUploading(false); // stop loader
     }
   };
 
@@ -556,14 +611,25 @@ ${photosWithBase64
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-red-500 mt-6 p-4 rounded-2xl flex-row justify-center items-center shadow"
+          disabled={uploading || photos.length === 0} // disabled if uploading or no photos
+          className={`mt-6 p-4 rounded-2xl flex-row justify-center items-center shadow ${
+            uploading || photos.length === 0 ? "bg-gray-400" : "bg-red-500"
+          }`}
         >
-          <MaterialCommunityIcons
-            name="file-image-outline"
-            size={22}
-            color="#fff"
-          />
-          <Text className="text-white font-semibold ml-2">Generate Report</Text>
+          {uploading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <MaterialCommunityIcons
+                name="file-image-outline"
+                size={22}
+                color="#fff"
+              />
+              <Text className="text-white font-semibold ml-2">
+                Generate Report
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </View>

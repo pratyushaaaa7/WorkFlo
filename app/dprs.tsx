@@ -49,48 +49,48 @@ const DPRs = () => {
   };
 
   // ✅ Upload a new DPR
-  const handleUploadDPR = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "application/pdf",
-      });
+  // const handleUploadDPR = async () => {
+  //   try {
+  //     const result = await DocumentPicker.getDocumentAsync({
+  //       type: "application/pdf",
+  //     });
 
-      if (result.canceled) return;
-      const file = result.assets[0];
+  //     if (result.canceled) return;
+  //     const file = result.assets[0];
 
-      setUploading(true);
+  //     setUploading(true);
 
-      const formData = new FormData();
-      formData.append("file", {
-        uri: file.uri,
-        name: file.name,
-        type: "application/pdf",
-      });
-      formData.append("projectId", projectId);
+  //     const formData = new FormData();
+  //     formData.append("file", {
+  //       uri: file.uri,
+  //       name: file.name,
+  //       type: "application/pdf",
+  //     });
+  //     formData.append("projectId", projectId);
 
-      const response = await api.post("/dpr", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  //     const response = await api.post("/dpr", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
 
-      if (response.data.success) {
-        Alert.alert("Success", "DPR uploaded successfully");
-        fetchDPRs(); // refresh list
-      } else {
-        Alert.alert("Error", "Upload failed");
-      }
-    } catch (err) {
-      console.error("Upload failed:", err);
-      Alert.alert("Error", "Failed to upload DPR");
-    } finally {
-      setUploading(false);
-    }
-  };
+  //     if (response.data.success) {
+  //       Alert.alert("Success", "DPR uploaded successfully");
+  //       fetchDPRs(); // refresh list
+  //     } else {
+  //       Alert.alert("Error", "Upload failed");
+  //     }
+  //   } catch (err) {
+  //     console.error("Upload failed:", err);
+  //     Alert.alert("Error", "Failed to upload DPR");
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
 
   // ✅ Open PDF in browser
-  const openPDF = (url) => {
+  const openPDF = (url:any) => {
     Linking.openURL(url).catch(() =>
       Alert.alert("Error", "Unable to open PDF link")
     );
@@ -149,7 +149,7 @@ const DPRs = () => {
         )}
 
         {/* Upload Button */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={handleUploadDPR}
           disabled={uploading}
           className="bg-indigo-600 px-6 py-3 rounded-full mt-6 items-center"
@@ -159,7 +159,7 @@ const DPRs = () => {
           ) : (
             <Text className="text-white font-semibold">Upload DPR (PDF)</Text>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Floating + Button */}
