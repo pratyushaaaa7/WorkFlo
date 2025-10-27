@@ -905,7 +905,7 @@ const CreateMinutes = () => {
                       }}
                     />
                     <TextInput
-                      placeholder="Issue Subject"
+                      placeholder="Subject"
                       placeholderTextColor="#888"
                       value={m.issueSubject}
                       onChangeText={(t) =>
@@ -914,7 +914,7 @@ const CreateMinutes = () => {
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
-                      placeholder="Issue Description (if any)"
+                      placeholder="Meeting Discussion"
                       placeholderTextColor="#888"
                       value={m.issueDescription}
                       onChangeText={(t) =>

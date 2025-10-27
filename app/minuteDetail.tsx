@@ -260,9 +260,14 @@ const MinuteDetail = () => {
               </View>
             </View>
           </View>
-          {description ? (
-            <Text className="text-gray-600 mb-2">{description}</Text>
-          ) : null}
+
+          {/* <Text className="text-gray-600 mb-2">{description}</Text> */}
+          <Text className="text-sm text-gray-500 mb-2">
+            <Text className="font-semibold text-gray-700">
+              Meeting Discussion:{" "}
+            </Text>
+            {description}
+          </Text>
           <Text className="text-sm text-gray-500">
             <Text className="font-semibold text-gray-700">Raised By: </Text>
             {raisedByArr.length ? raisedByArr.join(", ") : "—"}
@@ -281,9 +286,7 @@ const MinuteDetail = () => {
           </Text>
           {remarks ? (
             <Text className="text-sm text-gray-500 mt-2">
-              <Text className="font-semibold text-gray-700">
-                Meeting Discussion:{" "}
-              </Text>
+              <Text className="font-semibold text-gray-700">Remarks: </Text>
               {remarks}
             </Text>
           ) : null}
