@@ -104,6 +104,8 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const totalLabor = totalLaborParam ? parseInt(totalLaborParam as string) : 0;
   // console.log(totalLabor);
 
+  const STORAGE_KEY = `@saved_photos_${projectId || "default"}`;
+
   const uriToBase64 = async (uri: string) => {
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
@@ -112,7 +114,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   };
   const savePhotos = async (photosToSave: Photo[]) => {
     try {
-      await AsyncStorage.setItem("@saved_photos", JSON.stringify(photosToSave));
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(photosToSave));
     } catch (err) {
       console.error("Failed to save photos", err);
     }
@@ -176,7 +178,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   React.useEffect(() => {
     const loadSavedPhotos = async () => {
       try {
-        const saved = await AsyncStorage.getItem("@saved_photos");
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
         if (saved) {
           setPhotos(JSON.parse(saved));
         }
@@ -500,7 +502,7 @@ ${photosWithBase64
         });
       }
       // Clear photos and labor data after PDF generation
-      await AsyncStorage.removeItem("@saved_photos"); // photos
+      await AsyncStorage.removeItem(STORAGE_KEY); // photos
       await AsyncStorage.removeItem("reportData"); // labor/vendors
       setPhotos([]); // optional: reset state
     } catch (err) {

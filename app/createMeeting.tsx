@@ -24,6 +24,7 @@ import { AuthContext } from "../context/AuthContext";
 // import { exportAgendaWithAttendees } from "../utils/agendaExcel";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const handleDownloadAgenda = async (
   meeting: any,
@@ -109,6 +110,8 @@ const CreateMinutes = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
+  const STORAGE_KEY = `minutes_draft_${projectId || "new"}`;
+
   const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
   const [isMomSubmitting, setIsMomSubmitting] = useState(false);
 
@@ -164,6 +167,51 @@ const CreateMinutes = () => {
 
   const [forwardedModalVisible, setForwardedModalVisible] = useState(false);
   const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
+
+  //to store the minutes data even after the app is closed
+  useEffect(() => {
+    const loadStoredData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+        if (jsonValue) {
+          const savedData = JSON.parse(jsonValue);
+          setMeetingDate(
+            savedData.meetingDate ? new Date(savedData.meetingDate) : null
+          );
+          setMeetingTime(savedData.meetingTime || "");
+          setMeetingVenue(savedData.meetingVenue || "");
+          setAttendees(savedData.attendees || []);
+          setMinutes(savedData.minutes || []);
+        }
+      } catch (err) {
+        console.log("Error loading stored data:", err);
+      }
+    };
+    loadStoredData();
+  }, [projectId]);
+
+  //Save data automatically whenever it changes
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        const dataToSave = {
+          meetingDate,
+          meetingTime,
+          meetingVenue,
+          attendees,
+          minutes,
+        };
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        // console.log("Data saved locally");
+      } catch (err) {
+        console.log("Error saving to AsyncStorage:", err);
+      }
+    };
+    // Avoid saving immediately on mount before data loads
+    if (meetingDate || attendees.length > 1 || minutes.length > 1) {
+      saveData();
+    }
+  }, [meetingDate, meetingTime, meetingVenue, attendees, minutes]);
 
   // Fetch users
   useEffect(() => {
@@ -466,7 +514,7 @@ const CreateMinutes = () => {
         text1: type === "agenda" ? "Agenda submitted" : "MOM submitted",
         position: "bottom",
       });
-
+      await AsyncStorage.removeItem(STORAGE_KEY); // clear local draft
       router.back();
     } catch (err: any) {
       console.error("Submit error:", err?.response?.data || err.message);
@@ -1028,7 +1076,7 @@ const CreateMinutes = () => {
                     </View>
 
                     <TextInput
-                      placeholder="Meeting Discussion*"
+                      placeholder="Remarks (if any)"
                       placeholderTextColor="#888"
                       value={m.remarks}
                       onChangeText={(t) => updateMinute(index, "remarks", t)}
