@@ -28,6 +28,7 @@ const CompanyProjectSelectionScreen = () => {
   const [companyOptions, setCompanyOptions] = useState([
     { label: "WP", value: "WP" },
     { label: "WAL+L", value: "WAL" },
+    { label: "WCorp", value: "WCorp" },
   ]);
 
   const [assignedProjects, setAssignedProjects] = useState<any[]>([]);

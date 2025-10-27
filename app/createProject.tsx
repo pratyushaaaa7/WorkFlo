@@ -78,6 +78,7 @@ const CreateProjectScreen = () => {
   const companyOptions = [
     { label: "WP", value: "WP" },
     { label: "WAL+L", value: "WAL" },
+    { label: "WCorp", value: "WCorp" },
   ];
 
   const typologyOptions = [
@@ -101,6 +102,7 @@ const CreateProjectScreen = () => {
     { label: "Active", value: "active" },
     { label: "Inactive", value: "inactive" },
     { label: "Closed", value: "closed" },
+    { label: "BD", value: "BD" },
   ];
 
   // 1. Define company-specific scopes
