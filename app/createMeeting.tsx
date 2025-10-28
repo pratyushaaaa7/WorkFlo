@@ -911,6 +911,8 @@ const CreateMinutes = () => {
                       onChangeText={(t) =>
                         updateMinute(index, "issueSubject", t)
                       }
+                      multiline
+                      // textAlignVertical="top"
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
                     <TextInput
@@ -920,6 +922,7 @@ const CreateMinutes = () => {
                       onChangeText={(t) =>
                         updateMinute(index, "issueDescription", t)
                       }
+                      multiline
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
 
@@ -1080,6 +1083,7 @@ const CreateMinutes = () => {
                       placeholderTextColor="#888"
                       value={m.remarks}
                       onChangeText={(t) => updateMinute(index, "remarks", t)}
+                      multiline
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
 

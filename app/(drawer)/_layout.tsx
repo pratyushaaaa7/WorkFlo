@@ -99,6 +99,17 @@ export default function DrawerLayout() {
       />
 
       <Drawer.Screen
+        name="appSupport"
+        options={{
+          drawerLabel: "App Support",
+          title: "App Support",
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="construct-outline" size={size} color="black" />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
         name="masterProjectList"
         options={{
           drawerLabel: "Project List",
@@ -125,11 +136,11 @@ export default function DrawerLayout() {
           drawerLabel: "Employee Directory",
           title: "Employee Directory",
           drawerIcon: ({ color, size }) => (
-             <MaterialCommunityIcons
-        name="account-tie-outline" // 👔 internal staff
-        size={size}
-        color={color}
-      />
+            <MaterialCommunityIcons
+              name="account-tie-outline" // 👔 internal staff
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
