@@ -1,144 +1,364 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Animated, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  TextInput,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
-const ProjectStage = () => {
+type StageDate = {
+  start?: string;
+  end?: string;
+  remark?: string;
+};
+
+type PickerState = {
+  show: boolean;
+  stage: string;
+  type: "start" | "end" | "";
+};
+
+const ProjectStage: React.FC = () => {
   const router = useRouter();
-  const [activeStage, setActiveStage] = useState(2); // Change between 0–4 to simulate progress
+  const { company, projectId, projectName } = useLocalSearchParams<{
+    company?: string;
+    projectId?: string;
+    projectName?: string;
+  }>();
 
-  const stages = [
-    { key: 0, title: "Planning", icon: "lightbulb-on-outline" },
-    { key: 1, title: "Design", icon: "pencil-ruler" },
-    { key: 2, title: "Execution", icon: "hammer-wrench" },
-    { key: 3, title: "Review", icon: "magnify" },
-    { key: 4, title: "Completed", icon: "check-circle-outline" },
-  ];
+  const [stages, setStages] = useState<string[]>([]);
+  const [dates, setDates] = useState<Record<string, StageDate>>({});
+  const [picker, setPicker] = useState<PickerState>({
+    show: false,
+    stage: "",
+    type: "",
+  });
+
+  // 🎯 Stage data
+  const companyStages: Record<string, string[]> = {
+    WP: [
+      "Feasibility",
+      "Construction Management",
+      "During Construction",
+      "Contract Management",
+      "Practice Development",
+      "Tender Management",
+      "Billing Management",
+      "Close Out",
+    ],
+    WAL: [
+      "Feasibility",
+      "Concept Design",
+      "Schematic Design",
+      "Tender",
+      "Sanction Drawing",
+      "Design Development",
+      "Working Drawing",
+      "During Construction",
+    ],
+  };
+
+  // 🎨 Icons
+  const stageIcons: Record<string, string> = {
+    Feasibility: "lightbulb-on-outline",
+    "Construction Management": "hard-hat",
+    "During Construction": "hammer-wrench",
+    "Contract Management": "file-sign",
+    "Practice Development": "chart-bar",
+    "Tender Management": "file-document-outline",
+    "Billing Management": "cash-multiple",
+    "Close Out": "lock-check-outline",
+    "Concept Design": "pencil-outline",
+    "Schematic Design": "vector-line",
+    Tender: "file-document-edit-outline",
+    "Sanction Drawing": "drawing-box",
+    "Design Development": "palette-outline",
+    "Working Drawing": "ruler-square",
+  };
+
+  useEffect(() => {
+    if (company?.toUpperCase() === "WP") setStages(companyStages.WP);
+    else if (company?.toUpperCase() === "WAL") setStages(companyStages.WAL);
+    else setStages([]);
+  }, [company]);
+
+  // 🔹 Stage status
+  const getStageStatus = (start?: string, end?: string): string => {
+    if (!start || !end) return "Not Started";
+    const today = new Date();
+    const s = new Date(start);
+    const e = new Date(end);
+    if (today < s) return "Not Started";
+    if (today >= s && today <= e) return "Ongoing";
+    if (today > e) return "Completed";
+    return "Unknown";
+  };
+
+  // 🔹 Status styling
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "Not Started":
+        return { color: "#9CA3AF", bg: "#F3F4F6", icon: "clock-outline" };
+      case "Ongoing":
+        return { color: "#2563EB", bg: "#DBEAFE", icon: "progress-clock" };
+      case "Completed":
+        return {
+          color: "#16A34A",
+          bg: "#DCFCE7",
+          icon: "check-circle-outline",
+        };
+      default:
+        return {
+          color: "#6B7280",
+          bg: "#F9FAFB",
+          icon: "calendar-blank-outline",
+        };
+    }
+  };
+
+  // 📅 Date handling
+  const onChangeDate = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date | undefined
+  ) => {
+    if (event.type === "dismissed") {
+      setPicker({ show: false, stage: "", type: "" });
+      return;
+    }
+    const currentDate = selectedDate || new Date();
+    const { stage, type } = picker;
+    setDates((prev) => ({
+      ...prev,
+      [stage]: {
+        ...prev[stage],
+        [type]: currentDate.toISOString().split("T")[0],
+      },
+    }));
+    setPicker({ show: false, stage: "", type: "" });
+  };
+
+  // 📝 Remark handling
+  const handleRemarkChange = (stage: string, remark: string) => {
+    setDates((prev) => ({
+      ...prev,
+      [stage]: {
+        ...prev[stage],
+        remark,
+      },
+    }));
+  };
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#F9FAFB",
-        paddingVertical: 40,
-      }}
-    >
-      <Text className="text-2xl font-semibold text-gray-800 mb-10">
-        Project Stage Tracker
-      </Text>
+    <View className="flex-1 bg-gray-100">
+      {/* Header */}
+      {/* Header */}
+           <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+             <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
+               <TouchableOpacity
+                 onPress={() => router.back()}
+                 className="flex-row items-center"
+                 activeOpacity={0.7}
+               >
+                 <Ionicons name="arrow-back" size={24} color="#fff" />
+                 <Text className="text-xl font-semibold text-white ml-4">
+                   {projectName} Project Stage
+                 </Text>
+               </TouchableOpacity>
+             </View>
+           </LinearGradient>
 
-      {/* Progress Line + Stages */}
-      <View style={{ width: "90%", alignItems: "center" }}>
-        {/* Horizontal progress line */}
-        <View
-          style={{
-            position: "absolute",
-            top: 32,
-            left: 0,
-            right: 0,
-            height: 4,
-            backgroundColor: "#E5E7EB",
-            borderRadius: 4,
-          }}
-        />
-        {/* Active progress line */}
-        <View
-          style={{
-            position: "absolute",
-            top: 32,
-            left: 0,
-            height: 4,
-            width: `${(activeStage / (stages.length - 1)) * 100}%`,
-            borderRadius: 4,
-            overflow: "hidden",
-          }}
-        >
-          <LinearGradient
-            colors={["#4F46E5", "#6366F1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flex: 1 }}
-          />
-        </View>
+      {/* Project Info */}
+      <View className="py-5 px-6 bg-white border-b border-gray-200 shadow-sm">
+        <Text className="text-xl font-semibold text-gray-800">
+          {projectName || "Project"}
+        </Text>
+        <Text className="text-gray-500 mt-1 text-sm">
+          Company: {company?.toUpperCase()}
+        </Text>
+      </View>
 
-        {/* Stage Circles */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            width: "100%",
-          }}
-        >
-          {stages.map((stage, index) => {
-            const isActive = index <= activeStage;
-            return (
-              <TouchableOpacity
-                key={stage.key}
-                onPress={() => setActiveStage(index)}
-                style={{ alignItems: "center" }}
-              >
-                <LinearGradient
-                  colors={
-                    isActive
-                      ? ["#4F46E5", "#6366F1"]
-                      : ["#E5E7EB", "#E5E7EB"]
-                  }
+      {/* Timeline */}
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {stages.map((stage, index) => {
+          const stageData = dates[stage] || {};
+          const start = stageData.start;
+          const end = stageData.end;
+          const remark = stageData.remark || "";
+          const status = getStageStatus(start, end);
+          const style = getStatusStyle(status);
+          const isLast = index === stages.length - 1;
+
+          return (
+            <View key={index} className="flex-row items-start mb-8">
+              {/* Connector Line */}
+              <View className="items-center mr-4">
+                {/* Node */}
+                <View
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 32,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: style.bg,
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 6,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3,
                   }}
                 >
                   <MaterialCommunityIcons
-                    name={stage.icon}
-                    size={28}
-                    color={isActive ? "white" : "#9CA3AF"}
+                    name={style.icon}
+                    size={18}
+                    color={style.color}
                   />
-                </LinearGradient>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: isActive ? "#4F46E5" : "#9CA3AF",
-                    fontWeight: "600",
-                  }}
-                >
-                  {stage.title}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+                </View>
 
-      {/* Floating + Button for Support */}
-      <TouchableOpacity
-        onPress={() => router.push("/appSupportForm")}
-        style={{
-          position: "absolute",
-          bottom: 50,
-          right: 30,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: "#4F46E5",
-          alignItems: "center",
-          justifyContent: "center",
-          elevation: 8,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 5,
-        }}
-      >
-        <Ionicons name="help-circle-outline" size={28} color="white" />
-      </TouchableOpacity>
-    </ScrollView>
+                {/* Line */}
+                {!isLast && (
+                  <View
+                    style={{
+                      width: 3,
+                      flex: 1,
+                      backgroundColor: "#E5E7EB",
+                      marginTop: 4,
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Stage Card */}
+              <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="flex-row items-center">
+                    <MaterialCommunityIcons
+                      name={stageIcons[stage]}
+                      size={22}
+                      color={style.color}
+                    />
+                    <Text
+                      className="ml-2 text-lg font-semibold text-gray-900"
+                    >
+                      {stage}
+                    </Text>
+                  </View>
+
+                  {/* Status Tag */}
+                  <View
+                    style={{
+                      backgroundColor: style.bg,
+                      paddingVertical: 4,
+                      paddingHorizontal: 8,
+                      borderRadius: 12,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={style.icon}
+                      size={14}
+                      color={style.color}
+                    />
+                    <Text
+                      style={{
+                        color: style.color,
+                        fontSize: 12,
+                        marginLeft: 4,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {status}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Date selectors */}
+                <TouchableOpacity
+                  disabled={!!start}
+                  onPress={() =>
+                    setPicker({ show: true, stage, type: "start" })
+                  }
+                  className={`mt-2 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center ${
+                    start ? "bg-gray-200" : "bg-gray-50"
+                  }`}
+                >
+                  <MaterialCommunityIcons
+                    name="calendar-start"
+                    size={18}
+                    color="#6B7280"
+                  />
+                  <Text className="ml-2 text-gray-700 text-sm">
+                    {start
+                      ? `Start: ${new Date(start).toDateString()}`
+                      : "Select Start Date"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={!!end}
+                  onPress={() => setPicker({ show: true, stage, type: "end" })}
+                  className={`mt-3 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center ${
+                    end ? "bg-gray-200" : "bg-gray-50"
+                  }`}
+                >
+                  <MaterialCommunityIcons
+                    name="calendar-end"
+                    size={18}
+                    color="#6B7280"
+                  />
+                  <Text className="ml-2 text-gray-700 text-sm">
+                    {end
+                      ? `End: ${new Date(end).toDateString()}`
+                      : "Select End Date"}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* 📝 Remark input when end date exists */}
+                {end && (
+                  <View className="mt-3">
+                    <Text className="text-gray-700 text-sm mb-1 font-medium">
+                      Remark
+                    </Text>
+                    <TextInput
+                      multiline
+                      editable
+                      value={remark}
+                      onChangeText={(text) =>
+                        handleRemarkChange(stage, text)
+                      }
+                      placeholder="Add remark..."
+                      placeholderTextColor="#9CA3AF"
+                      textAlignVertical="top"
+                      className="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900"
+                    />
+                  </View>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+
+      {/* Date Picker */}
+      {picker.show && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onChangeDate}
+        />
+      )}
+    </View>
   );
 };
 

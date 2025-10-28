@@ -1,4 +1,4 @@
-import React, { useEffect, useState ,useContext} from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { AuthContext } from "../context/AuthContext";
 
 const CreateSupport = () => {
   const router = useRouter();
-  const token = useContext(AuthContext)
+  const token = useContext(AuthContext);
 
   const [user, setUser] = useState("");
   const [date, setDate] = useState("");
@@ -32,7 +32,9 @@ const CreateSupport = () => {
       const token = await AsyncStorage.getItem("token");
       if (token) {
         const decoded = jwtDecode(token);
-        setUser(decoded.fullName || decoded.name || decoded.username || "Unknown User");
+        setUser(
+          decoded.fullName || decoded.name || decoded.username || "Unknown User"
+        );
       }
       const today = new Date().toLocaleDateString("en-GB");
       setDate(today);
@@ -42,7 +44,10 @@ const CreateSupport = () => {
 
   const handleSubmit = () => {
     if (!type || !message.trim() || !relatedPage.trim()) {
-      Alert.alert("Missing Info", "Please fill all required fields before submitting.");
+      Alert.alert(
+        "Missing Info",
+        "Please fill all required fields before submitting."
+      );
       return;
     }
 
@@ -66,21 +71,27 @@ const CreateSupport = () => {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50 px-5 py-8"
+      className="flex-1 bg-gray-50 "
       contentContainerStyle={{ paddingBottom: 100 }}
     >
       {/* Header */}
-      <View className="flex-row items-center mb-6">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={26} color="#4F46E5" />
-        </TouchableOpacity>
-        <Text className="text-2xl font-semibold text-gray-800 ml-3">
-          App Support Form
-        </Text>
-      </View>
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              App Support
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
       {/* Form Card */}
-      <View className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      <View className="bg-white p-3 mx-2 my-3 rounded-xl shadow-sm border border-gray-100">
         {/* Raised By */}
         <Text className="text-gray-600 mb-1">Raised By</Text>
         <Text className="text-lg font-medium text-gray-900 mb-3">{user}</Text>

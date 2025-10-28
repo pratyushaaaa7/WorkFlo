@@ -186,7 +186,7 @@ const ProjectMain = () => {
       ),
       onPress: () =>
         router.push({
-          pathname: "/userDirectory",
+          pathname: "/projectStage",
           params: { company, projectId, projectName: project?.projectName },
         }),
     },
