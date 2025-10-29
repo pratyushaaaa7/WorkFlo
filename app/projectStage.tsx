@@ -13,8 +13,6 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-
 
 type StageDate = {
   start?: string;
@@ -193,7 +191,7 @@ const ProjectStage: React.FC = () => {
 
       {/* Timeline */}
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 8, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
         {stages.map((stage, index) => {
@@ -207,9 +205,9 @@ const ProjectStage: React.FC = () => {
           const isSaved = savedStages[stage];
 
           return (
-            <View key={index} className="flex-row items-start mb-8">
+            <View key={index} className="flex-row items-start mb-4">
               {/* Connector Line */}
-              <View className="items-center mr-4">
+              <View className="items-center mr-2 ">
                 <View
                   style={{
                     width: 28,
@@ -231,7 +229,9 @@ const ProjectStage: React.FC = () => {
                     style={{
                       width: 3,
                       flex: 1,
-                      backgroundColor: "#E5E7EB",
+                      //   backgroundColor: "#E5E7EB",
+                      backgroundColor: style.bg,
+
                       marginTop: 4,
                     }}
                   />
@@ -239,8 +239,9 @@ const ProjectStage: React.FC = () => {
               </View>
 
               {/* Stage Card */}
-              <View className="flex-1 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-1 bg-white p-3 rounded-2xl shadow-sm border border-gray-100"
+              >
+                <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <MaterialCommunityIcons
                       name={stageIcons[stage]}
@@ -283,35 +284,42 @@ const ProjectStage: React.FC = () => {
                 {/* 📅 Editable or Saved */}
                 {!stageData.saved ? (
                   <>
-                    <TouchableOpacity
-                      disabled={!!start}
-                      onPress={() =>
-                        setPicker({ show: true, stage, type: "start" })
-                      }
-                      className={`mt-2 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center ${
-                        start ? "bg-gray-200" : "bg-gray-50"
-                      }`}
-                    >
-                      <MaterialCommunityIcons
-                        name="calendar-start"
-                        size={18}
-                        color="#6B7280"
-                      />
-                      <Text className="ml-2 text-gray-700 text-sm">
-                        {start
-                          ? `Start: ${new Date(start).toDateString()}`
-                          : "Select Start Date"}
-                      </Text>
-                    </TouchableOpacity>
-
-                    {start && (
+                    {/* 📅 Start & End Date Row */}
+                    <View className="flex-row justify-between mt-3 gap-3">
+                      {/* Start Date */}
                       <TouchableOpacity
-                        disabled={!!end}
+                        disabled={!!start}
+                        onPress={() =>
+                          setPicker({ show: true, stage, type: "start" })
+                        }
+                        className={`flex-1 border border-gray-200 rounded-xl px-3 py-3 flex-row items-center ${
+                          start ? "bg-gray-100" : "bg-white"
+                        }`}
+                      >
+                        <MaterialCommunityIcons
+                          name="calendar-start"
+                          size={18}
+                          color="#6B7280"
+                        />
+                        <Text className="ml-2 text-gray-700 text-sm flex-shrink">
+                          {start
+                            ? new Date(start).toDateString()
+                            : "Start Date"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* End Date */}
+                      <TouchableOpacity
+                        disabled={!start || !!end}
                         onPress={() =>
                           setPicker({ show: true, stage, type: "end" })
                         }
-                        className={`mt-3 border border-gray-200 rounded-xl px-4 py-3 flex-row items-center ${
-                          end ? "bg-gray-200" : "bg-gray-50"
+                        className={`flex-1 border border-gray-200 rounded-xl px-3 py-3 flex-row items-center ${
+                          end
+                            ? "bg-gray-100"
+                            : start
+                            ? "bg-white"
+                            : "bg-gray-100 opacity-50"
                         }`}
                       >
                         <MaterialCommunityIcons
@@ -319,14 +327,13 @@ const ProjectStage: React.FC = () => {
                           size={18}
                           color="#6B7280"
                         />
-                        <Text className="ml-2 text-gray-700 text-sm">
-                          {end
-                            ? `End: ${new Date(end).toDateString()}`
-                            : "Select End Date"}
+                        <Text className="ml-2 text-gray-700 text-sm flex-shrink">
+                          {end ? new Date(end).toDateString() : "End Date"}
                         </Text>
                       </TouchableOpacity>
-                    )}
+                    </View>
 
+                    {/* 📝 Remark */}
                     {start && (
                       <View className="mt-3">
                         <Text className="text-gray-700 text-sm mb-1 font-medium">
@@ -342,12 +349,12 @@ const ProjectStage: React.FC = () => {
                           placeholder="Add remark..."
                           placeholderTextColor="#9CA3AF"
                           textAlignVertical="top"
-                          className="border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900"
+                          className="border border-gray-200 rounded-xl px-2 py-2 bg-gray-50 text-gray-900"
                         />
                       </View>
                     )}
 
-                    {/* 💾 Save button */}
+                    {/* 💾 Save Button */}
                     {(start || end || remark) && (
                       <TouchableOpacity
                         onPress={() =>
@@ -356,19 +363,37 @@ const ProjectStage: React.FC = () => {
                             [stage]: { ...prev[stage], saved: true },
                           }))
                         }
-                        className="mt-4 bg-indigo-500 py-3 rounded-xl"
+                        className="mt-4 bg-indigo-500  py-3 rounded-xl  active:opacity-90"
                       >
                         <Text className="text-white text-center font-semibold">
-                          Save
+                          Save Stage
                         </Text>
                       </TouchableOpacity>
                     )}
                   </>
                 ) : (
                   // 🌟 Saved view with Edit option
-                  <View className="mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <View className="mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200 relative">
+                    {/* ✏️ Edit Icon (top-right corner) */}
+                    <TouchableOpacity
+                      onPress={() =>
+                        setDates((prev) => ({
+                          ...prev,
+                          [stage]: { ...prev[stage], saved: false },
+                        }))
+                      }
+                      className="absolute top-2 right-2 p-2 rounded-full bg-indigo-50"
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons
+                        name="pencil"
+                        size={18}
+                        color="#4F46E5"
+                      />
+                    </TouchableOpacity>
+
                     {/* Start Date */}
-                    <View className="flex-row items-center mb-2">
+                    <View className="flex-row items-center ">
                       <MaterialCommunityIcons
                         name="calendar-start"
                         size={18}
@@ -379,9 +404,9 @@ const ProjectStage: React.FC = () => {
                       </Text>
                     </View>
 
-                    {/* End Date (if exists) */}
+                    {/* End Date */}
                     {end && (
-                      <View className="flex-row items-center mb-2">
+                      <View className="flex-row items-center mt-2 ">
                         <MaterialCommunityIcons
                           name="calendar-check"
                           size={18}
@@ -393,39 +418,19 @@ const ProjectStage: React.FC = () => {
                       </View>
                     )}
 
-                    {/* Remark (if exists) */}
+                    {/* Remark */}
                     {remark ? (
-                      <View className="flex-row items-start mt-1">
+                      <View className="flex-row items-start mt-2 ">
                         <MaterialCommunityIcons
                           name="comment-text-outline"
                           size={18}
                           color="#6B7280"
                         />
-                        <Text className="text-gray-600 italic ml-2 flex-1">
+                        <Text className="text-gray-600  ml-2 flex-1">
                           {remark}
                         </Text>
                       </View>
                     ) : null}
-
-                    {/* ✏️ Edit Button */}
-                    <TouchableOpacity
-                      onPress={() =>
-                        setDates((prev) => ({
-                          ...prev,
-                          [stage]: { ...prev[stage], saved: false }, // unlock edit mode
-                        }))
-                      }
-                      className="mt-4 flex-row items-center justify-center border border-indigo-500 py-2 rounded-xl"
-                    >
-                      <MaterialCommunityIcons
-                        name="pencil"
-                        size={16}
-                        color="#4F46E5"
-                      />
-                      <Text className="text-indigo-600 font-semibold ml-2">
-                        Edit
-                      </Text>
-                    </TouchableOpacity>
                   </View>
                 )}
               </View>
