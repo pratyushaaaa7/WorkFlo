@@ -305,7 +305,7 @@ const AddUserForm: React.FC = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={handleSubmit}
-          className="bg-indigo-600 py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-10"
+          className="bg-indigo-600 py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-20"
         >
           <Ionicons name="checkmark-done-outline" size={24} color="white" />
           <Text className="text-white text-lg font-semibold">Create User</Text>

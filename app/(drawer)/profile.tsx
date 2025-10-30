@@ -94,7 +94,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Logout Button */}
-      <View className="flex-1 justify-end px-6 mb-10">
+      <View className="flex-1 justify-end px-6 mb-14">
         <Pressable
           onPress={handleLogout}
           className="bg-red-500 py-4 rounded-2xl items-center shadow-lg active:scale-95"

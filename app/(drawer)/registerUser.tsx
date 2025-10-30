@@ -1125,7 +1125,7 @@ const RegisterUserScreen = () => {
       <TouchableOpacity
         onPress={handleRegister}
         disabled={loading} // ✅ disable when loading
-        className={`py-3 rounded-2xl items-center shadow-md mb-10 ${
+        className={`py-3 rounded-2xl items-center shadow-md mb-14 ${
           loading ? "bg-gray-400" : "bg-indigo-600"
         }`}
       >

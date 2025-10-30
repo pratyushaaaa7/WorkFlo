@@ -82,7 +82,7 @@ const ProjectMain = () => {
             activeOpacity={0.85}
             style={{
               position: "absolute",
-              bottom: 30,
+              bottom: 44,
               right: 30,
               width: 56,
               height: 56,

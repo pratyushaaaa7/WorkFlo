@@ -220,7 +220,7 @@ const LaborForm = () => {
         </View>
 
         {/* Footer Buttons */}
-        <View className="flex-row justify-between px-3 pb-4 mt-2">
+        <View className="flex-row justify-between px-3 pb-14 mt-2">
           <TouchableOpacity
             onPress={skipAndNext}
             className="bg-gray-400 px-4 py-3 rounded-lg flex-1 mr-2"

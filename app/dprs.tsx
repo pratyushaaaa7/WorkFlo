@@ -169,11 +169,12 @@ const DPRs = () => {
             `/dprLaborForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`
           )
         }
+        className="bg-indigo-600"
         style={{
           position: "absolute",
-          bottom: 36,
+          bottom: 44,
           right: 20,
-          backgroundColor: "#6366F1",
+          // backgroundColor: "#6366F1",
           width: 56,
           height: 56,
           borderRadius: 28,

@@ -108,7 +108,7 @@ export default function CentralUserDirectory() {
         onPress={() => router.push("/createUser")}
         style={{
           position: "absolute",
-          bottom: 36,
+          bottom: 44,
           right: 20,
           width: 56,
           height: 56,

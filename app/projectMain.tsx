@@ -422,7 +422,7 @@ const ProjectMain = () => {
       {/* Floating More Info Button */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        className="absolute bottom-8 right-8 bg-indigo-600 p-4 rounded-full shadow-lg"
+        className="absolute bottom-12 right-10 bg-indigo-600 p-4 rounded-full shadow-lg"
       >
         <Ionicons name="information-circle" size={28} color="#fff" />
       </TouchableOpacity>
