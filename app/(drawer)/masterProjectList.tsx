@@ -45,6 +45,23 @@ const ProjectMain = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
+          className="flex-row items-center justify-between bg-gray-100 px-4 py-4 rounded-lg mb-4"
+          onPress={() =>
+            router.push({
+              pathname: "/projectList",
+              params: { company: "WCorp" },
+            })
+          }
+        >
+          <View className="flex-row items-center space-x-4">
+            <Text className="text-base font-medium text-gray-800">
+              Projects of WCorp
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+        </TouchableOpacity> 
+
+        <TouchableOpacity
           className="bg-indigo-500 mt-10 p-4 rounded-lg"
           onPress={() =>
             router.push({

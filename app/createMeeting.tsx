@@ -16,7 +16,11 @@ import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MultiSelect, Dropdown } from "react-native-element-dropdown";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
@@ -123,6 +127,7 @@ const CreateMinutes = () => {
   const [meetingDate, setMeetingDate] = useState<Date | null>(null);
   const [meetingTime, setMeetingTime] = useState<string>(""); // string for time
   const [meetingVenue, setMeetingVenue] = useState<string>("");
+  const [isATReview, setIsATReview] = useState(false); // 👈 new state
 
   const [showMeetingDatePicker, setShowMeetingDatePicker] = useState(false);
   const [showMeetingTimePicker, setShowMeetingTimePicker] = useState(false);
@@ -349,6 +354,8 @@ const CreateMinutes = () => {
         if (data.meetingTime) setMeetingTime(data.meetingTime);
         if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
         if (data.meetingNumber) setMeetingNumber(data.meetingNumber);
+        if (typeof data.isATReview === "boolean")
+          setIsATReview(data.isATReview);
 
         // ✅ Normalize attendees
         if (data.attendees && data.attendees.length > 0) {
@@ -496,6 +503,7 @@ const CreateMinutes = () => {
         attendees: formattedAttendees,
         minutes: formattedMinutes,
         actionType: type,
+        isATReview, // ✅ send boolean value (true/false)
       };
 
       // ✅ Call API
@@ -634,6 +642,32 @@ const CreateMinutes = () => {
               onChangeText={setMeetingVenue}
               className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
             />
+
+            {/* ✅ AT Review Box */}
+            <TouchableOpacity
+              onPress={() => setIsATReview(!isATReview)}
+              className="flex-row items-center rounded-xl px-3 py-3 "
+            >
+              <View
+                className={`w-6 h-6 rounded-md border-2 mr-3 ${
+                  isATReview
+                    ? "bg-green-500 border-green-500"
+                    : "border-gray-300 bg-white"
+                } flex items-center justify-center`}
+              >
+                {isATReview && (
+                  <Ionicons name="checkmark" size={18} color="white" />
+                )}
+              </View>
+
+              <Text
+                className={`font-pbold ${
+                  isATReview ? "text-green-600 font-bold" : "text-gray-900"
+                }`}
+              >
+                {isATReview ? "Marked as AT Review" : "Mark this as AT Review"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
