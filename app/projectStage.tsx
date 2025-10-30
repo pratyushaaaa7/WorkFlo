@@ -239,8 +239,7 @@ const ProjectStage: React.FC = () => {
               </View>
 
               {/* Stage Card */}
-              <View className="flex-1 bg-white p-3 rounded-2xl shadow-sm border border-gray-100"
-              >
+              <View className="flex-1 bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <MaterialCommunityIcons
