@@ -47,13 +47,14 @@ const ProjectStage: React.FC = () => {
   const companyStages: Record<string, string[]> = {
     WP: [
       "Feasibility",
-      "Construction Management",
-      "During Construction",
-      "Contract Management",
-      "Practice Development",
+      "Design Management",
       "Tender Management",
-      "Billing Management",
-      "Close Out",
+      "Contract Management",
+      "Construction Management",
+      //   "During Construction",
+      "Practice Development",
+      //   "Billing Management",
+      "Closing and Handover",
     ],
     WAL: [
       "Feasibility",
@@ -72,6 +73,7 @@ const ProjectStage: React.FC = () => {
     Feasibility: "lightbulb-on-outline",
     "Construction Management": "hard-hat",
     "During Construction": "hammer-wrench",
+    "Design Management": "hammer-wrench",
     "Contract Management": "file-sign",
     "Practice Development": "chart-bar",
     "Tender Management": "file-document-outline",
