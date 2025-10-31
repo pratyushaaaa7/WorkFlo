@@ -291,7 +291,7 @@ const CreateProjectScreen = () => {
         className="flex-1 px-4 py-6 bg-white"
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={50}
+        extraScrollHeight={80}
       >
         {/* Company Dropdown */}
         <View className="mb-4" style={{ zIndex: 2500 }}>
