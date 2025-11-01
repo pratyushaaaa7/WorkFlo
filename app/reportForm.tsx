@@ -126,7 +126,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       mediaTypes: ["images"],
       allowsMultipleSelection: true, // ✅ Enable multi-select
       // allowsEditing: true,
-      quality: 0.7,
+      quality: 0.5,
     });
 
     if (!result.canceled && result.assets.length > 0) {
