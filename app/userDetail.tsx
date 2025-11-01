@@ -192,16 +192,14 @@ const UserDetail = () => {
               </Text>
             </View>
 
-          {/* Created At & Created By */}
-{userData?.createdAt && (
-  <Text className="text-xs text-gray-400 mt-4">
-    Created on {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
-    {userData.createdBy && (
-      <> by {userData.createdBy.fullName} </>
-    )}
-  </Text>
-)}
-
+            {/* Created At & Created By */}
+            {userData?.createdAt && (
+              <Text className="text-xs text-gray-400 mt-4">
+                Created on{" "}
+                {moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")}
+                {userData.createdBy && <> by {userData.createdBy.fullName} </>}
+              </Text>
+            )}
           </View>
 
           {/* Overall Rating */}
@@ -270,12 +268,12 @@ const UserDetail = () => {
           </View>
 
           {/* Activity Log */}
-          <View className="bg-white rounded-2xl shadow-lg pt-2 mb-20">
-            <Text className="text-xl p-4 font-bold text-gray-800 ">
+          <View className="bg-white rounded-2xl shadow-lg p-5 mb-20">
+            <Text className="text-lg font-bold text-gray-800 ">
               Feedback Log
             </Text>
             {ratings?.length === 0 ? (
-              <Text className="text-gray-500 p-4 italic mb-5">
+              <Text className="text-gray-400 mt-2 text-base italic ">
                 No ratings or feedback yet.
               </Text>
             ) : (

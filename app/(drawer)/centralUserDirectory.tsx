@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from "react-native";
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
@@ -10,8 +16,8 @@ export default function CentralUserDirectory() {
       icon: "account-group-outline",
       bgColor: "#E0F2FE", // sky-100
       borderColor: "#7DD3FC", // sky-300
-      textColor: "#0C4A6E", // sky-700
-      iconColor: "#0C4A6E",
+      textColor: "#0369A1", // sky-700
+      iconColor: "#0369A1",
       description: "View and manage clients",
     },
     {
@@ -19,8 +25,8 @@ export default function CentralUserDirectory() {
       icon: "storefront-outline",
       bgColor: "#CCFBF1", // teal-100
       borderColor: "#5EEAD4", // teal-300
-      textColor: "#0F766E", // teal-700
-      iconColor: "#0F766E",
+      textColor: "#0D9488", // teal-700
+      iconColor: "#0D9488",
       description: "All registered vendors",
     },
     {
@@ -35,95 +41,100 @@ export default function CentralUserDirectory() {
   ];
 
   return (
-    <View className="flex-1 px-4 py-5 bg-white">
-      {tabs.map((tab, idx) => (
-        <TouchableOpacity
-          key={idx}
-          activeOpacity={0.8}
-          className="mb-5"
-          onPress={() => router.push(`/centralUserSpecificDirectory?role=${tab.title.toUpperCase()}`)}
-        >
-          <View
+    <View className="flex-1 bg-white">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
+      >
+        {tabs.map((tab, idx) => (
+          <TouchableOpacity
+            key={idx}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push(`/centralUserSpecificDirectory?role=${tab.title.toUpperCase()}`)
+            }
             style={{
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: 16,
+              padding: 18,
               borderRadius: 20,
               backgroundColor: tab.bgColor,
-              borderWidth: 1.5,
+              borderWidth: 1.4,
               borderColor: tab.borderColor,
+              marginBottom: 18,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.08,
               shadowRadius: 6,
-              elevation: 4,
+              elevation: 3,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
               <View
                 style={{
-                  backgroundColor: tab.bgColor,
+                  backgroundColor: "white",
                   borderWidth: 1,
                   borderColor: tab.borderColor,
-                  padding: 12,
+                  padding: 10,
                   borderRadius: 14,
-                  marginRight: 12,
+                  marginRight: 14,
                 }}
               >
                 <MaterialCommunityIcons
-                  name={tab.icon as any}
-                  size={28}
+                  name={tab.icon}
+                  size={26}
                   color={tab.iconColor}
                 />
               </View>
-              <View>
+              <View style={{ flexShrink: 1 }}>
                 <Text
                   style={{
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: "700",
                     color: tab.textColor,
+                    marginBottom: 2,
                   }}
                 >
                   {tab.title}
                 </Text>
-                {/* <Text
+                <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 13,
                     color: "#4B5563", // gray-700
-                    marginTop: 2,
                   }}
                 >
                   {tab.description}
-                </Text> */}
+                </Text>
               </View>
             </View>
             <Entypo name="chevron-right" size={26} color="#6B7280" />
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-      {/* Floating + Button */}
+      {/* Floating Add Button */}
       <TouchableOpacity
         onPress={() => router.push("/createUser")}
+        activeOpacity={0.85}
         style={{
           position: "absolute",
-          bottom: 44,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
+          bottom: Platform.OS === "ios" ? 40 : 30,
+          right: 24,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
           backgroundColor: "#4F46E5", // indigo-600
           alignItems: "center",
           justifyContent: "center",
-          elevation: 8,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
+          shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.25,
-          shadowRadius: 5,
+          shadowRadius: 6,
+          elevation: 6,
         }}
       >
-        <Ionicons name="add" size={28} color="white" />
+        <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
     </View>
   );

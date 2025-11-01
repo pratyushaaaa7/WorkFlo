@@ -44,7 +44,7 @@ export default function UserRoleList() {
     <TouchableOpacity
       activeOpacity={0.8}
       // disabled={auth?.user?.role !== "admin"}
-      className="mb-4 rounded-2xl bg-white shadow-sm mx-4 p-4"
+      className="mt-3 rounded-2xl bg-white shadow-sm mx-4 p-4"
       onPress={() =>
         router.push({
           pathname: "/userDetail",
@@ -53,7 +53,7 @@ export default function UserRoleList() {
       }
     >
       {/* Name + Role */}
-      <View className="flex-row justify-between  items-center mb-2">
+      <View className="flex-row justify-between  items-center ">
         <Text className="text-lg font-semibold text-gray-900">
           <Text className="text-sm text-red-500">#{item.userCode || ""}</Text>
           {"   "}
