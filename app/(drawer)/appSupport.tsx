@@ -151,7 +151,7 @@ const AppSupport = () => {
 
         {/* Remark Section */}
         {item.remark ? (
-          <View className="mt-2  rounded-xl ">
+          <View className="mt-3  rounded-xl ">
             <Text className="text-xs text-gray-500  font-medium">
               Remark by the developer:{" "}
               <Text className="text-gray-700 text-sm">{item.remark}</Text>
