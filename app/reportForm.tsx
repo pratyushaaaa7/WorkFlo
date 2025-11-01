@@ -494,7 +494,7 @@ ${photosWithBase64
               projectId, // now it’s an object
             }, // pass as query param
           });
-        }, 2000);
+        });
       } else {
         Toast.show({
           type: "error",
