@@ -82,7 +82,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     vendors: vendorsParam,
     totalLabor: totalLaborParam,
   } = useLocalSearchParams();
-  console.log(projectId);
+  console.log(projectId, projectName);
   // Parse string back to array
   // ✅ Ensure we have a single string (not an array)
   const teamLeadersStr = Array.isArray(teamLeaders)
@@ -469,6 +469,8 @@ ${photosWithBase64
         type: "application/pdf",
       });
       formData.append("projectId", projectId);
+      formData.append("projectName", projectName);
+
 
       const response = await api.post("/dpr", formData, {
         headers: {
