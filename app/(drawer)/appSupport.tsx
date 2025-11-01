@@ -14,7 +14,7 @@ import Toast from "react-native-toast-message";
 
 const AppSupport = () => {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,106 +49,124 @@ const AppSupport = () => {
     );
   }
 
-const renderTicket = ({ item }) => (
-  <TouchableOpacity
-    onPress={() =>
-      router.push({
-        pathname: "/ticketResponse",
-        params: {
-          id: item._id,
-          type: item.type,
-          description: item.description,
-          imageUrl: item.imageUrl,
-          relatedPage: item.relatedPage,
-          raisedBy: item.raisedBy?.username,
-          date: item.date,
-          fixed: item.fixed,
-          published: item.published,
-          remark: item.remark || "",
-        },
-      })
-    }
-    className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100 w-full"
-  >
-    {/* Header */}
-    <View className="flex-row justify-between items-center mb-2">
-      <Text className="font-semibold text-gray-800 text-base">
-        {item.type || "Support Ticket"}
-      </Text>
-      <Text
-        className={`text-xs px-2 py-1 rounded-full ${
-          item.fixed
-            ? "bg-green-100 text-green-700"
-            : "bg-red-100 text-red-700"
-        }`}
+  const renderTicket = ({ item }) => {
+    const isAdmin = user?.role === "admin";
+    return (
+      <TouchableOpacity
+        disabled={!isAdmin} // only pressable for admins
+        onPress={() =>
+          router.push({
+            pathname: "/ticketResponse",
+            params: {
+              id: item._id,
+              ticketId: item.ticketId,
+              type: item.type,
+              description: item.description,
+              imageUrl: item.imageUrl,
+              relatedPage: item.relatedPage,
+              raisedBy: item.raisedBy?.username,
+              date: item.date,
+              fixed: item.fixed,
+              published: item.published,
+              remark: item.remark || "",
+            },
+          })
+        }
+        className="bg-white rounded-2xl p-4 mt-3 shadow-sm border border-gray-100 w-full"
       >
-        {item.fixed ? "Fixed" : "Open"}
-      </Text>
-    </View>
+        {/* Header */}
+        <View className="flex-row justify-between items-center mb-1">
+          {/* Ticket Info */}
+          <Text className="text-lg font-bold text-indigo-600">
+            Ticket #{item.ticketId}
+          </Text>
+          <View className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100">
+            <Text className="text-indigo-600 text-xs font-medium">
+              {item.type || "Support Ticket"}
+            </Text>
+          </View>
+        </View>
 
-    {/* Ticket Info */}
-    <Text className="text-lg font-bold text-gray-900">
-      Ticket #{item.ticketId}
-    </Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-gray-600 font-medium ">
+            {item.relatedPage || "N/A"}
+          </Text>
+          <View className="flex-row items-center">
+            <Ionicons name="person-circle-outline" size={16} color="#6b7280" />
+            <Text className="ml-1 text-xs text-gray-500">
+              {item.raisedBy?.fullName || item.raisedBy?.username || "Unknown"}
+            </Text>
+          </View>
+        </View>
 
-    <Text className="text-gray-600 font-medium mt-1">
-      {item.relatedPage || "N/A"}
-    </Text>
-
-    <Text
-      className="text-gray-500 mt-2 text-sm leading-5"
-      numberOfLines={2}
-    >
-      {item.description || "No description provided."}
-    </Text>
-
-    {/* Remark Section */}
-    {item.remark ? (
-      <View className="mt-3 bg-gray-50 rounded-xl p-2 border border-gray-100">
-        <Text className="text-xs text-gray-500 mb-1 font-medium">
-          Remark:
-        </Text>
-        <Text className="text-gray-700 text-sm">{item.remark}</Text>
-      </View>
-    ) : null}
-
-    {/* Published Status */}
-    <View className="flex-row justify-between items-center mt-4">
-      <View className="flex-row items-center">
-        <Ionicons
-          name={item.published ? "checkmark-circle" : "close-circle"}
-          size={16}
-          color={item.published ? "#16a34a" : "#dc2626"}
-        />
         <Text
-          className={`ml-1 text-sm font-medium ${
-            item.published ? "text-green-700" : "text-red-700"
-          }`}
+          className="text-gray-700 mt-2 text-sm leading-5"
+          numberOfLines={2}
         >
-          {item.published ? "Published" : "Unpublished"}
+          {item.description || "No description provided."}
         </Text>
-      </View>
 
-      <View className="flex-row items-center">
-        <Ionicons name="person-circle-outline" size={16} color="#6b7280" />
-        <Text className="ml-1 text-xs text-gray-500">
-          {item.raisedBy?.fullName ||
-            item.raisedBy?.username ||
-            "Unknown"}
-        </Text>
-      </View>
-    </View>
+        {/* Status Section */}
+        <View className="flex-row justify-between items-center mt-3">
+          {/* Fixed/Open Status */}
+          <View
+            className={`flex-row items-center px-2.5 py-1 rounded-full ${
+              item.fixed ? "bg-green-50" : "bg-red-50"
+            }`}
+          >
+            <Ionicons
+              name={item.fixed ? "checkmark-circle" : "close-circle"}
+              size={14}
+              color={item.fixed ? "#16a34a" : "#dc2626"}
+            />
+            <Text
+              className={`ml-1 text-xs font-semibold ${
+                item.fixed ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {item.fixed ? "Fixed" : "Open"}
+            </Text>
+          </View>
 
-    {/* Date */}
-    <Text className="text-xs text-gray-400 mt-2">
-      {item.date || new Date(item.createdAt).toLocaleDateString()}
-    </Text>
-  </TouchableOpacity>
-);
+          {/* Published/Unpublished Status */}
+          <View
+            className={`flex-row items-center px-2.5 py-1 rounded-full ${
+              item.published ? "bg-green-50" : "bg-red-50"
+            }`}
+          >
+            <Ionicons
+              name={item.published ? "checkmark-circle" : "close-circle"}
+              size={14}
+              color={item.published ? "#16a34a" : "#dc2626"}
+            />
+            <Text
+              className={`ml-1 text-xs font-semibold ${
+                item.published ? "text-green-700" : "text-red-700"
+              }`}
+            >
+              {item.published ? "Published" : "Unpublished"}
+            </Text>
+          </View>
+        </View>
 
+        {/* Remark Section */}
+        {item.remark ? (
+          <View className="mt-2  rounded-xl ">
+            <Text className="text-xs text-gray-500  font-medium">
+              Remark by the developer:{" "}
+              <Text className="text-gray-700 text-sm">{item.remark}</Text>
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Date */}
+        <Text className="text-xs text-gray-400 mt-2">{item.date}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View className="flex-1 bg-gray-50 px-4 pt-4 pb-20">
+    <View className="flex-1 bg-gray-50 px-4 ">
       {tickets.length === 0 ? (
         <View className="flex-1 items-center justify-center px-8">
           <Ionicons

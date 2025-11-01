@@ -11,7 +11,6 @@ import {
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { jwtDecode } from "jwt-decode";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 // import { AuthContext } from "../context/AuthContext";
@@ -27,7 +26,7 @@ const CreateSupport = () => {
 
   // const [user, setUser] = useState("");
   const [date, setDate] = useState("");
- const [type, setType] = useState("Issue");
+  const [type, setType] = useState("Issue");
 
   const [relatedPage, setRelatedPage] = useState("");
   const [description, setDescription] = useState("");
@@ -121,7 +120,7 @@ const CreateSupport = () => {
           text2: "Thank you for your input.",
           position: "bottom",
         });
-        setTimeout(() => router.back(), 1000);
+        setTimeout(() => router.back());
       } else {
         Toast.show({
           type: "error",
