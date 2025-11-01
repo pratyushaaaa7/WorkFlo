@@ -35,7 +35,7 @@ export default function CentralUserDirectory() {
   ];
 
   return (
-    <View className="flex-1 px-4 py-10 bg-white">
+    <View className="flex-1 px-4 py-5 bg-white">
       {tabs.map((tab, idx) => (
         <TouchableOpacity
           key={idx}
