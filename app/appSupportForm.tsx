@@ -116,11 +116,11 @@ const CreateSupport = () => {
       if (response.data.success) {
         Toast.show({
           type: "success",
-          text1: "Feedback submitted!",
+          text1: "Response submitted!",
           text2: "Thank you for your input.",
           position: "bottom",
         });
-        setTimeout(() => router.back());
+        setTimeout(() => router.push("/(drawer)/appSupport"));
       } else {
         Toast.show({
           type: "error",
