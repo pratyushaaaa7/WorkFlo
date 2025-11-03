@@ -260,7 +260,7 @@ const AddUserForm: React.FC = () => {
         {/* Firm / Company Name */}
         <View className="mb-4">
           <Text className="text-gray-700 font-semibold mb-1">
-            Firm / Company Name
+            Firm / Company Name <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             placeholder="Enter firm or company name"
