@@ -225,7 +225,9 @@ const CreateSupport = () => {
           </View>
 
           {/* Related Page */}
-          <Text className="text-gray-600 mb-2">Related Page / Section</Text>
+          <Text className="text-gray-600 mb-2">
+            Related Page / Section <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             placeholder="e.g. Login Screen, ILR Form, Project List..."
             placeholderTextColor="#999"
@@ -236,7 +238,7 @@ const CreateSupport = () => {
 
           {/* description */}
           <Text className="text-gray-600 mb-2">
-            Describe your {type || "issue"}
+            Describe your {type || "issue"} <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             multiline
