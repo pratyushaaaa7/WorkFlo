@@ -30,7 +30,7 @@ const ProjectDetails = () => {
     switch (status) {
       case "active":
         return "#15803d"; // green
-      case "hold":
+      case "inactive":
         return "#a16207"; // amber
       case "closed":
         return "#b91c1c"; // red
@@ -172,10 +172,10 @@ const ProjectDetails = () => {
             <Text className="text-xl font-semibold text-gray-900">
               {project.projectName}
             </Text>
-            <Dropdown
+            {/* <Dropdown
               data={[
                 { label: "Active", value: "active", color: "#15803d" },
-                { label: "Hold", value: "hold", color: "#a16207" },
+                { label: "Inactive", value: "inactive", color: "#a16207" },
                 { label: "Closed", value: "closed", color: "#b91c1c" },
               ]}
               labelField="label"
@@ -223,7 +223,7 @@ const ProjectDetails = () => {
                   }}
                 />
               )}
-            />
+            /> */}
           </View>
 
           {/* Info grouped into pairs */}

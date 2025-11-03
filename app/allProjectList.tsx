@@ -142,24 +142,33 @@ const ProjectList = () => {
   };
 
   const renderItem = ({ item }: { item: Project }) => (
-    <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
+    <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md">
       {/* Project Info */}
       <TouchableOpacity
         className="flex-1 pr-4"
         onPress={() =>
           router.push({
-            pathname: "/projectDetails", // ✅ new page
+            pathname: "/projectDetails",
             params: {
               id: item._id,
               project: JSON.stringify(item),
             },
           })
         }
-        // activeOpacity={0.7}
       >
-        <Text className="text-lg font-semibold text-gray-900">
-          {item.projectName}
-        </Text>
+        {/* Top Row - Project Name + File Number */}
+        <View className="flex-row items-center justify-between">
+          <Text className="text-lg font-semibold text-gray-900 flex-shrink">
+            {item.projectName}
+          </Text>
+          {item.fileNumber && (
+            <Text className="text-sm font-medium text-blue-600 ml-3">
+              #{item.fileNumber}
+            </Text>
+          )}
+        </View>
+
+        {/* Company Name */}
         <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
       </TouchableOpacity>
     </View>
