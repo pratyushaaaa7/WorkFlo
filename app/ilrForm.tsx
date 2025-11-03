@@ -124,7 +124,7 @@ const ILRForm = () => {
     // Close keyboard immediately when button is pressed
     Keyboard.dismiss();
     try {
-      if (!token) {
+      if (!token || !projectId) {
         Toast.show({
           type: "error",
           text1: "Authentication Error",
@@ -206,6 +206,8 @@ const ILRForm = () => {
 
   // 🔹 Fetch users assigned to this project
   useEffect(() => {
+    if (!token || !projectId) return; // ✅ guard
+
     const fetchUsers = async () => {
       try {
         const res = await api.get(`/projects/${projectId}/users-dropdown`, {
@@ -225,6 +227,40 @@ const ILRForm = () => {
 
     fetchUsers();
   }, [projectId]);
+
+  const STORAGE_KEY = `ilr_form_${projectId}`;
+  // Add this new state
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Load ILR form data when projectId changes
+  useEffect(() => {
+    if (!projectId) return;
+    const loadFormData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem(`ilr_form_${projectId}`);
+        if (savedData) {
+          setIssues(JSON.parse(savedData));
+        }
+      } catch (error) {
+        console.log("Error loading ILR data:", error);
+      } finally {
+        setDataLoaded(true); // ✅ mark loaded
+      }
+    };
+    loadFormData();
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId) return; // ✅ guard
+    const saveFormData = async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+      } catch (error) {
+        console.log("Error saving ILR data:", error);
+      }
+    };
+    saveFormData();
+  }, [issues]);
 
   return (
     <View className="flex-1 bg-gray-50">
