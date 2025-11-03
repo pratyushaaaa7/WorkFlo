@@ -215,7 +215,7 @@ const AddUserForm: React.FC = () => {
       >
         {/* Role Dropdown */}
         <View className="mb-4 z-10">
-          <Text className="text-gray-700 font-semibold mb-1">Role</Text>
+          <Text className="text-gray-700 font-semibold mb-1">Role <Text className="text-red-500">*</Text></Text>
           <Dropdown
             style={{
               backgroundColor: "white",
@@ -246,7 +246,7 @@ const AddUserForm: React.FC = () => {
         {/* Individual Name */}
         <View className="mb-4">
           <Text className="text-gray-700 font-semibold mb-1">
-            Individual Name
+            Individual Name <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             placeholder="Enter individual’s full name"
