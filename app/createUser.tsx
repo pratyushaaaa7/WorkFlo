@@ -1,8 +1,8 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import api from "../lib/api";
@@ -86,6 +86,53 @@ const AddUserForm: React.FC = () => {
   const auth = useContext(AuthContext); // ✅ get JWT from context
   const token = auth?.token;
 
+  const { userData } = useLocalSearchParams();
+  const parsedUser = userData
+    ? JSON.parse(Array.isArray(userData) ? userData[0] : userData)
+    : null;
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+
+          // Fetch full details from backend (in case not all fields came)
+          const response = await api.get(`/user-directory/${parsedUser._id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          const user = response.data;
+
+          // 🧩 Auto-fill all fields
+          setRoleValue(user.role || null);
+          setFirmName(user.firmName || "");
+          setIndividualName(user.individualName || "");
+          setExpertiseList(
+            user.expertiseList?.length ? user.expertiseList : [""]
+          );
+          setDesignationList(
+            user.designationList?.length ? user.designationList : [""]
+          );
+          setEmailList(user.emailList?.length ? user.emailList : [""]);
+          setAddressList(user.addressList?.length ? user.addressList : [""]);
+          setOfficialNumberList(
+            user.officialNumberList?.length ? user.officialNumberList : [""]
+          );
+          setMobileNumberList(
+            user.mobileNumberList?.length ? user.mobileNumberList : [""]
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchUserDetails();
+  }, [userData]);
+
+  const isEditMode = !!userData;
+
   // Role dropdown
   const [roleValue, setRoleValue] = useState<string | null>(null);
   const [roleItems] = useState<RoleItem[]>([
@@ -153,17 +200,29 @@ const AddUserForm: React.FC = () => {
         mobileNumberList: mobileNumberList.filter((n) => n.trim() !== ""),
       };
 
-      // 👉 call backend
-      await api.post(`/user-directory/add`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (isEditMode && parsedUser?._id) {
+        // 🟢 Update user if editing
+        await api.put(`/user-directory/${parsedUser._id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: "User created successfully!",
-        position: "bottom",
-      });
+        Toast.show({
+          type: "success",
+          text1: "User updated successfully!",
+          position: "bottom",
+        });
+      } else {
+        // 🟣 Create new user
+        await api.post(`/user-directory/add`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        Toast.show({
+          type: "success",
+          text1: "User created successfully!",
+          position: "bottom",
+        });
+      }
 
       // Navigate to central user directory
       router.push("/(drawer)/centralUserDirectory");
@@ -200,7 +259,7 @@ const AddUserForm: React.FC = () => {
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-bold text-white ml-4">
-              Create User
+              {isEditMode ? "Edit User" : "Create User"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -215,7 +274,9 @@ const AddUserForm: React.FC = () => {
       >
         {/* Role Dropdown */}
         <View className="mb-4 z-10">
-          <Text className="text-gray-700 font-semibold mb-1">Role <Text className="text-red-500">*</Text></Text>
+          <Text className="text-gray-700 font-semibold mb-1">
+            Role <Text className="text-red-500">*</Text>
+          </Text>
           <Dropdown
             style={{
               backgroundColor: "white",
@@ -281,7 +342,11 @@ const AddUserForm: React.FC = () => {
             setter: setDesignationList,
           },
           { label: "Email", list: emailList, setter: setEmailList },
-          { label: "Address", list: addressList, setter: setAddressList },
+          {
+            label: "Office Address",
+            list: addressList,
+            setter: setAddressList,
+          },
           {
             label: "Official Number",
             list: officialNumberList,
@@ -308,7 +373,10 @@ const AddUserForm: React.FC = () => {
           className="bg-indigo-600 py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-20"
         >
           <Ionicons name="checkmark-done-outline" size={24} color="white" />
-          <Text className="text-white text-lg font-semibold">Create User</Text>
+          <Text className="text-white text-lg font-semibold">
+            {" "}
+            {isEditMode ? "Update User" : "Create User"}
+          </Text>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </View>

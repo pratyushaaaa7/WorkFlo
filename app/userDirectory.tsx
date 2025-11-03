@@ -159,66 +159,76 @@ const UserList = () => {
     }
   };
 
-  const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
-    <View key={index} className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-      {/* Top row: Username + Edit/Delete icons */}
-      <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-xl font-bold text-blue-700 flex-1 truncate">
-          {item.individualName || "-"}
-        </Text>
+const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
+  <TouchableOpacity
+    key={index}
+    activeOpacity={0.85}
+    onPress={() =>
+      router.push({
+        pathname: "/userDetail",
+       params: { user: JSON.stringify(item) }, // send full user object
+      })
+    }
+    className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100"
+  >
+    {/* Top row: Username + Edit/Delete icons */}
+    <View className="flex-row justify-between items-center mb-3">
+      <Text className="text-xl font-bold text-blue-700 flex-1 truncate">
+        {item.individualName || "-"}
+      </Text>
 
-        <View className="flex-row space-x-4 ml-4">
-          {/* <TouchableOpacity
-            onPress={() => handleEditPress(item)}
-            className="px-3 py-1 rounded hover:bg-blue-100"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="pencil-outline" size={20} color="#2563EB" />
-          </TouchableOpacity> */}
+      <View className="flex-row space-x-4 ml-4">
+        {/* Edit and Delete icons */}
+        {/* Example: You can re-enable Edit later */}
+        {/* <TouchableOpacity
+          onPress={() => handleEditPress(item)}
+          className="px-3 py-1 rounded bg-blue-50"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="pencil-outline" size={20} color="#2563EB" />
+        </TouchableOpacity> */}
 
-          <TouchableOpacity
-            onPress={() => handleDeletePress(item)}
-            className="px-3 py-1 rounded hover:bg-red-100"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Role and Role Description */}
-      <View className="flex-row justify-between mb-1">
-        <Text className="text-sm text-gray-800 font-semibold capitalize flex-1 pr-2">
-          {item.role || "-"}
-        </Text>
-        <Text className="text-sm text-gray-600 italic flex-1 text-right truncate">
-          {item.roleDescription || "-"}
-        </Text>
-      </View>
-
-      {/* Firm Name and Designation */}
-      <View className="flex-row justify-between mb-1">
-        <Text className="text-sm text-gray-600 flex-1 pr-2 truncate">
-          {item.firmName || "-"}
-        </Text>
-        <Text className="text-sm text-gray-600 flex-1 text-right truncate">
-          {item.designation || "-"}
-        </Text>
-      </View>
-
-      {/* Email and Phone */}
-      <View className="flex-row justify-between">
-        <Text className="text-xs text-gray-500 flex-1 pr-2 truncate">
-          {item.email || "-"}
-        </Text>
-        <Text className="text-xs text-gray-500 flex-1 text-right truncate">
-          {item.phone || "-"}
-        </Text>
+        <TouchableOpacity
+          onPress={() => handleDeletePress(item)}
+          className="px-3 py-1 rounded bg-red-50"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trash-outline" size={20} color="#ef4444" />
+        </TouchableOpacity>
       </View>
     </View>
-  );
+
+    {/* Role and Description */}
+    <View className="flex-row justify-between mb-1">
+      <Text className="text-sm text-gray-800 font-semibold capitalize flex-1 pr-2">
+        {item.role || "-"}
+      </Text>
+      <Text className="text-sm text-gray-600 italic flex-1 text-right truncate">
+        {item.roleDescription || "-"}
+      </Text>
+    </View>
+
+    {/* Firm Name and Designation */}
+    <View className="flex-row justify-between mb-1">
+      <Text className="text-sm text-gray-600 flex-1 pr-2 truncate">
+        {item.firmName || "-"}
+      </Text>
+      <Text className="text-sm text-gray-600 flex-1 text-right truncate">
+        {item.designation || "-"}
+      </Text>
+    </View>
+
+    {/* Email and Phone */}
+    <View className="flex-row justify-between">
+      <Text className="text-xs text-gray-500 flex-1 pr-2 truncate">
+        {item.email || "-"}
+      </Text>
+      <Text className="text-xs text-gray-500 flex-1 text-right truncate">
+        {item.phone || "-"}
+      </Text>
+    </View>
+  </TouchableOpacity>
+);
 
   const handleDownloadExcel = async () => {
     try {

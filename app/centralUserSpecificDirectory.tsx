@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "@/context/AuthContext";
 import api from "@/lib/api";
@@ -42,9 +42,8 @@ export default function UserRoleList() {
 
   const renderUser = ({ item }: { item: any }) => (
     <TouchableOpacity
-      activeOpacity={0.8}
-      // disabled={auth?.user?.role !== "admin"}
-      className="mt-3 rounded-2xl bg-white shadow-sm mx-4 p-4"
+      activeOpacity={0.9}
+      className="mx-3 mt-3 rounded-2xl overflow-hidden shadow-md"
       onPress={() =>
         router.push({
           pathname: "/userDetail",
@@ -52,40 +51,93 @@ export default function UserRoleList() {
         })
       }
     >
-      {/* Name + Role */}
-      <View className="flex-row justify-between  items-center ">
-        <Text className="text-lg font-semibold text-gray-900">
-          <Text className="text-sm text-red-500">#{item.userCode || ""}</Text>
-          {"   "}
-          {item.individualName || "Unnamed"}
-        </Text>
-        <View className="bg-indigo-100 px-3 py-1 rounded-full">
-          <Text className="text-indigo-700 text-xs font-semibold">
-            {item.role}
-          </Text>
-        </View>
-      </View>
-
-      {/* Firm + Designation */}
-      <View className="flex-row justify-between mt-2 items-center">
-        <Text className="text-sm text-gray-700 ">
-          {item.designationList?.join(", ") || ""} @ {item.firmName || "N/A"}
-        </Text>
-
-        {/* Average Rating */}
-        <View className="flex-row items-center">
-          {item.averageRating && item.averageRating > 0 ? (
-            <>
-              <Ionicons name="star" size={18} color="#FACC15" />
-              <Text className="ml-2 text-gray-700 text-sm font-semibold">
-                {item.averageRating.toFixed(1)} / 5
+      {/* Gradient Background */}
+      <View
+        // colors={["#ffffff", "#F9FAFB"]}
+        // start={{ x: 0, y: 0 }}
+        // end={{ x: 1, y: 1 }}
+        className="p-4 border bg-white border-gray-100"
+      >
+        {/* Header Row */}
+        <View className="flex-row justify-between items-center">
+          <View className="flex-1 pr-3">
+            <Text className="text-base font-semibold text-gray-900">
+              <Text className="text-xs text-red-500 font-bold">
+                #{item.userCode || ""}
               </Text>
-            </>
-          ) : (
-            <Text className="text-gray-400 text-sm italic">
-              No rating available
+              {"  "}
+              {item.individualName || "Unnamed"}
             </Text>
-          )}
+          </View>
+
+          {/* Role + Edit */}
+          <View className="flex-row items-center">
+            <View className="bg-indigo-100 px-2.5 py-0.5 rounded-full mr-2 border border-indigo-200">
+              <Text className="text-indigo-700 text-[11px] font-semibold">
+                {item.role}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/createUser",
+                  params: { userData: JSON.stringify(item) },
+                })
+              }
+              className="bg-sky-100 rounded-full p-1"
+              activeOpacity={0.7}
+            >
+              <Ionicons name="create-outline" size={18} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Divider */}
+        <View className="h-[1px] bg-gray-100 my-2" />
+
+        {/* Info Row */}
+        <View className="flex-row justify-between items-center">
+          <View className="flex-1 mr-3">
+            <View className="flex-row items-center mb-1">
+              <MaterialCommunityIcons
+                name="briefcase-outline"
+                size={14}
+                color="#6B7280"
+              />
+              <Text
+                numberOfLines={1}
+                className="ml-1 text-[12px] text-gray-700"
+              >
+                {item.designationList?.join(", ") || "No Designation"}
+              </Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <Ionicons name="business-outline" size={13} color="#6B7280" />
+              <Text
+                numberOfLines={1}
+                className="ml-1 text-[12px] text-gray-600"
+              >
+                {item.firmName || "N/A"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Rating */}
+          <View className="flex-row items-center">
+            {item.averageRating && item.averageRating > 0 ? (
+              <>
+                <Ionicons name="star" size={16} color="#FACC15" />
+                <Text className="ml-1 text-gray-700 text-sm font-semibold">
+                  {item.averageRating.toFixed(1)}
+                </Text>
+                <Text className="text-gray-400 text-xs"> / 5</Text>
+              </>
+            ) : (
+              <Text className="text-gray-400 text-xs italic">No rating</Text>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>

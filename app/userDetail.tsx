@@ -27,6 +27,7 @@ const UserDetail = () => {
 
   // parse preloaded user from params (for instant display)
   const preloadedUser = user ? JSON.parse(user as string) : {};
+  
 
   // state
   const [userData, setUserData] = useState<any>(preloadedUser);
@@ -145,15 +146,15 @@ const UserDetail = () => {
             {/* Info Fields */}
             <View className="gap-1">
               <Text className="text-base text-gray-700">
+                <Text className="font-semibold">Firm: </Text>
+                {userData?.firmName || "N/A"}
+              </Text>
+
+              <Text className="text-base text-gray-700">
                 <Text className="font-semibold">Designation: </Text>
                 {userData?.designationList?.length
                   ? userData.designationList.join(", ")
                   : userData?.designation || "N/A"}
-              </Text>
-
-              <Text className="text-base text-gray-700">
-                <Text className="font-semibold">Firm: </Text>
-                {userData?.firmName || "N/A"}
               </Text>
 
               <Text className="text-base text-gray-700">
