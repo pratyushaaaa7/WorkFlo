@@ -125,7 +125,7 @@ const CompanyProjectSelectionScreen = () => {
         {/* Company Dropdown */}
         <View className="mb-5 bg-white rounded-xl shadow-md p-4">
           <Text className="text-base font-semibold text-gray-700 mb-2">
-            Select Company
+            Select Company <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
             data={companyOptions}
@@ -160,7 +160,7 @@ const CompanyProjectSelectionScreen = () => {
         {/* Project Dropdown */}
         <View className="mb-5 bg-white rounded-xl shadow-md p-4">
           <Text className="text-base font-semibold text-gray-700 mb-2">
-            Select Project
+            Select Project <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
             data={assignedProjects}

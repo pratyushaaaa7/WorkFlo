@@ -576,12 +576,12 @@ const CreateMinutes = () => {
         <View className="mb-2 rounded-xl shadow-md overflow-hidden">
           <View className="bg-white px-3 py-4 gap-3">
             <Text className="text-lg font-bold text-gray-700">
-              Meeting Info
+              Meeting Info <Text className="text-red-500">*</Text>
             </Text>
             {/* Meeting Date */}
             <TouchableOpacity onPress={() => setShowMeetingDatePicker(true)}>
               <TextInput
-                placeholder="Meeting Date"
+                placeholder="Meeting Date *"
                 placeholderTextColor="#888"
                 value={
                   meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : ""
@@ -607,7 +607,7 @@ const CreateMinutes = () => {
             {/* ✅ Meeting Time */}
             <TouchableOpacity onPress={() => setShowMeetingTimePicker(true)}>
               <TextInput
-                placeholder="Meeting Time"
+                placeholder="Meeting Time *"
                 placeholderTextColor="#888"
                 value={meetingTime} // 👈 directly use string
                 editable={false} // prevent typing
@@ -636,7 +636,7 @@ const CreateMinutes = () => {
 
             {/* Venue */}
             <TextInput
-              placeholder="Venue"
+              placeholder="Venue *"
               placeholderTextColor="#888"
               value={meetingVenue}
               onChangeText={setMeetingVenue}
@@ -673,7 +673,9 @@ const CreateMinutes = () => {
 
         {/* Attendees */}
         <View className="bg-white rounded-xl p-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">Attendees</Text>
+          <Text className="text-lg font-bold text-gray-700 p-2">
+            Attendees <Text className="text-red-500">*</Text>
+          </Text>
 
           {attendees.map((att, index) => (
             <Card
@@ -774,7 +776,7 @@ const CreateMinutes = () => {
                   {/* Manual Fields */}
                   <View className="gap-2">
                     <TextInput
-                      placeholder="Full Name"
+                      placeholder="Full Name *"
                       placeholderTextColor="#888"
                       value={att.attendeeName}
                       onChangeText={(t) =>
@@ -853,7 +855,9 @@ const CreateMinutes = () => {
         <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
           {/* <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text> */}
           <View className="flex-row justify-between items-center p-2">
-            <Text className="text-lg font-bold text-gray-700">Minutes</Text>
+            <Text className="text-lg font-bold text-gray-700">
+              Minutes <Text className="text-red-500">*</Text>
+            </Text>
             <TouchableOpacity
               onPress={fetchForwardedMinutes}
               className="bg-yellow-500 px-3 py-1 rounded-xl"
@@ -925,7 +929,7 @@ const CreateMinutes = () => {
                       valueField="value"
                       data={users}
                       value={m.raisedBy.map((r: any) => r.value)} // ✅ use .value
-                      placeholder="Issue raised by"
+                      placeholder="Issue raised by *"
                       searchPlaceholder="Search..."
                       // Raised By
                       onChange={(selectedIds: string[]) => {
@@ -939,7 +943,7 @@ const CreateMinutes = () => {
                       }}
                     />
                     <TextInput
-                      placeholder="Subject"
+                      placeholder="Subject *"
                       placeholderTextColor="#888"
                       value={m.issueSubject}
                       onChangeText={(t) =>
@@ -995,7 +999,7 @@ const CreateMinutes = () => {
                         disabled={m.targetDateForInfo}
                       >
                         <TextInput
-                          placeholder="Target Date (DD-MM-YYYY)"
+                          placeholder="Target Date (DD-MM-YYYY) *"
                           placeholderTextColor="#888"
                           value={
                             m.targetDate
@@ -1066,7 +1070,7 @@ const CreateMinutes = () => {
                           data={users}
                           // value={m.responsibility}
                           value={m.responsibility.map((r: any) => r.value)}
-                          placeholder="Select responsible users"
+                          placeholder="Select responsible users *"
                           searchPlaceholder="Search..."
                           // onChange={(val) =>
                           //   updateMinute(index, "responsibility", val)

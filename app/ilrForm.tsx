@@ -278,7 +278,7 @@ const ILRForm = () => {
 
             <View className="gap-1">
               <TextInput
-                placeholder="Issue Title"
+                placeholder="Issue Title *"
                 value={issue.description}
                 onChangeText={(text) => updateIssue(index, "description", text)}
                 className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base"
@@ -287,7 +287,7 @@ const ILRForm = () => {
 
               <TouchableOpacity onPress={() => openDatePicker(index)}>
                 <TextInput
-                  placeholder="Target Date (DD-MM-YYYY)"
+                  placeholder="Target Date (DD-MM-YYYY) *"
                   value={
                     issue.targetDate
                       ? new Date(issue.targetDate).toLocaleDateString("en-GB") // ✅ formats as DD/MM/YYYY
@@ -330,7 +330,7 @@ const ILRForm = () => {
                 valueField="value"
                 data={users}
                 value={issue.responsibility.map((r) => r._id)} // array of IDs
-                placeholder="Select responsible users"
+                placeholder="Select responsible users *"
                 searchPlaceholder="Search..."
                 onChange={(selectedIds: string[]) => {
                   const selectedObjects = users
@@ -341,7 +341,7 @@ const ILRForm = () => {
               />
 
               <TextInput
-                placeholder="Issue Description"
+                placeholder="Issue Description *"
                 value={issue.remarks}
                 onChangeText={(text) => updateIssue(index, "remarks", text)}
                 className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base"

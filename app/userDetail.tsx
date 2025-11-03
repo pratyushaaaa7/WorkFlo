@@ -269,7 +269,7 @@ const UserDetail = () => {
 
           {/* Activity Log */}
           <View className="bg-white rounded-2xl shadow-lg p-5 mb-20">
-            <Text className="text-lg font-bold text-gray-800 ">
+            <Text className="text-lg font-semibold pb-2 text-gray-800 ">
               Feedback Log
             </Text>
             {ratings?.length === 0 ? (
@@ -278,7 +278,7 @@ const UserDetail = () => {
               </Text>
             ) : (
               ratings.map((r: any, idx: number) => (
-                <View key={idx} className=" px-5 py-4 border-t border-gray-200">
+                <View key={idx} className="  py-4 border-t border-gray-200">
                   {r.stars && (
                     <View className="flex-row items-center mb-1">
                       {[...Array(r.stars)].map((_, i) => (
