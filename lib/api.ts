@@ -1,9 +1,9 @@
 //FOR DEVELOPMENT PHASE
-// import axios from "axios";
-// const api = axios.create({
-//   baseURL: "http://192.168.1.14:5000/api", // Change localhost if testing on physical device
-// });
-// export default api;
+import axios from "axios";
+const api = axios.create({
+  baseURL: "http://192.168.1.14:5000/api", // Change localhost if testing on physical device
+});
+export default api;
 
 
 // import axios from 'axios';
@@ -31,11 +31,11 @@
 
 
 //FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
-import axios from "axios";
-const api = axios.create({
-  baseURL: "https://api.wprojects.in/api",  // Production API through Nginx + HTTPS
-});
-export default api;
+// import axios from "axios";
+// const api = axios.create({
+//   baseURL: "https://api.wprojects.in/api",  // Production API through Nginx + HTTPS
+// });
+// export default api;
 
 
 
