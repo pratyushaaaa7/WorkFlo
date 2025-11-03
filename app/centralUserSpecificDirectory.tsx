@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -19,6 +20,7 @@ export default function UserRoleList() {
 
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -39,6 +41,23 @@ export default function UserRoleList() {
     };
     fetchUsers();
   }, [role]);
+
+  // 🔍 Filtered list (computed using useMemo for efficiency)
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+
+    const q = searchQuery.toLowerCase();
+
+    return users.filter((u) => {
+      return (
+        u.individualName?.toLowerCase().includes(q) ||
+        u.userCode?.toString().toLowerCase().includes(q) ||
+        u.firmName?.toLowerCase().includes(q) ||
+        u.expertiseList?.some((e: string) => e.toLowerCase().includes(q)) ||
+        u.designationList?.some((d: string) => d.toLowerCase().includes(q))
+      );
+    });
+  }, [searchQuery, users]);
 
   const renderUser = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -171,13 +190,31 @@ export default function UserRoleList() {
         </View>
       </LinearGradient>
 
+      <View className="px-4 mt-3">
+        <View className="flex-row items-center bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm">
+          <Ionicons name="search-outline" size={18} color="#6B7280" />
+          <TextInput
+              placeholder={`Search ${role?.toString().toLowerCase()}s...`}
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="ml-2 flex-1 text-gray-800 text-sm"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color="#4F46E5" className="mt-10" />
       ) : users.length === 0 ? (
         <Text className="text-center text-gray-400 mt-10">No {role} found</Text>
       ) : (
         <FlatList
-          data={users}
+          data={filteredUsers}
           keyExtractor={(item) => item._id}
           renderItem={renderUser}
           showsVerticalScrollIndicator={false}
