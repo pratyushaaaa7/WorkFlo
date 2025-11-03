@@ -296,7 +296,7 @@ const CreateProjectScreen = () => {
         {/* Company Dropdown */}
         <View className="mb-4" style={{ zIndex: 2500 }}>
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Company Name
+            Company Name <Text className="text-red-500">*</Text>
           </Text>
 
           <Dropdown
@@ -334,7 +334,7 @@ const CreateProjectScreen = () => {
         {/* Typology Dropdown */}
         <View className="mb-4" style={{ zIndex: 2000 }}>
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Typology
+            Project Typology <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
             style={{
@@ -373,7 +373,7 @@ const CreateProjectScreen = () => {
         {/*Project Name*/}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Name
+            Project Name <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             className="border border-gray-600 rounded-lg px-4 py-2 text-black"
@@ -569,7 +569,7 @@ const CreateProjectScreen = () => {
         {/* Team Leader Dropdown */}
         <View className="mb-4" style={{ zIndex: 1500 }}>
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Team Leader(s)
+            Project Team Leader(s) <Text className="text-red-500">*</Text>
           </Text>
           <MultiSelect
             style={{
@@ -614,7 +614,7 @@ const CreateProjectScreen = () => {
         {/* Project Team Members Dropdown */}
         <View className="mb-4" style={{ zIndex: 1400 }}>
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Team Member(s)
+            Project Team Member(s) <Text className="text-red-500">*</Text>
           </Text>
           <MultiSelect
             style={{
@@ -652,7 +652,7 @@ const CreateProjectScreen = () => {
         {/* Status Dropdown */}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Status
+            Project Status <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
             style={{
