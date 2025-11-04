@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  TextInput,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
@@ -25,6 +26,7 @@ const ProjectList = () => {
   const token = auth?.token;
   const user = auth?.user;
   const { company } = useLocalSearchParams();
+  const [searchQuery, setSearchQuery] = useState(""); // 🔍 Search state
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +143,15 @@ const ProjectList = () => {
     return downloadAllProjectsNative();
   };
 
+  // 🔍 Filtered list based on search input
+  const filteredProjects = projects.filter((item) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      item.projectName?.toLowerCase().includes(query) ||
+      item.fileNumber?.toString().toLowerCase().includes(query)
+    );
+  });
+
   const renderItem = ({ item }: { item: Project }) => (
     <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md">
       {/* Project Info */}
@@ -217,6 +228,25 @@ const ProjectList = () => {
         </View>
       </LinearGradient>
 
+      {/* 🔍 Search Bar */}
+      <View className="px-4 mt-3 mb-1">
+        <View className="flex-row items-center bg-white rounded-xl shadow-sm border border-gray-200 px-3 py-2">
+          <Ionicons name="search" size={20} color="#6B7280" />
+          <TextInput
+            placeholder="Search by Project Name or File Number"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="flex-1 ml-2 text-base text-gray-800"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {/* Content */}
       {loading ? (
         <View className="flex-1 justify-center items-center">
@@ -232,7 +262,7 @@ const ProjectList = () => {
         </View>
       ) : (
         <FlatList
-          data={projects}
+          data={filteredProjects}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
           contentContainerStyle={{ paddingVertical: 12, paddingBottom: 90 }}
