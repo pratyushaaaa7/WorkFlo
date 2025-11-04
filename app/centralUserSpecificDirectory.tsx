@@ -194,7 +194,7 @@ export default function UserRoleList() {
         <View className="flex-row items-center bg-white border border-gray-200 rounded-full px-3 py-1 shadow-sm">
           <Ionicons name="search-outline" size={18} color="#6B7280" />
           <TextInput
-              placeholder={`Search ${role?.toString().toLowerCase()}s...`}
+            placeholder={`Search ${role?.toString().toLowerCase()}s...`}
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}

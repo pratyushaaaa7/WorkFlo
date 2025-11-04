@@ -1,10 +1,17 @@
-import React, { useEffect, useState, useContext, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  TextInput,
   Platform,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext"; // adjust path if needed
@@ -23,6 +30,8 @@ type User = {
   username: string;
   role: string;
   employeeCode: number;
+  status?: string;
+  company?: string;
 };
 
 export default function AllUsersScreen() {
@@ -32,7 +41,7 @@ export default function AllUsersScreen() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const [downloading, setDownloading] = useState(false); // ✅ state to track download
 
   const downloadExcelWeb = async () => {
@@ -128,6 +137,25 @@ export default function AllUsersScreen() {
       ? code.toString().padStart(3, "0")
       : "---";
 
+  // 🔍 Filter users efficiently using useMemo
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+
+    const q = searchQuery.toLowerCase();
+
+    return users.filter((u) => {
+      const employeeCodeStr = u.employeeCode
+        ? u.employeeCode.toString().padStart(3, "0")
+        : "";
+      return (
+        u.fullName?.toLowerCase().includes(q) ||
+        u.status?.toLowerCase().includes(q) ||
+        u.company?.toLowerCase().includes(q) ||
+        employeeCodeStr.includes(q)
+      );
+    });
+  }, [searchQuery, users]);
+
   // inside AllUsersScreen
   useFocusEffect(
     useCallback(() => {
@@ -153,25 +181,55 @@ export default function AllUsersScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50 px-4 pt-4">
+    <View className="flex-1 bg-gray-50 px-4 pt-2">
+      {/* 🔍 Search & Download Row */}
+
+      {/* 📥 Download Excel Button (only for admin) */}
       {auth?.user?.role === "admin" && (
         <TouchableOpacity
           onPress={downloadExcel}
-          className="flex-row items-center bg-green-500 px-4 py-2 mb-4 rounded-lg self-start"
-          disabled={downloading} // disable while downloading
+          disabled={downloading}
+          className={`flex-row items-center justify-center px-4 py-2 rounded-xl shadow-sm mb-2 ${
+            downloading ? "bg-green-400" : "bg-green-500"
+          }`}
+          activeOpacity={0.8}
         >
-          <Ionicons name="download-outline" size={20} color="white" />
-          <Text className="text-white ml-2">
-            {downloading ? "Downloading..." : "Download Excel"}
-          </Text>
-          {downloading && (
-            <ActivityIndicator size="small" color="#fff" className="ml-2" />
+          {downloading ? (
+            <>
+              <ActivityIndicator size="small" color="#fff" />
+              <Text className="text-white ml-2 text-[14px] font-medium">
+                Downloading...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="download-outline" size={20} color="#fff" />
+              <Text className="text-white ml-2 text-[14px] font-medium">
+                Download Excel
+              </Text>
+            </>
           )}
         </TouchableOpacity>
       )}
 
+      <View className="flex-row items-center bg-white border border-gray-300 rounded-lg px-2 py-1 mb-2 shadow-sm">
+        <Ionicons
+          name="search-outline"
+          size={18}
+          color="#888"
+          className="mr-2"
+        />
+        <TextInput
+          placeholder="Search by name, company, or employee code"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          className="flex-1 text-gray-800 text-[14px]"
+          placeholderTextColor="#888"
+        />
+      </View>
+
       <FlatList
-        data={users}
+        data={filteredUsers}
         keyExtractor={(item) => item._id}
         contentContainerStyle={{ paddingBottom: 40 }} // 👈 adds bottom padding
         renderItem={({ item }) => (
