@@ -212,7 +212,7 @@ export default function AllUsersScreen() {
         </TouchableOpacity>
       )}
 
-      <View className="flex-row items-center bg-white border border-gray-300 rounded-lg px-2 py-1 mb-2 shadow-sm">
+      <View className="flex-row items-center bg-white border border-gray-300 rounded-full px-2 py-1 mb-2 shadow-sm">
         <Ionicons
           name="search-outline"
           size={18}

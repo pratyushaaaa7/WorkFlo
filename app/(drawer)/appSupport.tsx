@@ -64,7 +64,7 @@ const AppSupport = () => {
               description: item.description,
               imageUrl: item.imageUrl,
               relatedPage: item.relatedPage,
-              raisedBy: item.raisedBy?.username,
+              raisedBy: item.raisedBy?.fullName,
               date: item.date,
               fixed: item.fixed,
               published: item.published,

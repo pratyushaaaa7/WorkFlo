@@ -25,6 +25,7 @@ const ProjectList = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const user = auth?.user;
+  const isAdmin = user?.role === "admin";
   const { company } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState(""); // 🔍 Search state
 
@@ -157,6 +158,7 @@ const ProjectList = () => {
       {/* Project Info */}
       <TouchableOpacity
         className="flex-1 pr-4"
+        disabled={!isAdmin}
         onPress={() =>
           router.push({
             pathname: "/projectDetails",

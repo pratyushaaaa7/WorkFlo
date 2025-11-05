@@ -25,7 +25,7 @@ type Project = {
   company?: string;
   scopes: string[];
   startDate?: string; // ISO string
-
+  fileNumber?: string;
   createdBy: { _id: string; username?: string; fullName?: string };
 
   assignedUsers?: { _id: string; username?: string; fullName?: string }[]; // legacy

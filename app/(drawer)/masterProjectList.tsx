@@ -9,6 +9,7 @@ const ProjectMain = () => {
   const router = useRouter();
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  // const isAdmin = user?.role === "admin";
 
   return (
     <>
@@ -59,20 +60,22 @@ const ProjectMain = () => {
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#6B7280" />
-        </TouchableOpacity> 
-
-        <TouchableOpacity
-          className="bg-indigo-500 mt-10 p-4 rounded-lg"
-          onPress={() =>
-            router.push({
-              pathname: "/allProjectList",
-            })
-          }
-        >
-          <Text className="font-bold text-white text-center">
-            View all Projects
-          </Text>
         </TouchableOpacity>
+
+        {user?.role === "admin" && (
+          <TouchableOpacity
+            className="bg-indigo-500 mt-10 p-4 rounded-lg"
+            onPress={() =>
+              router.push({
+                pathname: "/allProjectList",
+              })
+            }
+          >
+            <Text className="font-bold text-white text-center">
+              View all Projects
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Create Floating + Button */}
         {user?.role === "admin" && (

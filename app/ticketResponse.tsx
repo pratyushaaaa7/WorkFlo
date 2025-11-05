@@ -36,7 +36,7 @@ export default function TicketDetails() {
     remark: initialRemark,
   } = useLocalSearchParams();
 
-  console.log(raisedBy)
+  // console.log(raisedBy)
 
   const parseBool = (v: any) =>
     Array.isArray(v)
