@@ -305,10 +305,10 @@ export default function AddProjectUsersPage() {
       />
 
       {/* Save Button */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white shadow-lg">
+      <View className="absolute bottom-0 left-0 right-0 p-2 bg-white shadow-lg">
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-indigo-600 py-4 rounded-2xl"
+          className="bg-indigo-600 py-4 mb-12 rounded-2xl"
         >
           <Text className="text-white text-center font-bold text-lg">
             Save Users
