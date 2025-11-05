@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import api from "../lib/api";
@@ -27,6 +28,7 @@ const ProjectList = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(""); // 🔍 New state
 
   const fetchProjects = async () => {
     if (!token || !company) return;
@@ -144,6 +146,13 @@ const ProjectList = () => {
     }
   };
 
+  // ✅ Filtered projects using useMemo (case-insensitive)
+  const filteredProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return projects;
+    return projects.filter((p) => p.projectName?.toLowerCase().includes(query));
+  }, [projects, searchQuery]);
+
   const renderItem = ({ item }: { item: Project }) => (
     <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
       {/* Project Info */}
@@ -232,6 +241,22 @@ const ProjectList = () => {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+      {/* 🔍 Search Bar */}
+      <View className="flex-row items-center bg-white rounded-full px-3 py-2 shadow-sm">
+        <Ionicons name="search" size={18} color="#9CA3AF" />
+        <TextInput
+          placeholder="Search projects..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          className="flex-1 ml-2 text-gray-700"
+          placeholderTextColor="#9CA3AF"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Content */}
       {loading ? (
@@ -249,7 +274,7 @@ const ProjectList = () => {
         </View>
       ) : (
         <FlatList
-          data={projects}
+          data={filteredProjects}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
           contentContainerStyle={{ paddingVertical: 12, paddingBottom: 90 }}
