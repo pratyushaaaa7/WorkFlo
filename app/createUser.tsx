@@ -108,6 +108,7 @@ const AddUserForm: React.FC = () => {
           setRoleValue(user.role || null);
           setFirmName(user.firmName || "");
           setIndividualName(user.individualName || "");
+          setGender(user.gender || "");
           setExpertiseList(
             user.expertiseList?.length ? user.expertiseList : [""]
           );
