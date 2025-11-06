@@ -255,7 +255,8 @@ const ILRs = () => {
           <Ionicons name="arrow-back" size={24} color="#fff" />
           <Text className="text-xl font-semibold text-white ml-4">
             {" "}
-            {projectName} ILRs
+            {/* {projectName} */}
+             ILRs
           </Text>
         </TouchableOpacity>
 
