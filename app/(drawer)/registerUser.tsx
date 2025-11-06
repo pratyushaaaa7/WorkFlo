@@ -343,6 +343,16 @@ const RegisterUserScreen = () => {
           </Text>
         </View> */}
 
+      {existingUser && (
+        <TouchableOpacity
+          onPress={() => router.push("/centralEmployeeDirectory")}
+          className="bg-white p-2 mb-4 rounded-3xl flex-row items-center gap-4"
+        >
+          <Icon name="arrow-left" size={24} color="#000" />
+          <Text className="font-semibold text-lg">Back</Text>
+        </TouchableOpacity>
+      )}
+
       {/* EMPLOYEE CODE */}
       <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
         <Text className="text-gray-700 mb-2 font-medium">
