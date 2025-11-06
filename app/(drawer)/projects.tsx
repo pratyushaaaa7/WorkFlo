@@ -169,6 +169,14 @@ const CompanyProjectSelectionScreen = () => {
             placeholder={loading ? "Loading projects..." : "Choose project"}
             value={selectedProject}
             onChange={(item) => setSelectedProject(item.value)}
+            search
+            searchPlaceholder="Search..."
+            inputSearchStyle={{
+              fontSize: 14,
+              color: "#111827",
+              borderRadius: 8,
+              paddingHorizontal: 8,
+            }}
             style={{
               height: 48,
               borderRadius: 10,
