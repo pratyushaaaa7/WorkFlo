@@ -27,7 +27,8 @@ type Project = {
   startDate?: string; // ISO string
   fileNumber?: string;
   createdBy: { _id: string; username?: string; fullName?: string };
-
+  fileNumberNumeric?: any;
+  webName?: string;
   assignedUsers?: { _id: string; username?: string; fullName?: string }[]; // legacy
   teamLeaders: { _id: string; username?: string; fullName?: string }[];
   teamMembers: { _id: string; username?: string; fullName?: string }[];
@@ -35,7 +36,7 @@ type Project = {
   clientName?: string;
   siteArea?: string;
   designedArea?: string;
-  status: "active" | "hold" | "closed";
+  status: "active" | "inactive" | "closed";
 
   notes: Note[];
   activities: Activity[];

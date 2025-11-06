@@ -67,6 +67,7 @@ const ProjectDetails = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProject(res.data.project);
+      console.log(res.data.project);
       setActivities(res.data.project.activities || []); // ✅ load activities
     } catch (err) {
       console.error("Failed to fetch project:", err);
@@ -168,11 +169,11 @@ const ProjectDetails = () => {
         {/* Project Info Card */}
         <View className="bg-white rounded-2xl shadow-md p-5 mb-3">
           {/* Project Name + Status */}
-          <View className="flex-row items-center justify-between mb-3">
+          {/* <View className="flex-row items-center justify-between mb-3">
             <Text className="text-xl font-semibold text-gray-900">
               {project.projectName}
             </Text>
-            {/* <Dropdown
+            <Dropdown
               data={[
                 { label: "Active", value: "active", color: "#15803d" },
                 { label: "Inactive", value: "inactive", color: "#a16207" },
@@ -223,7 +224,57 @@ const ProjectDetails = () => {
                   }}
                 />
               )}
-            /> */}
+            />
+          </View> */}
+
+          {/* Project Name + Status */}
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-xl font-semibold text-gray-900">
+              {project.projectName}
+            </Text>
+
+            {/* Status Display */}
+            <View
+              className="flex-row items-center px-3 py-1 rounded-full"
+              style={{
+                backgroundColor: "#F3F4F6", // light gray background
+                borderColor:
+                  project.status === "active"
+                    ? "#16A34A" // green
+                    : project.status === "inactive"
+                    ? "#CA8A04" // amber
+                    : "#DC2626", // red
+                borderWidth: 1,
+              }}
+            >
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor:
+                    project.status === "active"
+                      ? "#16A34A"
+                      : project.status === "inactive"
+                      ? "#CA8A04"
+                      : "#DC2626",
+                  marginRight: 6,
+                }}
+              />
+              <Text
+                className="text-sm font-semibold capitalize"
+                style={{
+                  color:
+                    project.status === "active"
+                      ? "#166534"
+                      : project.status === "inactive"
+                      ? "#854D0E"
+                      : "#7F1D1D",
+                }}
+              >
+                {project.status || "N/A"}
+              </Text>
+            </View>
           </View>
 
           {/* Info grouped into pairs */}
@@ -238,10 +289,17 @@ const ProjectDetails = () => {
             { label: "Location", value: project.location ?? "" },
             {
               label: "Start Date",
-              value: project.startDate ? formatDate(project.startDate) : "N/A",
+              value: project.startDate ? formatDate(project.startDate) : "-",
             },
             { label: "Site Area", value: project.siteArea ?? "N/A" },
-            { label: "Designed Area", value: project.designedArea ?? "N/A" },
+            { label: "Designe Area", value: project.designedArea ?? "N/A" },
+            // ✅ Newly added fields
+            {
+              label: "File Number",
+              value: project.fileNumberNumeric?.toString() ?? "N/A",
+            },
+            // { label: "Status", value: project.status ?? "N/A" },
+            { label: "Web Name", value: project.webName || "-" },
             {
               label: "Team Leaders",
               value:
@@ -292,7 +350,7 @@ const ProjectDetails = () => {
                 </Text>
               ))
             ) : (
-              <Text className="text-gray-400 italic text-sm ml-2">
+              <Text className="text-gray-400 italic text-sm ">
                 No scopes defined
               </Text>
             )}
