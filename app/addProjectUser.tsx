@@ -144,10 +144,8 @@ export default function AddProjectUsersPage() {
   const roleOptions = [
     { label: "Vendor", value: "Vendor" },
     { label: "Consultant", value: "Consultant" },
-    { label: "Contractor", value: "Contractor" },
-    { label: "Architect", value: "Architect" },
+
     { label: "Client", value: "Client" },
-    { label: "consultant", value: "consultant" },
   ];
 
   const filteredUsers = users.filter((u) => {
@@ -171,7 +169,7 @@ export default function AddProjectUsersPage() {
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
-            Add Users
+            Add contact to directory
           </Text>
         </Pressable>
       </View>

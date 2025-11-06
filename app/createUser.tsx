@@ -259,7 +259,7 @@ const AddUserForm: React.FC = () => {
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-bold text-white ml-4">
-              {isEditMode ? "Edit User" : "Create User"}
+              {isEditMode ? "Edit Contact" : "Create Contact"}
             </Text>
           </TouchableOpacity>
         </View>

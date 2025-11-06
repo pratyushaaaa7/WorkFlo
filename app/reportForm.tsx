@@ -146,7 +146,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
   const takePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      quality: 0.7,
+      quality: 0.4,
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -630,7 +630,7 @@ ${photosWithBase64
                 color="#fff"
               />
               <Text className="text-white font-semibold ml-2">
-                Generate Report
+                Upload Report
               </Text>
             </>
           )}
