@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
   TextInput,
+  Linking,
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -30,7 +31,7 @@ interface IUser {
   firmName: string;
   email: string;
   phone: string;
-   expertise?: string
+  expertise?: string;
 }
 
 // Edit handlers
@@ -224,12 +225,33 @@ const UserList = () => {
 
       {/* Email and Phone */}
       <View className="flex-row justify-between">
-        <Text className="text-sm text-gray-500 flex-1 pr-2 truncate">
+        <Text className="text-xs text-gray-500 flex-1 pr-2 truncate">
           {item.email || "-"}
         </Text>
-        <Text className="text-sm text-gray-500 flex-1 text-right truncate">
+        {/* <Text className="text-sm text-gray-500 flex-1 text-right truncate">
           {item.phone || "-"}
-        </Text>
+        </Text> */}
+
+        <TouchableOpacity
+          className="flex-1"
+          onPress={() => {
+            if (item.phone) {
+              const phoneNumber =
+                Platform.OS === "android"
+                  ? `tel:${item.phone}`
+                  : `telprompt:${item.phone}`;
+              Linking.openURL(phoneNumber);
+            }
+          }}
+        >
+          <Text
+            className={`text-sm text-right truncate ${
+              item.phone ? "text-blue-600 underline" : "text-gray-500"
+            }`}
+          >
+            {item.phone || "-"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );

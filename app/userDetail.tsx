@@ -27,7 +27,6 @@ const UserDetail = () => {
 
   // parse preloaded user from params (for instant display)
   const preloadedUser = user ? JSON.parse(user as string) : {};
-  
 
   // state
   const [userData, setUserData] = useState<any>(preloadedUser);
@@ -109,7 +108,7 @@ const UserDetail = () => {
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-bold text-white ml-4">
-              User Details
+              Contact Details
             </Text>
           </TouchableOpacity>
         </View>
@@ -126,8 +125,15 @@ const UserDetail = () => {
           <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
             {/* Name + Role */}
             <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-xl font-bold text-gray-900">
+              {/* <Text className="text-xl font-bold text-gray-900">
                 {userData?.individualName || "Unnamed"}
+              </Text> */}
+              <Text className="text-xl font-bold text-gray-900">
+                {userData?.gender?.toLowerCase() === "male"
+                  ? `Mr. ${userData?.individualName || "Unnamed"}`
+                  : userData?.gender?.toLowerCase() === "female"
+                  ? `Ms. ${userData?.individualName || "Unnamed"}`
+                  : userData?.individualName || "Unnamed"}
               </Text>
               <View className="bg-indigo-100 px-3 py-1 rounded-full">
                 <Text className="text-indigo-700 text-xs font-semibold">

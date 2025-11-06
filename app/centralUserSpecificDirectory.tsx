@@ -85,7 +85,13 @@ export default function UserRoleList() {
                 #{item.userCode || ""}
               </Text>
               {"  "}
-              {item.individualName || "Unnamed"}
+              {item.gender === "Male"
+                ? `Mr. ${item.individualName || "Unnamed"}`
+                : item.gender === "Female"
+                ? `Ms. ${item.individualName || "Unnamed"}`
+                : item.individualName || "Unnamed"}
+              {"  "}
+              {/* {item.individualName || "Unnamed"} */}
             </Text>
           </View>
 

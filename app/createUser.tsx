@@ -144,6 +144,7 @@ const AddUserForm: React.FC = () => {
   // User fields
   const [firmName, setFirmName] = useState("");
   const [individualName, setIndividualName] = useState("");
+  const [gender, setGender] = useState<"Male" | "Female" | null>(null);
 
   const [expertiseList, setExpertiseList] = useState<string[]>([""]);
   const [designationList, setDesignationList] = useState<string[]>([""]);
@@ -187,11 +188,22 @@ const AddUserForm: React.FC = () => {
         position: "bottom",
       });
     }
+
+    if (!gender) {
+      return Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Please select gender.",
+        position: "bottom",
+      });
+    }
+
     try {
       const payload = {
         role: roleValue,
         firmName,
         individualName,
+        gender, // ✅ Add here
         expertiseList: expertiseList.filter((e) => e.trim() !== ""),
         designationList: designationList.filter((d) => d.trim() !== ""),
         emailList: emailList.filter((e) => e.trim() !== ""),
@@ -318,6 +330,42 @@ const AddUserForm: React.FC = () => {
             returnKeyType="next"
           />
         </View>
+
+        {/* Gender Selection */}
+        <View className="mb-6">
+          <Text className="text-gray-700 font-semibold mb-2">
+            Gender <Text className="text-red-500">*</Text>
+          </Text>
+
+          <View className="flex-row justify-around bg-white p-3 rounded-xl shadow-sm border border-gray-200">
+            {["Male", "Female"].map((option) => (
+              <TouchableOpacity
+                key={option}
+                className="flex-row items-center space-x-2"
+                activeOpacity={0.8}
+                onPress={() => setGender(option)}
+              >
+                <View
+                  className={`w-5 h-5 rounded-full border-2 mr-2 items-center justify-center ${
+                    gender === option ? "border-indigo-600" : "border-gray-400"
+                  }`}
+                >
+                  {gender === option && (
+                    <View className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                  )}
+                </View>
+                <Text
+                  className={`font-medium ${
+                    gender === option ? "text-indigo-700" : "text-gray-700"
+                  }`}
+                >
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* Firm / Company Name */}
         <View className="mb-4">
           <Text className="text-gray-700 font-semibold mb-1">
