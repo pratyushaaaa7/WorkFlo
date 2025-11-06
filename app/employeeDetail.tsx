@@ -208,11 +208,12 @@ const UserDetails = () => {
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Father: </Text>
-                Mr. {toProperCase(user.fatherName)}
+
+                {toProperCase(user.fatherName)}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Mother: </Text>
-                Mrs. {toProperCase(user.motherName)}
+                {toProperCase(user.motherName)}
               </Text>
               <Text className="text-gray-700">
                 <Text className="font-medium">Marital: </Text>

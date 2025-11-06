@@ -26,16 +26,41 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Asset } from "expo-asset";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
+import logoWP from "../assets/images/logoWP.png";
+import logoWAL from "../assets/images/logoWALL.png";
+import logoFallback from "../assets/images/react-logo.png";
 
 // --- Convert local asset to base64 ---
-const localImageToBase64 = async (image: any) => {
-  const asset = Asset.fromModule(image);
-  await asset.downloadAsync(); // ensure the asset is available
-  const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return `data:image/png;base64,${base64}`;
-};
+// Works in both development and release APK builds
+// const localImageToBase64 = async (image: any) => {
+//   const asset = Asset.fromModule(image);
+//   await asset.downloadAsync(); // ensures it's available on filesystem
+
+//   let fileUri = asset.localUri;
+
+//   // 🛠️ if still not available (e.g., APK build), copy from asset.uri
+//   if (
+//     !fileUri ||
+//     fileUri.startsWith("asset://") ||
+//     fileUri.startsWith("assets://")
+//   ) {
+//     const tempPath = `${FileSystem.cacheDirectory}${Date.now()}_logo.png`;
+//     try {
+//       const downloaded = await FileSystem.downloadAsync(asset.uri, tempPath);
+//       fileUri = downloaded.uri;
+//     } catch (err) {
+//       console.log("Download asset fallback failed, using built-in logo");
+//       throw err;
+//     }
+//   }
+
+//   // ✅ Safely convert to Base64
+//   const base64 = await FileSystem.readAsStringAsync(fileUri, {
+//     encoding: FileSystem.EncodingType.Base64,
+//   });
+
+//   return `data:image/png;base64,${base64}`;
+// };
 
 interface Photo {
   id: string;
@@ -198,19 +223,15 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
       let logoImage;
       let companyStr = Array.isArray(company) ? company[0] : company;
 
-      if (typeof companyStr === "string" && companyStr.toLowerCase() === "wp") {
-        logoImage = require("../assets/images/logoWP.png");
-      } else if (
-        typeof companyStr === "string" &&
-        companyStr.toLowerCase() === "wal"
-      ) {
-        logoImage = require("../assets/images/logoWAL.jpg");
-      } else {
-        logoImage = require("../assets/images/react-logo.png"); // fallback
-      }
+      if (companyStr.toLowerCase() === "wp") logoImage = logoWP;
+      else if (companyStr.toLowerCase() === "wal") logoImage = logoWAL;
+      else logoImage = logoFallback;
 
       // Convert logo to base64
-      const logoBase64 = await localImageToBase64(logoImage);
+      // const logoBase64 = await localImageToBase64(logoImage);
+
+      // Use static import and get URI that works in release APK
+      const logoUri = Image.resolveAssetSource(logoImage).uri;
 
       // Convert photos to base64
       const photosWithBase64 = await Promise.all(
@@ -314,7 +335,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
     <!-- PAGE 1: Project Info -->
     <div class="page">
       <div class="header-right">
-        <img src="${logoBase64}" />
+        <img src="${logoUri}" />
       </div>
 
       <h2>Project Information</h2>
@@ -353,7 +374,7 @@ const ReportForm = ({ navigation }: ReportFormProps) => {
           <div><strong>Created By:</strong> ${createdBy || ""}</div>
         </div>
         <div class="header-right">
-          <img src="${logoBase64}" />
+          <img src="${logoUri}" />
         </div>
 
         <h2 style="margin-top: 80px;">Labor Report</h2>
@@ -396,7 +417,7 @@ ${photosWithBase64
     <div><strong>Created By:</strong> ${createdBy || ""}</div>
   </div>
   <div class="header-right">
-    <img src="${logoBase64}" />
+    <img src="${logoUri}" />
   </div>
 
   <!-- Image container -->
@@ -471,7 +492,6 @@ ${photosWithBase64
       formData.append("projectId", projectId);
       formData.append("projectName", projectName);
 
-
       const response = await api.post("/dpr", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -507,8 +527,16 @@ ${photosWithBase64
       await AsyncStorage.removeItem(STORAGE_KEY); // photos
       await AsyncStorage.removeItem("reportData"); // labor/vendors
       setPhotos([]); // optional: reset state
-    } catch (err) {
+    } catch (err: any) {
       console.error("PDF generation error:", err);
+
+      // Show the actual error in an alert (for debugging in APK)
+      Alert.alert(
+        "Upload Error",
+        err?.response?.data?.error ||
+          err?.message ||
+          "Something went wrong while uploading the DPR."
+      );
       Toast.show({
         type: "error",
         text1: "Error",
