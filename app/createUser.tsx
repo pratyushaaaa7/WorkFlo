@@ -172,6 +172,7 @@ const AddUserForm: React.FC = () => {
 
   // Submit handler
   const handleSubmit = async () => {
+    // 🧩 Validation checks
     if (!roleValue) {
       return Toast.show({
         type: "error",
@@ -200,11 +201,12 @@ const AddUserForm: React.FC = () => {
     }
 
     try {
+      // 🧱 Prepare request payload
       const payload = {
         role: roleValue,
         firmName,
         individualName,
-        gender, // ✅ Add here
+        gender,
         expertiseList: expertiseList.filter((e) => e.trim() !== ""),
         designationList: designationList.filter((d) => d.trim() !== ""),
         emailList: emailList.filter((e) => e.trim() !== ""),
@@ -213,8 +215,8 @@ const AddUserForm: React.FC = () => {
         mobileNumberList: mobileNumberList.filter((n) => n.trim() !== ""),
       };
 
+      // 🟢 Update mode
       if (isEditMode && parsedUser?._id) {
-        // 🟢 Update user if editing
         await api.put(`/user-directory/${parsedUser._id}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -237,16 +239,43 @@ const AddUserForm: React.FC = () => {
         });
       }
 
-      // Navigate to central user directory
+      // ✅ Redirect to directory
       router.push("/(drawer)/centralUserDirectory");
     } catch (error: any) {
-      console.log(error);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: error.response?.data?.message || "Something went wrong.",
-        position: "bottom",
-      });
+      console.log("Error creating/updating user:", error.response?.data);
+
+      const message =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
+
+      // 🧠 Custom handling for duplicate number check
+      if (
+        message.includes("same mobile number") ||
+        message.includes("official number")
+      ) {
+        const existing = error.response?.data?.existingUser;
+        const details = existing
+          ? `(${existing.individualName || "N/A"} - ${
+              existing.firmName || "N/A"
+            } | ${existing.userCode || ""})`
+          : "";
+
+        Toast.show({
+          type: "error",
+          text1: "Duplicate Entry Detected",
+          text2: `${message} ${details}`,
+          position: "bottom",
+          visibilityTime: 4000,
+        });
+      } else {
+        // 🧩 Generic error handling
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: message,
+          position: "bottom",
+        });
+      }
     }
   };
 
