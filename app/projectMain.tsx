@@ -270,6 +270,7 @@ const ProjectMain = () => {
       </View>
 
       {/* Project Info Modal (Bottom Sheet Style) */}
+      {/* Project Info Modal (Bottom Sheet Style) */}
       <Modal
         visible={modalVisible}
         transparent
@@ -283,7 +284,7 @@ const ProjectMain = () => {
           >
             {/* Drag Handle */}
             <View className="items-center mb-2">
-              {/* <View className="w-12 h-1.5 bg-gray-300 rounded-full" /> */}
+              {/* optional drag handle */}
             </View>
 
             <ScrollView
@@ -292,7 +293,7 @@ const ProjectMain = () => {
             >
               {/* Project Name */}
               <Text className="text-2xl mb-2 font-bold text-gray-900 text-center">
-                {project?.projectName}
+                {project?.projectName ?? "N/A"}
               </Text>
 
               {/* Info Section */}
@@ -300,48 +301,115 @@ const ProjectMain = () => {
                 <View className="flex-row items-center">
                   <Ionicons name="location-outline" size={20} color="#6366F1" />
                   <Text className="ml-2 text-gray-700">
-                    {project?.location}
+                    Location: {project?.location ?? "-"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center">
                   <Ionicons name="business-outline" size={20} color="#10B981" />
-                  <Text className="ml-2 text-gray-700">{project?.company}</Text>
+                  <Text className="ml-2 text-gray-700">
+                    Company: {project?.company ?? "-"}
+                  </Text>
                 </View>
 
                 <View className="flex-row items-center">
                   <Ionicons name="code" size={20} color="#EF4444" />
                   <Text className="ml-2 text-gray-700">
-                    {project?.projectCode}
+                    Project code: {project?.projectCode ?? "-"}
                   </Text>
                 </View>
 
-                {/* ✅ New Fields */}
                 <View className="flex-row items-center">
                   <Ionicons name="person-outline" size={20} color="#2563EB" />
                   <Text className="ml-2 text-gray-700">
-                    Client: {project?.clientName}
+                    Client: {project?.clientName ?? "N/A"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center">
                   <Ionicons name="cube-outline" size={20} color="#9333EA" />
                   <Text className="ml-2 text-gray-700">
-                    Designed Area: {project?.designedArea}
+                    Design Area: {project?.designedArea ?? "N/A"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center">
                   <Ionicons name="home-outline" size={20} color="#14B8A6" />
                   <Text className="ml-2 text-gray-700">
-                    Site Area: {project?.siteArea}
+                    Site Area: {project?.siteArea ?? "N/A"}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center">
-                  <Ionicons name="pulse-outline" size={20} color="#F97316" />
+                  <Ionicons name="list-outline" size={20} color="#9333EA" />
                   <Text className="ml-2 text-gray-700">
-                    Status: {project?.status}
+                    Typology: {project?.typology ?? "-"}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="document-text-outline"
+                    size={20}
+                    color="#F59E0B"
+                  />
+                  <Text className="ml-2 text-gray-700">
+                    File Number:{" "}
+                    {project?.fileNumberNumeric?.toString() ?? "N/A"}
+                  </Text>
+                </View>
+
+                {project?.webName ? (
+                  <View className="flex-row items-center">
+                    <Ionicons name="globe-outline" size={20} color="#8B5CF6" />
+                    <Text className="ml-2 text-gray-700">
+                      Web Name: {project.webName}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* Status with colored dot */}
+                <View
+                  className="flex-row items-center px-3 py-1 rounded-full"
+                  style={{
+                    backgroundColor: "#F3F4F6", // light gray pill
+                    borderColor:
+                      project?.status === "active"
+                        ? "#16A34A"
+                        : project?.status === "inactive"
+                        ? "#CA8A04"
+                        : "#DC2626",
+                    borderWidth: 1,
+                    alignSelf: "flex-start", // ensures the pill wraps content
+                    marginTop: 4,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor:
+                        project?.status === "active"
+                          ? "#16A34A"
+                          : project?.status === "inactive"
+                          ? "#CA8A04"
+                          : "#DC2626",
+                      marginRight: 6,
+                    }}
+                  />
+                  <Text
+                    className="text-sm font-semibold capitalize"
+                    style={{
+                      color:
+                        project?.status === "active"
+                          ? "#166534"
+                          : project?.status === "inactive"
+                          ? "#854D0E"
+                          : "#7F1D1D",
+                    }}
+                  >
+                    {project?.status}
                   </Text>
                 </View>
 
@@ -368,11 +436,17 @@ const ProjectMain = () => {
                     Team Leader(s)
                   </Text>
                 </View>
-                {project?.teamLeaders?.map((user) => (
-                  <Text key={user._id} className="ml-4 text-gray-600">
-                    • {user.fullName}
+                {(project?.teamLeaders ?? []).length > 0 ? (
+                  (project?.teamLeaders ?? []).map((user) => (
+                    <Text key={user._id} className="ml-4 text-gray-600">
+                      • {user.fullName ?? user._id}
+                    </Text>
+                  ))
+                ) : (
+                  <Text className="ml-4 text-gray-400 italic">
+                    No team leaders
                   </Text>
-                ))}
+                )}
               </View>
 
               {/* Team Members */}
@@ -383,11 +457,17 @@ const ProjectMain = () => {
                     Team Member(s)
                   </Text>
                 </View>
-                {project?.teamMembers?.map((user) => (
-                  <Text key={user._id} className="ml-4 text-gray-600">
-                    • {user.fullName}
+                {(project?.teamMembers ?? []).length > 0 ? (
+                  (project?.teamMembers ?? []).map((user) => (
+                    <Text key={user._id} className="ml-4 text-gray-600">
+                      • {user.fullName ?? user._id}
+                    </Text>
+                  ))
+                ) : (
+                  <Text className="ml-4 text-gray-400 italic">
+                    No team members
                   </Text>
-                ))}
+                )}
               </View>
 
               {/* Scopes */}
@@ -398,18 +478,24 @@ const ProjectMain = () => {
                     Scopes
                   </Text>
                 </View>
-                {project?.scopes?.map((scope, idx) => (
-                  <Text key={idx} className="ml-4 text-gray-600">
-                    • {scope}
+                {(project?.scopes ?? []).length > 0 ? (
+                  (project?.scopes ?? []).map((scope, idx) => (
+                    <Text key={idx} className="ml-4 text-gray-600">
+                      • {scope}
+                    </Text>
+                  ))
+                ) : (
+                  <Text className="ml-4 text-gray-400 italic">
+                    No scopes defined
                   </Text>
-                ))}
+                )}
               </View>
             </ScrollView>
 
             {/* Close Button */}
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="bg-indigo-600 px-5 py-3 mt-6 rounded-xl shadow-md"
+              className="bg-indigo-600 px-5 py-3 mt-2 rounded-xl shadow-md"
             >
               <Text className="text-white text-center font-semibold text-lg">
                 Close
@@ -418,6 +504,14 @@ const ProjectMain = () => {
           </Animated.View>
         </View>
       </Modal>
+
+      {/* Floating More Info Button */}
+      <TouchableOpacity
+        onPress={() => setModalVisible(true)}
+        className="absolute bottom-12 right-10 bg-indigo-600 p-4 rounded-full shadow-lg"
+      >
+        <Ionicons name="information-circle" size={28} color="#fff" />
+      </TouchableOpacity>
 
       {/* Floating More Info Button */}
       <TouchableOpacity

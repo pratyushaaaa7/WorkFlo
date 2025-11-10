@@ -292,7 +292,7 @@ const ProjectDetails = () => {
               value: project.startDate ? formatDate(project.startDate) : "-",
             },
             { label: "Site Area", value: project.siteArea ?? "N/A" },
-            { label: "Designe Area", value: project.designedArea ?? "N/A" },
+            { label: "Design Area", value: project.designedArea ?? "N/A" },
             // ✅ Newly added fields
             {
               label: "File Number",
