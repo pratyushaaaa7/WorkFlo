@@ -210,7 +210,7 @@ const ProjectMain = () => {
       </LinearGradient>
 
       {/* ✅ Project Images */}
-      <View className="pt-4 px-4">
+      {/* <View className="pt-4 px-4">
         <View className="flex-row items-center mb-2">
           <MaterialIcons name="photo-library" size={20} color="#EF4444" />
           <Text className="ml-2 font-semibold text-gray-800 text-lg">
@@ -247,7 +247,7 @@ const ProjectMain = () => {
             />
           ))}
         </ScrollView>
-      </View>
+      </View> */}
 
       {/* ✅ Menu Grid */}
       <View
