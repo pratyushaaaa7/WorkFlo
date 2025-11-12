@@ -129,17 +129,20 @@ const ReportForm: React.FC = () => {
     // using jpeg as default — if you support png, you can inspect extension
     return `data:image/jpeg;base64,${base64}`;
   };
-  const localImageToBase64 = async (image) => {
+  const localImageToBase64 = async (image: any) => {
     try {
       const asset = Asset.fromModule(image);
-      await asset.downloadAsync(); // Ensures the file is locally available
-      const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+      await asset.downloadAsync(); // ensure the asset is available
+
+      // ✅ Use the local URI from the asset (works in dev & production)
+      const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
         encoding: FileSystem.EncodingType.Base64,
       });
+
       return `data:image/png;base64,${base64}`;
     } catch (err) {
-      console.warn("Error converting logo to base64:", err);
-      return "";
+      console.warn("⚠️ Error converting logo to base64:", err);
+      return ""; // prevent PDF break if fails
     }
   };
 
@@ -261,15 +264,54 @@ const ReportForm: React.FC = () => {
       setUploading(true);
 
       const createdBy = user?.fullName || "Unknown";
-      let companyStr = Array.isArray(company) ? company[0] : company;
-      const logoImage =
-        companyStr?.toLowerCase() === "wp"
-          ? logoWP
-          : companyStr?.toLowerCase() === "wal"
-          ? logoWAL
-          : logoW;
 
-      const logoUri = await localImageToBase64(logoImage);
+      // Inside handleSubmit()
+      // --- Determine company logo ---
+      let logoImage;
+      let companyStr = Array.isArray(company) ? company[0] : company;
+
+      if (typeof companyStr === "string" && companyStr.toLowerCase() === "wp") {
+        logoImage = require("../assets/images/logoWP.png");
+      } else if (
+        typeof companyStr === "string" &&
+        companyStr.toLowerCase() === "wal"
+      ) {
+        logoImage = require("../assets/images/logoWAL.jpg");
+      } else {
+        logoImage = require("../assets/images/react-logo.png"); // fallback
+      }
+
+      const logoBase64 = await localImageToBase64(logoImage);
+
+      const logosWithBase64 = await Promise.all(
+        photos.map(async (p) => ({
+          ...p,
+          base64: await uriToBase64(p.uri),
+        }))
+      );
+
+      // if (!logoSrc) {
+      //   console.warn("⚠️ Logo base64 conversion failed — using fallback URI");
+      // }
+
+      
+      // try {
+      //   const asset = Asset.fromModule(logoImage);
+      //   await asset.downloadAsync(); // ensures it exists locally
+
+      //   const uri = asset.localUri || asset.uri;
+      //   if (!uri) throw new Error("No URI found for logo");
+
+      //   const base64 = await FileSystem.readAsStringAsync(uri, {
+      //     encoding: FileSystem.EncodingType.Base64,
+      //   });
+      //   logoSrc = `data:image/png;base64,${base64}`;
+      //   console.log("✅ Logo converted to base64 successfully");
+      // } catch (err) {
+      //   console.warn("⚠️ Failed to embed logo, using fallback URI:", err);
+      //   const { uri } = Image.resolveAssetSource(logoImage);
+      //   logoSrc = uri;
+      // }
 
       // Convert photos to base64
       // Convert photos to base64 with visible progress
@@ -300,7 +342,7 @@ const ReportForm: React.FC = () => {
       htmlParts.push(`
       <div class="page">
         <div class="header-right">
-          <img src="${logoUri}" />
+          <img src="${logoBase64}" />
         </div>
 
         <h2>Project Information</h2>
@@ -339,7 +381,7 @@ const ReportForm: React.FC = () => {
             <div><strong>Created By:</strong> ${createdBy || ""}</div>
           </div>
           <div class="header-right">
-            <img src="${logoUri}" />
+            <img src="${logoBase64}" />
           </div>
 
           <h2 style="margin-top: 80px;">Labor Report</h2>
@@ -380,7 +422,7 @@ const ReportForm: React.FC = () => {
               <div><strong>Created By:</strong> ${createdBy || ""}</div>
             </div>
             <div class="header-right">
-              <img src="${logoUri}" />
+              <img src="${logoBase64}" />
             </div>
 
        <div style="
