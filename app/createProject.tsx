@@ -254,7 +254,7 @@ const CreateProjectScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1  bg-white">
       {/* Header */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View
@@ -288,7 +288,7 @@ const CreateProjectScreen = () => {
       </LinearGradient>
 
       <KeyboardAwareScrollView
-        className="flex-1 px-4 py-6 bg-white"
+        className="flex-1 px-4 py-6  bg-white"
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={80}
@@ -381,188 +381,6 @@ const CreateProjectScreen = () => {
             placeholderTextColor="#999"
             value={projectName}
             onChangeText={setProjectName}
-          />
-        </View>
-
-        {/* Client Name */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Client Name
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter client name"
-            placeholderTextColor="#999"
-            value={clientName}
-            onChangeText={setClientName}
-          />
-        </View>
-
-        {/*Project Code*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Internal Code
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter project code"
-            placeholderTextColor="#999"
-            value={projectCode}
-            onChangeText={setProjectCode}
-          />
-        </View>
-
-        {/*file number*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            File Number
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="File Number"
-            placeholderTextColor="#999"
-            value={fileNumber}
-            onChangeText={setFileNumber}
-          />
-        </View>
-
-        {/*web name*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Web Name
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Web Name"
-            placeholderTextColor="#999"
-            value={webName}
-            onChangeText={setWebName}
-          />
-        </View>
-
-        {/*Project Location*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Location
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter project location"
-            placeholderTextColor="#999"
-            value={projectLocation}
-            onChangeText={setProjectLocation}
-          />
-        </View>
-
-        {/*Project area*/}
-        {/* <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Area <Text className="text-gray-400">(in sqft)</Text>
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter project area"
-            placeholderTextColor="#999"
-            value={projectArea}
-            onChangeText={setProjectArea}
-            keyboardType="numeric"
-          />
-        </View> */}
-
-        {/* Site Area */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Site Area
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter site area (in acres)"
-            placeholderTextColor="#999"
-            value={siteArea}
-            onChangeText={setSiteArea}
-          />
-        </View>
-
-        {/* Designed Area */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Designed Area
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter designed area (in sqft)"
-            placeholderTextColor="#999"
-            value={designedArea}
-            onChangeText={setDesignedArea}
-          />
-        </View>
-
-        {/* Start Date Picker */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Start Date
-          </Text>
-          <Pressable
-            onPress={() => setShowStartPicker(true)}
-            className="border border-black rounded-lg py-2 px-4 bg-white"
-          >
-            <Text
-              className={`text-base ${
-                startDate ? "text-black" : "text-[#999]"
-              }`}
-            >
-              {startDate ? startDate.toDateString() : "Enter start date"}
-            </Text>
-          </Pressable>
-          {showStartPicker && (
-            <DateTimePicker
-              value={startDate || new Date()}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(event, selectedDate) => {
-                setShowStartPicker(false);
-                if (selectedDate) setStartDate(selectedDate);
-              }}
-            />
-          )}
-        </View>
-
-        {/* Scope Dropdown */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Scope Description
-          </Text>
-          <MultiSelect
-            style={{
-              height: 35,
-              borderColor: "#000",
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              backgroundColor: "#Fff",
-            }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-            selectedTextStyle={{
-              fontSize: 10,
-              color: "#111827",
-            }}
-            selectedStyle={{
-              borderRadius: 10,
-              backgroundColor: "#E0E7FF",
-              padding: 5,
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff", // Very soft aqua for the dropdown
-            }}
-            activeColor="#E0E7FF"
-            data={scopeOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select scopes..."
-            value={selectedScopes}
-            onChange={(items) => setSelectedScopes(items)}
           />
         </View>
 
@@ -680,10 +498,192 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/* Client Name */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Client Name
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter client name"
+            placeholderTextColor="#999"
+            value={clientName}
+            onChangeText={setClientName}
+          />
+        </View>
+
+        {/*Project Code*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Internal Code
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter project code"
+            placeholderTextColor="#999"
+            value={projectCode}
+            onChangeText={setProjectCode}
+          />
+        </View>
+
+        {/*Project Location*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Location
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter project location"
+            placeholderTextColor="#999"
+            value={projectLocation}
+            onChangeText={setProjectLocation}
+          />
+        </View>
+
+        {/*Project area*/}
+        {/* <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Project Area <Text className="text-gray-400">(in sqft)</Text>
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter project area"
+            placeholderTextColor="#999"
+            value={projectArea}
+            onChangeText={setProjectArea}
+            keyboardType="numeric"
+          />
+        </View> */}
+
+        {/* Start Date Picker */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Start Date
+          </Text>
+          <Pressable
+            onPress={() => setShowStartPicker(true)}
+            className="border border-black rounded-lg py-2 px-4 bg-white"
+          >
+            <Text
+              className={`text-base ${
+                startDate ? "text-black" : "text-[#999]"
+              }`}
+            >
+              {startDate ? startDate.toDateString() : "Enter start date"}
+            </Text>
+          </Pressable>
+          {showStartPicker && (
+            <DateTimePicker
+              value={startDate || new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, selectedDate) => {
+                setShowStartPicker(false);
+                if (selectedDate) setStartDate(selectedDate);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Scope Dropdown */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Scope Description
+          </Text>
+          <MultiSelect
+            style={{
+              height: 35,
+              borderColor: "#000",
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              backgroundColor: "#Fff",
+            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            selectedTextStyle={{
+              fontSize: 10,
+              color: "#111827",
+            }}
+            selectedStyle={{
+              borderRadius: 10,
+              backgroundColor: "#E0E7FF",
+              padding: 5,
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              overflow: "hidden",
+              backgroundColor: "#fff", // Very soft aqua for the dropdown
+            }}
+            activeColor="#E0E7FF"
+            data={scopeOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select scopes..."
+            value={selectedScopes}
+            onChange={(items) => setSelectedScopes(items)}
+          />
+        </View>
+
+        {/*web name*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Web Name
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Web Name"
+            placeholderTextColor="#999"
+            value={webName}
+            onChangeText={setWebName}
+          />
+        </View>
+
+        {/*file number*/}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            File Number
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="File Number"
+            placeholderTextColor="#999"
+            value={fileNumber}
+            onChangeText={setFileNumber}
+          />
+        </View>
+
+        {/* Site Area */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Site Area
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter site area (in acres)"
+            placeholderTextColor="#999"
+            value={siteArea}
+            onChangeText={setSiteArea}
+          />
+        </View>
+
+        {/* Designed Area */}
+        <View className="mb-4">
+          <Text className="text-lg font-semibold text-gray-700 mb-2">
+            Designed Area
+          </Text>
+          <TextInput
+            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            placeholder="Enter designed area (in sqft)"
+            placeholderTextColor="#999"
+            value={designedArea}
+            onChangeText={setDesignedArea}
+          />
+        </View>
+
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSaveProject}
-          className="bg-indigo-600 mt-6 mb-20 py-3 rounded-lg items-center"
+          className="bg-indigo-600 mt-6 mb-40 py-3 rounded-lg items-center"
         >
           <Text className="text-white font-bold text-base">
             {isEditing ? "Update Project" : "Create Project"}

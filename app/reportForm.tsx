@@ -23,14 +23,49 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import Toast from "react-native-toast-message";
 import * as Sharing from "expo-sharing";
 import api from "../lib/api";
-import logoWP from "../assets/images/logoWPcrop.png";
-import logoWAL from "../assets/images/logoWALL.png";
-import logoFallback from "../assets/images/react-logo.png";
+// import logoWP from "../assets/images/logoWPcrop.png";
+// import logoWAL from "../assets/images/logoWALL.png";
+// import logoFallback from "../assets/images/react-logo.png";
 // Adjust this to your actual AuthContext hook type
 import { useAuth } from "./../context/AuthContext";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Asset } from "expo-asset";
-import logoW from "../assets/images/logoW.png";
+// import logoW from "../assets/images/logoW.png";
+// import { getBase64ImageFromAsset } from "../utils/getBase64Image";
+// Define this function in ReportForm.tsx (or ensure your utility function uses this logic)
+const getBase64ImageFromAsset = async (
+  imageModule: number
+): Promise<string> => {
+  try {
+    const asset = Asset.fromModule(imageModule);
+    await asset.downloadAsync(); // Download if not present
+
+    let localUri = asset.localUri;
+    if (!localUri || !localUri.startsWith("file://")) {
+      // In production, asset.localUri may be undefined, so copy asset.uri to local FS
+      const dest = FileSystem.documentDirectory + asset.name;
+      await FileSystem.copyAsync({
+        from: asset.uri,
+        to: dest,
+      });
+      localUri = dest;
+    }
+
+    // Read the file as base64
+    const base64 = await FileSystem.readAsStringAsync(localUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Use correct extension
+    const ext =
+      localUri.endsWith(".jpg") || localUri.endsWith(".jpeg") ? "jpeg" : "png";
+    return `data:image/${ext};base64,${base64}`;
+  } catch (error) {
+    console.warn("Logo load failed in getBase64ImageFromAsset:", error);
+    // Inline blank PNG fallback
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
+  }
+};
 
 const { width } = Dimensions.get("window");
 
@@ -74,6 +109,7 @@ const ReportForm: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [loadingImages, setLoadingImages] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
   // Using useLocalSearchParams() from expo-router; params may be string | string[] | undefined
   const params = useLocalSearchParams() as Record<string, any>;
   const {
@@ -129,22 +165,22 @@ const ReportForm: React.FC = () => {
     // using jpeg as default — if you support png, you can inspect extension
     return `data:image/jpeg;base64,${base64}`;
   };
-  const localImageToBase64 = async (image: any) => {
-    try {
-      const asset = Asset.fromModule(image);
-      await asset.downloadAsync(); // ensure the asset is available
+  // const localImageToBase64 = async (image: any) => {
+  //   try {
+  //     const asset = Asset.fromModule(image);
+  //     await asset.downloadAsync(); // ensure the asset is available
 
-      // ✅ Use the local URI from the asset (works in dev & production)
-      const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+  //     // ✅ Use the local URI from the asset (works in dev & production)
+  //     const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
+  //       encoding: FileSystem.EncodingType.Base64,
+  //     });
 
-      return `data:image/png;base64,${base64}`;
-    } catch (err) {
-      console.warn("⚠️ Error converting logo to base64:", err);
-      return ""; // prevent PDF break if fails
-    }
-  };
+  //     return `data:image/png;base64,${base64}`;
+  //   } catch (err) {
+  //     console.warn("⚠️ Error converting logo to base64:", err);
+  //     return ""; // prevent PDF break if fails
+  //   }
+  // };
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -258,62 +294,73 @@ const ReportForm: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  useEffect(() => {
+    const loadLogoBase64 = async () => {
+      try {
+        const companyStr = Array.isArray(company) ? company[0] : company;
+        let selectedLogo: number;
+
+        // ✅ Use require instead of import
+        if (
+          typeof companyStr === "string" &&
+          companyStr.toLowerCase() === "wp"
+        ) {
+          selectedLogo = require("../assets/images/logoWPcrop.png");
+        } else if (
+          typeof companyStr === "string" &&
+          companyStr.toLowerCase() === "wal"
+        ) {
+          selectedLogo = require("../assets/images/logoWALL.png");
+        } else {
+          selectedLogo = require("../assets/images/logoW.png");
+        }
+
+        let base64 = await getBase64ImageFromAsset(selectedLogo);
+
+        if (!base64 || base64.length < 100) {
+          console.warn("⚠️ Main logo load failed, trying fallback");
+          base64 = await getBase64ImageFromAsset(
+            require("../assets/images/react-logo.png")
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        setLogoBase64(base64);
+      } catch (err) {
+        console.error("❌ Failed to load company logo:", err);
+        const fallback = await getBase64ImageFromAsset(
+          require("../assets/images/react-logo.png")
+        );
+        setLogoBase64(fallback);
+      }
+    };
+
+    loadLogoBase64();
+  }, [company]);
+
   // -------------------- 🧩 PDF GENERATION IN BATCHES --------------------
   const handleSubmit = async () => {
     try {
+      setUploading(true);
+      console.log(logoBase64);
+      if (!logoBase64 || logoBase64.length < 100) {
+        Toast.show({
+          type: "info",
+          text1: "Loading logo...",
+          text2: "Please wait a moment and try again.",
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300)); // give it a short delay
+        return;
+      }
+
       setUploading(true);
 
       const createdBy = user?.fullName || "Unknown";
 
       // Inside handleSubmit()
-      // --- Determine company logo ---
-      let logoImage;
-      let companyStr = Array.isArray(company) ? company[0] : company;
 
-      if (typeof companyStr === "string" && companyStr.toLowerCase() === "wp") {
-        logoImage = require("../assets/images/logoWP.png");
-      } else if (
-        typeof companyStr === "string" &&
-        companyStr.toLowerCase() === "wal"
-      ) {
-        logoImage = require("../assets/images/logoWAL.jpg");
-      } else {
-        logoImage = require("../assets/images/react-logo.png"); // fallback
-      }
+      // --- Convert logo to Base64 safely ---
 
-      const logoBase64 = await localImageToBase64(logoImage);
-
-      const logosWithBase64 = await Promise.all(
-        photos.map(async (p) => ({
-          ...p,
-          base64: await uriToBase64(p.uri),
-        }))
-      );
-
-      // if (!logoSrc) {
-      //   console.warn("⚠️ Logo base64 conversion failed — using fallback URI");
-      // }
-
-      
-      // try {
-      //   const asset = Asset.fromModule(logoImage);
-      //   await asset.downloadAsync(); // ensures it exists locally
-
-      //   const uri = asset.localUri || asset.uri;
-      //   if (!uri) throw new Error("No URI found for logo");
-
-      //   const base64 = await FileSystem.readAsStringAsync(uri, {
-      //     encoding: FileSystem.EncodingType.Base64,
-      //   });
-      //   logoSrc = `data:image/png;base64,${base64}`;
-      //   console.log("✅ Logo converted to base64 successfully");
-      // } catch (err) {
-      //   console.warn("⚠️ Failed to embed logo, using fallback URI:", err);
-      //   const { uri } = Image.resolveAssetSource(logoImage);
-      //   logoSrc = uri;
-      // }
-
-      // Convert photos to base64
       // Convert photos to base64 with visible progress
       const photosWithBase64: PhotoItem[] = [];
       for (let i = 0; i < photos.length; i++) {
@@ -342,7 +389,8 @@ const ReportForm: React.FC = () => {
       htmlParts.push(`
       <div class="page">
         <div class="header-right">
-          <img src="${logoBase64}" />
+         <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+
         </div>
 
         <h2>Project Information</h2>
@@ -381,7 +429,8 @@ const ReportForm: React.FC = () => {
             <div><strong>Created By:</strong> ${createdBy || ""}</div>
           </div>
           <div class="header-right">
-            <img src="${logoBase64}" />
+         <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+
           </div>
 
           <h2 style="margin-top: 80px;">Labor Report</h2>
@@ -422,7 +471,8 @@ const ReportForm: React.FC = () => {
               <div><strong>Created By:</strong> ${createdBy || ""}</div>
             </div>
             <div class="header-right">
-              <img src="${logoBase64}" />
+            <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+
             </div>
 
        <div style="
@@ -537,6 +587,28 @@ const ReportForm: React.FC = () => {
       </html>
     `;
 
+      console.log("✅ Checking logoBase64 length:", logoBase64?.length);
+
+      if (
+        !logoBase64 ||
+        !logoBase64.startsWith("data:image") ||
+        logoBase64.length < 100
+      ) {
+        console.error("❌ Logo not loaded properly or missing.");
+        Alert.alert(
+          "Logo Error",
+          "Unable to load the company logo. Please reopen the report screen or check your logo asset file."
+        );
+        Toast.show({
+          type: "error",
+          text1: "Logo Missing",
+          text2: "Could not load logo image. Try again.",
+          position: "bottom",
+        });
+        setUploading(false);
+        return; // stop PDF generation
+      }
+
       // ------------------ GENERATE PDF ------------------
       const { uri } = await Print.printToFileAsync({ html });
       const newFileName = `DPR_${
@@ -547,112 +619,112 @@ const ReportForm: React.FC = () => {
 
       //TO DIRECTLY UPLOAD
       // 🔹 Prepare FormData for backend upload
-      const formData = new FormData();
-      formData.append("projectName", projectName);
-      formData.append("projectId", projectId);
-      formData.append("createdBy", createdBy);
+      //   const formData = new FormData();
+      //   formData.append("projectName", projectName);
+      //   formData.append("projectId", projectId);
+      //   formData.append("createdBy", createdBy);
 
-      formData.append("file", {
-        uri: newUri,
-        name: newFileName,
-        type: "application/pdf",
-      } as any);
+      //   formData.append("file", {
+      //     uri: newUri,
+      //     name: newFileName,
+      //     type: "application/pdf",
+      //   } as any);
 
-      // 🔹 Upload to your backend (which sends it to object storage)
-      const response = await api.post("/dpr", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      //   // 🔹 Upload to your backend (which sends it to object storage)
+      //   const response = await api.post("/dpr", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
 
-      if (response.data.success) {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "DPR uploaded successfully",
-          position: "bottom",
+      //   if (response.data.success) {
+      //     Toast.show({
+      //       type: "success",
+      //       text1: "Success",
+      //       text2: "DPR uploaded successfully",
+      //       position: "bottom",
+      //     });
+
+      //     // Optional: navigate after delay
+      //     setTimeout(() => {
+      //       router.push({
+      //         pathname: "/dprs",
+      //         params: { projectId },
+      //       });
+      //     }, 300);
+      //   } else {
+      //     Toast.show({
+      //       type: "error",
+      //       text1: "Error",
+      //       text2: "Upload failed",
+      //       position: "bottom",
+      //     });
+      //   }
+
+      //   // 🔹 Cleanup after upload
+      //   await AsyncStorage.removeItem(STORAGE_KEY);
+      //   await AsyncStorage.removeItem("reportData");
+      //   setPhotos([]);
+      //   try {
+      //     await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
+      //       idempotent: true,
+      //     });
+      //   } catch (e) {
+      //     console.warn("Cache cleanup failed", e);
+      //   }
+      // } catch (err: any) {
+      //   console.error("Upload error:", err);
+      //   Alert.alert(
+      //     "Upload Error",
+      //     err?.response?.data?.error || err?.message || "Something went wrong."
+      //   );
+      //   Toast.show({
+      //     type: "error",
+      //     text1: "Error",
+      //     text2: "Failed to upload DPR",
+      //     position: "bottom",
+      //   });
+      // } finally {
+      //   setUploading(false);
+      // }
+
+      //FOR DOWNLOAD IN LOCAL STORAGE
+      console.log("PDF generated at:", newUri);
+
+      // // Optional sharing
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(newUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share or Save Photo Report",
+          UTI: "com.adobe.pdf",
         });
-
-        // Optional: navigate after delay
-        setTimeout(() => {
-          router.push({
-            pathname: "/dprs",
-            params: { projectId },
-          });
-        }, 300);
       } else {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Upload failed",
-          position: "bottom",
-        });
+        Alert.alert("PDF generated", `Saved at: ${newUri}`);
       }
 
-      // 🔹 Cleanup after upload
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      await AsyncStorage.removeItem("reportData");
-      setPhotos([]);
-      try {
-        await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
-          idempotent: true,
-        });
-      } catch (e) {
-        console.warn("Cache cleanup failed", e);
-      }
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      Alert.alert(
-        "Upload Error",
-        err?.response?.data?.error || err?.message || "Something went wrong."
-      );
       Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to upload DPR",
+        type: "success",
+        text1: "PDF Generated",
+        text2: "Photo report saved locally.",
         position: "bottom",
       });
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      Alert.alert("Error", err?.message || "Failed to generate PDF.");
     } finally {
       setUploading(false);
+      try {
+        await FileSystem.deleteAsync(
+          FileSystem.cacheDirectory + "ImageManipulator",
+          {
+            idempotent: true,
+          }
+        );
+      } catch (e) {
+        console.warn("Cleanup failed:", e);
+      }
     }
-
-    //FOR DOWNLOAD IN LOCAL STORAGE
-    //   console.log("PDF generated at:", newUri);
-
-    //   // // Optional sharing
-    //   if (await Sharing.isAvailableAsync()) {
-    //     await Sharing.shareAsync(newUri, {
-    //       mimeType: "application/pdf",
-    //       dialogTitle: "Share or Save Photo Report",
-    //       UTI: "com.adobe.pdf",
-    //     });
-    //   } else {
-    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
-    //   }
-
-    //   Toast.show({
-    //     type: "success",
-    //     text1: "PDF Generated",
-    //     text2: "Photo report saved locally.",
-    //     position: "bottom",
-    //   });
-    // } catch (err: any) {
-    //   console.error("PDF generation error:", err);
-    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
-    // } finally {
-    //   setUploading(false);
-    //   try {
-    //     await FileSystem.deleteAsync(
-    //       FileSystem.cacheDirectory + "ImageManipulator",
-    //       {
-    //         idempotent: true,
-    //       }
-    //     );
-    //   } catch (e) {
-    //     console.warn("Cleanup failed:", e);
-    //   }
-    // }
   };
 
   return (
