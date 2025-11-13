@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  Linking,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext"; // adjust path if needed
 import api from "../../lib/api"; // axios instance with baseURL
@@ -32,6 +33,7 @@ type User = {
   employeeCode: number;
   status?: string;
   company?: string;
+  contactNumbers?: string[];
 };
 
 export default function AllUsersScreen() {
@@ -119,6 +121,7 @@ export default function AllUsersScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users);
+      console.log(res.data);
     } catch (err) {
       console.error("Failed to fetch users:", err);
       Toast.show({
@@ -250,7 +253,7 @@ export default function AllUsersScreen() {
                   {item.fullName}
                 </Text>
                 <Text className="text-gray-600">{item.email}</Text>
-                {item.employeeCode && (
+                {/* {item.employeeCode && (
                   <Text
                     className={`mt-1 p-1 rounded-lg text-sm font-medium w-20 text-center ${
                       item.role === "admin"
@@ -260,6 +263,21 @@ export default function AllUsersScreen() {
                   >
                     W{formatEmployeeCode(item.employeeCode)}
                   </Text>
+                )} */}
+                {item.contactNumbers && item.contactNumbers.length > 0 && (
+                  <View className="mt-1 flex-row flex-wrap">
+                    {item.contactNumbers.map((number, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => Linking.openURL(`tel:${number}`)}
+                      >
+                        <Text className="text-blue-500 underline mr-2">
+                          {number}
+                          {index !== item.contactNumbers!.length - 1 ? "," : ""}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 )}
               </View>
 
