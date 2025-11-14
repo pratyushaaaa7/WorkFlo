@@ -157,6 +157,7 @@ const CreateMinutes = () => {
       remarks: "",
       targetDateForInfo: false, // ✅ new
       responsibilityForInfo: false, // ✅ new
+      status: "open", // ✅ default to Open
     },
   ]);
 
@@ -216,7 +217,7 @@ const CreateMinutes = () => {
     if (meetingDate || attendees.length > 1 || minutes.length > 1) {
       saveData();
     }
-  }, [meetingDate, meetingTime, meetingVenue, attendees, minutes]);
+  }, [meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
 
   // Fetch users
   useEffect(() => {
@@ -316,6 +317,7 @@ const CreateMinutes = () => {
         targetDate: null,
         responsibility: [],
         remarks: "",
+        status: "open", // ✅ Default status
       },
     ]);
   const deleteMinute = (index: number) => {
@@ -394,7 +396,7 @@ const CreateMinutes = () => {
                   label: r.name,
                 }))
               : [],
-
+            status: m.status || "open",
             targetDateForInfo: m.targetDateForInfo,
             responsibilityForInfo: m.responsibilityForInfo,
             fromForwardedId: m.fromForwardedId || null,
@@ -493,6 +495,7 @@ const CreateMinutes = () => {
         targetDateForInfo: !!m.targetDateForInfo,
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
+        status: m.status || "open", // ✅ new field
       }));
 
       const payload = {
@@ -963,6 +966,73 @@ const CreateMinutes = () => {
                       multiline
                       className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                     />
+
+                    {/* Status Selector */}
+                    <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5  flex-row items-center">
+                      <Text className="text-[#888] text-base items-center">
+                        Status:{"  "}
+                      </Text>
+
+                      <View className="flex-row items-center justify-start gap-6">
+                        {/* Option 1: Open */}
+                        <TouchableOpacity
+                          onPress={() => updateMinute(index, "status", "open")}
+                          activeOpacity={0.8}
+                          className="flex-row items-center"
+                        >
+                          <View
+                            className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center ${
+                              m.status === "open"
+                                ? "border-red-500"
+                                : "border-gray-400"
+                            }`}
+                          >
+                            {m.status === "open" && (
+                              <View className="w-2.5 h-2.5 bg-red-500 rounded-full" />
+                            )}
+                          </View>
+                          <Text
+                            className={`text-sm font-medium ${
+                              m.status === "open"
+                                ? "text-red-600"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            Open
+                          </Text>
+                        </TouchableOpacity>
+
+                        {/* Option 2: For Info */}
+                        <TouchableOpacity
+                          onPress={() =>
+                            updateMinute(index, "status", "forInfo")
+                          }
+                          activeOpacity={0.8}
+                          className="flex-row items-center"
+                        >
+                          <View
+                            className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center ${
+                              m.status === "forInfo"
+                                ? "border-emerald-500"
+                                : "border-gray-400"
+                            }`}
+                          >
+                            {m.status === "forInfo" && (
+                              <View className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                            )}
+                          </View>
+                          <Text
+                            className={`text-sm font-medium ${
+                              m.status === "forInfo"
+                                ? "text-emerald-600"
+                                : "text-gray-700"
+                            }`}
+                          >
+                            For Info
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
 
                     {/* Date Picker Field */}
                     {/* <TouchableOpacity onPress={() => openDatePicker(index)}>

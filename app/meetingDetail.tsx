@@ -387,12 +387,14 @@ const MinutesDetail = () => {
                     className={`${
                       minute.status === "open"
                         ? "text-red-500"
-                        : minute.status === "closed"
+                        : minute.status === "closed" || "forInfo"
                         ? "text-green-500"
                         : "text-yellow-500"
                     } font-semibold`}
                   >
-                    {minute.status.toUpperCase()}
+                    {minute.status === "forInfo"
+                      ? "FOR INFO"
+                      : minute.status?.toUpperCase() || ""}
                   </Text>
                 </Text>
               </TouchableOpacity>

@@ -121,7 +121,7 @@ export default function AllUsersScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users);
-      console.log(res.data);
+      // console.log(res.data);
     } catch (err) {
       console.error("Failed to fetch users:", err);
       Toast.show({

@@ -35,8 +35,8 @@ const ProjectMain = () => {
   const { token } = useContext(AuthContext) || {};
   const [modalVisible, setModalVisible] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [loadingImages, setLoadingImages] = useState(false);
+  // const [images, setImages] = useState<string[]>([]);
+  // const [loadingImages, setLoadingImages] = useState(false);
 
   // ✅ Fetch Project Details + Project Images
   useEffect(() => {
@@ -50,21 +50,21 @@ const ProjectMain = () => {
           setProject(res.data.project);
 
           // Fetch project images from unified upload API
-          setLoadingImages(true);
-          const imgRes = await api.get(`/upload/project-images`, {
-            params: { projectId }, // only this
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          // setLoadingImages(true);
+          // const imgRes = await api.get(`/upload/project-images`, {
+          //   params: { projectId }, // only this
+          //   headers: { Authorization: `Bearer ${token}` },
+          // });
 
           // Extract URLs from response
-          setImages(imgRes.data.map((f: any) => f.url));
+          // setImages(imgRes.data.map((f: any) => f.url));
         } catch (err: any) {
           console.error(
             "Failed to fetch project data/images:",
             err.message || err
           );
         } finally {
-          setLoadingImages(false);
+          // setLoadingImages(false);
         }
       };
       fetchData();
@@ -72,48 +72,48 @@ const ProjectMain = () => {
   }, [projectId, token]);
 
   // ✅ Pick an Image from Device
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+  // const pickImage = async () => {
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     quality: 1,
+  //   });
 
-    if (result.canceled) return;
-    const file = result.assets[0];
-    uploadImage(file);
-  };
+  //   if (result.canceled) return;
+  //   const file = result.assets[0];
+  //   uploadImage(file);
+  // };
 
   // ✅ Upload Image to Backend
-  const uploadImage = async (file: any) => {
-    if (!token || !projectId) return;
+  // const uploadImage = async (file: any) => {
+  //   if (!token || !projectId) return;
 
-    const formData = new FormData();
-    formData.append(
-      "file",
-      {
-        uri: file.uri,
-        name: file.fileName || `image_${Date.now()}.jpg`,
-        type: "image/jpeg",
-      } as any // Cast to any to satisfy TypeScript
-    );
-    formData.append("module", "projectImage"); // important
-    formData.append("referenceId", String(projectId));
-    formData.append("fileType", "image");
+  //   const formData = new FormData();
+  //   formData.append(
+  //     "file",
+  //     {
+  //       uri: file.uri,
+  //       name: file.fileName || `image_${Date.now()}.jpg`,
+  //       type: "image/jpeg",
+  //     } as any // Cast to any to satisfy TypeScript
+  //   );
+  //   formData.append("module", "projectImage"); // important
+  //   formData.append("referenceId", String(projectId));
+  //   formData.append("fileType", "image");
 
-    try {
-      const res = await api.post("/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  //   try {
+  //     const res = await api.post("/upload", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
 
-      setImages((prev) => [...prev, res.data.file.url]); // update with new image
-    } catch (err: any) {
-      console.error("Upload failed:", err.response?.data || err.message);
-      Alert.alert("Error", "Image upload failed. Please try again.");
-    }
-  };
+  //     setImages((prev) => [...prev, res.data.file.url]); // update with new image
+  //   } catch (err: any) {
+  //     console.error("Upload failed:", err.response?.data || err.message);
+  //     Alert.alert("Error", "Image upload failed. Please try again.");
+  //   }
+  // };
 
   const menuItems = [
     {
@@ -269,7 +269,6 @@ const ProjectMain = () => {
         ))}
       </View>
 
-      {/* Project Info Modal (Bottom Sheet Style) */}
       {/* Project Info Modal (Bottom Sheet Style) */}
       <Modal
         visible={modalVisible}
