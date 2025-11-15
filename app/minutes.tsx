@@ -41,7 +41,7 @@ const Minutes = () => {
     if (projectId) fetchMeetings();
   }, [projectId, token]);
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1  bg-gray-50">
       {/* Header */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View
@@ -69,7 +69,10 @@ const Minutes = () => {
         </View>
       </LinearGradient>
 
-      <ScrollView className="p-4 bg-gray-100">
+      <ScrollView
+        className="p-4  bg-gray-100"
+        contentContainerStyle={{ paddingBottom: 60 }}
+      >
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meetings.length === 0 ? (
@@ -80,7 +83,7 @@ const Minutes = () => {
           meetings.map((meeting) => (
             <View
               key={meeting._id}
-              className="bg-white rounded-2xl shadow-lg mb-5 overflow-hidden border-l-4"
+              className="bg-white rounded-2xl shadow-lg mb-5  overflow-hidden border-l-4"
               style={{
                 borderLeftColor:
                   meeting.meetingStage === "mom_submitted"

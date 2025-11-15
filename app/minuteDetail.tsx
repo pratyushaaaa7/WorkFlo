@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 
@@ -26,6 +27,21 @@ const statusColors: Record<Status, string> = {
   closed: "bg-green-500",
   forwarded: "bg-yellow-500",
   forInfo: "bg-green-500", // ✅ added
+};
+
+const getActivityBg = (item) => {
+  if (item.text !== undefined) return "bg-cyan-50 border border-cyan-200"; // Note
+
+  if (item.fieldChanged === "status")
+    return "bg-rose-50 border border-rose-200"; // Status change
+
+  if (
+    item.fieldChanged === "targetDate" ||
+    item.fieldChanged === "targetDateForInfo"
+  )
+    return "bg-amber-50 border border-amber-200"; // Target date
+
+  return "bg-gray-50 border border-gray-200";
 };
 
 const humanLabel = (s: string) => {
@@ -43,10 +59,14 @@ const parseJsonSafe = (val: any) => {
 };
 
 const fmtDate = (d?: string | Date) => {
+  if (!d) return "";
   try {
-    if (!d) return "";
     const dt = new Date(d);
-    return dt.toLocaleString();
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short", // "Jan", "Feb", ...
+      year: "numeric",
+    }).format(dt);
   } catch {
     return "";
   }
@@ -67,12 +87,17 @@ const MinuteDetail = () => {
   const description = (params.description as string) || "";
   const serialNo = (params.serialNo as string) || "";
   const remarks = (params.remarks as string) || "";
+  // Normalize targetDate param (use first element if it's an array) so fmtDate receives string | Date | undefined
+  const _targetDateParam = Array.isArray(params.targetDate)
+    ? params.targetDate[0]
+    : (params.targetDate as string | undefined);
   const targetDate =
     params.targetDateForInfo === "true"
       ? "For Information"
-      : params.targetDate
-      ? new Date(params.targetDate as string).toLocaleDateString()
+      : _targetDateParam
+      ? fmtDate(_targetDateParam)
       : "—";
+
   const responsibilityArr = useMemo(
     () =>
       params.responsibilityForInfo === "true"
@@ -96,45 +121,86 @@ const MinuteDetail = () => {
   );
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [minuteData, setMinuteData] = useState<any>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<Status>(status);
   const [noteText, setNoteText] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [newTargetDate, setNewTargetDate] = useState<Date | null>(null);
+  const [isForInfoTarget, setIsForInfoTarget] = useState(
+    params.targetDateForInfo === "true"
+  );
+  const [tempNoteText, setTempNoteText] = useState("");
+  const [targetModalVisible, setTargetModalVisible] = useState(false);
+  const [tempTargetDate, setTempTargetDate] = useState<Date | null>(null);
+  const [tempForInfo, setTempForInfo] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [activities, setActivities] = useState<any[]>([]);
+
   // --- Fetch activity log from backend ---
   const fetchActivityLog = async () => {
     if (!minuteId || !meetingId) return;
     setLoading(true);
+
     try {
       const res = await api.get(`/minutes/${meetingId}/minutes/${minuteId}`, {
         headers: { Authorization: `Bearer ${auth?.token}` },
       });
-      const data = res.data;
 
-      // set current status
+      const data = res.data;
+      setMinuteData(data); // ✅ Single source of truth
+      // console.log(data);
+
+      // Set current status
       setStatus(data.status);
 
-      // combine status history + notes
-      const timeline = [
+      // --- Build ACTIVITY entries (status + targetDate + other activities) ---
+      const activityItems = [
+        // 1️⃣ OLD DATA — Status history (only if exists)
         ...(data.statusHistory || []).map((s: any) => ({
           type: "status",
-          text: `Status changed to ${s.status}${s.note ? `: ${s.note}` : ""}`,
+          fieldChanged: "status",
+          action: "Status changed",
+          oldValue: s.oldStatus || "—",
+          newValue: s.status || "—",
+          note: s.note || "",
           addedBy: s.changedBy,
           createdAt: s.changedAt,
         })),
-        ...(data.notes || []).map((n: any) => ({
-          type: "note",
-          text: n.text,
-          addedBy: n.addedBy,
-          createdAt: n.createdAt,
-        })),
-      ].sort(
-        (a: any, b: any) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
 
-      setNotes(timeline);
+        // 2️⃣ NEW DATA — Unified activity logs
+        ...(data.activities || []).map((a: any) => ({
+          type:
+            a.fieldChanged === "status"
+              ? "status"
+              : a.fieldChanged === "targetDate" ||
+                a.fieldChanged === "targetDateForInfo"
+              ? "targetDate"
+              : "activity",
+
+          fieldChanged: a.fieldChanged,
+          action: a.action,
+          oldValue: a.oldValue || "—",
+          newValue: a.newValue || "—",
+          note: a.note || "",
+          addedBy: a.createdBy,
+          createdAt: a.createdAt,
+        })),
+      ];
+
+      // --- Build NOTES separately ---
+      const noteItems = (data.notes || []).map((n: any) => ({
+        type: "note",
+        text: n.text,
+        addedBy: n.addedBy,
+        createdAt: n.createdAt,
+      }));
+
+      // Set state
+      setActivities(activityItems);
+      setNotes(noteItems);
     } catch (err) {
       console.error("Failed to fetch activity log", err);
     } finally {
@@ -168,23 +234,22 @@ const MinuteDetail = () => {
     const prevStatus = status;
     const prevNotes = [...notes];
 
-    const notePayload = noteText?.trim();
+    const notePayload = noteText.trim();
     const statusChanged = selectedStatus !== status;
     const noteProvided = !!notePayload;
 
-    // Optimistic update for note-only (status not changed)
+    // Optimistic update only for notes
     if (!statusChanged && noteProvided) {
-      pushNoteOptimistic(notePayload!, {
+      pushNoteOptimistic(notePayload, {
         fullName: auth?.user?.fullName,
         _id: auth?.user?.id,
       });
     }
 
-    // Update local status immediately
     if (statusChanged) setStatus(selectedStatus);
 
     try {
-      const body: { status?: Status; note?: string } = {};
+      const body: any = {};
       if (statusChanged) body.status = selectedStatus;
       if (noteProvided) body.note = notePayload;
 
@@ -192,24 +257,64 @@ const MinuteDetail = () => {
         headers: { Authorization: `Bearer ${auth?.token}` },
       });
 
-      // Reload from backend (fetch combined activity log)
       await fetchActivityLog();
 
       setModalVisible(false);
       setNoteText("");
     } catch (err) {
       console.error(err);
-      // Rollback optimistic updates if API fails
       setStatus(prevStatus);
       setNotes(prevNotes);
-      Alert.alert(
-        "Update failed",
-        "Could not update status. Please try again."
-      );
+      Alert.alert("Update failed", "Could not update status.");
     } finally {
       setSaving(false);
     }
   };
+
+  const handleSaveTargetDate = async () => {
+    if (!minuteId || !meetingId) return;
+
+    setSaving(true);
+
+    try {
+      const body: any = {
+        note: tempNoteText.trim(),
+      };
+
+      if (tempForInfo) {
+        body.targetDateForInfo = true;
+      } else if (tempTargetDate) {
+        body.targetDateForInfo = false;
+        body.targetDate = tempTargetDate.toISOString();
+      } else {
+        Alert.alert("Please select a date or mark as For Information");
+        setSaving(false);
+        return;
+      }
+
+      await api.put(`/minutes/${meetingId}/minutes/${minuteId}/status`, body, {
+        headers: { Authorization: `Bearer ${auth?.token}` },
+      });
+
+      setNewTargetDate(tempTargetDate);
+      setIsForInfoTarget(tempForInfo);
+
+      setTargetModalVisible(false);
+      setTempNoteText("");
+      setTempTargetDate(null);
+
+      await fetchActivityLog();
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Failed", "Could not update target date.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activityLog = [...notes, ...activities].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   // console.log("Fetching minute detail", { meetingId, minuteId, token: !!auth?.token });
 
@@ -248,7 +353,7 @@ const MinuteDetail = () => {
       >
         {/* Minute summary */}
         <View className="bg-white rounded-2xl p-5 shadow-md mb-4">
-          <View className="flex-row justify-between mb-1 items-center">
+          <View className=" justify-between mb-1 ">
             <Text className="text-xl font-bold text-gray-800 mb-1">
               {serialNo ? `${serialNo}. ` : ""}
               {issueSubject}
@@ -287,8 +392,13 @@ const MinuteDetail = () => {
           </Text>
           <Text className="text-sm text-gray-500 mt-2">
             <Text className="font-semibold text-gray-700">Target Date: </Text>
-            {targetDate}
+            {minuteData?.targetDateForInfo
+              ? "For Information"
+              : minuteData?.targetDate
+              ? fmtDate(minuteData.targetDate)
+              : "—"}
           </Text>
+
           {remarks ? (
             <Text className="text-sm text-gray-500 mt-2">
               <Text className="font-semibold text-gray-700">Remarks: </Text>
@@ -330,38 +440,122 @@ const MinuteDetail = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Change Target Date Button */}
+        <TouchableOpacity
+          onPress={() => {
+            setTempForInfo(isForInfoTarget);
+
+            if (!isForInfoTarget && params.targetDate) {
+              try {
+                setTempTargetDate(new Date(params.targetDate as string));
+              } catch {
+                setTempTargetDate(null);
+              }
+            } else {
+              setTempTargetDate(null);
+            }
+
+            setTempNoteText("");
+            setTargetModalVisible(true);
+          }}
+          className="bg-indigo-50 border border-indigo-200 rounded-xl py-3 px-4 mb-4 items-center"
+        >
+          <Text className="text-indigo-600 font-medium">
+            Change Target Date
+          </Text>
+        </TouchableOpacity>
+
         {/* Activity log */}
         <View className="bg-white rounded-2xl p-4 shadow-md">
           <Text className="text-base font-semibold text-gray-800 mb-3">
             Activity
           </Text>
+
           {loading ? (
             <ActivityIndicator size="small" color="#6366F1" />
-          ) : notes.length === 0 ? (
+          ) : activityLog.length === 0 ? (
             <Text className="text-sm text-gray-500">No activity yet.</Text>
           ) : (
-            notes.map((n, idx) => (
-              <View key={idx} className="flex-row items-start mb-3">
-                <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center">
-                  <Text className="text-sm font-semibold text-gray-700">
-                    {(n.addedBy?.fullName || n.addedBy?.individualName || "")
-                      .slice(0, 2)
-                      .toUpperCase() || "U"}
-                  </Text>
+            activityLog.map((item, idx) => {
+              const isNote = item.text !== undefined;
+
+              return (
+                <View key={idx} className="flex-row items-start mb-3">
+                  {/* Avatar */}
+                  <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center">
+                    <Text className="text-sm font-semibold text-gray-700">
+                      {(
+                        item.addedBy?.fullName ||
+                        item.addedBy?.individualName ||
+                        item.createdBy?.fullName ||
+                        ""
+                      )
+                        .slice(0, 2)
+                        .toUpperCase() || "U"}
+                    </Text>
+                  </View>
+
+                  {/* Content */}
+                  <View
+                    className={`ml-3 flex-1 p-2 rounded-xl ${getActivityBg(
+                      item
+                    )}`}
+                  >
+                    {/* Username */}
+                    <Text className="text-gray-700 font-medium">
+                      {item.addedBy?.fullName ||
+                        item.addedBy?.individualName ||
+                        item.createdBy?.fullName ||
+                        "Unknown"}
+                    </Text>
+
+                    {/* Note text */}
+                    {isNote ? (
+                      <Text className="text-gray-600 text-sm">{item.text}</Text>
+                    ) : (
+                      <View>
+                        {/* Activity action */}
+                        <Text className="text-gray-700 text-sm font-semibold">
+                          {item.action}
+                        </Text>
+
+                        <Text className="text-gray-600 text-sm">
+                          {`From: ${
+                            item.oldValue
+                              ? item.fieldChanged === "status"
+                                ? item.oldValue
+                                : item.oldValue === "For Information"
+                                ? "For Information"
+                                : fmtDate(item.oldValue)
+                              : "—"
+                          } → To: ${
+                            item.newValue
+                              ? item.fieldChanged === "status"
+                                ? item.newValue
+                                : item.newValue === "For Information"
+                                ? "For Information"
+                                : fmtDate(item.newValue)
+                              : "—"
+                          }`}
+                        </Text>
+
+                        {/* Note attached to activity */}
+                        {item.note && (
+                          <Text className="text-gray-500 text-sm italic mt-1">
+                            Note: {item.note}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+
+                    {/* Timestamp */}
+                    <Text className="text-xs text-gray-400 mt-1">
+                      {fmtDate(item.createdAt)}
+                    </Text>
+                  </View>
                 </View>
-                <View className="ml-3 flex-1">
-                  <Text className="text-gray-700 font-medium">
-                    {n.addedBy?.fullName ||
-                      n.addedBy?.individualName ||
-                      "Unknown"}
-                  </Text>
-                  <Text className="text-gray-600 text-sm">{n.text}</Text>
-                  <Text className="text-xs text-gray-400 mt-1">
-                    {fmtDate(n.createdAt)}
-                  </Text>
-                </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -525,7 +719,7 @@ const MinuteDetail = () => {
                 saving ? "bg-gray-300" : ""
               }`}
               style={{
-                backgroundColor: saving ? "#D1D5DB" : "#6366F1",
+                backgroundColor: saving ? "#D1D5DB" : "#4F46E5",
                 shadowColor: "#6366F1",
                 shadowOpacity: 0.3,
                 shadowRadius: 6,
@@ -539,6 +733,164 @@ const MinuteDetail = () => {
           </View>
         </View>
         {/* </Pressable> */}
+      </Modal>
+
+      <Modal
+        isVisible={targetModalVisible}
+        onBackdropPress={() => setTargetModalVisible(false)}
+        onBackButtonPress={() => setTargetModalVisible(false)}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        swipeDirection="down"
+        onSwipeComplete={() => setTargetModalVisible(false)}
+        style={{ justifyContent: "flex-end", margin: 0 }}
+      >
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingHorizontal: 24,
+            paddingTop: 20,
+            paddingBottom: 30,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+            elevation: 5,
+          }}
+        >
+          {/* Header */}
+          <View className="items-center mb-6">
+            <View className="w-16 h-1.5 bg-gray-300 rounded-full mb-3" />
+            <Text className="text-xl font-semibold text-gray-900 text-center">
+              Update Target Date
+            </Text>
+            <Text className="text-sm text-gray-500 mt-1 text-center px-4">
+              Select a new target date or mark as For Information.
+            </Text>
+          </View>
+
+          {/* Toggle Buttons */}
+          <View className="flex-row mb-5 gap-3">
+            <TouchableOpacity
+              onPress={() => setTempForInfo(false)}
+              className={`flex-1 py-3 rounded-xl items-center justify-center ${
+                !tempForInfo ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            >
+              <Text
+                className={`font-medium ${
+                  !tempForInfo ? "text-white" : "text-gray-700"
+                }`}
+              >
+                Set Date
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setTempForInfo(true);
+                setTempTargetDate(null);
+              }}
+              className={`flex-1 py-3 rounded-xl items-center justify-center ${
+                tempForInfo ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            >
+              <Text
+                className={`font-medium ${
+                  tempForInfo ? "text-white" : "text-gray-700"
+                }`}
+              >
+                For Information
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Date Picker Button */}
+          {!tempForInfo && (
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              className="bg-gray-100 p-3 rounded-xl mb-6 border border-gray-200"
+            >
+              <Text className="text-gray-700 text-center">
+                {tempTargetDate
+                  ? tempTargetDate.toDateString()
+                  : "Select Target Date"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Date Picker */}
+          {showPicker && (
+            <DateTimePicker
+              value={tempTargetDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowPicker(false);
+                if (event.type === "set") {
+                  setTempTargetDate(selectedDate);
+                }
+              }}
+            />
+          )}
+
+          {/* Note Input */}
+
+          <Text className="text-sm text-gray-600 mb-2 font-medium">
+            Add a note (required to change target date)
+          </Text>
+          <TextInput
+            value={tempNoteText}
+            onChangeText={setTempNoteText}
+            placeholder="Add a note here..."
+            multiline
+            placeholderTextColor={"#888"}
+            numberOfLines={3}
+            style={{
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              borderRadius: 12,
+              padding: 10,
+              textAlignVertical: "top",
+              backgroundColor: "#F9FAFB",
+
+              marginBottom: 20,
+              fontSize: 14,
+            }}
+          />
+
+          {/* Action Buttons */}
+          <View className="flex-row mt-3 gap-3">
+            <TouchableOpacity
+              onPress={() => setTargetModalVisible(false)}
+              className="flex-1 bg-gray-100 rounded-xl py-3 items-center justify-center border border-gray-200"
+            >
+              <Text className="text-gray-700 font-semibold">Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleSaveTargetDate}
+              className={`flex-1 rounded-xl py-3 items-center justify-center ${
+                saving ||
+                !tempNoteText.trim() ||
+                (!tempForInfo && !tempTargetDate)
+                  ? "bg-gray-300"
+                  : "bg-indigo-600"
+              }`}
+              disabled={
+                saving ||
+                !tempNoteText.trim() ||
+                (!tempForInfo && !tempTargetDate)
+              }
+            >
+              <Text className="text-white font-semibold">
+                {saving ? "Saving..." : "Save"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );
