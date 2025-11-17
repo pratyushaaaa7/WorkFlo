@@ -115,7 +115,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        // console.log(JSON.stringify(res.data, null, 2));
+        console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -381,6 +381,19 @@ const MinutesDetail = () => {
                         .map((r: any) => capitalizeFirst(r.name))
                         .join(", ")}
                 </Text>
+                <Text className="text-gray-500 text-sm">
+                  Target Date:{" "}
+                  {minute.targetDateForInfo
+                    ? "For Information"
+                    : minute.targetDate
+                    ? new Date(minute.targetDate).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "—"}
+                </Text>
+
                 <Text className="text-gray-500 text-sm">
                   Status:{" "}
                   <Text
