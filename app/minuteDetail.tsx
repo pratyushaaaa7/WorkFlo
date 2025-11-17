@@ -392,11 +392,15 @@ const MinuteDetail = () => {
           </Text>
           <Text className="text-sm text-gray-500 mt-2">
             <Text className="font-semibold text-gray-700">Target Date: </Text>
-            {minuteData?.targetDateForInfo
-              ? "For Information"
-              : minuteData?.targetDate
-              ? fmtDate(minuteData.targetDate)
-              : "—"}
+            {
+              minuteData
+                ? minuteData.targetDateForInfo
+                  ? "For Information"
+                  : minuteData.targetDate
+                  ? fmtDate(minuteData.targetDate)
+                  : "—"
+                : targetDate // <-- SHOW PARAM BEFORE API LOADS
+            }
           </Text>
 
           {remarks ? (
@@ -445,12 +449,8 @@ const MinuteDetail = () => {
           onPress={() => {
             setTempForInfo(isForInfoTarget);
 
-            if (!isForInfoTarget && params.targetDate) {
-              try {
-                setTempTargetDate(new Date(params.targetDate as string));
-              } catch {
-                setTempTargetDate(null);
-              }
+            if (!isForInfoTarget && minuteData?.targetDate) {
+              setTempTargetDate(new Date(minuteData.targetDate));
             } else {
               setTempTargetDate(null);
             }
