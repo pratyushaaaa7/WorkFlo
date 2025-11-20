@@ -115,7 +115,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        // console.log(JSON.stringify(res.data, null, 2));
+        console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -127,6 +127,21 @@ const MinutesDetail = () => {
   }, [meetingId, token]);
 
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const [isEditAllowed, setIsEditAllowed] = useState(false);
+
+  useEffect(() => {
+    if (!meeting || !meeting.submittedAt) {
+      setIsEditAllowed(false); // No submittedAt → cannot edit
+      return;
+    }
+
+    const submittedAtDate = new Date(meeting.submittedAt);
+    const diffMs = Date.now() - submittedAtDate.getTime();
+    const THIRTY_MIN = 30 * 60 * 1000;
+
+    setIsEditAllowed(diffMs <= THIRTY_MIN);
+  }, [meeting]);
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -302,25 +317,25 @@ const MinutesDetail = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          onPress={() => {
-            const params = {
-              meetingId: meeting._id,
-              projectId: meeting.projectId,
-              actionType: "editMOM",
-            };
+        {isEditAllowed && (
+          <TouchableOpacity
+            onPress={() => {
+              const params = {
+                meetingId: meeting._id,
+                projectId: meeting.projectId,
+                actionType: "editMOM",
+              };
 
-            console.log(params); // Log before navigation
-
-            router.push({
-              pathname: "/createMeeting",
-              params,
-            });
-          }}
-          className="bg-indigo-600 px-4 py-2 rounded-xl self-end mb-3"
-        >
-          <Text className="text-white font-semibold">Edit MOM</Text>
-        </TouchableOpacity>
+              router.push({
+                pathname: "/createMeeting",
+                params,
+              });
+            }}
+            className="bg-indigo-600 px-4 py-3 rounded-xl items-center mb-3"
+          >
+            <Text className="text-white font-semibold">Edit MOM</Text>
+          </TouchableOpacity>
+        )}
 
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />

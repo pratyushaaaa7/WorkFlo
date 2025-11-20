@@ -109,8 +109,10 @@ type DirectoryUser = {
 
 const CreateMinutes = () => {
   const router = useRouter();
-  const { meetingId, projectId, projectName, company } = useLocalSearchParams();
+  const { meetingId, projectId, projectName, company, actionType } =
+    useLocalSearchParams();
   // console.log(meetingId, projectId, projectName, company);
+  const isEditMOM = actionType === "editMOM";
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -1492,19 +1494,21 @@ const CreateMinutes = () => {
 
         <View className="mt-10">
           {/* Save Draft Button */}
-          <TouchableOpacity
-            onPress={submitDraft}
-            disabled={isDraftSaving}
-            className={`w-full px-4 py-4 rounded-xl items-center mb-4 ${
-              isDraftSaving ? "bg-gray-400" : "bg-yellow-600"
-            }`}
-          >
-            {isDraftSaving ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text className="text-white font-bold text-xl">Save Draft</Text>
-            )}
-          </TouchableOpacity>
+          {!isEditMOM && (
+            <TouchableOpacity
+              onPress={submitDraft}
+              disabled={isDraftSaving}
+              className={`w-full px-2 py-4 rounded-xl items-center mb-4 ${
+                isDraftSaving ? "bg-gray-400" : "bg-yellow-600"
+              }`}
+            >
+              {isDraftSaving ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-bold text-lg">Save Draft</Text>
+              )}
+            </TouchableOpacity>
+          )}
 
           {/* Submit / Download Row */}
           <View className="flex-row gap-3">
@@ -1532,14 +1536,14 @@ const CreateMinutes = () => {
                     setIsAgendaDownloading(false);
                   }
                 }}
-                className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                className={`flex-1 px-2 py-4 rounded-xl items-center ${
                   isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
                 }`}
               >
                 {isAgendaDownloading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-xl">
+                  <Text className="text-white font-bold text-lg">
                     Download Agenda
                   </Text>
                 )}
@@ -1548,14 +1552,14 @@ const CreateMinutes = () => {
               <TouchableOpacity
                 onPress={() => handleSubmit("agenda")}
                 disabled={isAgendaSubmitting}
-                className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                className={`flex-1 px-2 py-4 rounded-xl items-center ${
                   isAgendaSubmitting ? "bg-gray-400" : "bg-sky-700"
                 }`}
               >
                 {isAgendaSubmitting ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-xl">
+                  <Text className="text-white font-bold text-lg">
                     Submit Agenda
                   </Text>
                 )}
@@ -1565,14 +1569,14 @@ const CreateMinutes = () => {
             <TouchableOpacity
               onPress={() => handleSubmit("mom")}
               disabled={isMomSubmitting}
-              className={`flex-1 px-4 py-4 rounded-xl items-center ${
+              className={`flex-1 px-2 py-4 rounded-xl items-center ${
                 isMomSubmitting ? "bg-gray-400" : "bg-green-700"
               }`}
             >
               {isMomSubmitting ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text className="text-white font-bold text-xl">
+                <Text className="text-white font-bold text-lg">
                   Submit Minutes
                 </Text>
               )}
