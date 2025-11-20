@@ -157,6 +157,14 @@ const Minutes = () => {
                     View Agenda
                   </Text>
                 </TouchableOpacity> */}
+                {meeting.meetingStage ==="draft" && (
+                  <View className="bg-yellow-100 px-3 py-1 rounded-full flex-row items-center">
+                    <Ionicons name="save-outline" size={14} color="#CA8A04" />
+                    <Text className="text-yellow-700 text-xs font-semibold ml-1">
+                      Draft Saved
+                    </Text>
+                  </View>
+                )}
 
                 {/* Publish / View Minutes */}
                 {meeting.meetingStage !== "mom_submitted" ? (

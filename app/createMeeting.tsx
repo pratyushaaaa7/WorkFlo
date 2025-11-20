@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  Alert,
   Platform,
   ActivityIndicator,
 } from "react-native";
@@ -115,13 +116,17 @@ const CreateMinutes = () => {
   const token = auth?.token;
 
   const STORAGE_KEY = `minutes_draft_${projectId || "new"}`;
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
   const [isMomSubmitting, setIsMomSubmitting] = useState(false);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
 
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
   const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
   const [isAgendaDownloading, setIsAgendaDownloading] = useState(false);
+
+  const [isDraftSubmitted, setIsDraftSubmitted] = useState(false);
 
   // ✅ Meeting-level state
   const [meetingDate, setMeetingDate] = useState<Date | null>(null);
@@ -160,6 +165,15 @@ const CreateMinutes = () => {
       status: "open", // ✅ default to Open
     },
   ]);
+
+  const isDraftDisabled =
+    !meetingDate &&
+    !meetingTime &&
+    !meetingVenue &&
+    attendees.length === 1 &&
+    !attendees[0].attendeeName &&
+    minutes.length === 1 &&
+    !minutes[0].issueSubject;
 
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -219,7 +233,7 @@ const CreateMinutes = () => {
     }
   }, [meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
 
-  // Fetch users
+  // Fetch usersc
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -227,7 +241,7 @@ const CreateMinutes = () => {
         const res = await api.get(`/projects/${projectId}/users-dropdown`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
+        // console.log("hello test", res.data);
         const formatted = res.data.map((u: any) => ({
           label: `${u.individualName} (${u.firmName})`,
           value: u._id,
@@ -339,6 +353,65 @@ const CreateMinutes = () => {
     }
   };
 
+  const formatAttendees = () => {
+    return attendees.map((a) => ({
+      sNo: a.sNo,
+      attendeeName: a.attendeeName,
+      organization: a.organization,
+      designation: a.designation,
+      email: a.email,
+      contactNumbers: a.contactNumbers || [""],
+    }));
+  };
+
+  const formatMinutes = () => {
+    return minutes.map((m, i) => ({
+      serialNo: m.serialNo ?? i + 1,
+      issueSubject: m.issueSubject,
+      description: m.issueDescription || "",
+      raisedBy: m.raisedBy.map((r: any) => ({ _id: r.value, name: r.label })),
+      responsibility: m.responsibility.map((r: any) => ({
+        _id: r.value,
+        name: r.label,
+      })),
+      targetDate: m.targetDateForInfo ? null : m.targetDate,
+      remarks: m.remarks || "",
+      targetDateForInfo: !!m.targetDateForInfo,
+      responsibilityForInfo: !!m.responsibilityForInfo,
+      fromForwardedId: m.fromForwardedId || null,
+      status: m.status || "open",
+    }));
+  };
+
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     try {
+  //       setLoadingUsers(true);
+
+  //       const res = await api.get("/users", {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+
+  //       // console.log("USERS API RESPONSE:", res.data);
+
+  //       // Store only required fields
+  //       setUsers(
+  //         res.data.users.map((u) => ({
+  //           label: u.fullName,
+  //           value: u._id,
+  //         }))
+  //       );
+  //     } catch (error) {
+  //       console.log("Error fetching users:", error);
+  //       Alert.alert("Error", "Unable to load users.");
+  //     } finally {
+  //       setLoadingUsers(false);
+  //     }
+  //   };
+
+  //   fetchUsers();
+  // }, []);
+
   useEffect(() => {
     const fetchMeetingData = async () => {
       try {
@@ -349,7 +422,7 @@ const CreateMinutes = () => {
 
         const data = res.data;
         // console.log (data)
-        console.log("Meeting data:", JSON.stringify(data, null, 2));
+        // console.log("Meeting data:", JSON.stringify(data, null, 2));
 
         // Prefill meeting info
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
@@ -545,6 +618,120 @@ const CreateMinutes = () => {
       // Stop loading
       setIsAgendaSubmitting(false);
       setIsMomSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchMeetingData = async () => {
+      try {
+        if (!token || !meetingId) return;
+
+        const res = await api.get(`/minutes/draft/${meetingId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = res.data.meeting;
+
+        // console.log("Draft data:", JSON.stringify(data, null, 2));
+
+        if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
+        if (data.meetingTime) setMeetingTime(data.meetingTime);
+        if (data.meetingVenue) setMeetingVenue(data.meetingVenue);
+        if (data.meetingNumber) setMeetingNumber(data.meetingNumber);
+        if (typeof data.isATReview === "boolean")
+          setIsATReview(data.isATReview);
+
+        if (data.attendees?.length > 0) {
+          setAttendees(
+            data.attendees.map((a: any, idx: number) => ({
+              sNo: a.sNo || idx + 1,
+              attendeeName: a.attendeeName || "",
+              organization: a.organization || "",
+              designation: a.designation || "",
+              email: a.email || "",
+              contactNumbers: a.contactNumbers || [""],
+            }))
+          );
+        }
+
+        if (data.minutes?.length > 0) {
+          setMinutes(
+            data.minutes.map((m: any, idx: number) => ({
+              serialNo: idx + 1,
+              issueSubject: m.issueSubject || "",
+              issueDescription: m.description || "",
+              targetDate: m.targetDate || null,
+              remarks: m.remarks || "",
+              raisedBy: (m.raisedBy || []).map((r: any) => ({
+                value: r._id,
+                label: r.name,
+              })),
+              responsibility: (m.responsibility || []).map((r: any) => ({
+                value: r._id,
+                label: r.name,
+              })),
+              status: m.status || "open",
+              targetDateForInfo: m.targetDateForInfo,
+              responsibilityForInfo: m.responsibilityForInfo,
+              fromForwardedId: m.fromForwardedId || null,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Draft fetch error:", err);
+        Toast.show({
+          type: "error",
+          text1: "Unable to load draft",
+          position: "bottom",
+        });
+      }
+    };
+
+    fetchMeetingData();
+  }, [token, meetingId]);
+
+  const submitDraft = async () => {
+    if (!token) return;
+
+    try {
+      setIsDraftSaving(true); // reuse draft saving loader
+
+      const payload = {
+        projectId,
+        meetingDate: meetingDate ? meetingDate.toISOString() : null,
+        meetingTime,
+        meetingVenue,
+        attendees: formatAttendees(),
+        minutes: formatMinutes(),
+        draftSubmitted: true, // ✅ new flag
+        isATReview, // keep sending this
+      };
+
+      if (!meetingId) {
+        const res = await api.post("/minutes/draft", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        const res = await api.put(`/minutes/draft/${meetingId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+
+      setIsDraftSubmitted(true);
+      Toast.show({
+        type: "success",
+        text1: "Draft submitted successfully",
+        position: "bottom",
+      });
+
+      // ✅ Optional: clear local draft storage
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      router.back();
+    } catch (err) {
+      console.log(err);
+      Toast.show({ type: "error", text1: "Failed to submit draft" });
+    } finally {
+      setIsDraftSaving(false);
     }
   };
 
@@ -1302,77 +1489,95 @@ const CreateMinutes = () => {
         </Modal>
 
         {/* Submit Button */}
-        {/* Submit Button */}
-        <View className="flex-row gap-3 my-10">
-          {meetingId ? (
-            <TouchableOpacity
-              disabled={isAgendaDownloading}
-              onPress={async () => {
-                setIsAgendaDownloading(true);
-                try {
-                  await handleDownloadAgenda(
-                    {
-                      meetingDate,
-                      meetingTime,
-                      meetingVenue,
-                      meetingNumber,
-                      attendees,
-                      minutes,
-                    },
-                    projectName,
-                    auth?.user?.fullName ?? "Unknown",
-                    company,
-                    auth?.token
-                  );
-                } finally {
-                  setIsAgendaDownloading(false);
-                }
-              }}
-              className={`flex-1 px-4 py-4 rounded-xl items-center ${
-                isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
-              }`}
-            >
-              {isAgendaDownloading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-xl">
-                  Download Agenda
-                </Text>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => handleSubmit("agenda")}
-              disabled={isAgendaSubmitting}
-              className={`flex-1 px-4 py-4 rounded-xl items-center ${
-                isAgendaSubmitting ? "bg-gray-400" : "bg-sky-700"
-              }`}
-            >
-              {isAgendaSubmitting ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-xl">
-                  Submit Agenda
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
 
+        <View className="mt-10">
+          {/* Save Draft Button */}
           <TouchableOpacity
-            onPress={() => handleSubmit("mom")}
-            disabled={isMomSubmitting}
-            className={`flex-1 px-4 py-4 rounded-xl items-center ${
-              isMomSubmitting ? "bg-gray-400" : "bg-green-700"
+            onPress={submitDraft}
+            disabled={isDraftSaving}
+            className={`w-full px-4 py-4 rounded-xl items-center mb-4 ${
+              isDraftSaving ? "bg-gray-400" : "bg-yellow-600"
             }`}
           >
-            {isMomSubmitting ? (
+            {isDraftSaving ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Text className="text-white font-bold text-xl">
-                Submit Minutes
-              </Text>
+              <Text className="text-white font-bold text-xl">Save Draft</Text>
             )}
           </TouchableOpacity>
+
+          {/* Submit / Download Row */}
+          <View className="flex-row gap-3">
+            {meetingId ? (
+              <TouchableOpacity
+                disabled={isAgendaDownloading}
+                onPress={async () => {
+                  setIsAgendaDownloading(true);
+                  try {
+                    await handleDownloadAgenda(
+                      {
+                        meetingDate,
+                        meetingTime,
+                        meetingVenue,
+                        meetingNumber,
+                        attendees,
+                        minutes,
+                      },
+                      projectName,
+                      auth?.user?.fullName ?? "Unknown",
+                      company,
+                      auth?.token
+                    );
+                  } finally {
+                    setIsAgendaDownloading(false);
+                  }
+                }}
+                className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                  isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
+                }`}
+              >
+                {isAgendaDownloading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white font-bold text-xl">
+                    Download Agenda
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => handleSubmit("agenda")}
+                disabled={isAgendaSubmitting}
+                className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                  isAgendaSubmitting ? "bg-gray-400" : "bg-sky-700"
+                }`}
+              >
+                {isAgendaSubmitting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white font-bold text-xl">
+                    Submit Agenda
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              onPress={() => handleSubmit("mom")}
+              disabled={isMomSubmitting}
+              className={`flex-1 px-4 py-4 rounded-xl items-center ${
+                isMomSubmitting ? "bg-gray-400" : "bg-green-700"
+              }`}
+            >
+              {isMomSubmitting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-bold text-xl">
+                  Submit Minutes
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* <TouchableOpacity

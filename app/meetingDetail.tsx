@@ -115,7 +115,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        console.log(JSON.stringify(res.data, null, 2));
+        // console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -301,6 +301,26 @@ const MinutesDetail = () => {
             <Text className="ml-2 text-gray-700">{meetingVenue}</Text>
           </View>
         </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            const params = {
+              meetingId: meeting._id,
+              projectId: meeting.projectId,
+              actionType: "editMOM",
+            };
+
+            console.log(params); // Log before navigation
+
+            router.push({
+              pathname: "/createMeeting",
+              params,
+            });
+          }}
+          className="bg-indigo-600 px-4 py-2 rounded-xl self-end mb-3"
+        >
+          <Text className="text-white font-semibold">Edit MOM</Text>
+        </TouchableOpacity>
 
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />

@@ -30,6 +30,8 @@ function LayoutWithAuth() {
     if (loading) return;
 
     const currentSegment = segments.join("/");
+    console.log("🔎 Layout check → isAuthenticated:", isAuthenticated, " segment:", currentSegment);
+
 
     if (!isAuthenticated) {
       if (currentSegment !== "login") {
