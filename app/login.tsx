@@ -55,7 +55,7 @@ export default function LoginScreen() {
 
       const errorMessage =
         err.response?.data?.message || err.message || "Something went wrong";
-console.log(errorMessage)
+      console.log(errorMessage);
       Toast.show({
         type: "error",
         text1: "Login Failed",

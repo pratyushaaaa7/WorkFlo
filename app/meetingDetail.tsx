@@ -138,7 +138,7 @@ const MinutesDetail = () => {
 
     const submittedAtDate = new Date(meeting.submittedAt);
     const diffMs = Date.now() - submittedAtDate.getTime();
-    const THIRTY_MIN = 30 * 60 * 1000;
+    const THIRTY_MIN = 40 * 60 * 1000;
 
     setIsEditAllowed(diffMs <= THIRTY_MIN);
   }, [meeting]);
@@ -318,23 +318,30 @@ const MinutesDetail = () => {
         </View>
 
         {isEditAllowed && (
-          <TouchableOpacity
-            onPress={() => {
-              const params = {
-                meetingId: meeting._id,
-                projectId: meeting.projectId,
-                actionType: "editMOM",
-              };
+          <>
+            <TouchableOpacity
+              onPress={() => {
+                const params = {
+                  meetingId: meeting._id,
+                  projectId: meeting.projectId,
+                  actionType: "editMOM",
+                };
 
-              router.push({
-                pathname: "/createMeeting",
-                params,
-              });
-            }}
-            className="bg-indigo-600 px-4 py-3 rounded-xl items-center mb-3"
-          >
-            <Text className="text-white font-semibold">Edit MOM</Text>
-          </TouchableOpacity>
+                router.push({
+                  pathname: "/createMeeting",
+                  params,
+                });
+              }}
+              className="bg-indigo-600 px-4 py-3 rounded-xl items-center mb-1"
+            >
+              <Text className="text-white font-semibold">Edit MOM</Text>
+            </TouchableOpacity>
+
+            {/* Note about visibility */}
+            <Text className="text-gray-500 text-xs mb-3 text-center">
+              * This button is available only for 30 minutes after submission.
+            </Text>
+          </>
         )}
 
         {loading ? (
