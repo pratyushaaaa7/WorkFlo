@@ -30,6 +30,7 @@ const AppSupport = () => {
         type: "error",
         text1: "Failed to load tickets",
         text2: "Please try again later.",
+        position: "bottom",
       });
     } finally {
       setLoading(false);

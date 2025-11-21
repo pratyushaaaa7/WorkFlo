@@ -10,44 +10,50 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <LayoutWithAuth />
-      <Toast/>
+      <Toast />
     </AuthProvider>
   );
 }
 
-
 function LayoutWithAuth() {
   const router = useRouter();
   const segments = useSegments() as string[];
-  const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, authLoading } = useAuth();
+
+  // const [loading, setLoading] = useState(true);
+
+  // useEffect(() => {
+  //   console.log("🔁 RootLayout mounted → waiting for auth load");
+  //   setLoading(false);
+  // }, []);
 
   useEffect(() => {
-    setLoading(false); // We're ready to evaluate auth
-  }, []);
+    // if (loading) return;
+    if (authLoading) return;
 
-  useEffect(() => {
-    if (loading) return;
-
-    const currentSegment = segments.join("/");
-    // console.log("🔎 Layout check → isAuthenticated:", isAuthenticated, " segment:", currentSegment);
-
+    const current = segments.join("/");
+    console.log("🧭 NAVIGATION CHECK:", {
+      currentSegment: current,
+      isAuthenticated,
+    });
 
     if (!isAuthenticated) {
-      if (currentSegment !== "login") {
+      if (current !== "login") {
+        console.log("➡️ Redirecting to /login (not authenticated)");
         router.replace("/login");
       }
     } else {
-      // If user is on login screen or root, redirect to profile
-      if (currentSegment === "login" || currentSegment === "") {
+      if (current === "login" || current === "") {
+        console.log("➡️ Redirecting to /projects (authenticated)");
         router.replace("/(drawer)/projects");
       }
     }
-  }, [loading, isAuthenticated, segments]);
+  }, [authLoading, isAuthenticated, segments]);
 
-  if (loading) {
+  // if (loading) {
+  if (authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
       </View>
     );
