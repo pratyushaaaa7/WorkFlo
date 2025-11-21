@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -75,7 +75,11 @@ const ILRs = () => {
   }, [token, projectId]);
 
   const handleDownloadExcel = async () => {
+    if (!parsedILRs || parsedILRs.length === 0) return;
+
     try {
+      setIsDownloadingExcel(true);
+
       const payload = {
         ilrs: parsedILRs,
         projectName,
@@ -83,18 +87,14 @@ const ILRs = () => {
         company,
       };
 
-      // Call backend
       const response = await api.post("/ilrs/ilrs-download", payload, {
-        responseType: "blob", // important for binary files
-        headers: {
-          Authorization: `Bearer ${auth?.token}`,
-        },
+        responseType: "blob",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const fileName = `ILRs_${projectName}.xlsx`;
 
       if (Platform.OS === "web") {
-        // Web: download via anchor tag
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const a = document.createElement("a");
         a.href = url;
@@ -103,31 +103,33 @@ const ILRs = () => {
         a.click();
         a.remove();
       } else {
-        // Mobile: write to cache and share
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
         const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
 
-        // Convert blob to base64
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64data = reader.result?.toString().split(",")[1]; // remove data prefix
-          if (!base64data) return;
-
-          await FileSystem.writeAsStringAsync(fileUri, base64data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-
-          await Sharing.shareAsync(fileUri, {
-            mimeType:
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            dialogTitle: "Share ILRs Excel",
-            UTI: "com.microsoft.excel.xlsx",
-          });
-        };
-        reader.readAsDataURL(response.data);
+        await Sharing.shareAsync(fileUri, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Share ILRs Excel",
+          UTI: "com.microsoft.excel.xlsx",
+        });
       }
     } catch (err) {
       console.error("Failed to download Excel:", err);
       alert("Failed to download Excel");
+    } finally {
+      setIsDownloadingExcel(false);
     }
   };
 
@@ -231,42 +233,128 @@ const ILRs = () => {
         : ilr.activities || [],
   }));
 
+  // State to track PDF download
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false);
+
+  const handleDownloadILRsPDF = async () => {
+    if (!ilrs || ilrs.length === 0) return;
+
+    try {
+      setIsDownloadingPDF(true);
+
+      const payload = {
+        ilrs: parsedILRs,
+        projectName,
+        accountName: auth?.user?.fullName ?? "Unknown",
+        company,
+      };
+
+      const response = await api.post("/ilrs/ilrs-download/pdf", payload, {
+        responseType: "blob",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const fileName = `ILRs_${projectName}.pdf`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share ILRs PDF",
+          UTI: "com.adobe.pdf",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to download ILRs PDF:", err);
+      alert("Failed to download ILRs PDF");
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md"
-        // style={{
-        //   shadowColor: "#000",
-        //   shadowOffset: { width: 0, height: 3 },
-        //   shadowOpacity: 0.25,
-        //   shadowRadius: 4,
-        //   elevation: 6,
-        //   zIndex: 10,
-        // }}
-      >
-        {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-row items-center"
-          activeOpacity={0.7}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View
+          className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md"
+          // style={{
+          //   shadowColor: "#000",
+          //   shadowOffset: { width: 0, height: 3 },
+          //   shadowOpacity: 0.25,
+          //   shadowRadius: 4,
+          //   elevation: 6,
+          //   zIndex: 10,
+          // }}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-          <Text className="text-xl font-semibold text-white ml-4">
-            {" "}
-            {/* {projectName} */}
-             ILRs
-          </Text>
-        </TouchableOpacity>
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              {" "}
+              {/* {projectName} */}
+              ILRs
+            </Text>
+          </TouchableOpacity>
 
-        {/* Download Icon */}
-        <TouchableOpacity
-          onPress={handleDownloadExcel}
-          className="px-2 mr-2 rounded-full bg-white/20 active:bg-white/50"
-        >
-          <Feather name="download" size={22} color="#fff" />
-        </TouchableOpacity>
+          {/* Download Excel */}
+          <TouchableOpacity
+            disabled={isDownloadingExcel}
+            className="px-2 mr-2 rounded-full bg-white/20"
+            onPress={handleDownloadExcel}
+          >
+            {isDownloadingExcel ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Feather name="download" size={22} color="white" />
+            )}
+          </TouchableOpacity>
+
+          {/* Download PDF */}
+          <TouchableOpacity
+            disabled={isDownloadingPDF}
+            className="px-2 mr-2 rounded-full bg-white/20"
+            onPress={handleDownloadILRsPDF}
+          >
+            {isDownloadingPDF ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialCommunityIcons
+                name="file-pdf-box"
+                size={26}
+                color="white"
+              />
+            )}
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
