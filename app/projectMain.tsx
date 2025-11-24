@@ -174,22 +174,22 @@ const ProjectMain = () => {
           },
         }),
     },
-    {
-      key: "projectStage",
-      label: "Project Stage",
-      icon: (
-        <MaterialCommunityIcons
-          name="timeline-check-outline"
-          size={40}
-          color="#3B82F9"
-        />
-      ),
-      onPress: () =>
-        router.push({
-          pathname: "/projectStage",
-          params: { company, projectId, projectName: project?.projectName },
-        }),
-    },
+    // {
+    //   key: "projectStage",
+    //   label: "Project Stage",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="timeline-check-outline"
+    //       size={40}
+    //       color="#3B82F9"
+    //     />
+    //   ),
+    //   onPress: () =>
+    //     router.push({
+    //       pathname: "/projectStage",
+    //       params: { company, projectId, projectName: project?.projectName },
+    //     }),
+    // },
   ];
 
   return (
