@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -184,7 +185,12 @@ const CreateProjectScreen = () => {
     fetchUsers();
   }, [token]);
 
+  const [saving, setSaving] = useState(false);
+
   const handleSaveProject = async () => {
+    if (saving) return; // prevent double-taps
+    setSaving(true);
+
     Keyboard.dismiss();
     if (!projectName.trim() || !companyName || !projectTypology) {
       Toast.show({
@@ -193,6 +199,7 @@ const CreateProjectScreen = () => {
         text2: "Please fill all required fields.",
         position: "bottom",
       });
+      setSaving(false);
       return;
     }
 
@@ -250,6 +257,8 @@ const CreateProjectScreen = () => {
         text2: `Failed to ${isEditing ? "update" : "create"} project`,
         position: "bottom",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -682,12 +691,18 @@ const CreateProjectScreen = () => {
 
         {/* Submit Button */}
         <TouchableOpacity
+          disabled={saving}
           onPress={handleSaveProject}
-          className="bg-indigo-600 mt-6 mb-40 py-3 rounded-lg items-center"
+          className={`mt-6 mb-40 py-3 rounded-lg items-center 
+    ${saving ? "bg-gray-400" : "bg-indigo-600"}`}
         >
-          <Text className="text-white font-bold text-base">
-            {isEditing ? "Update Project" : "Create Project"}
-          </Text>
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-base">
+              {isEditing ? "Update Project" : "Create Project"}
+            </Text>
+          )}
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </View>

@@ -78,12 +78,36 @@ export default api;
 //   (response) => response,
 //   (error) => {
 //     const status = error.response?.status;
+//     const message = error.response?.data?.message;
 
-//     if (status === 401 || status === 403) {
-//       console.log("⛔ Global logout triggered via API Interceptor");
-//       logoutUser();  //Do not manually route or touch storage
+//     // TOKEN EXPIRED → 401
+//     if (status === 401) {
+//       setTimeout(() => {
+//         Toast.show({
+//           type: "error",
+//           text1: "Session expired",
+//           text2: "Please login again",
+//           position: "bottom",
+//         });
+//       }, 800); // ⬅️ Delay toast by 0.8 sec
+//       console.log("⛔ Global logout triggered (401 Token expired)");
+//       logoutUser(); // Clears auth + handles routing
 //     }
 
+//     // ACCOUNT DEACTIVATED → 403
+//     if (status === 403) {
+//       setTimeout(() => {
+//         Toast.show({
+//           type: "error",
+//           text1: "Account deactivated",
+//           text2: message || "Please contact admin",
+//           position: "bottom",
+//         });
+//       }, 800); // ⬅️ Delay toast by 0.8 sec
+
+//       console.log("⛔ Global logout triggered (403 Account deactivated)");
+//       logoutUser();
+//     }
 //     return Promise.reject(error);
 //   }
 // );

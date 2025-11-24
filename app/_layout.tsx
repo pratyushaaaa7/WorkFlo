@@ -32,10 +32,10 @@ function LayoutWithAuth() {
     if (authLoading) return;
 
     const current = segments.join("/");
-    console.log("🧭 NAVIGATION CHECK:", {
-      currentSegment: current,
-      isAuthenticated,
-    });
+    // console.log("🧭 NAVIGATION CHECK:", {
+    //   currentSegment: current,
+    //   isAuthenticated,
+    // });
 
     if (!isAuthenticated) {
       if (current !== "login") {
