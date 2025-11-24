@@ -335,7 +335,11 @@ const ILRs = () => {
             {isDownloadingExcel ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Feather name="download" size={22} color="white" />
+              <MaterialCommunityIcons
+                name="microsoft-excel"
+                size={24}
+                color="white"
+              />
             )}
           </TouchableOpacity>
 
