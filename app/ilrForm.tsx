@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import moment from "moment";
@@ -119,8 +120,12 @@ const ILRForm = () => {
     setDatePickerVisible(true);
   };
 
+  const [saving, setSaving] = useState(false);
+
   // ✅ Handle Submit (send each issue separately)
   const handleSubmit = async () => {
+    if (saving) return; // prevent double submit
+    setSaving(true);
     // Close keyboard immediately when button is pressed
     Keyboard.dismiss();
     try {
@@ -131,6 +136,7 @@ const ILRForm = () => {
           text2: "User not authenticated",
           position: "bottom",
         });
+        setSaving(false);
         return;
       }
 
@@ -148,6 +154,7 @@ const ILRForm = () => {
             text2: "Please fill all required fields for every issue.",
             position: "bottom",
           });
+          setSaving(false);
           return; // stop submission
         }
       }
@@ -198,6 +205,8 @@ const ILRForm = () => {
         text2: error.response?.data?.message || "Something went wrong",
         position: "bottom",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -407,10 +416,20 @@ const ILRForm = () => {
         {/* Submit Button */}
         <Pressable
           onPress={handleSubmit}
-          className="bg-blue-700 py-4 rounded-2xl items-center active:scale-95"
+          disabled={saving}
           android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+          className={`py-4 rounded-2xl items-center mb-20
+    ${saving ? "bg-gray-400" : "bg-blue-700"}
+  `}
+          style={({ pressed }) => [
+            { transform: [{ scale: pressed ? 0.97 : 1 }] },
+          ]}
         >
-          <Text className="text-white font-bold text-lg">Submit ILR</Text>
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-lg">Submit ILR</Text>
+          )}
         </Pressable>
       </KeyboardAwareScrollView>
 

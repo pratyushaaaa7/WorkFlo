@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -154,6 +160,8 @@ const AddUserForm: React.FC = () => {
   const [officialNumberList, setOfficialNumberList] = useState<string[]>([""]);
   const [mobileNumberList, setMobileNumberList] = useState<string[]>([""]);
 
+  const [saving, setSaving] = useState(false);
+
   // Helpers
   const addField = (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
@@ -172,32 +180,41 @@ const AddUserForm: React.FC = () => {
 
   // Submit handler
   const handleSubmit = async () => {
+    if (saving) return; // prevent double tap
+    setSaving(true);
+
     // 🧩 Validation checks
     if (!roleValue) {
-      return Toast.show({
+      Toast.show({
         type: "error",
         text1: "Validation",
         text2: "Please select a role.",
         position: "bottom",
       });
+      setSaving(false);
+      return;
     }
 
     if (individualName.trim() === "") {
-      return Toast.show({
+      Toast.show({
         type: "error",
         text1: "Validation",
         text2: "Name cannot be empty.",
         position: "bottom",
       });
+      setSaving(false);
+      return;
     }
 
     if (!gender) {
-      return Toast.show({
+      Toast.show({
         type: "error",
         text1: "Validation",
         text2: "Please select gender.",
         position: "bottom",
       });
+      setSaving(false);
+      return;
     }
 
     try {
@@ -276,6 +293,8 @@ const AddUserForm: React.FC = () => {
           position: "bottom",
         });
       }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -446,15 +465,22 @@ const AddUserForm: React.FC = () => {
 
         {/* Submit Button */}
         <TouchableOpacity
+          disabled={saving}
           activeOpacity={0.8}
           onPress={handleSubmit}
-          className="bg-indigo-600 py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-20"
+          className={`py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-20
+    ${saving ? "bg-gray-400" : "bg-indigo-600"}`}
         >
-          <Ionicons name="checkmark-done-outline" size={24} color="white" />
-          <Text className="text-white text-lg font-semibold">
-            {" "}
-            {isEditMode ? "Update User" : "Create User"}
-          </Text>
+          {saving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="checkmark-done-outline" size={24} color="white" />
+              <Text className="text-white text-lg font-semibold">
+                {isEditMode ? "Update User" : "Create User"}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </KeyboardAwareScrollView>
     </View>
