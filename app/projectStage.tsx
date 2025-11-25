@@ -55,6 +55,7 @@ const ProjectStage: React.FC = () => {
       "Practice Development",
       //   "Billing Management",
       "Closing and Handover",
+      "Defects Liability Stage",
     ],
     WAL: [
       "Feasibility",

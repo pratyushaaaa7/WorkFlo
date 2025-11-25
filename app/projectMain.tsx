@@ -154,10 +154,10 @@ const ProjectMain = () => {
     },
     {
       key: "dpr",
-      label: "Reports",
+      label: "Daily Progress Reports",
       icon: (
         <MaterialCommunityIcons
-          name="file-image-outline"
+          name="clipboard-text-clock-outline"
           size={40}
           color="#EF4444"
         />
@@ -174,6 +174,28 @@ const ProjectMain = () => {
           },
         }),
     },
+    // {
+    //   key: "svr",
+    //   label: "Site Visit Reports",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="file-document-edit-outline"
+    //       size={40}
+    //       color="#3B82F6"
+    //     />
+    //   ),
+    //   onPress: () =>
+    //     router.push({
+    //       pathname: "/svrs",
+    //       params: {
+    //         company,
+    //         projectId,
+    //         projectName,
+    //         teamLeaders: JSON.stringify(project?.teamLeaders || []),
+    //         teamMembers: JSON.stringify(project?.teamMembers || []),
+    //       },
+    //     }),
+    // },
     // {
     //   key: "projectStage",
     //   label: "Project Stage",
@@ -258,7 +280,7 @@ const ProjectMain = () => {
           <TouchableOpacity
             key={key}
             onPress={onPress}
-            className="bg-white rounded-2xl p-6 items-center shadow-md active:scale-95"
+            className="bg-white rounded-2xl py-6 px-2 items-center shadow-md active:scale-95"
             style={{ width: ITEM_WIDTH }}
           >
             <View className="mb-3">{icon}</View>
