@@ -109,7 +109,7 @@ const IlrActivities = () => {
         remarks: ilrData.remarks,
         responsibility: ilrData.responsibility || [],
         status: ilrData.status,
-        ilrCreatedBy: ilrData.createdBy?.username || "Unknown",
+        ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
         ilrCreatedAt: ilrData.createdAt,
         ilrNumber: ilrData.ilrNumber, // 👈 add this
       });
@@ -125,7 +125,7 @@ const IlrActivities = () => {
           return {
             _id: act._id,
             title: act.action || act.title,
-            createdBy: act.createdBy?.username || "Unknown",
+            createdBy: act.createdBy?.fullName || "Unknown",
             createdAt: act.createdAt,
             oldValue: isDateChange
               ? formatDateSafe(act.oldValue)

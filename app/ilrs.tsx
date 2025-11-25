@@ -148,7 +148,7 @@ const ILRs = () => {
             remarks: item.remarks,
             responsibility: JSON.stringify(item.responsibility),
             status: item.status,
-            createdBy: item.createdBy?.username,
+            createdBy: item.createdBy?.fullName,
             createdAt: item.createdAt,
             ilrNumber: item.ilrNumber,
           };
