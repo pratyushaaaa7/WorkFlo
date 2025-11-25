@@ -246,6 +246,8 @@ const CreateSupport = () => {
             placeholder="Write your description here..."
             placeholderTextColor="#999"
             value={description}
+            autoCorrect={true}
+            spellCheck={true}
             onChangeText={setDescription}
             className="border border-gray-300 rounded-xl p-3 h-40 bg-gray-50 text-gray-900"
           />

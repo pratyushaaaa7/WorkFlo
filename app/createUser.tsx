@@ -334,36 +334,50 @@ const AddUserForm: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Role Dropdown */}
-        <View className="mb-4 z-10">
-          <Text className="text-gray-700 font-semibold mb-1">
-            Role <Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            style={{
-              backgroundColor: "white",
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: "#ddd",
-              paddingHorizontal: 12,
-              height: 40,
-            }}
-            placeholderStyle={{ color: "#888", fontSize: 14 }}
-            selectedTextStyle={{ color: "#000", fontSize: 16 }}
-            data={roleItems}
-            labelField="label"
-            valueField="value"
-            placeholder="Select role"
-            value={roleValue}
-            onChange={(item) => setRoleValue(item.value)}
-            showsVerticalScrollIndicator={false}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            activeColor="#E0E7FF"
-          />
-        </View>
+        {isEditMode ? (
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-1">Role</Text>
+
+            <View className="bg-gray-100 px-4 py-2 rounded-xl border border-gray-300">
+              <Text className="text-gray-800">{roleValue}</Text>
+              <Text className="text-xs italic text-gray-500 mt-1">
+                Role cannot be edited
+              </Text>
+            </View>
+          </View>
+        ) : (
+          // Create Mode: Role Dropdown (your existing dropdown)
+          <View className="mb-4 z-10">
+            <Text className="text-gray-700 font-semibold mb-1">
+              Role <Text className="text-red-500">*</Text>
+            </Text>
+            <Dropdown
+              style={{
+                backgroundColor: "white",
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                paddingHorizontal: 12,
+                height: 40,
+              }}
+              placeholderStyle={{ color: "#888", fontSize: 14 }}
+              selectedTextStyle={{ color: "#000", fontSize: 16 }}
+              data={roleItems}
+              labelField="label"
+              valueField="value"
+              placeholder="Select role"
+              value={roleValue}
+              onChange={(item) => setRoleValue(item.value)}
+              showsVerticalScrollIndicator={false}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: "#fff",
+                elevation: 4,
+              }}
+              activeColor="#E0E7FF"
+            />
+          </View>
+        )}
 
         {/* Individual Name */}
         <View className="mb-4">

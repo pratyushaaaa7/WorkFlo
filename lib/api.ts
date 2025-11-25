@@ -4,7 +4,7 @@ import { logoutUser } from "../lib/logoutHelper";
 import Toast from "react-native-toast-message";
 
 const api = axios.create({
-  baseURL: "http://192.168.1.110:5000/api", // Change localhost if testing on physical device
+  baseURL: "http://192.168.1.104:5000/api", // Change localhost if testing on physical device
 });
 
 api.interceptors.response.use(
@@ -46,29 +46,10 @@ api.interceptors.response.use(
 );
 export default api;
 
-// import axios from 'axios';
-// const api = axios.create({
-//   baseURL: 'https://wtechbackend.onrender.com/api',  // Live backend URL
-// });
-// export default api;
-
-// import axios from "axios";
-// const api = axios.create({
-//   baseURL: "http://103.109.6.123:5000/api", // Replace <VPS_IP> with your VPS public IP
-//   // OR
-//   // baseURL: "https://yourdomain.com/api", // if you have a domain + HTTPS set up
-// });
-// export default api;
-
-// import axios from "axios";
-// const api = axios.create({
-//   baseURL: "http://103.109.6.123/api",  // Production API through Nginx
-// });
-// export default api;
-
 //FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
 // import axios from "axios";
 // import { logoutUser } from "../lib/logoutHelper";
+// import Toast from "react-native-toast-message";
 
 // const api = axios.create({
 //   baseURL: "https://api.wprojects.in/api",
@@ -112,4 +93,28 @@ export default api;
 //   }
 // );
 
+// export default api;
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+// import axios from 'axios';
+// const api = axios.create({
+//   baseURL: 'https://wtechbackend.onrender.com/api',  // Live backend URL
+// });
+// export default api;
+
+// import axios from "axios";
+// const api = axios.create({
+//   baseURL: "http://103.109.6.123:5000/api", // Replace <VPS_IP> with your VPS public IP
+//   // OR
+//   // baseURL: "https://yourdomain.com/api", // if you have a domain + HTTPS set up
+// });
+// export default api;
+
+// import axios from "axios";
+// const api = axios.create({
+//   baseURL: "http://103.109.6.123/api",  // Production API through Nginx
+// });
 // export default api;

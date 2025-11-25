@@ -133,15 +133,6 @@ const ILRs = () => {
     }
   };
 
-  // Helper: convert blob to base64 (for mobile)
-  const blobToBase64 = (blob: Blob) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result?.toString() || "");
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
   const renderCard = ({ item }: { item: ILR }) => {
     const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
 

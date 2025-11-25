@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import * as FileSystem from "expo-file-system";
@@ -53,12 +53,12 @@ interface EditFieldChangeHandler {
 
 const UserList = () => {
   const router = useRouter();
-  const { projectId, projectName } = useLocalSearchParams();
+  const { projectId, projectName, company } = useLocalSearchParams();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
   const auth = useContext(AuthContext);
   const token = auth?.token;
-
+  console.log(company);
   // Delete modal state
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
@@ -256,59 +256,173 @@ const UserList = () => {
     </TouchableOpacity>
   );
 
+  const [excelLoading, setExcelLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   const handleDownloadExcel = async () => {
+    if (!token || !projectId) {
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Project or token is missing",
+      });
+      return;
+    }
+
     try {
-      // 1. Prepare the data array you want to export
-      // Use your fetched users data array here, example:
-      const dataToExport = users.map((user, index) => ({
-        SNo: index + 1, // Serial number starting from 1
-        Name: user.individualName,
-        Designation: user.designation,
-        Role: user.role,
-        "Role Description": user.roleDescription,
-        "Firm Name": user.firmName,
-        Email: user.email,
-        Phone: user.phone,
-      }));
+      setExcelLoading(true); // START LOADING
 
-      // 2. Create a worksheet
-      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      // 1️⃣ Call backend route
+      const response = await api.post(
+        "/user-directory/export/excel",
+        {
+          projectId,
+          projectName,
+          company,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
 
-      // 3. Create a new workbook and append the worksheet
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+      const fileName = `${projectName || "project"}_User_Directory.xlsx`;
 
       if (Platform.OS === "web") {
-        // Web download using Blob
-        const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-        const blob = new Blob([wbout], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-        const url = window.URL.createObjectURL(blob);
+        // ✅ Web download
+        const url = window.URL.createObjectURL(response.data);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "users.xlsx";
+        a.download = fileName;
+        document.body.appendChild(a);
         a.click();
+        a.remove();
         window.URL.revokeObjectURL(url);
       } else {
-        // Mobile (iOS/Android) download
-        const wbout = XLSX.write(workbook, {
-          type: "base64",
-          bookType: "xlsx",
-        });
-        const fileUri = FileSystem.cacheDirectory + "users.xlsx";
-        await FileSystem.writeAsStringAsync(fileUri, wbout, {
+        // ✅ Mobile download (iOS/Android)
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
           encoding: FileSystem.EncodingType.Base64,
         });
+
         await Sharing.shareAsync(fileUri, {
           mimeType:
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          dialogTitle: "Download Users Excel File",
+          dialogTitle: "Download User Directory",
           UTI: "com.microsoft.excel.xlsx",
         });
       }
-    } catch (error) {
-      console.error("Error generating Excel file:", error);
+
+      // Toast.show({
+      //   type: "success",
+      //   text1: "Excel Downloaded",
+      //   text2: "User directory has been downloaded successfully.",
+      //   position: "bottom",
+      // });
+    } catch (err) {
+      console.error("Excel download error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Unable to download user directory.",
+        position: "bottom",
+      });
+    } finally {
+      setExcelLoading(false); // STOP LOADING
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!token || !projectId) {
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Project or token is missing",
+      });
+      return;
+    }
+
+    try {
+      setPdfLoading(true); // START LOADING
+
+      // Call backend PDF export route
+      const response = await api.post(
+        "/user-directory/export/pdf",
+        {
+          projectId,
+          projectName,
+          company,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob", // important for binary data
+        }
+      );
+
+      const fileName = `${projectName || "project"}_User_Directory.pdf`;
+
+      if (Platform.OS === "web") {
+        // Web download
+        const url = window.URL.createObjectURL(response.data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Mobile download (iOS/Android)
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Download User Directory PDF",
+          UTI: "com.adobe.pdf",
+        });
+      }
+
+      // Toast.show({
+      //   type: "success",
+      //   text1: "PDF Downloaded",
+      //   text2: "User directory PDF has been downloaded successfully.",
+      //   position: "bottom",
+      // });
+    } catch (err) {
+      console.error("PDF download error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Unable to download user directory PDF.",
+        position: "bottom",
+      });
+    } finally {
+      setPdfLoading(false); // STOP LOADING
     }
   };
 
@@ -336,13 +450,41 @@ const UserList = () => {
             <Text className="text-xl font-semibold text-white ml-4">Back</Text>
           </TouchableOpacity>
 
-          {/* Download Icon */}
-          <TouchableOpacity
-            onPress={handleDownloadExcel}
-            className="px-2 mr-2 rounded-full bg-white/30 active:bg-white/50"
-          >
-            <Feather name="download" size={22} color="#fff" />
-          </TouchableOpacity>
+          <View className="flex-row gap-6">
+            {/* Excel Download */}
+            <TouchableOpacity
+              disabled={excelLoading} // disable during loading
+              onPress={handleDownloadExcel}
+              className="px-3 py-1 rounded-full bg-white/30 active:bg-white/50 flex items-center justify-center"
+            >
+              {excelLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <MaterialCommunityIcons
+                  name="microsoft-excel"
+                  size={24}
+                  color="white"
+                />
+              )}
+            </TouchableOpacity>
+
+            {/* PDF Download */}
+            <TouchableOpacity
+              disabled={pdfLoading}
+              onPress={handleDownloadPDF}
+              className="px-3 py-1 rounded-full bg-white/30 active:bg-white/50 flex items-center justify-center"
+            >
+              {pdfLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <MaterialCommunityIcons
+                  name="file-pdf-box"
+                  size={26}
+                  color="white"
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
