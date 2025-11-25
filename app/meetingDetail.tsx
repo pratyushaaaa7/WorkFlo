@@ -138,7 +138,7 @@ const MinutesDetail = () => {
 
     const submittedAtDate = new Date(meeting.submittedAt);
     const diffMs = Date.now() - submittedAtDate.getTime();
-    const THIRTY_MIN = 40 * 60 * 1000;
+    const THIRTY_MIN = 2 * 60 * 60 * 1000;
 
     setIsEditAllowed(diffMs <= THIRTY_MIN);
   }, [meeting]);

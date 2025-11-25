@@ -154,7 +154,7 @@ const ProjectMain = () => {
     },
     {
       key: "dpr",
-      label: "Daily Progress Reports",
+      label: "Reports",
       icon: (
         <MaterialCommunityIcons
           name="clipboard-text-clock-outline"
