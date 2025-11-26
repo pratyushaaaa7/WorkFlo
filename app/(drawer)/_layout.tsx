@@ -44,6 +44,21 @@ export default function DrawerLayout() {
         }}
       />
 
+      <Drawer.Screen
+        name="myDashboard"
+        options={{
+          drawerLabel: "My Dashboard",
+          title: "My Dashboard",
+          drawerIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="view-dashboard-outline"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
       {/* <Drawer.Screen
         name="createProject"
         options={{
@@ -54,6 +69,7 @@ export default function DrawerLayout() {
           ),
         }}
       /> */}
+      
       {/* 
       <Drawer.Screen
         name="ilrForm"
