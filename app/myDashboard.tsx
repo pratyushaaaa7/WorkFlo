@@ -1,11 +1,13 @@
-import { View, Text, Pressable, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, ScrollView , TouchableOpacity} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import {jwtDecode }from "jwt-decode";
-import api from "../../lib/api";
+import api from "../lib/api";
 import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 type TokenPayload = {
   userId: string;
@@ -155,14 +157,31 @@ const Dashboard = () => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50 px-6 pt-10">
+    <View className="flex-1 bg-gray-50 ">
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+             <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
+               <TouchableOpacity
+                 onPress={() => router.back()}
+                 className="flex-row items-center"
+                 activeOpacity={0.7}
+               >
+                 <Ionicons name="arrow-back" size={24} color="#fff" />
+                 <Text className="text-xl font-semibold text-white ml-4">
+                   {/* {projectName}  */}
+                   SVRs
+                 </Text>
+               </TouchableOpacity>
+             </View>
+           </LinearGradient>
+
       {loading ? (
         <View className="items-center mt-10">
           <ActivityIndicator size="large" />
           <Text className="text-gray-500 mt-2">Loading dashboard...</Text>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} 
+        className="px-4 pt-4">
           {/* Projects */}
           <Text className="text-lg font-semibold mb-2">My Projects</Text>
           {myProjects.map(renderProject)}

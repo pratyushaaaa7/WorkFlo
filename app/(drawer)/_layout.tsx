@@ -44,7 +44,7 @@ export default function DrawerLayout() {
         }}
       />
 
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="myDashboard"
         options={{
           drawerLabel: "My Dashboard",
@@ -57,7 +57,7 @@ export default function DrawerLayout() {
             />
           ),
         }}
-      />
+      /> */}
 
       {/* <Drawer.Screen
         name="createProject"
