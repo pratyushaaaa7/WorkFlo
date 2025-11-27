@@ -188,7 +188,7 @@ const Dashboard = () => {
 
       {loading ? (
         <View className="items-center mt-10">
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color="#6366F1" />
           <Text className="text-gray-500 mt-2">Loading dashboard...</Text>
         </View>
       ) : (
