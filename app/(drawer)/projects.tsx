@@ -216,7 +216,7 @@ const CompanyProjectSelectionScreen = () => {
         </TouchableOpacity>
 
         {/* Info Section */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className="mt-8 shadow-lg rounded-3xl border-1 border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}
           style={{ borderColor: "#4338ca" }}
@@ -242,7 +242,7 @@ const CompanyProjectSelectionScreen = () => {
               </Text>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </ScrollView>
     </View>
   );
