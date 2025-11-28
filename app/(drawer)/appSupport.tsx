@@ -86,18 +86,19 @@ const AppSupport = () => {
               {item.type || "Support Ticket"}
             </Text>
           </View>
+           <View className="flex-row items-center">
+            <Ionicons name="person-circle-outline" size={16} color="#6b7280" />
+            <Text className="ml-1 text-xs text-gray-500">
+              {item.raisedBy?.fullName || item.raisedBy?.username || "Unknown"}
+            </Text>
+          </View>
         </View>
 
         <View className="flex-row items-center justify-between">
           <Text className="text-gray-600 font-medium ">
             {item.relatedPage || "N/A"}
           </Text>
-          <View className="flex-row items-center">
-            <Ionicons name="person-circle-outline" size={16} color="#6b7280" />
-            <Text className="ml-1 text-xs text-gray-500">
-              {item.raisedBy?.fullName || item.raisedBy?.username || "Unknown"}
-            </Text>
-          </View>
+         
         </View>
 
         <Text

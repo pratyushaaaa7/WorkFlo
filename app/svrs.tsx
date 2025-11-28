@@ -11,14 +11,16 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../lib/api";
-import * as DocumentPicker from "expo-document-picker";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 
 const SVRs = () => {
   const router = useRouter();
+
+  // ✅ Receiving params from previous screen
   const { projectId, projectName, company, teamLeaders, teamMembers } =
     useLocalSearchParams();
+
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
@@ -26,23 +28,22 @@ const SVRs = () => {
     _id: string;
     fileName: string;
     url: string;
-    // add other fields if needed
   };
 
-  // const [uploading, setUploading] = useState(false);
   const [dprs, setDprs] = useState<DprItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch DPRs for this project
+  // Fetch DPR/SVR list
   const fetchDPRs = async () => {
     try {
       const response = await api.get(`/dpr?projectId=${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setDprs(response.data || []);
     } catch (err) {
       console.error("Fetch DPRs failed:", err);
-      Alert.alert("Error", "Failed to fetch DPRs");
+      Alert.alert("Error", "Failed to fetch SVRs");
     } finally {
       setLoading(false);
     }
@@ -63,15 +64,12 @@ const SVRs = () => {
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {/* {projectName}  */}
-              SVRs
-            </Text>
+            <Text className="text-xl font-semibold text-white ml-4">SVRs</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
-      {/* DPR List */}
+      {/* Content */}
       <View className="flex-1 px-4 pt-4">
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" />
@@ -84,19 +82,6 @@ const SVRs = () => {
             No DPRs found. tralalalalala
           </Text>
         )}
-
-        {/* Upload Button */}
-        {/* <TouchableOpacity
-          onPress={handleUploadDPR}
-          disabled={uploading}
-          className="bg-indigo-600 px-6 py-3 rounded-full mt-6 items-center"
-        >
-          {uploading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold">Upload DPR (PDF)</Text>
-          )}
-        </TouchableOpacity> */}
       </View>
 
       {/* Floating + Button */}
@@ -111,7 +96,6 @@ const SVRs = () => {
           position: "absolute",
           bottom: 44,
           right: 20,
-          // backgroundColor: "#6366F1",
           width: 56,
           height: 56,
           borderRadius: 28,

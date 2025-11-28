@@ -1,191 +1,635 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   TextInput,
-  Pressable,
-  ActivityIndicator,
+  TouchableOpacity,
+  FlatList,
   Platform,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Animated,
+  Pressable,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { AuthContext } from "../context/AuthContext";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import uuid from "react-native-uuid";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { List, Card } from "react-native-paper";
+import { Dropdown } from "react-native-element-dropdown";
+import api from "../lib/api";
 import Toast from "react-native-toast-message";
+import { AuthContext } from "../context/AuthContext";
+
+interface Entry {
+  id: string;
+  agenda: string;
+  discussion: string;
+  responsibility: string;
+  remarks: string;
+}
+
+type DirectoryUser = {
+  label: string;
+  value: string;
+  attendeeName: string;
+  role?: string;
+  organization?: string;
+  designation?: string;
+  email?: string;
+  phone?: string;
+  contactNumbers?: any;
+};
 
 const SVRform = () => {
   const router = useRouter();
-  const { projectName } = useLocalSearchParams();
   const auth = useContext(AuthContext);
   const token = auth?.token;
+  const { projectName, company, projectId, teamLeaders, teamMembers } =
+    useLocalSearchParams();
 
-  const [saving, setSaving] = useState(false);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
+  // Users for responsibility dropdown
+  const [users, setUsers] = useState<DirectoryUser[]>([]);
+  const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
 
-  // Main fields
-  const [responsibility, setResponsibility] = useState("");
-  const [description, setDescription] = useState("");
-
-  // Multiple entries
-  type Entry = {
-    agenda: string;
-    discussion: string;
-    responsibility: string;
-    remarks: string;
-  };
-
-  const [entries, setEntries] = useState<Entry[]>([
-    { agenda: "", discussion: "", responsibility: "", remarks: "" },
+  // Attendees state
+  const [attendees, setAttendees] = useState<any[]>([
+    {
+      sNo: 1,
+      attendeeName: "",
+      // role: "",
+      organization: "",
+      designation: "",
+      email: "",
+      // contactNumbers: [""], // first number only
+    },
   ]);
 
-  const addEntry = () => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        if (!token || !projectId) return;
+        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // console.log("hello test", res.data);
+        const formatted = res.data.map((u: any) => ({
+          label: `${u.individualName} (${u.firmName})`,
+          value: u._id,
+          attendeeName: u.individualName,
+          // role: u.role || "",
+          organization: u.firmName || "",
+          designation: u.designation || "",
+          email: u.email || "",
+          // contactNumbers: u.contactNumbers?.length ? u.contactNumbers : [""], // ✅ use existing array
+        }));
+
+        setUsers(formatted);
+        // console.log(formatted);
+      } catch (err) {
+        Toast.show({ type: "error", text1: "Error fetching users" });
+        console.log(err);
+      }
+    };
+    fetchUsers();
+  }, [token, projectId]);
+
+  useEffect(() => {
+    // Initial one entry
     setEntries([
-      ...entries,
-      { agenda: "", discussion: "", responsibility: "", remarks: "" },
+      {
+        id: uuid.v4().toString(),
+        agenda: "",
+        discussion: "",
+        responsibility: "",
+        remarks: "",
+      },
+    ]);
+  }, []);
+
+  const addEntry = () => {
+    setEntries((prev) => [
+      ...prev,
+      {
+        id: uuid.v4().toString(),
+        agenda: "",
+        discussion: "",
+        responsibility: "",
+        remarks: "",
+      },
     ]);
   };
 
-  const updateEntry = (index: number, key: keyof Entry, value: string) => {
-    const updated = [...entries];
-    updated[index] = { ...updated[index], [key]: value };
-    setEntries(updated);
+  const updateEntry = (id: string, key: keyof Entry, value: string) => {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, [key]: value } : e))
+    );
   };
 
-  const removeEntry = (index: number) => {
+  const removeEntry = (id: string) => {
     if (entries.length === 1) {
       Alert.alert("Error", "At least one entry must remain.");
       return;
     }
-    setEntries(entries.filter((_, i) => i !== index));
+    setEntries((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const handleSubmit = async () => {
-    Alert.alert("Submit", "Submit logic to be added.");
+  const saveAndNext = () => {
+    router.push({
+      pathname: "/svrPdfForm",
+      params: {
+        projectName,
+        projectId,
+        company,
+        teamLeaders,
+        teamMembers,
+        svrEntries: JSON.stringify(entries),
+        attendees: JSON.stringify(attendees), // ✅ Add this line
+      },
+    });
   };
+
+  const skipAndNext = async () => {
+    try {
+      // Clear saved draft so nothing accidental goes forward
+      await AsyncStorage.removeItem("SVR_FORM_DATA");
+    } catch (error) {
+      console.log("Error clearing saved SVR form:", error);
+    }
+
+    router.push({
+      pathname: "/svrPdfForm",
+      params: {
+        projectName,
+        projectId,
+        company,
+        teamLeaders,
+        teamMembers,
+        svrEntries: "[]",
+        attendees: "[]", // empty arrays for skip
+      },
+    });
+  };
+
+  // Utility functions
+  const updateAttendee = (index: number, field: string, value: any) => {
+    const updated = [...attendees];
+
+    if (field === "phone") {
+      // ensure contactNumbers array exists
+      if (!updated[index].contactNumbers) updated[index].contactNumbers = [""];
+      updated[index].contactNumbers[0] = value; // only first number
+    } else {
+      updated[index][field] = value;
+    }
+
+    setAttendees(updated);
+  };
+
+  const addAttendee = () =>
+    setAttendees((prev) => [
+      ...prev,
+      {
+        sNo: prev.length + 1,
+        attendeeName: "",
+        // role: "",
+        organization: "",
+        designation: "",
+        email: "",
+        // contactNumbers: [""], // first number
+      },
+    ]);
+  const deleteAttendee = (index: number) => {
+    const updated = attendees
+      .filter((_, i) => i !== index)
+      .map((a, i) => ({ ...a, sNo: i + 1 }));
+    setAttendees(updated);
+  };
+
+  const saveFormToLocal = async () => {
+    try {
+      const formData = {
+        attendees,
+        entries,
+        projectId,
+        projectName,
+        company,
+        teamLeaders,
+        teamMembers,
+        lastUpdated: Date.now(),
+      };
+
+      await AsyncStorage.setItem("SVR_FORM_DATA", JSON.stringify(formData));
+    } catch (error) {
+      console.log("Error saving SVR form:", error);
+    }
+  };
+
+  useEffect(() => {
+    const loadStoredForm = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("SVR_FORM_DATA");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+
+          // Only load if it's the same project
+          if (parsed.projectId === projectId) {
+            setAttendees(parsed.attendees || attendees);
+            setEntries(parsed.entries || entries);
+          }
+        }
+      } catch (error) {
+        console.log("Error loading SVR form:", error);
+      }
+    };
+
+    loadStoredForm();
+  }, [projectId]);
+
+  // Auto-save on every change
+  useEffect(() => {
+    saveFormToLocal();
+  }, [attendees, entries]);
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
+    <View className="flex-1 bg-gray-100">
+      {/* ---------- FIXED HEADER ---------- */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center">
+        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between">
           <TouchableOpacity
             onPress={() => router.back()}
-            activeOpacity={0.7}
-            className="flex-row items-center"
+            className="bg-white/20 p-2 rounded-full"
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              SVR Form
-            </Text>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
           </TouchableOpacity>
+
+          <Text className="text-xl font-bold text-white">SVR Form</Text>
+
+          <View style={{ width: 32 }} />
         </View>
       </LinearGradient>
 
-      {/* Scrollable Content */}
       <KeyboardAwareScrollView
         enableOnAndroid
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
         extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 60,
-        }}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
-        <Text className="text-2xl py-4 font-extrabold text-gray-800 text-center">
-          {projectName || ""} SVR
-        </Text>
-
-        {/* Agenda Entries */}
-        {entries.map((item, index) => (
-          <View
-            key={index}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 mb-6"
-          >
-            <Text className="font-semibold  text-blue-600 mb-4">
-              Discussion {index + 1}
+        {/* Content */}
+        <View className="flex-1 px-3 py-4">
+          {/* ------------------- ATTENDEES SECTION ------------------- */}
+          <View className="bg-white rounded-xl p-2 shadow-md mb-6">
+            <Text className="text-lg font-bold text-gray-700 p-2">
+              Attendees <Text className="text-red-500">*</Text>
             </Text>
 
-            {/* Agenda */}
-            <TextInput
-              placeholder="Agenda "
-              value={item.agenda}
-              multiline
-              onChangeText={(v) => updateEntry(index, "agenda", v)}
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base mb-3"
-              placeholderTextColor="#999"
-            />
+            {attendees.map((att, index) => (
+              <Card
+                key={index}
+                className="mb-4 rounded-3xl shadow-sm overflow-hidden"
+              >
+                <List.Accordion
+                  title={
+                    <View>
+                      <Text className="font-semibold text-gray-700 text-lg">
+                        Attendee {att.sNo}
+                      </Text>
+                      {att.attendeeName ? (
+                        <Text className="text-sm text-gray-500">
+                          {att.attendeeName}
+                        </Text>
+                      ) : null}
+                    </View>
+                  }
+                  style={{
+                    backgroundColor: "#F0F9FF",
+                    borderRadius: 12,
+                  }}
+                  expanded={expandedAttendee === index}
+                  onPress={() =>
+                    setExpandedAttendee(
+                      expandedAttendee === index ? null : index
+                    )
+                  }
+                >
+                  <Card.Content className="bg-white px-3 py-4">
+                    {/* DIRECTORY DROPDOWN */}
+                    {openDirectoryFor === index ? (
+                      <Dropdown
+                        style={{
+                          height: 35,
+                          borderColor: "#0EA5E9",
+                          borderWidth: 1,
+                          borderRadius: 12,
+                          paddingHorizontal: 12,
+                          backgroundColor: "#FFF",
+                          marginBottom: 8,
+                        }}
+                        placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
+                        selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+                        activeColor="#F0F9FF"
+                        data={users}
+                        labelField="label"
+                        valueField="value"
+                        value={att.userId}
+                        placeholder="Select attendee"
+                        search
+                        searchPlaceholder="Search..."
+                        onChange={(val) => {
+                          const user = users.find((u) => u.value === val.value);
+                          if (user) {
+                            updateAttendee(index, "userId", user.value);
+                            updateAttendee(
+                              index,
+                              "attendeeName",
+                              user.attendeeName || ""
+                            );
+                            updateAttendee(
+                              index,
+                              "organization",
+                              user.organization || ""
+                            );
+                            updateAttendee(
+                              index,
+                              "designation",
+                              user.designation || ""
+                            );
+                            updateAttendee(index, "email", user.email || "");
+                            // updateAttendee(
+                            //   index,
+                            //   "contactNumbers",
+                            //   user.contactNumbers || [""]
+                            // );
+                          }
+                          setOpenDirectoryFor(null);
+                        }}
+                      />
+                    ) : !att.userId ? (
+                      <TouchableOpacity
+                        onPress={() => setOpenDirectoryFor(index)}
+                        className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center mb-3"
+                      >
+                        <Ionicons
+                          name="people-outline"
+                          size={18}
+                          color="#0EA5E9"
+                        />
+                        <Text className="ml-2 text-sky-500 font-medium text-sm">
+                          Select From Directory
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
 
-            {/* Discussion */}
-            <TextInput
-              placeholder="Discussion "
-              value={item.discussion}
-              onChangeText={(v) => updateEntry(index, "discussion", v)}
-              multiline
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base mb-3"
-              placeholderTextColor="#999"
-            />
+                    {/* MANUAL FIELDS */}
+                    <View className="gap-2">
+                      <TextInput
+                        placeholder="Full Name *"
+                        placeholderTextColor="#888"
+                        value={att.attendeeName}
+                        onChangeText={(t) =>
+                          updateAttendee(index, "attendeeName", t)
+                        }
+                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                      />
 
-            {/* Responsibility */}
-            <TextInput
-              placeholder="Responsibility "
-              value={item.responsibility}
-              multiline
-              onChangeText={(v) => updateEntry(index, "responsibility", v)}
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base mb-3"
-              placeholderTextColor="#999"
-            />
+                      <TextInput
+                        placeholder="Organization"
+                        placeholderTextColor="#888"
+                        value={att.organization}
+                        onChangeText={(t) =>
+                          updateAttendee(index, "organization", t)
+                        }
+                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                      />
 
-            {/* Remarks */}
-            <TextInput
-              placeholder="Remarks (Optional)"
-              value={item.remarks}
-              onChangeText={(v) => updateEntry(index, "remarks", v)}
-              multiline
-              className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base"
-              placeholderTextColor="#999"
-            />
+                      <TextInput
+                        placeholder="Designation"
+                        placeholderTextColor="#888"
+                        value={att.designation}
+                        onChangeText={(t) =>
+                          updateAttendee(index, "designation", t)
+                        }
+                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                      />
 
-            {/* Delete */}
-            {entries.length > 1 && (
-              <Pressable onPress={() => removeEntry(index)} className="pt-5">
-                <Text className="text-red-500 font-medium text-lg">
-                  Delete Entry
-                </Text>
-              </Pressable>
-            )}
+                      <TextInput
+                        placeholder="Email"
+                        placeholderTextColor="#888"
+                        value={att.email}
+                        onChangeText={(t) => updateAttendee(index, "email", t)}
+                        keyboardType="email-address"
+                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                      />
+
+                      {/* <TextInput
+                        placeholder="Phone"
+                        placeholderTextColor="#888"
+                        value={att.contactNumbers[0] || ""}
+                        onChangeText={(t) => updateAttendee(index, "phone", t)}
+                        keyboardType="phone-pad"
+                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                      /> */}
+
+                      {/* REMOVE BUTTON */}
+                      {attendees.length > 1 && (
+                        <TouchableOpacity onPress={() => deleteAttendee(index)}>
+                          <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
+                            Remove Attendee
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </Card.Content>
+                </List.Accordion>
+              </Card>
+            ))}
+
+            {/* ADD ATTENDEE BUTTON */}
+            <TouchableOpacity
+              onPress={addAttendee}
+              className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
+            >
+              <Text className="text-white font-pbold">+ Add Attendee</Text>
+            </TouchableOpacity>
           </View>
-        ))}
 
-        {/* Add Entry Button */}
-        <Pressable
-          onPress={addEntry}
-          className="bg-emerald-500 py-3 rounded-2xl mb-6 items-center active:scale-95"
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-        >
-          <Text className="text-white font-semibold text-lg">+ Add More</Text>
-        </Pressable>
-
-        {/* Submit Button */}
-        <Pressable
-          onPress={handleSubmit}
-          disabled={saving}
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-          className={`py-4 rounded-2xl items-center mb-20 ${
-            saving ? "bg-gray-400" : "bg-blue-700"
-          }`}
-          style={({ pressed }) => [
-            { transform: [{ scale: pressed ? 0.97 : 1 }] },
-          ]}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
+          {entries.length === 0 ? (
+            <View className="flex-1 items-center justify-center opacity-70 px-6">
+              <MaterialCommunityIcons
+                name="playlist-plus"
+                size={64}
+                color="#6366F1"
+              />
+              <Text className="text-gray-500 mt-2 text-center text-sm">
+                No SVR entries yet. Tap below to add your first one!
+              </Text>
+            </View>
           ) : (
-            <Text className="text-white font-bold text-lg">Next</Text>
+            <FlatList
+              data={entries}
+              keyExtractor={(item) => item.id}
+              keyboardShouldPersistTaps="always" // <-- ADD THIS
+              scrollEnabled={false} // Important with KeyboardAwareScrollView
+              renderItem={({ item, index }) => (
+                <View className="bg-white rounded-2xl shadow-md p-4 mb-2 relative">
+                  {/* Close Button */}
+                  {entries.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => removeEntry(item.id)}
+                      className="absolute top-3 right-3 z-10"
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="close-circle" size={22} color="#ef4444" />
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Header */}
+                  <Text className="font-semibold text-indigo-600 text-lg mb-4">
+                    Discussion {index + 1}
+                  </Text>
+
+                  {/* Agenda Input */}
+                  <TextInput
+                    placeholder="Agenda"
+                    placeholderTextColor="#9ca3af"
+                    value={item.agenda}
+                    onChangeText={(v) => updateEntry(item.id, "agenda", v)}
+                    multiline
+                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                    style={{ minHeight: 40 }}
+                  />
+
+                  {/* Discussion Input */}
+                  <TextInput
+                    placeholder="Discussion"
+                    placeholderTextColor="#9ca3af"
+                    value={item.discussion}
+                    multiline
+                    onChangeText={(v) => updateEntry(item.id, "discussion", v)}
+                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                    style={{ minHeight: 40 }}
+                  />
+
+                  {/* Responsibility + For Info */}
+                  <View className="mb-2">
+                    <View className="flex-row items-center gap-2">
+                      {/* Responsibility Input */}
+                      <TextInput
+                        placeholder="Responsibility"
+                        placeholderTextColor="#9ca3af"
+                        value={
+                          item.responsibility === "For Info"
+                            ? "For Info"
+                            : item.responsibility
+                        }
+                        editable={item.responsibility !== "For Info"}
+                        multiline
+                        onChangeText={(v) =>
+                          updateEntry(item.id, "responsibility", v)
+                        }
+                        className={`flex-1 border rounded-lg px-4 text-sm ${
+                          item.responsibility === "For Info"
+                            ? "bg-gray-200 text-gray-500 border-gray-300"
+                            : "bg-gray-50 text-gray-700 border-gray-400"
+                        }`}
+                        style={{ height: 40 }}
+                      />
+
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          const isInfo = item.responsibility === "For Info";
+                          updateEntry(
+                            item.id,
+                            "responsibility",
+                            isInfo ? "" : "For Info"
+                          );
+                        }}
+                        style={{
+                          height: 40,
+                          minWidth: 95,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor:
+                            item.responsibility === "For Info"
+                              ? "#22c55e"
+                              : "#d1d5db",
+                          backgroundColor:
+                            item.responsibility === "For Info"
+                              ? "#22c55e"
+                              : "#f3f4f6",
+                        }}
+                        className="flex-row items-center justify-center px-3"
+                      >
+                        {item.responsibility === "For Info" && (
+                          <Ionicons name="checkmark" size={16} color="#fff" />
+                        )}
+                        <Text
+                          className={`ml-1 text-xs font-medium ${
+                            item.responsibility === "For Info"
+                              ? "text-white"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          For Info
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Remarks Input */}
+                  <TextInput
+                    placeholder="Remarks (Optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={item.remarks}
+                    multiline
+                    onChangeText={(v) => updateEntry(item.id, "remarks", v)}
+                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50"
+                    style={{ minHeight: 40 }}
+                  />
+                </View>
+              )}
+            />
           )}
-        </Pressable>
+        </View>
+        <View>
+          <Pressable
+            onPress={addEntry}
+            className="bg-indigo-500 px-3 mx-4 py-3 rounded-lg flex-row items-center justify-center mt-2 mb-6"
+          >
+            <Ionicons name="add-circle" size={18} color="#fff" />
+            <Text className="text-white ml-2 text-sm font-semibold">
+              Add More
+            </Text>
+          </Pressable>
+        </View>
       </KeyboardAwareScrollView>
+
+      {/* Footer Buttons */}
+      <View className="flex-row justify-between px-3 pb-14 mt-2 bg-gray-100">
+        <TouchableOpacity
+          onPress={skipAndNext}
+          className="bg-gray-400 px-4 py-3 rounded-lg flex-1 mr-2"
+        >
+          <Text className="text-white text-sm font-medium text-center">
+            Skip
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={saveAndNext}
+          className="bg-green-500 px-4 py-3 rounded-lg flex-1 ml-2"
+        >
+          <Text className="text-white text-sm font-medium text-center">
+            Save & Next
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

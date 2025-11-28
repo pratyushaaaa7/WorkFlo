@@ -12,7 +12,7 @@ import api from "../../lib/api";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
@@ -213,6 +213,35 @@ const CompanyProjectSelectionScreen = () => {
           onPress={handleEnter}
         >
           <Text className="text-white font-bold text-base">Enter</Text>
+        </TouchableOpacity>
+
+        {/* Info Section */}
+        <TouchableOpacity
+          className="mt-8 shadow-lg rounded-3xl border-1 border border-indigo-700 overflow-hidden"
+          activeOpacity={0.8}
+          style={{ borderColor: "#4338ca" }}
+          onPress={() => router.push("/myDashboard")}
+        >
+          <LinearGradient
+            colors={["#E0E7FF", "#C7D2FE"]}
+            start={[0, 0]}
+            end={[1, 1]}
+            className="flex-row items-center gap-4 p-6"
+          >
+            <MaterialCommunityIcons
+              name="view-dashboard-outline"
+              size={32}
+              color="#4F46E5"
+            />
+            <View>
+              <Text className="text-xl font-bold text-indigo-700">
+                My DASHBOARD
+              </Text>
+              <Text className="text-sm text-indigo-900 mt-1">
+                Log of all the tasks you are responsible for
+              </Text>
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </View>

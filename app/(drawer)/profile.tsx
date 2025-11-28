@@ -17,7 +17,7 @@ type TokenPayload = {
   exp: number;
 };
 
-export default function ProfileScreen() {
+const ProfileScreen = () => {
   const router = useRouter();
   const { logout } = useAuth();
   const [username, setUsername] = useState("");
@@ -93,6 +93,10 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      <View className="mt-10 px-8">
+        <Text className="text-gray-400">v - 1.1</Text>
+      </View>
+
       {/* Logout Button */}
       <View className="flex-1 justify-end px-6 mb-14">
         <Pressable
@@ -103,6 +107,10 @@ export default function ProfileScreen() {
           <Text className="text-white text-lg font-bold">Logout</Text>
         </Pressable>
       </View>
+
+
     </View>
   );
 }
+
+export default  ProfileScreen
