@@ -20,9 +20,9 @@ function LayoutWithAuth() {
   const segments = useSegments() as string[];
   const { isAuthenticated, authLoading } = useAuth();
 
-  useEffect(() => {
-  console.log("🔹 Current segments:", segments);
-}, [segments]);
+//   useEffect(() => {
+//   console.log("🔹 Current segments:", segments);
+// }, [segments]);
 
 
   // const [loading, setLoading] = useState(true);

@@ -757,6 +757,7 @@ const CreateMinutes = () => {
       {/* Content */}
       <KeyboardAwareScrollView
         enableOnAndroid
+        keyboardShouldPersistTaps="handled"
         extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
         contentContainerStyle={{ padding: 10, paddingBottom: 80 }}
       >

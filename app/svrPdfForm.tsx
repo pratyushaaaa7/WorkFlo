@@ -1,10 +1,8 @@
-// ReportForm.tsx
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   Image,
   TextInput,
   Alert,
@@ -16,23 +14,18 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import uuid from "react-native-uuid";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import * as Print from "expo-print";
-import * as FileSystem from "expo-file-system";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
-import * as Sharing from "expo-sharing";
-import api from "../lib/api";
-// import logoWP from "../assets/images/logoWPcrop.png";
-// import logoWAL from "../assets/images/logoWALL.png";
-// import logoFallback from "../assets/images/react-logo.png";
-// Adjust this to your actual AuthContext hook type
 import { useAuth } from "./../context/AuthContext";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Asset } from "expo-asset";
-// import logoW from "../assets/images/logoW.png";
-// import { getBase64ImageFromAsset } from "../utils/getBase64Image";
-// Define this function in ReportForm.tsx (or ensure your utility function uses this logic)
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import * as Print from "expo-print";
+
+const { width } = Dimensions.get("window");
+
 const getBase64ImageFromAsset = async (
   imageModule: number
 ): Promise<string> => {
@@ -67,8 +60,6 @@ const getBase64ImageFromAsset = async (
   }
 };
 
-const { width } = Dimensions.get("window");
-
 const getFormattedDate = () => {
   const today = new Date();
   const day = String(today.getDate()).padStart(2, "0");
@@ -77,10 +68,6 @@ const getFormattedDate = () => {
   return `${day}_${month}_${year}`;
 };
 
-/* -----------------------------
-   Lightweight types used here
-   tighten them as needed later
-   ----------------------------- */
 type PhotoItem = {
   id: string;
   uri: string;
@@ -93,34 +80,27 @@ type UseAuthReturn = {
   token?: string | null;
 };
 
-/* If you use tailwind className on RN elements, casting to `any` prevents TS errors.
-   If you don't use tailwind, you can remove these aliases and use the original components. */
-// const V: any = View;
-// const T: any = Text;
-// const TO: any = TouchableOpacity;
-// const Img: any = Image;
-// const TI: any = TextInput;
-// const KASV: any = KeyboardAwareScrollView;
-
-const ReportForm: React.FC = () => {
-  const { user, token } = useAuth() as unknown as UseAuthReturn;
+const SVRPhotoReport: React.FC = () => {
   const router = useRouter();
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [loadingImages, setLoadingImages] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [logoBase64, setLogoBase64] = useState<string | null>(null);
-  // Using useLocalSearchParams() from expo-router; params may be string | string[] | undefined
   const params = useLocalSearchParams() as Record<string, any>;
+  const { user, token } = useAuth() as unknown as UseAuthReturn;
   const {
     projectName,
     company,
     projectId,
     teamLeaders,
     teamMembers,
-    vendors: vendorsParam,
-    totalLabor: totalLaborParam,
+    svrEntries, // JSON string from previous page
+    attendees,
   } = params || {};
+
+  console.log(params);
+
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
 
   const teamLeadersStr = Array.isArray(teamLeaders)
     ? teamLeaders[0]
@@ -145,17 +125,23 @@ const ReportForm: React.FC = () => {
     }
   })();
 
-  const vendors: any[] = (() => {
+  const svr: any[] = (() => {
     try {
-      return vendorsParam ? JSON.parse(vendorsParam) : [];
+      return svrEntries ? JSON.parse(svrEntries) : [];
     } catch {
       return [];
     }
   })();
 
-  const totalLabor = totalLaborParam ? parseInt(totalLaborParam, 10) : 0;
+  const attendeeList: any[] = (() => {
+    try {
+      return attendees ? JSON.parse(attendees) : [];
+    } catch {
+      return [];
+    }
+  })();
 
-  const STORAGE_KEY = `@saved_photos_${projectId || "default"}`;
+  const STORAGE_KEY = `@svr_photos_${projectId || "default"}`;
 
   const uriToBase64 = async (uri: string): Promise<string> => {
     // readAsStringAsync returns the file content as base64 with this encoding option
@@ -165,22 +151,6 @@ const ReportForm: React.FC = () => {
     // using jpeg as default — if you support png, you can inspect extension
     return `data:image/jpeg;base64,${base64}`;
   };
-  // const localImageToBase64 = async (image: any) => {
-  //   try {
-  //     const asset = Asset.fromModule(image);
-  //     await asset.downloadAsync(); // ensure the asset is available
-
-  //     // ✅ Use the local URI from the asset (works in dev & production)
-  //     const base64 = await FileSystem.readAsStringAsync(asset.localUri!, {
-  //       encoding: FileSystem.EncodingType.Base64,
-  //     });
-
-  //     return `data:image/png;base64,${base64}`;
-  //   } catch (err) {
-  //     console.warn("⚠️ Error converting logo to base64:", err);
-  //     return ""; // prevent PDF break if fails
-  //   }
-  // };
 
   const compressImage = async (uri: string): Promise<string> => {
     try {
@@ -202,7 +172,7 @@ const ReportForm: React.FC = () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
     } catch (e) {
-      console.warn("Failed to save photos to AsyncStorage", e);
+      console.warn("Failed to save photos", e);
     }
   };
 
@@ -281,6 +251,7 @@ const ReportForm: React.FC = () => {
     savePhotos(updated);
   };
 
+  // Load saved photos from AsyncStorage
   useEffect(() => {
     const loadSavedPhotos = async () => {
       try {
@@ -291,7 +262,6 @@ const ReportForm: React.FC = () => {
       }
     };
     loadSavedPhotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   useEffect(() => {
@@ -420,45 +390,73 @@ const ReportForm: React.FC = () => {
       </div>
     `);
 
-      // --- CONDITIONAL: LABOR REPORT PAGE ---
-      if (vendors.length > 0) {
+      if (svr.length > 0) {
         htmlParts.push(`
-        <div class="page">
-          <div class="header-left">
-            <div><strong>Project:</strong> ${projectName || ""}</div>
-            <div><strong>Created By:</strong> ${createdBy || ""}</div>
-          </div>
-          <div class="header-right">
-         <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+    <div class="page">
+      <div class="header-left">
+        <div><strong>Project:</strong> ${projectName || ""}</div>
+        <div><strong>Created By:</strong> ${createdBy || ""}</div>
+      </div>
+      <div class="header-right">
+        <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+      </div>
 
-          </div>
+      <!-- 🔹 ATTENDEES FIRST -->
+      <h2 style="margin-top: 40px;">Attendees</h2>
+      <table>
+        <tr>
+          <th>S.No</th>
+          <th>Name</th>
+          <th>Designation</th>
+          <th>Company</th>
+          <th>Email</th>
+        </tr>
+        ${
+          attendeeList.length > 0
+            ? attendeeList
+                .map(
+                  (a, idx) => `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>${a.attendeeName || "-"}</td>
+              <td>${a.designation || "-"}</td>
+              <td>${a.organization || "-"}</td>
+              <td>${a.email || "-"}</td>
+            </tr>
+          `
+                )
+                .join("")
+            : `<tr><td colspan="6" style="text-align:center;">No attendees recorded</td></tr>`
+        }
+      </table>
 
-          <h2 style="margin-top: 80px;">Labor Report</h2>
-          <table>
-            <tr>
-              <th>S.No</th>
-              <th>Vendor Name</th>
-              <th>Expertise</th>
-              <th>Number of Labors</th>
-            </tr>
-            ${vendors
-              .map(
-                (v, index) => `
-                <tr>
-                  <td>${index + 1}</td>
-                  <td>${v.name || "-"}</td>
-                  <td>${v.expertise || "-"}</td>
-                  <td>${v.laborCount || 0}</td>
-                </tr>`
-              )
-              .join("")}
-            <tr>
-              <td colspan="3" style="text-align:right;font-weight:bold;">Total Labors</td>
-              <td><strong>${totalLabor}</strong></td>
-            </tr>
-          </table>
-        </div>
-      `);
+      <!-- 🔹 AVR / Labor Report AFTER ATTENDEES -->
+      <h2 style="margin-top: 40px;">Site Visit Report</h2>
+      <table>
+        <tr>
+          <th>S.No</th>
+          <th>Agenda</th>
+          <th>Discussion</th>
+          <th>Responsibility</th>
+          <th>Remarks</th>
+        </tr>
+        ${svr
+          .map(
+            (v, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${v.agenda || "-"}</td>
+                <td>${v.discussion || "-"}</td>
+                <td>${v.responsibility || "-"}</td>
+                <td>${v.remarks || "-"}</td>
+              </tr>
+            `
+          )
+          .join("")}
+      </table>
+
+    </div>
+  `);
       }
 
       // --- PHOTO BATCHES ---
@@ -476,119 +474,122 @@ const ReportForm: React.FC = () => {
             </div>
 
        <div style="
-  width: 94%;
-  height: 66vh;
-  border: 2px solid #000;
-  border-radius: 8px;
-  margin: 20px auto 0 auto;
-  padding: 6px;
-  overflow: hidden;
-  text-align: center;   /* optional: centers the image */
-">
-  <img src="${p.base64}" style="
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto;      /* centers the image horizontally */
-  " />
-</div>
-
-
-            <div class="caption" style=" text-align: left;
-  margin-top: 6px;
-  width: 94%;         /* match the image width */
-  display: block;      /* force block */
-  padding: 0 0 0 12px;  /* top right bottom left */
-  font-size: 18px;
-  color: #222;
-  font-weight: 500;
-  white-space: pre-wrap;
-  word-wrap: break-word;">
-              <p style="margin: 0;  padding: 0 0 0 12px;  /* top right bottom left */;">${
-                p.caption?.trimStart() || ""
-              }</p>
+              width: 94%;
+              height: 66vh;
+              border: 2px solid #000;
+              border-radius: 8px;
+              margin: 20px auto 0 auto;
+              padding: 6px;
+              overflow: hidden;
+              text-align: center;   /* optional: centers the image */
+            ">
+              <img src="${p.base64}" style="
+                max-height: 100%;
+                max-width: 100%;
+                object-fit: contain;
+                display: block;
+                margin: 0 auto;      /* centers the image horizontally */
+              " />
             </div>
+            
+            
+          <div class="caption" style=" text-align: left;">
+            <p style="margin: 0;  padding: 0 0 0 12px;  ">${
+              p.caption?.trimStart() || ""
+            }</p>
           </div>
+      </div>
+
         `);
         }
       }
 
       // --- WRAP ALL PAGES ---
+      // --- WRAP ALL PAGES ---
       const html = `
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              position: relative;
-            }
-            .page {
-              page-break-after: always;
-              position: relative;
-              padding: 120px 20px 40px 20px;
-              box-sizing: border-box;
-              height: 100vh;
-            }
-            .header-left {
-              position: fixed;
-              top: 20px;
-              left: 20px;
-              font-size: 16px;
-              font-weight: bold;
-              color: #000;
-              line-height: 1.5;
-              background: white;
-              padding: 8px 12px;
-            }
-            .header-right {
-              position: fixed;
-              top: 20px;
-              right: 20px;
-            }
-            .header-right img {
-              width: 180px;
-              height: auto;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 20px;
-            }
-            th, td {
-              border: 1px solid #999;
-              padding: 8px;
-              text-align: left;
-              font-size: 14px;
-            }
-            th {
-              background-color: #f0f0f0;
-            }
-            .photo {
-              display: flex;
-              flex-direction: column;
-              align-items: flex-start;
-              justify-content: center;
-              height: 100%;
-            }
-            .caption {
-              margin-top: 16px;
-              font-size: 20px;
-              color: #222;
-              font-weight: 500;
-              white-space: pre-wrap;
-              word-wrap: break-word;
-              
-            }
-          </style>
-        </head>
-        <body>${htmlParts.join("")}</body>
-      </html>
-    `;
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .page {
+        page-break-after: always;
+        padding: 60px 20px 20px 20px; /* reduced padding */
+        box-sizing: border-box;
+      }
+      .header-left {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000;
+        line-height: 1.4;
+        background: white;
+        padding: 4px 8px;
+      }
+      .header-right {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+      }
+      .header-right img {
+        width: 160px;
+        height: auto;
+      }
 
-      console.log("✅ Checking logoBase64 length:", logoBase64?.length);
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        page-break-inside: auto; /* allow table to break across pages */
+      }
+      tr {
+        page-break-inside: avoid; /* prevent row from splitting */
+        page-break-after: auto;
+      }
+      th, td {
+        border: 1px solid #999;
+        padding: 4px 6px;
+        font-size: 13px;
+        text-align: left;
+      }
+      th {
+        background-color: #f0f0f0;
+      }
+
+      .photo {
+        page-break-inside: avoid; /* keep image + caption on same page */
+        display: block;
+        margin-top: 20px;
+      }
+      .photo img {
+        max-width: 100%;
+        max-height: 66vh;
+        display: block;
+        margin: 0 auto;
+        object-fit: contain;
+      }
+      .caption {
+        font-size: 18px;
+        color: #222;
+        font-weight: 500;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    ${htmlParts.join("")}
+  </body>
+</html>
+`;
+
+      // console.log("✅ Checking logoBase64 length:", logoBase64?.length);
 
       if (
         !logoBase64 ||
@@ -620,138 +621,140 @@ const ReportForm: React.FC = () => {
 
       //TO DIRECTLY UPLOAD
       // 🔹 Prepare FormData for backend upload
-      const formData = new FormData();
-      formData.append("projectName", projectName);
-      formData.append("projectId", projectId);
-      formData.append("createdBy", createdBy);
+      //   const formData = new FormData();
+      //   formData.append("projectName", projectName);
+      //   formData.append("projectId", projectId);
+      //   formData.append("createdBy", createdBy);
 
-      formData.append("file", {
-        uri: newUri,
-        name: newFileName,
-        type: "application/pdf",
-      } as any);
+      //   formData.append("file", {
+      //     uri: newUri,
+      //     name: newFileName,
+      //     type: "application/pdf",
+      //   } as any);
 
-      // 🔹 Upload to your backend (which sends it to object storage)
-      const response = await api.post("/dpr", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      //   // 🔹 Upload to your backend (which sends it to object storage)
+      //   const response = await api.post("/dpr", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
 
-      if (response.data.success) {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "DPR uploaded successfully",
-          position: "bottom",
+      //   if (response.data.success) {
+      //     Toast.show({
+      //       type: "success",
+      //       text1: "Success",
+      //       text2: "DPR uploaded successfully",
+      //       position: "bottom",
+      //     });
+
+      //     // Optional: navigate after delay
+      //     setTimeout(() => {
+      //       router.push({
+      //         pathname: "/dprs",
+      //         params: { projectId },
+      //       });
+      //     }, 300);
+      //   } else {
+      //     Toast.show({
+      //       type: "error",
+      //       text1: "Error",
+      //       text2: "Upload failed",
+      //       position: "bottom",
+      //     });
+      //   }
+
+      //   // 🔹 Cleanup after upload
+      //   await AsyncStorage.removeItem(STORAGE_KEY);
+      //   await AsyncStorage.removeItem("reportData");
+      //   setPhotos([]);
+      //   try {
+      //     await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
+      //       idempotent: true,
+      //     });
+      //   } catch (e) {
+      //     console.warn("Cache cleanup failed", e);
+      //   }
+      // } catch (err: any) {
+      //   console.error("Upload error:", err);
+      //   Alert.alert(
+      //     "Upload Error",
+      //     err?.response?.data?.error || err?.message || "Something went wrong."
+      //   );
+      //   Toast.show({
+      //     type: "error",
+      //     text1: "Error",
+      //     text2: "Failed to upload DPR",
+      //     position: "bottom",
+      //   });
+      // } finally {
+      //   setUploading(false);
+      // }
+
+      //FOR DOWNLOAD IN LOCAL STORAGE
+      console.log("PDF generated at:", newUri);
+
+      // // Optional sharing
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(newUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share or Save Photo Report",
+          UTI: "com.adobe.pdf",
         });
-
-        // Optional: navigate after delay
-        setTimeout(() => {
-          router.push({
-            pathname: "/dprs",
-            params: { projectId },
-          });
-        }, 300);
       } else {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Upload failed",
-          position: "bottom",
-        });
+        Alert.alert("PDF generated", `Saved at: ${newUri}`);
       }
 
-      // 🔹 Cleanup after upload
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      await AsyncStorage.removeItem("reportData");
-      setPhotos([]);
-      try {
-        await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
-          idempotent: true,
-        });
-      } catch (e) {
-        console.warn("Cache cleanup failed", e);
-      }
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      Alert.alert(
-        "Upload Error",
-        err?.response?.data?.error || err?.message || "Something went wrong."
-      );
       Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to upload DPR",
+        type: "success",
+        text1: "PDF Generated",
+        text2: "Photo report saved locally.",
         position: "bottom",
       });
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      Alert.alert("Error", err?.message || "Failed to generate PDF.");
     } finally {
       setUploading(false);
+      try {
+        await FileSystem.deleteAsync(
+          FileSystem.cacheDirectory + "ImageManipulator",
+          {
+            idempotent: true,
+          }
+        );
+      } catch (e) {
+        console.warn("Cleanup failed:", e);
+      }
     }
-
-    //FOR DOWNLOAD IN LOCAL STORAGE
-    //   console.log("PDF generated at:", newUri);
-
-    //   // // Optional sharing
-    //   if (await Sharing.isAvailableAsync()) {
-    //     await Sharing.shareAsync(newUri, {
-    //       mimeType: "application/pdf",
-    //       dialogTitle: "Share or Save Photo Report",
-    //       UTI: "com.adobe.pdf",
-    //     });
-    //   } else {
-    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
-    //   }
-
-    //   Toast.show({
-    //     type: "success",
-    //     text1: "PDF Generated",
-    //     text2: "Photo report saved locally.",
-    //     position: "bottom",
-    //   });
-    // } catch (err: any) {
-    //   console.error("PDF generation error:", err);
-    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
-    // } finally {
-    //   setUploading(false);
-    //   try {
-    //     await FileSystem.deleteAsync(
-    //       FileSystem.cacheDirectory + "ImageManipulator",
-    //       {
-    //         idempotent: true,
-    //       }
-    //     );
-    //   } catch (e) {
-    //     console.warn("Cleanup failed:", e);
-    //   }
-    // }
   };
 
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Header */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between">
+        <View className="pt-16 pb-6 px-4 flex-row items-center">
           <TouchableOpacity
             onPress={() => router.back()}
             className="flex-row items-center"
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-bold text-white ml-4">
-              Daily Progress Report
+              Site Visit Report
             </Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <KeyboardAwareScrollView
-        className="flex-1 p-4 "
-        enableOnAndroid={true}
-        extraHeight={120} // space above keyboard
-        keyboardOpeningTime={0} // avoids flicker on Android
-        enableAutomaticScroll={true}
-        contentContainerStyle={{ paddingBottom: 120 }} // space for submit button
+        className="flex-1 p-4"
+        enableOnAndroid
+        extraHeight={120}
+        enableAutomaticScroll
+        keyboardShouldPersistTaps="always"
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
+        {/* Photo Buttons */}
         <View className="flex-row justify-around mb-6">
           <TouchableOpacity
             onPress={takePhoto}
@@ -794,7 +797,7 @@ const ReportForm: React.FC = () => {
               placeholder="Write caption..."
               placeholderTextColor="#888"
               value={item.caption}
-              onChangeText={(t: any) => updateCaption(item.id, t)}
+              onChangeText={(t) => updateCaption(item.id, t)}
               multiline
               className="border rounded-2xl px-4 py-3 bg-gray-50 mt-2"
             />
@@ -839,4 +842,4 @@ const ReportForm: React.FC = () => {
   );
 };
 
-export default ReportForm;
+export default SVRPhotoReport;
