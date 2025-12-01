@@ -725,20 +725,11 @@ const SVRPhotoReport: React.FC = () => {
         position: "bottom",
       });
       // CLEANUP AFTER DOWNLOAD
-      await AsyncStorage.multiRemove([
-        "svr_form_data",
-        "svr_attendees",
-        "svr_svrTable",
-        "svr_caseStudyRemarks",
 
-        "svr_images",
-        "svr_temp_images",
-
-        "reportData",
-        "SVR_DRAFT",
-      ]);
-
-      setPhotos([]); // Clear local photos in UI
+      // 🔥 CLEAR FORM ONLY ON SUCCESS
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem("SVR_FORM_DATA");
+      setPhotos([]);
     } catch (err: any) {
       console.error("PDF generation error:", err);
       Alert.alert("Error", err?.message || "Failed to generate PDF.");

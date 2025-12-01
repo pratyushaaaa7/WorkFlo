@@ -140,7 +140,18 @@ const SVRform = () => {
     setEntries((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const saveAndNext = () => {
+  const saveAndNext = async () => {
+    // Save the form data before moving to next screen
+    await AsyncStorage.setItem(
+      "SVR_FORM_DATA",
+      JSON.stringify({
+        attendees,
+        entries,
+        caseStudyRemarks,
+        projectName,
+        projectId,
+      })
+    );
     router.push({
       pathname: "/svrPdfForm",
       params: {
@@ -152,7 +163,7 @@ const SVRform = () => {
         teamMembers,
         svrEntries: JSON.stringify(entries),
         attendees: JSON.stringify(attendees), // ✅ Add this line
-        caseStudyRemarks,  // ✅ add this
+        caseStudyRemarks, // ✅ add this
       },
     });
   };
@@ -160,7 +171,17 @@ const SVRform = () => {
   const skipAndNext = async () => {
     try {
       // Clear saved draft so nothing accidental goes forward
-      await AsyncStorage.removeItem("SVR_FORM_DATA");
+      // Save an empty dataset so nothing old loads next time
+      await AsyncStorage.setItem(
+        "SVR_FORM_DATA",
+        JSON.stringify({
+          attendees: [],
+          entries: [],
+          caseStudyRemarks: "",
+          projectName,
+          projectId,
+        })
+      );
     } catch (error) {
       console.log("Error clearing saved SVR form:", error);
     }
