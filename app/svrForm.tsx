@@ -146,6 +146,7 @@ const SVRform = () => {
       params: {
         projectName,
         projectId,
+        mode,
         company,
         teamLeaders,
         teamMembers,

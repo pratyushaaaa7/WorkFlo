@@ -14,7 +14,6 @@ import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 
-
 const SVRs = () => {
   const router = useRouter();
 
@@ -60,12 +59,12 @@ const SVRs = () => {
     setModalVisible(true);
   };
 
-  const goAndClose = (type) => {
+  const goAndClose = (type: any) => {
     setModalVisible(false);
     goToForm(type);
   };
 
-  const goToForm = (type) => {
+  const goToForm = (type: any) => {
     router.push(
       `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`
     );
