@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../../context/AuthContext";
@@ -13,6 +14,13 @@ import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  useAnimatedStyle,
+  interpolateColor,
+} from "react-native-reanimated";
 
 const CompanyProjectSelectionScreen = () => {
   const auth = useContext(AuthContext);
@@ -103,6 +111,20 @@ const CompanyProjectSelectionScreen = () => {
       `/projectMain?projectId=${selectedProject}&company=${selectedCompany}&projectName=${projectName}`
     );
   };
+
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withRepeat(withTiming(1, { duration: 4000 }), -1, true);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return { opacity: progress.value };
+  });
+
+  const reverseAnimatedStyle = useAnimatedStyle(() => {
+    return { opacity: 1 - progress.value };
+  });
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -217,31 +239,49 @@ const CompanyProjectSelectionScreen = () => {
 
         {/* Info Section */}
         <TouchableOpacity
-          className="mt-8 shadow-lg rounded-3xl border-1 border border-indigo-700 overflow-hidden"
+          className="mt-8 shadow-lg rounded-3xl border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}
-          style={{ borderColor: "#4338ca" }}
+          style={{ borderColor: "#4338ca", height: 100 }}
           onPress={() => router.push("/myDashboard")}
         >
-          <LinearGradient
-            colors={["#E0E7FF", "#C7D2FE"]}
-            start={[0, 0]}
-            end={[1, 1]}
-            className="flex-row items-center gap-4 p-6"
+          {/* BACK GRADIENT (Purple → Indigo) */}
+          <Animated.View
+            style={[{ ...StyleSheet.absoluteFillObject }, reverseAnimatedStyle]}
           >
+            <LinearGradient
+              colors={["#6366F1", "#8B5CF6"]}
+              start={[0, 0]}
+              end={[1, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+
+          {/* FRONT GRADIENT (Indigo → Purple) */}
+          <Animated.View
+            style={[{ ...StyleSheet.absoluteFillObject }, animatedStyle]}
+          >
+            <LinearGradient
+              colors={["#8B5CF6", "#6366F1"]}
+              start={[0, 0]}
+              end={[1, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+
+          {/* CONTENT */}
+          <View className="flex-row items-center gap-4 p-6">
             <MaterialCommunityIcons
               name="view-dashboard-outline"
               size={32}
-              color="#4F46E5"
+              color="#fff"
             />
             <View>
-              <Text className="text-xl font-bold text-indigo-700">
-                My DASHBOARD
-              </Text>
-              <Text className="text-sm text-indigo-900 mt-1">
+              <Text className="text-xl font-bold text-white">My DASHBOARD</Text>
+              <Text className="text-sm text-white mt-1 opacity-90">
                 Log of all the tasks you are responsible for
               </Text>
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </ScrollView>
     </View>
