@@ -640,13 +640,13 @@ const SVRPhotoReport: React.FC = () => {
       //   formData.append("createdBy", createdBy);
 
       //   formData.append("file", {
-      //     uri: newUri,
-      //     name: newFileName,
+      //    uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+      // name: newFileName, // e.g., "SVR_01.pdf"
       //     type: "application/pdf",
       //   } as any);
 
       //   // 🔹 Upload to your backend (which sends it to object storage)
-      //   const response = await api.post("/dpr", formData, {
+      //   const response = await api.post("/svr", formData, {
       //     headers: {
       //       "Content-Type": "multipart/form-data",
       //       Authorization: `Bearer ${token}`,
@@ -657,14 +657,14 @@ const SVRPhotoReport: React.FC = () => {
       //     Toast.show({
       //       type: "success",
       //       text1: "Success",
-      //       text2: "DPR uploaded successfully",
+      //       text2: "SVR uploaded successfully",
       //       position: "bottom",
       //     });
 
       //     // Optional: navigate after delay
       //     setTimeout(() => {
       //       router.push({
-      //         pathname: "/dprs",
+      //         pathname: "/svrs",
       //         params: { projectId },
       //       });
       //     }, 300);
@@ -679,7 +679,7 @@ const SVRPhotoReport: React.FC = () => {
 
       //   // 🔹 Cleanup after upload
       //   await AsyncStorage.removeItem(STORAGE_KEY);
-      //   await AsyncStorage.removeItem("reportData");
+      //   await AsyncStorage.removeItem("SVR_FORM_DATA");
       //   setPhotos([]);
       //   try {
       //     await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
@@ -697,7 +697,7 @@ const SVRPhotoReport: React.FC = () => {
       //   Toast.show({
       //     type: "error",
       //     text1: "Error",
-      //     text2: "Failed to upload DPR",
+      //     text2: "Failed to upload SVR",
       //     position: "bottom",
       //   });
       // } finally {

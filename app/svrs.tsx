@@ -14,6 +14,14 @@ import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 
+type SVRItem = {
+  _id: string;
+  fileName: string;
+  url: string;
+  svrNumber?: number;
+  uploadedBy?: { username?: string };
+};
+
 const SVRs = () => {
   const router = useRouter();
 
@@ -26,23 +34,19 @@ const SVRs = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
-  type DprItem = {
-    _id: string;
-    fileName: string;
-    url: string;
-  };
 
-  const [dprs, setDprs] = useState<DprItem[]>([]);
+
+  const [svrs, setSvrs] = useState<SVRItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch DPR/SVR list
-  const fetchDPRs = async () => {
+  const fetchSVRs = async () => {
     try {
-      const response = await api.get(`/dpr?projectId=${projectId}`, {
+      const response = await api.get(`/svr?projectId=${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setDprs(response.data || []);
+      setSvrs(response.data || []);
     } catch (err) {
       console.error("Fetch DPRs failed:", err);
       Alert.alert("Error", "Failed to fetch SVRs");
@@ -52,7 +56,7 @@ const SVRs = () => {
   };
 
   useEffect(() => {
-    fetchDPRs();
+    fetchSVRs();
   }, []);
 
   const openTypeSelector = () => {
@@ -67,6 +71,13 @@ const SVRs = () => {
   const goToForm = (type: any) => {
     router.push(
       `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`
+    );
+  };
+
+  // ✅ Open PDF in browser
+  const openPDF = (url: string) => {
+    Linking.openURL(url).catch(() =>
+      Alert.alert("Error", "Unable to open PDF link")
     );
   };
 
@@ -87,17 +98,42 @@ const SVRs = () => {
       </LinearGradient>
 
       {/* Content */}
+      {/* SVR List */}
       <View className="flex-1 px-4 pt-4">
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" />
-        ) : dprs.length === 0 ? (
+        ) : svrs.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
             No SVRs found.
           </Text>
         ) : (
-          <Text className="text-center text-gray-500 mt-10">
-            No DPRs found. tralalalalala
-          </Text>
+          <FlatList
+            data={svrs}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => openPDF(item.url)}
+                className="bg-white p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
+              >
+                <View>
+                  <Text className="text-gray-800 font-medium">
+                    {item.fileName}
+                  </Text>
+                  {item.svrNumber && (
+                    <Text className="text-gray-500 text-sm">
+                      SVR #{item.svrNumber} |{" "}
+                      {item.uploadedBy?.username || "Unknown"}
+                    </Text>
+                  )}
+                </View>
+                <Ionicons
+                  name="document-text-outline"
+                  size={22}
+                  color="#6366F1"
+                />
+              </TouchableOpacity>
+            )}
+          />
         )}
       </View>
 
