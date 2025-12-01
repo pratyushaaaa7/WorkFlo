@@ -48,7 +48,7 @@ const SVRform = () => {
   const router = useRouter();
   const auth = useContext(AuthContext);
   const token = auth?.token;
-  const { projectName, company, projectId, teamLeaders, teamMembers } =
+  const { projectName, company, projectId, teamLeaders, teamMembers, mode } =
     useLocalSearchParams();
 
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -56,6 +56,7 @@ const SVRform = () => {
   // Users for responsibility dropdown
   const [users, setUsers] = useState<DirectoryUser[]>([]);
   const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
+  const [caseStudyRemarks, setCaseStudyRemarks] = useState("");
 
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
@@ -150,6 +151,7 @@ const SVRform = () => {
         teamMembers,
         svrEntries: JSON.stringify(entries),
         attendees: JSON.stringify(attendees), // ✅ Add this line
+        caseStudyRemarks,  // ✅ add this
       },
     });
   };
@@ -172,6 +174,7 @@ const SVRform = () => {
         teamMembers,
         svrEntries: "[]",
         attendees: "[]", // empty arrays for skip
+        caseStudyRemarks: "", // ✅ add this for skip case
       },
     });
   };
@@ -221,6 +224,7 @@ const SVRform = () => {
         company,
         teamLeaders,
         teamMembers,
+        caseStudyRemarks, // ✅ ADD THIS
         lastUpdated: Date.now(),
       };
 
@@ -241,6 +245,7 @@ const SVRform = () => {
           if (parsed.projectId === projectId) {
             setAttendees(parsed.attendees || attendees);
             setEntries(parsed.entries || entries);
+            setCaseStudyRemarks(parsed.caseStudyRemarks || ""); // ✅
           }
         }
       } catch (error) {
@@ -254,7 +259,7 @@ const SVRform = () => {
   // Auto-save on every change
   useEffect(() => {
     saveFormToLocal();
-  }, [attendees, entries]);
+  }, [attendees, entries, caseStudyRemarks]);
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -274,159 +279,164 @@ const SVRform = () => {
         </View>
       </LinearGradient>
 
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        keyboardShouldPersistTaps="always"
-        extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        {/* Content */}
-        <View className="flex-1 px-3 py-4">
-          {/* ------------------- ATTENDEES SECTION ------------------- */}
-          <View className="bg-white rounded-xl p-2 shadow-md mb-6">
-            <Text className="text-lg font-bold text-gray-700 p-2">
-              Attendees <Text className="text-red-500">*</Text>
-            </Text>
+      {mode === "svr" && (
+        <KeyboardAwareScrollView
+          enableOnAndroid
+          keyboardShouldPersistTaps="always"
+          extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          {/* Content */}
+          <View className="flex-1 px-3 py-4">
+            {/* ------------------- ATTENDEES SECTION ------------------- */}
+            <View className="bg-white rounded-xl p-2 shadow-md mb-6">
+              <Text className="text-lg font-bold text-gray-700 p-2">
+                Attendees <Text className="text-red-500">*</Text>
+              </Text>
 
-            {attendees.map((att, index) => (
-              <Card
-                key={index}
-                className="mb-4 rounded-3xl shadow-sm overflow-hidden"
-              >
-                <List.Accordion
-                  title={
-                    <View>
-                      <Text className="font-semibold text-gray-700 text-lg">
-                        Attendee {att.sNo}
-                      </Text>
-                      {att.attendeeName ? (
-                        <Text className="text-sm text-gray-500">
-                          {att.attendeeName}
-                        </Text>
-                      ) : null}
-                    </View>
-                  }
-                  style={{
-                    backgroundColor: "#F0F9FF",
-                    borderRadius: 12,
-                  }}
-                  expanded={expandedAttendee === index}
-                  onPress={() =>
-                    setExpandedAttendee(
-                      expandedAttendee === index ? null : index
-                    )
-                  }
+              {attendees.map((att, index) => (
+                <Card
+                  key={index}
+                  className="mb-4 rounded-3xl shadow-sm overflow-hidden"
                 >
-                  <Card.Content className="bg-white px-3 py-4">
-                    {/* DIRECTORY DROPDOWN */}
-                    {openDirectoryFor === index ? (
-                      <Dropdown
-                        style={{
-                          height: 35,
-                          borderColor: "#0EA5E9",
-                          borderWidth: 1,
-                          borderRadius: 12,
-                          paddingHorizontal: 12,
-                          backgroundColor: "#FFF",
-                          marginBottom: 8,
-                        }}
-                        placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
-                        selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-                        activeColor="#F0F9FF"
-                        data={users}
-                        labelField="label"
-                        valueField="value"
-                        value={att.userId}
-                        placeholder="Select attendee"
-                        search
-                        searchPlaceholder="Search..."
-                        onChange={(val) => {
-                          const user = users.find((u) => u.value === val.value);
-                          if (user) {
-                            updateAttendee(index, "userId", user.value);
-                            updateAttendee(
-                              index,
-                              "attendeeName",
-                              user.attendeeName || ""
-                            );
-                            updateAttendee(
-                              index,
-                              "organization",
-                              user.organization || ""
-                            );
-                            updateAttendee(
-                              index,
-                              "designation",
-                              user.designation || ""
-                            );
-                            updateAttendee(index, "email", user.email || "");
-                            // updateAttendee(
-                            //   index,
-                            //   "contactNumbers",
-                            //   user.contactNumbers || [""]
-                            // );
-                          }
-                          setOpenDirectoryFor(null);
-                        }}
-                      />
-                    ) : !att.userId ? (
-                      <TouchableOpacity
-                        onPress={() => setOpenDirectoryFor(index)}
-                        className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center mb-3"
-                      >
-                        <Ionicons
-                          name="people-outline"
-                          size={18}
-                          color="#0EA5E9"
-                        />
-                        <Text className="ml-2 text-sky-500 font-medium text-sm">
-                          Select From Directory
+                  <List.Accordion
+                    title={
+                      <View>
+                        <Text className="font-semibold text-gray-700 text-lg">
+                          Attendee {att.sNo}
                         </Text>
-                      </TouchableOpacity>
-                    ) : null}
+                        {att.attendeeName ? (
+                          <Text className="text-sm text-gray-500">
+                            {att.attendeeName}
+                          </Text>
+                        ) : null}
+                      </View>
+                    }
+                    style={{
+                      backgroundColor: "#F0F9FF",
+                      borderRadius: 12,
+                    }}
+                    expanded={expandedAttendee === index}
+                    onPress={() =>
+                      setExpandedAttendee(
+                        expandedAttendee === index ? null : index
+                      )
+                    }
+                  >
+                    <Card.Content className="bg-white px-3 py-4">
+                      {/* DIRECTORY DROPDOWN */}
+                      {openDirectoryFor === index ? (
+                        <Dropdown
+                          style={{
+                            height: 35,
+                            borderColor: "#0EA5E9",
+                            borderWidth: 1,
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            backgroundColor: "#FFF",
+                            marginBottom: 8,
+                          }}
+                          placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
+                          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+                          activeColor="#F0F9FF"
+                          data={users}
+                          labelField="label"
+                          valueField="value"
+                          value={att.userId}
+                          placeholder="Select attendee"
+                          search
+                          searchPlaceholder="Search..."
+                          onChange={(val) => {
+                            const user = users.find(
+                              (u) => u.value === val.value
+                            );
+                            if (user) {
+                              updateAttendee(index, "userId", user.value);
+                              updateAttendee(
+                                index,
+                                "attendeeName",
+                                user.attendeeName || ""
+                              );
+                              updateAttendee(
+                                index,
+                                "organization",
+                                user.organization || ""
+                              );
+                              updateAttendee(
+                                index,
+                                "designation",
+                                user.designation || ""
+                              );
+                              updateAttendee(index, "email", user.email || "");
+                              // updateAttendee(
+                              //   index,
+                              //   "contactNumbers",
+                              //   user.contactNumbers || [""]
+                              // );
+                            }
+                            setOpenDirectoryFor(null);
+                          }}
+                        />
+                      ) : !att.userId ? (
+                        <TouchableOpacity
+                          onPress={() => setOpenDirectoryFor(index)}
+                          className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center mb-3"
+                        >
+                          <Ionicons
+                            name="people-outline"
+                            size={18}
+                            color="#0EA5E9"
+                          />
+                          <Text className="ml-2 text-sky-500 font-medium text-sm">
+                            Select From Directory
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
 
-                    {/* MANUAL FIELDS */}
-                    <View className="gap-2">
-                      <TextInput
-                        placeholder="Full Name *"
-                        placeholderTextColor="#888"
-                        value={att.attendeeName}
-                        onChangeText={(t) =>
-                          updateAttendee(index, "attendeeName", t)
-                        }
-                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                      />
+                      {/* MANUAL FIELDS */}
+                      <View className="gap-2">
+                        <TextInput
+                          placeholder="Full Name *"
+                          placeholderTextColor="#888"
+                          value={att.attendeeName}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "attendeeName", t)
+                          }
+                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                        />
 
-                      <TextInput
-                        placeholder="Organization"
-                        placeholderTextColor="#888"
-                        value={att.organization}
-                        onChangeText={(t) =>
-                          updateAttendee(index, "organization", t)
-                        }
-                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                      />
+                        <TextInput
+                          placeholder="Organization"
+                          placeholderTextColor="#888"
+                          value={att.organization}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "organization", t)
+                          }
+                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                        />
 
-                      <TextInput
-                        placeholder="Designation"
-                        placeholderTextColor="#888"
-                        value={att.designation}
-                        onChangeText={(t) =>
-                          updateAttendee(index, "designation", t)
-                        }
-                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                      />
+                        <TextInput
+                          placeholder="Designation"
+                          placeholderTextColor="#888"
+                          value={att.designation}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "designation", t)
+                          }
+                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                        />
 
-                      <TextInput
-                        placeholder="Email"
-                        placeholderTextColor="#888"
-                        value={att.email}
-                        onChangeText={(t) => updateAttendee(index, "email", t)}
-                        keyboardType="email-address"
-                        className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                      />
+                        <TextInput
+                          placeholder="Email"
+                          placeholderTextColor="#888"
+                          value={att.email}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "email", t)
+                          }
+                          keyboardType="email-address"
+                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                        />
 
-                      {/* <TextInput
+                        {/* <TextInput
                         placeholder="Phone"
                         placeholderTextColor="#888"
                         value={att.contactNumbers[0] || ""}
@@ -435,180 +445,202 @@ const SVRform = () => {
                         className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       /> */}
 
-                      {/* REMOVE BUTTON */}
-                      {attendees.length > 1 && (
-                        <TouchableOpacity onPress={() => deleteAttendee(index)}>
-                          <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
-                            Remove Attendee
+                        {/* REMOVE BUTTON */}
+                        {attendees.length > 1 && (
+                          <TouchableOpacity
+                            onPress={() => deleteAttendee(index)}
+                          >
+                            <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
+                              Remove Attendee
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </Card.Content>
+                  </List.Accordion>
+                </Card>
+              ))}
+
+              {/* ADD ATTENDEE BUTTON */}
+              <TouchableOpacity
+                onPress={addAttendee}
+                className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
+              >
+                <Text className="text-white font-pbold">+ Add Attendee</Text>
+              </TouchableOpacity>
+            </View>
+
+            {entries.length === 0 ? (
+              <View className="flex-1 items-center justify-center opacity-70 px-6">
+                <MaterialCommunityIcons
+                  name="playlist-plus"
+                  size={64}
+                  color="#6366F1"
+                />
+                <Text className="text-gray-500 mt-2 text-center text-sm">
+                  No SVR entries yet. Tap below to add your first one!
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={entries}
+                keyExtractor={(item) => item.id}
+                keyboardShouldPersistTaps="always" // <-- ADD THIS
+                scrollEnabled={false} // Important with KeyboardAwareScrollView
+                renderItem={({ item, index }) => (
+                  <View className="bg-white rounded-2xl shadow-md p-4 mb-2 relative">
+                    {/* Close Button */}
+                    {entries.length > 1 && (
+                      <TouchableOpacity
+                        onPress={() => removeEntry(item.id)}
+                        className="absolute top-3 right-3 z-10"
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name="close-circle"
+                          size={22}
+                          color="#ef4444"
+                        />
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Header */}
+                    <Text className="font-semibold text-indigo-600 text-lg mb-4">
+                      Discussion {index + 1}
+                    </Text>
+
+                    {/* Agenda Input */}
+                    <TextInput
+                      placeholder="Agenda"
+                      placeholderTextColor="#9ca3af"
+                      value={item.agenda}
+                      onChangeText={(v) => updateEntry(item.id, "agenda", v)}
+                      multiline
+                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                      style={{ minHeight: 40 }}
+                    />
+
+                    {/* Discussion Input */}
+                    <TextInput
+                      placeholder="Discussion"
+                      placeholderTextColor="#9ca3af"
+                      value={item.discussion}
+                      multiline
+                      onChangeText={(v) =>
+                        updateEntry(item.id, "discussion", v)
+                      }
+                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                      style={{ minHeight: 40 }}
+                    />
+
+                    {/* Responsibility + For Info */}
+                    <View className="mb-2">
+                      <View className="flex-row items-center gap-2">
+                        {/* Responsibility Input */}
+                        <TextInput
+                          placeholder="Responsibility"
+                          placeholderTextColor="#9ca3af"
+                          value={
+                            item.responsibility === "For Info"
+                              ? "For Info"
+                              : item.responsibility
+                          }
+                          editable={item.responsibility !== "For Info"}
+                          multiline
+                          onChangeText={(v) =>
+                            updateEntry(item.id, "responsibility", v)
+                          }
+                          className={`flex-1 border rounded-lg px-4 text-sm ${
+                            item.responsibility === "For Info"
+                              ? "bg-gray-200 text-gray-500 border-gray-300"
+                              : "bg-gray-50 text-gray-700 border-gray-400"
+                          }`}
+                          style={{ height: 40 }}
+                        />
+
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            const isInfo = item.responsibility === "For Info";
+                            updateEntry(
+                              item.id,
+                              "responsibility",
+                              isInfo ? "" : "For Info"
+                            );
+                          }}
+                          style={{
+                            height: 40,
+                            minWidth: 95,
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor:
+                              item.responsibility === "For Info"
+                                ? "#22c55e"
+                                : "#d1d5db",
+                            backgroundColor:
+                              item.responsibility === "For Info"
+                                ? "#22c55e"
+                                : "#f3f4f6",
+                          }}
+                          className="flex-row items-center justify-center px-3"
+                        >
+                          {item.responsibility === "For Info" && (
+                            <Ionicons name="checkmark" size={16} color="#fff" />
+                          )}
+                          <Text
+                            className={`ml-1 text-xs font-medium ${
+                              item.responsibility === "For Info"
+                                ? "text-white"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            For Info
                           </Text>
                         </TouchableOpacity>
-                      )}
+                      </View>
                     </View>
-                  </Card.Content>
-                </List.Accordion>
-              </Card>
-            ))}
 
-            {/* ADD ATTENDEE BUTTON */}
-            <TouchableOpacity
-              onPress={addAttendee}
-              className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
-            >
-              <Text className="text-white font-pbold">+ Add Attendee</Text>
-            </TouchableOpacity>
-          </View>
-
-          {entries.length === 0 ? (
-            <View className="flex-1 items-center justify-center opacity-70 px-6">
-              <MaterialCommunityIcons
-                name="playlist-plus"
-                size={64}
-                color="#6366F1"
-              />
-              <Text className="text-gray-500 mt-2 text-center text-sm">
-                No SVR entries yet. Tap below to add your first one!
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={entries}
-              keyExtractor={(item) => item.id}
-              keyboardShouldPersistTaps="always" // <-- ADD THIS
-              scrollEnabled={false} // Important with KeyboardAwareScrollView
-              renderItem={({ item, index }) => (
-                <View className="bg-white rounded-2xl shadow-md p-4 mb-2 relative">
-                  {/* Close Button */}
-                  {entries.length > 1 && (
-                    <TouchableOpacity
-                      onPress={() => removeEntry(item.id)}
-                      className="absolute top-3 right-3 z-10"
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="close-circle" size={22} color="#ef4444" />
-                    </TouchableOpacity>
-                  )}
-
-                  {/* Header */}
-                  <Text className="font-semibold text-indigo-600 text-lg mb-4">
-                    Discussion {index + 1}
-                  </Text>
-
-                  {/* Agenda Input */}
-                  <TextInput
-                    placeholder="Agenda"
-                    placeholderTextColor="#9ca3af"
-                    value={item.agenda}
-                    onChangeText={(v) => updateEntry(item.id, "agenda", v)}
-                    multiline
-                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
-                    style={{ minHeight: 40 }}
-                  />
-
-                  {/* Discussion Input */}
-                  <TextInput
-                    placeholder="Discussion"
-                    placeholderTextColor="#9ca3af"
-                    value={item.discussion}
-                    multiline
-                    onChangeText={(v) => updateEntry(item.id, "discussion", v)}
-                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
-                    style={{ minHeight: 40 }}
-                  />
-
-                  {/* Responsibility + For Info */}
-                  <View className="mb-2">
-                    <View className="flex-row items-center gap-2">
-                      {/* Responsibility Input */}
-                      <TextInput
-                        placeholder="Responsibility"
-                        placeholderTextColor="#9ca3af"
-                        value={
-                          item.responsibility === "For Info"
-                            ? "For Info"
-                            : item.responsibility
-                        }
-                        editable={item.responsibility !== "For Info"}
-                        multiline
-                        onChangeText={(v) =>
-                          updateEntry(item.id, "responsibility", v)
-                        }
-                        className={`flex-1 border rounded-lg px-4 text-sm ${
-                          item.responsibility === "For Info"
-                            ? "bg-gray-200 text-gray-500 border-gray-300"
-                            : "bg-gray-50 text-gray-700 border-gray-400"
-                        }`}
-                        style={{ height: 40 }}
-                      />
-
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => {
-                          const isInfo = item.responsibility === "For Info";
-                          updateEntry(
-                            item.id,
-                            "responsibility",
-                            isInfo ? "" : "For Info"
-                          );
-                        }}
-                        style={{
-                          height: 40,
-                          minWidth: 95,
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          borderColor:
-                            item.responsibility === "For Info"
-                              ? "#22c55e"
-                              : "#d1d5db",
-                          backgroundColor:
-                            item.responsibility === "For Info"
-                              ? "#22c55e"
-                              : "#f3f4f6",
-                        }}
-                        className="flex-row items-center justify-center px-3"
-                      >
-                        {item.responsibility === "For Info" && (
-                          <Ionicons name="checkmark" size={16} color="#fff" />
-                        )}
-                        <Text
-                          className={`ml-1 text-xs font-medium ${
-                            item.responsibility === "For Info"
-                              ? "text-white"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          For Info
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                    {/* Remarks Input */}
+                    <TextInput
+                      placeholder="Remarks (Optional)"
+                      placeholderTextColor="#9ca3af"
+                      value={item.remarks}
+                      multiline
+                      onChangeText={(v) => updateEntry(item.id, "remarks", v)}
+                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50"
+                      style={{ minHeight: 40 }}
+                    />
                   </View>
+                )}
+              />
+            )}
+          </View>
+          <View>
+            <Pressable
+              onPress={addEntry}
+              className="bg-indigo-500 px-3 mx-4 py-3 rounded-lg flex-row items-center justify-center mt-2 mb-6"
+            >
+              <Ionicons name="add-circle" size={18} color="#fff" />
+              <Text className="text-white ml-2 text-sm font-semibold">
+                Add More
+              </Text>
+            </Pressable>
+          </View>
+        </KeyboardAwareScrollView>
+      )}
 
-                  {/* Remarks Input */}
-                  <TextInput
-                    placeholder="Remarks (Optional)"
-                    placeholderTextColor="#9ca3af"
-                    value={item.remarks}
-                    multiline
-                    onChangeText={(v) => updateEntry(item.id, "remarks", v)}
-                    className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50"
-                    style={{ minHeight: 40 }}
-                  />
-                </View>
-              )}
-            />
-          )}
+      {mode === "case-study" && (
+        <View className="p-4">
+          <TextInput
+            placeholder="Remarks"
+            value={caseStudyRemarks}
+            onChangeText={setCaseStudyRemarks}
+            placeholderTextColor={"#888"}
+            multiline
+            className="border border-gray-400 bg-white rounded-lg px-4 py-3"
+          />
         </View>
-        <View>
-          <Pressable
-            onPress={addEntry}
-            className="bg-indigo-500 px-3 mx-4 py-3 rounded-lg flex-row items-center justify-center mt-2 mb-6"
-          >
-            <Ionicons name="add-circle" size={18} color="#fff" />
-            <Text className="text-white ml-2 text-sm font-semibold">
-              Add More
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardAwareScrollView>
+      )}
 
       {/* Footer Buttons */}
       <View className="flex-row justify-between px-3 pb-14 mt-2 bg-gray-100">

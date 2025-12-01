@@ -4,7 +4,7 @@ import { logoutUser } from "../lib/logoutHelper";
 import Toast from "react-native-toast-message";
 
 const api = axios.create({
-  baseURL: "http://192.168.1.104:5000/api", // Change localhost if testing on physical device
+  baseURL: "http://192.168.1.60:5000/api", // Change localhost if testing on physical device
 });
 
 api.interceptors.response.use(

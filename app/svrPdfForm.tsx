@@ -92,9 +92,12 @@ const SVRPhotoReport: React.FC = () => {
     teamMembers,
     svrEntries, // JSON string from previous page
     attendees,
+    caseStudyRemarks
   } = params || {};
 
-  console.log(params);
+  console.log( caseStudyRemarks)
+
+  // console.log(params);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
@@ -613,7 +616,7 @@ const SVRPhotoReport: React.FC = () => {
 
       // ------------------ GENERATE PDF ------------------
       const { uri } = await Print.printToFileAsync({ html });
-      const newFileName = `DPR_${
+      const newFileName = `SVR_${
         projectName || "Project"
       }_${getFormattedDate()}.pdf`;
       const newUri = `${FileSystem.cacheDirectory}${newFileName}`;

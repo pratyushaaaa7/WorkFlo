@@ -14,8 +14,11 @@ import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 
+
 const SVRs = () => {
   const router = useRouter();
+
+  const [modalVisible, setModalVisible] = useState(false);
 
   // ✅ Receiving params from previous screen
   const { projectId, projectName, company, teamLeaders, teamMembers } =
@@ -53,6 +56,21 @@ const SVRs = () => {
     fetchDPRs();
   }, []);
 
+  const openTypeSelector = () => {
+    setModalVisible(true);
+  };
+
+  const goAndClose = (type) => {
+    setModalVisible(false);
+    goToForm(type);
+  };
+
+  const goToForm = (type) => {
+    router.push(
+      `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`
+    );
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -84,13 +102,70 @@ const SVRs = () => {
         )}
       </View>
 
+      {/* Type Selection Modal */}
+      {modalVisible && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+          className="absolute inset-0 bg-black/40 flex items-center justify-center px-6"
+        >
+          <View
+            onStartShouldSetResponder={() => true}
+            className="w-full bg-white rounded-3xl p-6 shadow-2xl max-w-sm relative"
+          >
+            {/* Close (X) Button */}
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              className="absolute top-4 right-4 p-1"
+            >
+              <Ionicons name="close" size={26} color="#555" />
+            </TouchableOpacity>
+
+            {/* Title */}
+            <Text className="text-xl font-bold text-gray-800 text-center mb-6 mt-2">
+              Select Report Type
+            </Text>
+
+            {/* Buttons Container */}
+            <View className="gap-4">
+              {/* SVR Button */}
+              <TouchableOpacity
+                onPress={() => goAndClose("svr")}
+                className="flex-row items-center bg-indigo-600 py-4 px-4 rounded-2xl shadow-sm"
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={24}
+                  color="white"
+                />
+                <Text className="text-white text-lg font-semibold ml-3">
+                  SVR
+                </Text>
+              </TouchableOpacity>
+
+              {/* Case Study Button */}
+              <TouchableOpacity
+                onPress={() => goAndClose("case-study")}
+                className="flex-row items-center bg-purple-600 py-4 px-4 rounded-2xl shadow-sm"
+              >
+                <Ionicons name="book-outline" size={24} color="white" />
+                <Text className="text-white text-lg font-semibold ml-3">
+                  Case Study
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {/* Floating + Button */}
       <TouchableOpacity
-        onPress={() =>
-          router.push(
-            `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`
-          )
-        }
+        // onPress={() =>
+        //   router.push(
+        //     `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`
+        //   )
+        // }
+        onPress={openTypeSelector}
         className="bg-indigo-600"
         style={{
           position: "absolute",
