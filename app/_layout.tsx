@@ -91,9 +91,8 @@ function LayoutWithAuth() {
   const segments = useSegments() as string[];
   const { isAuthenticated, authLoading } = useAuth();
 
-  // Fix iOS unmatched route:
-  // Convert ["(drawer)"] → "" so login redirection works the same on Android & iOS
-  const current = segments.length > 0 ? segments.join("/") : "";
+  // Convert empty / root to ""
+  const current = segments.join("/");
 
   useEffect(() => {
     if (authLoading) return;
@@ -101,7 +100,7 @@ function LayoutWithAuth() {
     console.log("📌 Segment:", current);
     console.log("📌 Authenticated:", isAuthenticated);
 
-    // NOT LOGGED IN ---------------------------
+    // --------------- NOT LOGGED IN -----------------
     if (!isAuthenticated) {
       if (current !== "login") {
         console.log("➡️ Redirecting to /login (not authenticated)");
@@ -110,10 +109,14 @@ function LayoutWithAuth() {
       return;
     }
 
-    // LOGGED IN ---------------------------
+    // --------------- LOGGED IN -----------------
+    // iOS FIX: add delay so drawer loads before redirect
     if (current === "" || current === "login" || current === "(drawer)") {
       console.log("➡️ Redirecting to /(drawer)/projects (authenticated)");
-      router.replace("/(drawer)/projects");
+
+      setTimeout(() => {
+        router.replace("/(drawer)/projects");
+      }, 50); // ⭐ Fixes iOS +not-found issue
     }
   }, [authLoading, isAuthenticated, current]);
 
