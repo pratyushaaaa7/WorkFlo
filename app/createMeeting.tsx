@@ -23,6 +23,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -737,6 +738,9 @@ const CreateMinutes = () => {
     }
   };
 
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -772,7 +776,7 @@ const CreateMinutes = () => {
               Meeting Info <Text className="text-red-500">*</Text>
             </Text>
             {/* Meeting Date */}
-            <TouchableOpacity onPress={() => setShowMeetingDatePicker(true)}>
+            {/* <TouchableOpacity onPress={() => setShowMeetingDatePicker(true)}>
               <TextInput
                 placeholder="Meeting Date *"
                 placeholderTextColor="#888"
@@ -794,11 +798,11 @@ const CreateMinutes = () => {
                   if (selectedDate) setMeetingDate(selectedDate);
                 }}
               />
-            )}
+            )} */}
 
             {/* Meeting Time */}
             {/* ✅ Meeting Time */}
-            <TouchableOpacity onPress={() => setShowMeetingTimePicker(true)}>
+            {/* <TouchableOpacity onPress={() => setShowMeetingTimePicker(true)}>
               <TextInput
                 placeholder="Meeting Time *"
                 placeholderTextColor="#888"
@@ -807,9 +811,9 @@ const CreateMinutes = () => {
                 pointerEvents="none"
                 className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            {showMeetingTimePicker && (
+            {/* {showMeetingTimePicker && (
               <DateTimePicker
                 value={new Date()}
                 mode="time" // important for time picker
@@ -825,7 +829,54 @@ const CreateMinutes = () => {
                   }
                 }}
               />
-            )}
+            )} */}
+
+            {/* Meeting Date */}
+            <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
+              <TextInput
+                placeholder="Meeting Date *"
+                placeholderTextColor="#888"
+                value={
+                  meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : ""
+                }
+                editable={false}
+                pointerEvents="none"
+                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+              />
+            </TouchableOpacity>
+
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={(date) => {
+                setDatePickerVisibility(false);
+                setMeetingDate(date);
+              }}
+              onCancel={() => setDatePickerVisibility(false)}
+            />
+
+            {/* Meeting Time */}
+            <TouchableOpacity onPress={() => setTimePickerVisibility(true)}>
+              <TextInput
+                placeholder="Meeting Time *"
+                placeholderTextColor="#888"
+                value={meetingTime}
+                editable={false}
+                pointerEvents="none"
+                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+              />
+            </TouchableOpacity>
+
+            <DateTimePickerModal
+              isVisible={isTimePickerVisible}
+              mode="time"
+              onConfirm={(time) => {
+                setTimePickerVisibility(false);
+                const formattedTime = moment(time).format("hh:mm A");
+                setMeetingTime(formattedTime);
+              }}
+              onCancel={() => setTimePickerVisibility(false)}
+            />
 
             {/* Venue */}
             <TextInput
