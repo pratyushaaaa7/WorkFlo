@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -741,6 +741,9 @@ const CreateMinutes = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
+  const dropdownRef = useRef(null);
+  const responsibilityRef = useRef(null);
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -1142,10 +1145,12 @@ const CreateMinutes = () => {
                 <Card.Content className="bg-white px-3 py-4">
                   <View className="gap-2">
                     {/* Raised By */}
+
                     <MultiSelect
+                      ref={dropdownRef}
                       style={{
                         height: 35,
-                        borderColor: "#E5E7EB", // gray-200
+                        borderColor: "#E5E7EB",
                         borderWidth: 1,
                         borderRadius: 12,
                         paddingHorizontal: 12,
@@ -1158,7 +1163,7 @@ const CreateMinutes = () => {
                       }}
                       selectedStyle={{
                         borderRadius: 10,
-                        backgroundColor: "#D1FADF", // light green (instead of light aqua)
+                        backgroundColor: "#D1FADF",
                         padding: 4,
                       }}
                       containerStyle={{
@@ -1172,20 +1177,23 @@ const CreateMinutes = () => {
                       labelField="label"
                       valueField="value"
                       data={users}
-                      value={m.raisedBy.map((r: any) => r.value)} // ✅ use .value
+                      value={m.raisedBy.map((r) => r.value)}
                       placeholder="Issue raised by *"
                       searchPlaceholder="Search..."
-                      // Raised By
-                      onChange={(selectedIds: string[]) => {
+                      onChange={(selectedIds) => {
                         const selectedUsers = users
                           .filter((u) => selectedIds.includes(u.value))
-                          .map((u) => ({
-                            value: u.value,
-                            label: u.label,
-                          }));
+                          .map((u) => ({ value: u.value, label: u.label }));
+
                         updateMinute(index, "raisedBy", selectedUsers);
+
+                        // 🔥 The ONLY way: programmatic close using ref
+                        setTimeout(() => {
+                          dropdownRef.current?.close();
+                        }, 80);
                       }}
                     />
+
                     <TextInput
                       placeholder="Subject *"
                       placeholderTextColor="#888"
@@ -1353,6 +1361,7 @@ const CreateMinutes = () => {
                         }}
                       >
                         <MultiSelect
+                          ref={responsibilityRef}
                           style={{
                             height: 35,
                             borderColor: "#E5E7EB", // gray-200
@@ -1387,6 +1396,19 @@ const CreateMinutes = () => {
                           //   updateMinute(index, "responsibility", val)
                           // }
                           // Raised By
+                          // onChange={(selectedIds: string[]) => {
+                          //   const selectedUsers = users
+                          //     .filter((u) => selectedIds.includes(u.value))
+                          //     .map((u) => ({
+                          //       value: u.value,
+                          //       label: u.label,
+                          //     }));
+                          //   updateMinute(
+                          //     index,
+                          //     "responsibility",
+                          //     selectedUsers
+                          //   );
+                          // }}
                           onChange={(selectedIds: string[]) => {
                             const selectedUsers = users
                               .filter((u) => selectedIds.includes(u.value))
@@ -1394,11 +1416,17 @@ const CreateMinutes = () => {
                                 value: u.value,
                                 label: u.label,
                               }));
+
                             updateMinute(
                               index,
                               "responsibility",
                               selectedUsers
                             );
+
+                            // 🔥 Auto-close immediately after each selection/deselection
+                            setTimeout(() => {
+                              responsibilityRef.current?.close();
+                            }, 80);
                           }}
                           disable={m.responsibilityForInfo} // 🔹 disable MultiSelect when For Info is active
                         />
