@@ -342,7 +342,7 @@ const ReportForm: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setUploading(true);
-      console.log(logoBase64);
+      // console.log(logoBase64);
       if (!logoBase64 || logoBase64.length < 100) {
         Toast.show({
           type: "info",

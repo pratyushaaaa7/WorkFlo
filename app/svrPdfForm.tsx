@@ -92,7 +92,11 @@ const SVRPhotoReport: React.FC = () => {
     teamMembers,
     svrEntries, // JSON string from previous page
     attendees,
+    caseStudyRemarks,
+    mode,
   } = params || {};
+
+  // console.log(caseStudyRemarks);
 
   console.log(params);
 
@@ -312,7 +316,8 @@ const SVRPhotoReport: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setUploading(true);
-      console.log(logoBase64);
+
+      // console.log(logoBase64);
       if (!logoBase64 || logoBase64.length < 100) {
         Toast.show({
           type: "info",
@@ -360,7 +365,6 @@ const SVRPhotoReport: React.FC = () => {
       <div class="page">
         <div class="header-right">
          <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
-
         </div>
 
         <h2>Project Information</h2>
@@ -390,73 +394,82 @@ const SVRPhotoReport: React.FC = () => {
       </div>
     `);
 
-      if (svr.length > 0) {
+      // PAGE 2: Conditional content
+      if (mode === "svr") {
         htmlParts.push(`
-    <div class="page">
-      <div class="header-left">
-        <div><strong>Project:</strong> ${projectName || ""}</div>
-        <div><strong>Created By:</strong> ${createdBy || ""}</div>
-      </div>
-      <div class="header-right">
-        <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
-      </div>
+        <div class="page">
+          <div class="header-left">
+            <div><strong>Project:</strong> ${projectName || ""}</div>
+            <div><strong>Created By:</strong> ${createdBy || ""}</div>
+          </div>
+          <div class="header-right">
+            <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
+          </div>
 
-      <!-- 🔹 ATTENDEES FIRST -->
-      <h2 style="margin-top: 40px;">Attendees</h2>
-      <table>
-        <tr>
-          <th>S.No</th>
-          <th>Name</th>
-          <th>Designation</th>
-          <th>Company</th>
-          <th>Email</th>
-        </tr>
-        ${
-          attendeeList.length > 0
-            ? attendeeList
-                .map(
-                  (a, idx) => `
+          <!-- Attendees Table -->
+          <h2  style="margin-top:40px;padding-top:10px;">Attendees</h2>
+          <table>
             <tr>
-              <td>${idx + 1}</td>
-              <td>${a.attendeeName || "-"}</td>
-              <td>${a.designation || "-"}</td>
-              <td>${a.organization || "-"}</td>
-              <td>${a.email || "-"}</td>
+              <th>S.No</th>
+              <th>Name</th>
+              <th>Designation</th>
+              <th>Company</th>
+              <th>Email</th>
             </tr>
-          `
-                )
-                .join("")
-            : `<tr><td colspan="6" style="text-align:center;">No attendees recorded</td></tr>`
-        }
-      </table>
+            ${
+              attendeeList.length > 0
+                ? attendeeList
+                    .map(
+                      (a, idx) => `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${a.attendeeName || "-"}</td>
+                    <td>${a.designation || "-"}</td>
+                    <td>${a.organization || "-"}</td>
+                    <td>${a.email || "-"}</td>
+                  </tr>
+                `
+                    )
+                    .join("")
+                : `<tr><td colspan="5" style="text-align:center;">No attendees recorded</td></tr>`
+            }
+          </table>
 
-      <!-- 🔹 AVR / Labor Report AFTER ATTENDEES -->
-      <h2 style="margin-top: 40px;">Site Visit Report</h2>
-      <table>
-        <tr>
-          <th>S.No</th>
-          <th>Agenda</th>
-          <th>Discussion</th>
-          <th>Responsibility</th>
-          <th>Remarks</th>
-        </tr>
-        ${svr
-          .map(
-            (v, index) => `
+          <!-- SVR Table -->
+          <h2 style="margin-top:40px;padding-top:10px;>Site Visit Report</h2>
+          <table>
+            <tr>
+              <th>S.No</th>
+              <th>Agenda</th>
+              <th>Discussion</th>
+              <th>Responsibility</th>
+              <th>Remarks</th>
+            </tr>
+            ${svr
+              .map(
+                (v, idx) => `
               <tr>
-                <td>${index + 1}</td>
+                <td>${idx + 1}</td>
                 <td>${v.agenda || "-"}</td>
                 <td>${v.discussion || "-"}</td>
                 <td>${v.responsibility || "-"}</td>
                 <td>${v.remarks || "-"}</td>
               </tr>
             `
-          )
-          .join("")}
-      </table>
-
-    </div>
-  `);
+              )
+              .join("")}
+          </table>
+        </div>
+      `);
+      } else if (mode === "case-study") {
+        htmlParts.push(`
+        <div class="page">
+          <h2 style="text-align:center;">Case Study Remarks</h2>
+          <div>
+            ${caseStudyRemarks || "<p>No remarks provided.</p>"}
+          </div>
+        </div>
+      `);
       }
 
       // --- PHOTO BATCHES ---
@@ -613,7 +626,7 @@ const SVRPhotoReport: React.FC = () => {
 
       // ------------------ GENERATE PDF ------------------
       const { uri } = await Print.printToFileAsync({ html });
-      const newFileName = `DPR_${
+      const newFileName = `SVR_${
         projectName || "Project"
       }_${getFormattedDate()}.pdf`;
       const newUri = `${FileSystem.cacheDirectory}${newFileName}`;
@@ -627,13 +640,13 @@ const SVRPhotoReport: React.FC = () => {
       //   formData.append("createdBy", createdBy);
 
       //   formData.append("file", {
-      //     uri: newUri,
-      //     name: newFileName,
+      //    uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+      // name: newFileName, // e.g., "SVR_01.pdf"
       //     type: "application/pdf",
       //   } as any);
 
       //   // 🔹 Upload to your backend (which sends it to object storage)
-      //   const response = await api.post("/dpr", formData, {
+      //   const response = await api.post("/svr", formData, {
       //     headers: {
       //       "Content-Type": "multipart/form-data",
       //       Authorization: `Bearer ${token}`,
@@ -644,14 +657,14 @@ const SVRPhotoReport: React.FC = () => {
       //     Toast.show({
       //       type: "success",
       //       text1: "Success",
-      //       text2: "DPR uploaded successfully",
+      //       text2: "SVR uploaded successfully",
       //       position: "bottom",
       //     });
 
       //     // Optional: navigate after delay
       //     setTimeout(() => {
       //       router.push({
-      //         pathname: "/dprs",
+      //         pathname: "/svrs",
       //         params: { projectId },
       //       });
       //     }, 300);
@@ -666,7 +679,7 @@ const SVRPhotoReport: React.FC = () => {
 
       //   // 🔹 Cleanup after upload
       //   await AsyncStorage.removeItem(STORAGE_KEY);
-      //   await AsyncStorage.removeItem("reportData");
+      //   await AsyncStorage.removeItem("SVR_FORM_DATA");
       //   setPhotos([]);
       //   try {
       //     await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
@@ -684,7 +697,7 @@ const SVRPhotoReport: React.FC = () => {
       //   Toast.show({
       //     type: "error",
       //     text1: "Error",
-      //     text2: "Failed to upload DPR",
+      //     text2: "Failed to upload SVR",
       //     position: "bottom",
       //   });
       // } finally {
@@ -711,6 +724,12 @@ const SVRPhotoReport: React.FC = () => {
         text2: "Photo report saved locally.",
         position: "bottom",
       });
+      // CLEANUP AFTER DOWNLOAD
+
+      // 🔥 CLEAR FORM ONLY ON SUCCESS
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem("SVR_FORM_DATA");
+      setPhotos([]);
     } catch (err: any) {
       console.error("PDF generation error:", err);
       Alert.alert("Error", err?.message || "Failed to generate PDF.");
