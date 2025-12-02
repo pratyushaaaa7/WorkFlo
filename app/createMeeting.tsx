@@ -7,6 +7,7 @@ import {
   Modal,
   FlatList,
   Alert,
+  ScrollView,
   Platform,
   ActivityIndicator,
 } from "react-native";
@@ -764,7 +765,8 @@ const CreateMinutes = () => {
       {/* Content */}
       <KeyboardAwareScrollView
         enableOnAndroid
-        keyboardShouldPersistTaps="handled"
+        // keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
         extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
         contentContainerStyle={{ padding: 10, paddingBottom: 80 }}
       >
@@ -1146,53 +1148,57 @@ const CreateMinutes = () => {
                   <View className="gap-2">
                     {/* Raised By */}
 
-                    <MultiSelect
-                      ref={dropdownRef}
-                      style={{
-                        height: 35,
-                        borderColor: "#E5E7EB",
-                        borderWidth: 1,
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        backgroundColor: "#F9FAFB",
-                      }}
-                      placeholderStyle={{ fontSize: 14, color: "#888" }}
-                      selectedTextStyle={{
-                        fontSize: 12,
-                        color: "#0B0B0B",
-                      }}
-                      selectedStyle={{
-                        borderRadius: 10,
-                        backgroundColor: "#D1FADF",
-                        padding: 4,
-                      }}
-                      containerStyle={{
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        backgroundColor: "#fff",
-                      }}
-                      activeColor="#DCFCE7"
-                      inputSearchStyle={{ fontSize: 14 }}
-                      search
-                      labelField="label"
-                      valueField="value"
-                      data={users}
-                      value={m.raisedBy.map((r) => r.value)}
-                      placeholder="Issue raised by *"
-                      searchPlaceholder="Search..."
-                      onChange={(selectedIds) => {
-                        const selectedUsers = users
-                          .filter((u) => selectedIds.includes(u.value))
-                          .map((u) => ({ value: u.value, label: u.label }));
+                    <View pointerEvents="box-none">
+                      <ScrollView
+                        keyboardShouldPersistTaps="always"
+                        nestedScrollEnabled
+                        scrollEnabled={false}
+                      >
+                        <MultiSelect
+                          ref={dropdownRef}
+                          style={{
+                            height: 35,
+                            borderColor: "#E5E7EB",
+                            borderWidth: 1,
+                            borderRadius: 12,
+                            paddingHorizontal: 12,
+                            backgroundColor: "#F9FAFB",
+                          }}
+                          placeholderStyle={{ fontSize: 14, color: "#888" }}
+                          selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
+                          selectedStyle={{
+                            borderRadius: 10,
+                            backgroundColor: "#D1FADF",
+                            padding: 4,
+                          }}
+                          containerStyle={{
+                            borderRadius: 12,
+                            overflow: "hidden",
+                            backgroundColor: "#fff",
+                          }}
+                          activeColor="#DCFCE7"
+                          inputSearchStyle={{ fontSize: 14 }}
+                          search
+                          labelField="label"
+                          valueField="value"
+                          data={users}
+                          value={m.raisedBy.map((r) => r.value)}
+                          placeholder="Issue raised by *"
+                          searchPlaceholder="Search..."
+                          onChange={(selectedIds) => {
+                            const selectedUsers = users
+                              .filter((u) => selectedIds.includes(u.value))
+                              .map((u) => ({ value: u.value, label: u.label }));
 
-                        updateMinute(index, "raisedBy", selectedUsers);
+                            updateMinute(index, "raisedBy", selectedUsers);
 
-                        // 🔥 The ONLY way: programmatic close using ref
-                        setTimeout(() => {
-                          dropdownRef.current?.close();
-                        }, 80);
-                      }}
-                    />
+                            setTimeout(() => {
+                              dropdownRef.current?.close();
+                            }, 80);
+                          }}
+                        />
+                      </ScrollView>
+                    </View>
 
                     <TextInput
                       placeholder="Subject *"
