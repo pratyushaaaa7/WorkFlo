@@ -437,7 +437,7 @@ const SVRPhotoReport: React.FC = () => {
           </table>
 
           <!-- SVR Table -->
-          <h2 style="margin-top:40px;padding-top:10px;>Site Visit Report</h2>
+          <h2 >Site Visit Report</h2>
           <table>
             <tr>
               <th>S.No</th>
@@ -582,6 +582,10 @@ ${caseStudyRemarks}
       }
       th {
         background-color: #f0f0f0;
+      }
+      td {
+         white-space: pre-wrap;
+        word-wrap: break-word;
       }
 
       .photo {
