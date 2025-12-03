@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -247,18 +248,40 @@ const ReportForm: React.FC = () => {
 
   const takePhoto = async () => {
     try {
+      // 1️⃣ Ask for camera permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      // 2️⃣ If permission is denied → show alert & stop
+      if (status !== "granted") {
+        Alert.alert(
+          "Camera Permission Required",
+          "To take photos, please allow camera access in your phone settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: () => Linking.openSettings(),
+            },
+          ]
+        );
+        return;
+      }
+
+      // 3️⃣ Launch camera
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.3,
       });
 
-      if (!result.canceled && (result as any).assets?.length > 0) {
-        const asset = (result as any).assets[0];
+      // 4️⃣ Handle response
+      if (!result.canceled && result.assets?.length > 0) {
+        const asset = result.assets[0];
         const newPhoto: PhotoItem = {
           id: uuid.v4().toString(),
           uri: asset.uri,
           caption: "",
         };
+
         const updated = [...photos, newPhoto];
         setPhotos(updated);
         savePhotos(updated);
