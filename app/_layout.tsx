@@ -21,6 +21,8 @@ function LayoutWithAuth() {
   const segments = useSegments() as string[];
   const pathname = usePathname();
   const { isAuthenticated, authLoading } = useAuth();
+const [iosRedirected, setIosRedirected] = useState(false);
+
 
   //   useEffect(() => {
   //   console.log("🔹 Current segments:", segments);
@@ -79,25 +81,29 @@ function LayoutWithAuth() {
   }, [authLoading, isAuthenticated, segments]);
 
   // IOS → pathname-based logic
-  useEffect(() => {
-    if (Platform.OS !== "ios") return; // Only run on iOS
-    if (authLoading) return;
+useEffect(() => {
+  if (Platform.OS !== "ios") return;
+  if (authLoading || iosRedirected) return;
 
-    console.log("IOS redirect check →", { pathname, isAuthenticated });
+  console.log("IOS redirect check →", { pathname, isAuthenticated });
 
-    if (!isAuthenticated) {
-      if (pathname !== "/login") {
-        console.log("➡️ IOS: Redirect → /login");
-        router.replace("/login");
-      }
-      return;
+  // NOT AUTHENTICATED
+  if (!isAuthenticated) {
+    if (pathname !== "/login") {
+      console.log("➡️ IOS: Redirect → /login");
+      router.replace("/login");
+      setIosRedirected(true); // prevent future redirects
     }
+    return;
+  }
 
-    if (isAuthenticated && !pathname.startsWith("/(drawer)")) {
-      console.log("➡️ IOS: Redirect → /projects");
-      router.replace("/(drawer)/projects");
-    }
-  }, [authLoading, isAuthenticated, pathname]);
+  // AUTHENTICATED → redirect only if at root
+  if (isAuthenticated && pathname === "/") {
+    console.log("➡️ IOS: Redirect → /projects");
+    router.replace("/(drawer)/projects");
+    setIosRedirected(true); // prevent future redirects
+  }
+}, [authLoading, isAuthenticated, pathname, iosRedirected]);
 
   // if (loading) {
   if (authLoading) {
