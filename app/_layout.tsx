@@ -21,8 +21,7 @@ function LayoutWithAuth() {
   const segments = useSegments() as string[];
   const pathname = usePathname();
   const { isAuthenticated, authLoading } = useAuth();
-const [iosRedirected, setIosRedirected] = useState(false);
-
+  const [iosRedirected, setIosRedirected] = useState(false);
 
   //   useEffect(() => {
   //   console.log("🔹 Current segments:", segments);
@@ -81,29 +80,53 @@ const [iosRedirected, setIosRedirected] = useState(false);
   }, [authLoading, isAuthenticated, segments]);
 
   // IOS → pathname-based logic
-useEffect(() => {
-  if (Platform.OS !== "ios") return;
-  if (authLoading || iosRedirected) return;
+  // useEffect(() => {
+  //   if (Platform.OS !== "ios") return;
+  //   if (authLoading || iosRedirected) return;
 
-  console.log("IOS redirect check →", { pathname, isAuthenticated });
+  //   console.log("IOS redirect check →", { pathname, isAuthenticated });
 
-  // NOT AUTHENTICATED
-  if (!isAuthenticated) {
-    if (pathname !== "/login") {
-      console.log("➡️ IOS: Redirect → /login");
-      router.replace("/login");
-      setIosRedirected(true); // prevent future redirects
+  //   // NOT AUTHENTICATED
+  //   if (!isAuthenticated) {
+  //     if (pathname !== "/login") {
+  //       console.log("➡️ IOS: Redirect → /login");
+  //       router.replace("/login");
+  //       setIosRedirected(true); // prevent future redirects
+  //     }
+  //     return;
+  //   }
+
+  //   // AUTHENTICATED → redirect only if at root
+  //   if (isAuthenticated && pathname === "/") {
+  //     console.log("➡️ IOS: Redirect → /projects");
+  //     router.replace("/(drawer)/projects");
+  //     setIosRedirected(true); // prevent future redirects
+  //   }
+  // }, [authLoading, isAuthenticated, pathname, iosRedirected]);
+
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    if (authLoading || iosRedirected) return;
+
+    console.log("IOS redirect check →", { pathname, isAuthenticated });
+
+    // NOT AUTHENTICATED → go to login
+    if (!isAuthenticated) {
+      if (pathname !== "/login") {
+        console.log("➡️ IOS: Redirect → /login");
+        router.replace("/login");
+        setIosRedirected(true);
+      }
+      return;
     }
-    return;
-  }
 
-  // AUTHENTICATED → redirect only if at root
-  if (isAuthenticated && pathname === "/login") {
-    console.log("➡️ IOS: Redirect → /projects");
-    router.replace("/(drawer)/projects");
-    setIosRedirected(true); // prevent future redirects
-  }
-}, [authLoading, isAuthenticated, pathname, iosRedirected]);
+    // AUTHENTICATED → redirect to projects if currently on /login OR /
+    if (isAuthenticated && (pathname === "/" || pathname === "/login")) {
+      console.log("➡️ IOS: Redirect → /projects");
+      router.replace("/(drawer)/projects");
+      setIosRedirected(true);
+    }
+  }, [authLoading, isAuthenticated, pathname, iosRedirected]);
 
   // if (loading) {
   if (authLoading) {
