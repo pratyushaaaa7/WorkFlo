@@ -104,29 +104,34 @@ function LayoutWithAuth() {
   //   }
   // }, [authLoading, isAuthenticated, pathname, iosRedirected]);
 
-  useEffect(() => {
-    if (Platform.OS !== "ios") return;
-    if (authLoading || iosRedirected) return;
+// iOS FIX — Run redirect ONLY when authLoading is finished
+useEffect(() => {
+  if (Platform.OS !== "ios") return;
 
-    console.log("IOS redirect check →", { pathname, isAuthenticated });
+  // Wait until AuthContext finishes loading
+  if (authLoading) return;
 
-    // NOT AUTHENTICATED → go to login
-    if (!isAuthenticated) {
-      if (pathname !== "/login") {
-        console.log("➡️ IOS: Redirect → /login");
-        router.replace("/login");
-        setIosRedirected(true);
-      }
-      return;
+  console.log("iOS Redirect Check:", {
+    pathname,
+    isAuthenticated,
+  });
+
+  // 1️⃣ NOT AUTHENTICATED → Always go to /login
+  if (!isAuthenticated) {
+    if (pathname !== "/login") {
+      console.log("➡️ iOS Redirect to /login");
+      router.replace("/login");
     }
+    return;
+  }
 
-    // AUTHENTICATED → redirect to projects if currently on /login OR /
-    if (isAuthenticated && (pathname === "/" || pathname === "/login")) {
-      console.log("➡️ IOS: Redirect → /projects");
-      router.replace("/(drawer)/projects");
-      setIosRedirected(true);
-    }
-  }, [authLoading, isAuthenticated, pathname, iosRedirected]);
+  // 2️⃣ AUTHENTICATED → Redirect ONLY if user is on the root "/"
+  if (isAuthenticated && pathname === "/") {
+    console.log("➡️ iOS Redirect to /projects");
+    router.replace("/(drawer)/projects");
+  }
+}, [authLoading, isAuthenticated, pathname]);
+
 
   // if (loading) {
   if (authLoading) {
