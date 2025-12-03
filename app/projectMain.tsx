@@ -174,44 +174,44 @@ const ProjectMain = () => {
           },
         }),
     },
-    {
-      key: "svr",
-      label: "Site Visit Reports",
-      icon: (
-        <MaterialCommunityIcons
-          name="file-document-edit-outline"
-          size={40}
-          color="#3B82F6"
-        />
-      ),
-      onPress: () =>
-        router.push({
-          pathname: "/svrs",
-          params: {
-            company,
-            projectId,
-            projectName,
-            teamLeaders: JSON.stringify(project?.teamLeaders || []),
-            teamMembers: JSON.stringify(project?.teamMembers || []),
-          },
-        }),
-    },
-    {
-      key: "projectStage",
-      label: "Project Stage",
-      icon: (
-        <MaterialCommunityIcons
-          name="timeline-check-outline"
-          size={40}
-          color="#3B82F9"
-        />
-      ),
-      onPress: () =>
-        router.push({
-          pathname: "/projectStage",
-          params: { company, projectId, projectName: project?.projectName },
-        }),
-    },
+    // {
+    //   key: "svr",
+    //   label: "Site Visit Reports",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="file-document-edit-outline"
+    //       size={40}
+    //       color="#3B82F6"
+    //     />
+    //   ),
+    //   onPress: () =>
+    //     router.push({
+    //       pathname: "/svrs",
+    //       params: {
+    //         company,
+    //         projectId,
+    //         projectName,
+    //         teamLeaders: JSON.stringify(project?.teamLeaders || []),
+    //         teamMembers: JSON.stringify(project?.teamMembers || []),
+    //       },
+    //     }),
+    // },
+    // {
+    //   key: "projectStage",
+    //   label: "Project Stage",
+    //   icon: (
+    //     <MaterialCommunityIcons
+    //       name="timeline-check-outline"
+    //       size={40}
+    //       color="#3B82F9"
+    //     />
+    //   ),
+    //   onPress: () =>
+    //     router.push({
+    //       pathname: "/projectStage",
+    //       params: { company, projectId, projectName: project?.projectName },
+    //     }),
+    // },
   ];
 
   return (

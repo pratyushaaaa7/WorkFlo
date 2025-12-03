@@ -237,15 +237,15 @@ const CompanyProjectSelectionScreen = () => {
           <Text className="text-white font-bold text-base">Enter</Text>
         </TouchableOpacity>
 
-        {/* Info Section */}
-        <TouchableOpacity
+        {/* Dashboard Section */}
+        {/* <TouchableOpacity
           className="mt-8 shadow-lg rounded-3xl border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}
           style={{ borderColor: "#4338ca", height: 100 }}
           onPress={() => router.push("/myDashboard")}
-        >
-          {/* BACK GRADIENT (Purple → Indigo) */}
-          <Animated.View
+        > */}
+        {/* BACK GRADIENT (Purple → Indigo) */}
+        {/* <Animated.View
             style={[{ ...StyleSheet.absoluteFillObject }, reverseAnimatedStyle]}
           >
             <LinearGradient
@@ -254,10 +254,10 @@ const CompanyProjectSelectionScreen = () => {
               end={[1, 1]}
               style={StyleSheet.absoluteFill}
             />
-          </Animated.View>
+          </Animated.View> */}
 
-          {/* FRONT GRADIENT (Indigo → Purple) */}
-          <Animated.View
+        {/* FRONT GRADIENT (Indigo → Purple) */}
+        {/* <Animated.View
             style={[{ ...StyleSheet.absoluteFillObject }, animatedStyle]}
           >
             <LinearGradient
@@ -266,10 +266,10 @@ const CompanyProjectSelectionScreen = () => {
               end={[1, 1]}
               style={StyleSheet.absoluteFill}
             />
-          </Animated.View>
+          </Animated.View> */}
 
-          {/* CONTENT */}
-          <View className="flex-row items-center gap-4 p-6">
+        {/* CONTENT */}
+        {/* <View className="flex-row items-center gap-4 p-6">
             <MaterialCommunityIcons
               name="view-dashboard-outline"
               size={32}
@@ -282,7 +282,7 @@ const CompanyProjectSelectionScreen = () => {
               </Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </ScrollView>
     </View>
   );

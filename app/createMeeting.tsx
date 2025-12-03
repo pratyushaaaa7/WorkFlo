@@ -732,7 +732,11 @@ const CreateMinutes = () => {
       router.back();
     } catch (err) {
       console.log(err);
-      Toast.show({ type: "error", text1: "Failed to submit draft" });
+      Toast.show({
+        type: "error",
+        text1: "Failed to submit draft",
+        position: "bottom",
+      });
     } finally {
       setIsDraftSaving(false);
     }
@@ -743,6 +747,9 @@ const CreateMinutes = () => {
 
   const dropdownRef = useRef(null);
   const responsibilityRef = useRef(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -1470,13 +1477,61 @@ const CreateMinutes = () => {
 
                     {/* 🗑 Delete Minute */}
                     {minutes.length > 1 && (
-                      <TouchableOpacity onPress={() => deleteMinute(index)}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedIndex(index);
+                          setShowDeleteModal(true);
+                        }}
+                      >
                         <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
                           Remove Minute
                         </Text>
                       </TouchableOpacity>
                     )}
                   </View>
+
+                  <Modal
+                    transparent
+                    visible={showDeleteModal}
+                    animationType="fade"
+                    onRequestClose={() => setShowDeleteModal(false)}
+                  >
+                    <View className="flex-1 justify-center items-center bg-black/50">
+                      <View className="bg-white w-80 p-6 rounded-2xl shadow-lg">
+                        <Text className="text-lg font-semibold text-gray-800">
+                          Are you sure?
+                        </Text>
+
+                        <Text className="text-gray-600 mt-2">
+                          Do you really want to remove this minute?
+                        </Text>
+
+                        <View className="flex-row justify-end mt-6">
+                          {/* Cancel button */}
+                          <TouchableOpacity
+                            onPress={() => setShowDeleteModal(false)}
+                            className="mr-6"
+                          >
+                            <Text className="text-gray-700 font-semibold">
+                              Cancel
+                            </Text>
+                          </TouchableOpacity>
+
+                          {/* Delete button */}
+                          <TouchableOpacity
+                            onPress={() => {
+                              deleteMinute(selectedIndex);
+                              setShowDeleteModal(false);
+                            }}
+                          >
+                            <Text className="text-red-600 font-semibold">
+                              Delete
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
                 </Card.Content>
               </List.Accordion>
             </Card>

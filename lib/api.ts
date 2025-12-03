@@ -1,10 +1,64 @@
-//FOR DEVELOPMENT PHASE
+// //FOR DEVELOPMENT PHASE
+// import axios from "axios";
+// import { logoutUser } from "../lib/logoutHelper";
+// import Toast from "react-native-toast-message";
+
+// const api = axios.create({
+//   baseURL: "http://192.168.1.102:5000/api", // Change localhost if testing on physical device
+// });
+
+// // const api = axios.create({
+// //   baseURL: "https://api.wprojects.in/api",
+// // });
+
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const status = error.response?.status;
+//     const message = error.response?.data?.message;
+
+//     // TOKEN EXPIRED → 401
+//     if (status === 401) {
+//       setTimeout(() => {
+//         Toast.show({
+//           type: "error",
+//           text1: "Session expired",
+//           text2: "Please login again",
+//           position: "bottom",
+//         });
+//       }, 800); // ⬅️ Delay toast by 0.8 sec
+//       console.log("⛔ Global logout triggered (401 Token expired)");
+//       logoutUser(); // Clears auth + handles routing
+//     }
+
+//     // ACCOUNT DEACTIVATED → 403
+//     if (status === 403) {
+//       setTimeout(() => {
+//         Toast.show({
+//           type: "error",
+//           text1: "Account deactivated",
+//           text2: message || "Please contact admin",
+//           position: "bottom",
+//         });
+//       }, 800); // ⬅️ Delay toast by 0.8 sec
+
+//       console.log("⛔ Global logout triggered (403 Account deactivated)");
+//       logoutUser();
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+// export default api;
+
+
+
+//FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
 import axios from "axios";
 import { logoutUser } from "../lib/logoutHelper";
 import Toast from "react-native-toast-message";
 
 const api = axios.create({
-  baseURL: "http://192.168.1.102:5000/api", // Change localhost if testing on physical device
+  baseURL: "https://api.wprojects.in/api",
 });
 
 api.interceptors.response.use(
@@ -44,104 +98,8 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default api;
-
-//FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
-// import axios from "axios";
-// import { logoutUser } from "../lib/logoutHelper";
-// import Toast from "react-native-toast-message";
-
-// const api = axios.create({
-//   baseURL: "http://192.168.1.104:5000/api", // Change localhost if testing on physical device
-// });
-
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     const status = error.response?.status;
-//     const message = error.response?.data?.message;
-
-//     // TOKEN EXPIRED → 401
-//     if (status === 401) {
-//       setTimeout(() => {
-//         Toast.show({
-//           type: "error",
-//           text1: "Session expired",
-//           text2: "Please login again",
-//           position: "bottom",
-//         });
-//       }, 800); // ⬅️ Delay toast by 0.8 sec
-//       console.log("⛔ Global logout triggered (401 Token expired)");
-//       logoutUser(); // Clears auth + handles routing
-//     }
-
-//     // ACCOUNT DEACTIVATED → 403
-//     if (status === 403) {
-//       setTimeout(() => {
-//         Toast.show({
-//           type: "error",
-//           text1: "Account deactivated",
-//           text2: message || "Please contact admin",
-//           position: "bottom",
-//         });
-//       }, 800); // ⬅️ Delay toast by 0.8 sec
-
-//       console.log("⛔ Global logout triggered (403 Account deactivated)");
-//       logoutUser();
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-// export default api;
-
-//FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
-// import axios from "axios";
-// import { logoutUser } from "../lib/logoutHelper";
-// import Toast from "react-native-toast-message";
-
-// const api = axios.create({
-//   baseURL: "https://api.wprojects.in/api",
-// });
-
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     const status = error.response?.status;
-//     const message = error.response?.data?.message;
-
-//     // TOKEN EXPIRED → 401
-//     if (status === 401) {
-//       setTimeout(() => {
-//         Toast.show({
-//           type: "error",
-//           text1: "Session expired",
-//           text2: "Please login again",
-//           position: "bottom",
-//         });
-//       }, 800); // ⬅️ Delay toast by 0.8 sec
-//       console.log("⛔ Global logout triggered (401 Token expired)");
-//       logoutUser(); // Clears auth + handles routing
-//     }
-
-//     // ACCOUNT DEACTIVATED → 403
-//     if (status === 403) {
-//       setTimeout(() => {
-//         Toast.show({
-//           type: "error",
-//           text1: "Account deactivated",
-//           text2: message || "Please contact admin",
-//           position: "bottom",
-//         });
-//       }, 800); // ⬅️ Delay toast by 0.8 sec
-
-//       console.log("⛔ Global logout triggered (403 Account deactivated)");
-//       logoutUser();
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
-// export default api;
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------

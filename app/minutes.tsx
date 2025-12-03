@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -81,9 +82,18 @@ const Minutes = () => {
           </Text>
         ) : (
           meetings.map((meeting) => (
-            <View
+            <Pressable
               key={meeting._id}
               className="bg-white rounded-2xl shadow-lg mb-5  overflow-hidden border-l-4"
+              onPress={() =>
+                meeting.meetingStage !== "mom_submitted"
+                  ? router.push(
+                      `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
+                    )
+                  : router.push(
+                      `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+                    )
+              }
               style={{
                 borderLeftColor:
                   meeting.meetingStage === "mom_submitted"
@@ -157,7 +167,7 @@ const Minutes = () => {
                     View Agenda
                   </Text>
                 </TouchableOpacity> */}
-                {meeting.meetingStage ==="draft" && (
+                {meeting.meetingStage === "draft" && (
                   <View className="bg-yellow-100 px-3 py-1 rounded-full flex-row items-center">
                     <Ionicons name="save-outline" size={14} color="#CA8A04" />
                     <Text className="text-yellow-700 text-xs font-semibold ml-1">
@@ -178,7 +188,7 @@ const Minutes = () => {
                   >
                     <Ionicons name="pencil-outline" size={18} color="white" />
                     <Text className="ml-2 text-white font-medium">
-                      Publish Minutes
+                      Continue Minutes
                     </Text>
                   </TouchableOpacity>
                 ) : (
@@ -197,7 +207,7 @@ const Minutes = () => {
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
+            </Pressable>
           ))
         )}
       </ScrollView>

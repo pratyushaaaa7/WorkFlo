@@ -283,7 +283,7 @@ const MinutesDetail = () => {
       </LinearGradient>
 
       {/* Content */}
-      <ScrollView className="p-2">
+      <ScrollView className="p-2  ">
         {/* Date & Time */}
         <View className="bg-white rounded-2xl p-5 mb-3 shadow-md border border-gray-100">
           {/* Date & Time Row */}
@@ -347,9 +347,9 @@ const MinutesDetail = () => {
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meeting ? (
-          <>
+          <View className="pb-14">
             {/* Attendees */}
-            <View className="bg-white p-4 rounded-2xl shadow mb-2">
+            <View className="bg-white p-4  rounded-2xl shadow mb-2">
               <Text className="text-lg font-semibold text-gray-800 mb-2">
                 Attendees
               </Text>
@@ -454,7 +454,7 @@ const MinutesDetail = () => {
                 </Text>
               </TouchableOpacity>
             ))}
-          </>
+          </View>
         ) : (
           <Text className="text-center mt-10 text-gray-500">
             Meeting not found
