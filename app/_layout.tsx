@@ -98,7 +98,7 @@ useEffect(() => {
   }
 
   // AUTHENTICATED → redirect only if at root
-  if (isAuthenticated && pathname === "/") {
+  if (isAuthenticated && pathname === "/login") {
     console.log("➡️ IOS: Redirect → /projects");
     router.replace("/(drawer)/projects");
     setIosRedirected(true); // prevent future redirects
