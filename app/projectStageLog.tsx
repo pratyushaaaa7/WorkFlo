@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -13,22 +13,48 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { AuthContext } from "../context/AuthContext";
 
-type StageDataItem = {
+type ActivityLog = {
+  action: "start_set" | "end_set" | "remark_added" | "saved" | "edited";
+  field?: string;
+  oldValue?: string | null;
+  newValue?: string | null;
+  timestamp: string;
+  user: string;
+};
+
+type StageEntry = {
   start?: string;
   end?: string;
   remark?: string;
-  saved?: boolean;
+  saved: boolean;
+  createdBy: string;
+  updatedBy?: string;
+  updatedAt?: string;
+  logs?: ActivityLog[];
 };
 
 const StageDetail: React.FC = () => {
   const router = useRouter();
   const { stage } = useLocalSearchParams<{ stage: string }>();
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
 
-  const [dates, setDates] = useState<{ [stage: string]: StageDataItem[] }>({
-    [stage!]: [{}], // start with one entry
-  });
+  // Initialize stages state with a safe default for the current stage
+  const [stages, setStages] = useState<{ [stageName: string]: StageEntry[] }>(
+    () => ({
+      [stage!]: [
+        {
+          saved: false,
+          createdBy: user?.username || "unknown",
+          logs: [],
+        },
+      ],
+    })
+  );
 
+  // Picker state
   const [picker, setPicker] = useState<{
     show: boolean;
     type: "start" | "end" | "";
@@ -36,13 +62,45 @@ const StageDetail: React.FC = () => {
     index?: number;
   }>({ show: false, type: "" });
 
-  const getStatus = (data: StageDataItem) => {
+  // Which saved-card's logs are visible
+  const [showLogIndex, setShowLogIndex] = useState<number | null>(null);
+
+  // safe accessor: if stage key missing, ensure empty array
+  if (!stages[stage!]) {
+    stages[stage!] = [
+      {
+        saved: false,
+        createdBy: user?.username || "unknown",
+        logs: [],
+      },
+    ];
+  }
+
+  const stageData = stages[stage!];
+
+  const addLog = (stageName: string, index: number, log: ActivityLog) => {
+    setStages((prev) => {
+      const updated = [...(prev[stageName] || [])];
+      // ensure entry exists
+      while (updated.length <= index) {
+        updated.push({
+          saved: false,
+          createdBy: user?.username || "unknown",
+          logs: [],
+        });
+      }
+      updated[index].logs = [...(updated[index].logs || []), log];
+      return { ...prev, [stageName]: updated };
+    });
+  };
+
+  const getStatus = (data: StageEntry) => {
     if (!data.start) return "Not Started";
     if (data.start && !data.end) return "Ongoing";
     return "Completed";
   };
 
-  const getDuration = (data: StageDataItem) => {
+  const getDuration = (data: StageEntry) => {
     if (data.start && data.end) {
       return (
         Math.ceil(
@@ -55,21 +113,50 @@ const StageDetail: React.FC = () => {
   };
 
   const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (event.type === "dismissed") {
+    // DateTimePicker on Android returns event.type === 'dismissed' when canceled
+    if ((event as any).type === "dismissed") {
       setPicker({ show: false, type: "" });
       return;
     }
+
     const currentDate = selectedDate || new Date();
+    const formatted = currentDate.toISOString().split("T")[0];
+
     const stageKey = picker.stage!;
-    const index = picker.index!;
-    setDates((prev) => {
-      const updated = [...prev[stageKey]];
+    const index = picker.index ?? 0;
+    const field = picker.type;
+
+    setStages((prev) => {
+      const updated = [...(prev[stageKey] || [])];
+      // ensure entry exists
+      while (updated.length <= index) {
+        updated.push({
+          saved: false,
+          createdBy: user?.username || "unknown",
+          logs: [],
+        });
+      }
+      const oldValue = (updated[index] as any)[field];
+
       updated[index] = {
         ...updated[index],
-        [picker.type]: currentDate.toISOString().split("T")[0],
+        [field]: formatted,
+        updatedBy: user?.username,
+        updatedAt: new Date().toISOString(),
       };
+
       return { ...prev, [stageKey]: updated };
     });
+
+    addLog(stageKey, index, {
+      action: field === "start" ? "start_set" : "end_set",
+      field,
+      oldValue: undefined,
+      newValue: formatted,
+      timestamp: new Date().toISOString(),
+      user: user?.username || "unknown",
+    });
+
     setPicker({ show: false, type: "" });
   };
 
@@ -78,19 +165,41 @@ const StageDetail: React.FC = () => {
     index: number,
     text: string
   ) => {
-    setDates((prev) => {
-      const updated = [...prev[stageKey]];
-      updated[index] = { ...updated[index], remark: text };
+    setStages((prev) => {
+      const updated = [...(prev[stageKey] || [])];
+      while (updated.length <= index) {
+        updated.push({
+          saved: false,
+          createdBy: user?.username || "unknown",
+          logs: [],
+        });
+      }
+      const oldValue = updated[index].remark;
+
+      updated[index] = {
+        ...updated[index],
+        remark: text,
+        updatedBy: user?.username,
+        updatedAt: new Date().toISOString(),
+      };
+
       return { ...prev, [stageKey]: updated };
+    });
+
+    addLog(stageKey, index, {
+      action: "remark_added",
+      field: "remark",
+      oldValue: undefined,
+      newValue: text,
+      timestamp: new Date().toISOString(),
+      user: user?.username || "unknown",
     });
   };
 
-  const canSave = (item: StageDataItem) => {
+  const canSave = (item: StageEntry) => {
     if (item.end && !item.remark?.trim()) return false;
-    return item.start || item.end || item.remark;
+    return Boolean(item.start || item.end || item.remark);
   };
-
-  const stageData = dates[stage!];
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -195,13 +304,31 @@ const StageDetail: React.FC = () => {
 
                 {/* Save Button */}
                 <TouchableOpacity
-                  onPress={() =>
-                    setDates((prev) => {
-                      const updated = [...prev[stage!]];
-                      updated[index] = { ...updated[index], saved: true };
+                  onPress={() => {
+                    setStages((prev) => {
+                      const updated = [...(prev[stage!] || [])];
+                      while (updated.length <= index) {
+                        updated.push({
+                          saved: false,
+                          createdBy: user?.username || "unknown",
+                          logs: [],
+                        });
+                      }
+                      updated[index] = {
+                        ...updated[index],
+                        saved: true,
+                        updatedBy: user?.username,
+                        updatedAt: new Date().toISOString(),
+                      };
                       return { ...prev, [stage!]: updated };
-                    })
-                  }
+                    });
+
+                    addLog(stage!, index, {
+                      action: "saved",
+                      timestamp: new Date().toISOString(),
+                      user: user?.username || "unknown",
+                    });
+                  }}
                   disabled={!canSave(stageItem)}
                   className={`mt-4 py-3 rounded-xl ${
                     !canSave(stageItem) ? "bg-gray-300" : "bg-indigo-500"
@@ -217,8 +344,15 @@ const StageDetail: React.FC = () => {
                 {/* Edit */}
                 <TouchableOpacity
                   onPress={() =>
-                    setDates((prev) => {
-                      const updated = [...prev[stage!]];
+                    setStages((prev) => {
+                      const updated = [...(prev[stage!] || [])];
+                      while (updated.length <= index) {
+                        updated.push({
+                          saved: false,
+                          createdBy: user?.username || "unknown",
+                          logs: [],
+                        });
+                      }
                       updated[index] = { ...updated[index], saved: false };
                       return { ...prev, [stage!]: updated };
                     })
@@ -282,6 +416,49 @@ const StageDetail: React.FC = () => {
                     </Text>
                   )}
                 </View>
+
+                {/* Activity log toggle */}
+                {stageItem.logs && stageItem.logs.length > 0 && (
+                  <>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setShowLogIndex(showLogIndex === index ? null : index)
+                      }
+                      className="mt-3"
+                    >
+                      <Text className="text-indigo-500 font-semibold">
+                        {showLogIndex === index
+                          ? "Hide Activity Log"
+                          : "View Activity Log"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {showLogIndex === index && (
+                      <View className="mt-2 bg-white p-3 rounded-xl border border-gray-200">
+                        {stageItem.logs
+                          .slice()
+                          .reverse()
+                          .map((log, i) => (
+                            <View key={i} className="mb-2">
+                              <Text className="text-gray-600 text-sm">
+                                • {new Date(log.timestamp).toLocaleString()} —{" "}
+                                <Text className="font-medium">{log.user}</Text>{" "}
+                                {log.action.replace("_", " ")}
+                                {log.field ? ` (${log.field})` : ""}
+                              </Text>
+                              {log.oldValue || log.newValue ? (
+                                <Text className="text-gray-500 text-xs mt-1">
+                                  {log.oldValue ? `From: ${log.oldValue}` : ""}
+                                  {log.oldValue && log.newValue ? " — " : ""}
+                                  {log.newValue ? `To: ${log.newValue}` : ""}
+                                </Text>
+                              ) : null}
+                            </View>
+                          ))}
+                      </View>
+                    )}
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -292,9 +469,16 @@ const StageDetail: React.FC = () => {
           stageData[stageData.length - 1]?.saved && (
             <TouchableOpacity
               onPress={() =>
-                setDates((prev) => ({
+                setStages((prev) => ({
                   ...prev,
-                  [stage!]: [...prev[stage!], {}],
+                  [stage!]: [
+                    ...(prev[stage!] || []),
+                    {
+                      saved: false,
+                      createdBy: user?.username || "unknown",
+                      logs: [],
+                    },
+                  ],
                 }))
               }
               className="flex-row items-center justify-center mt-2 mb-6 py-3 bg-green-500 rounded-xl"
@@ -308,10 +492,25 @@ const StageDetail: React.FC = () => {
 
         {picker.show && (
           <DateTimePicker
-            value={new Date()}
+            value={
+              // if a start exists for this picker, use it; else fallback to today
+              picker.type === "start"
+                ? stageData[picker.index ?? 0]?.start
+                  ? new Date(stageData[picker.index ?? 0]!.start!)
+                  : new Date()
+                : stageData[picker.index ?? 0]?.end
+                ? new Date(stageData[picker.index ?? 0]!.end!)
+                : new Date()
+            }
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={onChangeDate}
+            // For end date, you could add a minimum date to prevent selecting before start:
+            minimumDate={
+              picker.type === "end" && stageData[picker.index ?? 0]?.start
+                ? new Date(stageData[picker.index ?? 0]!.start!)
+                : undefined
+            }
           />
         )}
       </ScrollView>

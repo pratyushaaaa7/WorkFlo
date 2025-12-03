@@ -456,7 +456,6 @@
 
 // export default ProjectStage;
 
-
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -478,13 +477,33 @@ const ProjectStage: React.FC = () => {
   }>();
 
   const [stages, setStages] = useState<string[]>([]);
-  const [activities, setActivities] = useState<Record<string, StageActivity[]>>({
-    // Example: stageName: [{status: "Ongoing", savedAt: "..."}]
-  });
+  const [activities, setActivities] = useState<Record<string, StageActivity[]>>(
+    {
+      // Example: stageName: [{status: "Ongoing", savedAt: "..."}]
+    }
+  );
 
   const companyStages: Record<string, string[]> = {
-    WP: ["Feasibility", "Design Management", "Tender Management", "Contract Management", "Construction Management", "Practice Development", "Closing and Handover", "Defects Liability Stage"],
-    WAL: ["Feasibility", "Concept Design", "Schematic Design", "Tender", "Sanction Drawing", "Design Development", "Working Drawing", "During Construction"],
+    WP: [
+      "Feasibility",
+      "Design Management",
+      "Tender Management",
+      "Contract Management",
+      "Construction Management",
+      "Practice Development",
+      "Closing and Handover",
+      "Defects Liability Stage",
+    ],
+    WAL: [
+      "Feasibility",
+      "Concept Design",
+      "Schematic Design",
+      "Tender",
+      "Sanction Drawing",
+      "Design Development",
+      "Working Drawing",
+      "During Construction",
+    ],
   };
 
   useEffect(() => {
@@ -503,8 +522,11 @@ const ProjectStage: React.FC = () => {
   return (
     <View className="flex-1 bg-gray-100">
       <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center shadow-md">
-          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
+        <View className="pt-16 pb-6 px-4 flex-row  items-center shadow-md">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-semibold text-white ml-4">
               {projectName} Stages
@@ -514,10 +536,29 @@ const ProjectStage: React.FC = () => {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={{ padding: 12 }}>
+        <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/manageProjectStages",
+              params: { projectId, company },
+            })
+          }
+          className="flex-row items-center justify-center bg-indigo-600 px-4 py-3 rounded-2xl shadow-md mb-4"
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name="tune" size={22} color="#fff" />
+          <Text className="text-white font-semibold text-base ml-2">
+            Manage Stages
+          </Text>
+        </TouchableOpacity>
+
         {stages.map((stage, idx) => {
           const stageActivities = activities[stage] || [];
           return (
-            <View key={idx} className="mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex-row justify-between items-center">
+            <View
+              key={idx}
+              className="mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex-row justify-between items-center"
+            >
               <View>
                 <Text className="text-gray-900 font-semibold">{stage}</Text>
                 {/* Activity summary icons */}
@@ -525,7 +566,9 @@ const ProjectStage: React.FC = () => {
                   {stageActivities.slice(-3).map((a, i) => (
                     <View
                       key={i}
-                      className={`w-3 h-3 rounded-full mr-1 ${statusColor[a.status]}`}
+                      className={`w-3 h-3 rounded-full mr-1 ${
+                        statusColor[a.status]
+                      }`}
                     />
                   ))}
                   {stageActivities.length > 3 && (
