@@ -23,6 +23,7 @@ import { Asset } from "expo-asset";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import * as Print from "expo-print";
+import api from "@/lib/api";
 
 const { width } = Dimensions.get("window");
 
@@ -464,10 +465,18 @@ const SVRPhotoReport: React.FC = () => {
       } else if (mode === "case-study") {
         htmlParts.push(`
         <div class="page">
-          <h2 style="text-align:center;">Case Study Remarks</h2>
-          <div>
-            ${caseStudyRemarks || "<p>No remarks provided.</p>"}
-          </div>
+          <h2 style="text-align:center; margin-top:40px;padding-top:10px; ">Case Study Remarks</h2>
+          <pre style="
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+        padding: 10px 0;
+        font-family: Arial, sans-serif;
+      ">
+${caseStudyRemarks}
+      </pre>
         </div>
       `);
       }
@@ -590,7 +599,6 @@ const SVRPhotoReport: React.FC = () => {
       .caption {
         font-size: 18px;
         color: #222;
-        font-weight: 500;
         word-wrap: break-word;
         white-space: pre-wrap;
       }
@@ -640,8 +648,8 @@ const SVRPhotoReport: React.FC = () => {
       //   formData.append("createdBy", createdBy);
 
       //   formData.append("file", {
-      //    uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
-      // name: newFileName, // e.g., "SVR_01.pdf"
+      //     uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+      //     name: newFileName, // e.g., "SVR_01.pdf"
       //     type: "application/pdf",
       //   } as any);
 
