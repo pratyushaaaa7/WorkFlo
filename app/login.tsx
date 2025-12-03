@@ -18,9 +18,11 @@ import { useAuth } from "../context/AuthContext";
 import Logo from "../assets/images/bita.png";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
 import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [secureText, setSecureText] = useState(true);
@@ -50,6 +52,8 @@ export default function LoginScreen() {
         text2: "Welcome back!",
         position: "bottom",
       });
+       // 🔥 FIX: Redirect immediately (iOS needs this)
+    router.replace("/(drawer)/projects");
     } catch (err: any) {
       console.log(err.response?.data);
 
