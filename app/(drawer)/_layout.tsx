@@ -69,18 +69,20 @@ export default function DrawerLayout() {
           ),
         }}
       /> */}
-      
-      {/* 
-      <Drawer.Screen
-        name="ilrForm"
-        options={{
-          drawerLabel: "ILR Form",
-          title: "ILR Form",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
-          ),
-        }}
-      /> */}
+
+      {user?.role === "admin" && (
+        <Drawer.Screen
+          name="usage"
+          options={{
+            drawerLabel: "Usage",
+            title: "Usage",
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="document-text-outline" size={size} color={color}
+              />
+            ),
+          }}
+        />
+      )}
 
       {user?.role === "admin" ? (
         <Drawer.Screen
