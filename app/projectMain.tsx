@@ -203,7 +203,7 @@ const ProjectMain = () => {
         <MaterialCommunityIcons
           name="timeline-check-outline"
           size={40}
-          color="#3B82F9"
+          color="#D946EF"
         />
       ),
       onPress: () =>
