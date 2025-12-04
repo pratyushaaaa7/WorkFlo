@@ -109,7 +109,7 @@ const DPRs = () => {
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.push("/projectMain")}
             className="flex-row items-center"
             activeOpacity={0.7}
           >
