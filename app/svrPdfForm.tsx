@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -222,6 +223,25 @@ const SVRPhotoReport: React.FC = () => {
 
   const takePhoto = async () => {
     try {
+      // 1️⃣ Ask for camera permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      // 2️⃣ If permission is denied → show alert & stop
+      if (status !== "granted") {
+        Alert.alert(
+          "Camera Permission Required",
+          "To take photos, please allow camera access in your phone settings.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: () => Linking.openSettings(),
+            },
+          ]
+        );
+        return;
+      }
+
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.3,
@@ -646,118 +666,119 @@ ${caseStudyRemarks}
 
       //TO DIRECTLY UPLOAD
       // 🔹 Prepare FormData for backend upload
-      //   const formData = new FormData();
-      //   formData.append("projectName", projectName);
-      //   formData.append("projectId", projectId);
-      //   formData.append("createdBy", createdBy);
+      const formData = new FormData();
+      formData.append("projectName", projectName);
+      formData.append("projectId", projectId);
+      formData.append("createdBy", createdBy);
+      formData.append("mode", mode); // ✅ ADD THIS
 
-      //   formData.append("file", {
-      //     uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
-      //     name: newFileName, // e.g., "SVR_01.pdf"
-      //     type: "application/pdf",
-      //   } as any);
+      formData.append("file", {
+        uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+        name: newFileName, // e.g., "SVR_01.pdf"
+        type: "application/pdf",
+      } as any);
 
-      //   // 🔹 Upload to your backend (which sends it to object storage)
-      //   const response = await api.post("/svr", formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   });
+      // 🔹 Upload to your backend (which sends it to object storage)
+      const response = await api.post("/svr", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      //   if (response.data.success) {
-      //     Toast.show({
-      //       type: "success",
-      //       text1: "Success",
-      //       text2: "SVR uploaded successfully",
-      //       position: "bottom",
-      //     });
-
-      //     // Optional: navigate after delay
-      //     setTimeout(() => {
-      //       router.push({
-      //         pathname: "/svrs",
-      //         params: { projectId },
-      //       });
-      //     }, 300);
-      //   } else {
-      //     Toast.show({
-      //       type: "error",
-      //       text1: "Error",
-      //       text2: "Upload failed",
-      //       position: "bottom",
-      //     });
-      //   }
-
-      //   // 🔹 Cleanup after upload
-      //   await AsyncStorage.removeItem(STORAGE_KEY);
-      //   await AsyncStorage.removeItem("SVR_FORM_DATA");
-      //   setPhotos([]);
-      //   try {
-      //     await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
-      //       idempotent: true,
-      //     });
-      //   } catch (e) {
-      //     console.warn("Cache cleanup failed", e);
-      //   }
-      // } catch (err: any) {
-      //   console.error("Upload error:", err);
-      //   Alert.alert(
-      //     "Upload Error",
-      //     err?.response?.data?.error || err?.message || "Something went wrong."
-      //   );
-      //   Toast.show({
-      //     type: "error",
-      //     text1: "Error",
-      //     text2: "Failed to upload SVR",
-      //     position: "bottom",
-      //   });
-      // } finally {
-      //   setUploading(false);
-      // }
-
-      //FOR DOWNLOAD IN LOCAL STORAGE
-      console.log("PDF generated at:", newUri);
-
-      // // Optional sharing
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Share or Save Photo Report",
-          UTI: "com.adobe.pdf",
+      if (response.data.success) {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "SVR uploaded successfully",
+          position: "bottom",
         });
+
+        // Optional: navigate after delay
+        setTimeout(() => {
+          router.push({
+            pathname: "/svrs",
+            params: { projectId },
+          });
+        }, 300);
       } else {
-        Alert.alert("PDF generated", `Saved at: ${newUri}`);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Upload failed",
+          position: "bottom",
+        });
       }
 
-      Toast.show({
-        type: "success",
-        text1: "PDF Generated",
-        text2: "Photo report saved locally.",
-        position: "bottom",
-      });
-      // CLEANUP AFTER DOWNLOAD
-
-      // 🔥 CLEAR FORM ONLY ON SUCCESS
+      // 🔹 Cleanup after upload
       await AsyncStorage.removeItem(STORAGE_KEY);
       await AsyncStorage.removeItem("SVR_FORM_DATA");
       setPhotos([]);
+      try {
+        await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
+          idempotent: true,
+        });
+      } catch (e) {
+        console.warn("Cache cleanup failed", e);
+      }
     } catch (err: any) {
-      console.error("PDF generation error:", err);
-      Alert.alert("Error", err?.message || "Failed to generate PDF.");
+      console.error("Upload error:", err);
+      Alert.alert(
+        "Upload Error",
+        err?.response?.data?.error || err?.message || "Something went wrong."
+      );
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to upload SVR",
+        position: "bottom",
+      });
     } finally {
       setUploading(false);
-      try {
-        await FileSystem.deleteAsync(
-          FileSystem.cacheDirectory + "ImageManipulator",
-          {
-            idempotent: true,
-          }
-        );
-      } catch (e) {
-        console.warn("Cleanup failed:", e);
-      }
     }
+
+    //FOR DOWNLOAD IN LOCAL STORAGE
+    //   console.log("PDF generated at:", newUri);
+
+    //   // // Optional sharing
+    //   if (await Sharing.isAvailableAsync()) {
+    //     await Sharing.shareAsync(newUri, {
+    //       mimeType: "application/pdf",
+    //       dialogTitle: "Share or Save Photo Report",
+    //       UTI: "com.adobe.pdf",
+    //     });
+    //   } else {
+    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
+    //   }
+
+    //   Toast.show({
+    //     type: "success",
+    //     text1: "PDF Generated",
+    //     text2: "Photo report saved locally.",
+    //     position: "bottom",
+    //   });
+    //   // CLEANUP AFTER DOWNLOAD
+
+    //   // 🔥 CLEAR FORM ONLY ON SUCCESS
+    //   await AsyncStorage.removeItem(STORAGE_KEY);
+    //   await AsyncStorage.removeItem("SVR_FORM_DATA");
+    //   setPhotos([]);
+    // } catch (err: any) {
+    //   console.error("PDF generation error:", err);
+    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
+    // } finally {
+    //   setUploading(false);
+    //   try {
+    //     await FileSystem.deleteAsync(
+    //       FileSystem.cacheDirectory + "ImageManipulator",
+    //       {
+    //         idempotent: true,
+    //       }
+    //     );
+    //   } catch (e) {
+    //     console.warn("Cleanup failed:", e);
+    //   }
+    // }
   };
 
   return (

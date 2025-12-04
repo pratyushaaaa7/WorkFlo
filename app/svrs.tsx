@@ -19,7 +19,8 @@ type SVRItem = {
   fileName: string;
   url: string;
   svrNumber?: number;
-  uploadedBy?: { username?: string };
+  uploadedBy?: { fullName?: string };
+  caseStudyNumber?: number;
 };
 
 const SVRs = () => {
@@ -33,8 +34,6 @@ const SVRs = () => {
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
-
-
 
   const [svrs, setSvrs] = useState<SVRItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,24 +112,30 @@ const SVRs = () => {
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => openPDF(item.url)}
-                className="bg-white p-4 rounded-xl mb-3 flex-row items-center justify-between shadow-sm"
+                className="bg-white p-4 rounded-2xl mb-3 flex-row items-center justify-between shadow-sm border border-gray-100"
               >
-                <View>
-                  <Text className="text-gray-800 font-medium">
+                {/* Left: File Info */}
+                <View className="flex-1 pr-3">
+                  <Text
+                    className="text-gray-900 font-semibold text-base"
+                    numberOfLines={1}
+                  >
                     {item.fileName}
                   </Text>
-                  {item.svrNumber && (
-                    <Text className="text-gray-500 text-sm">
-                      SVR #{item.svrNumber} |{" "}
-                      {item.uploadedBy?.username || "Unknown"}
-                    </Text>
-                  )}
+
+                  <Text className="text-gray-500 text-xs mt-1">
+                    Uploaded by: {item.uploadedBy?.fullName || "Unknown"}
+                  </Text>
                 </View>
-                <Ionicons
-                  name="document-text-outline"
-                  size={22}
-                  color="#6366F1"
-                />
+
+                {/* Right: Icon Container */}
+                <View className="bg-indigo-50 p-3 rounded-xl">
+                  <Ionicons
+                    name="document-text-outline"
+                    size={22}
+                    color="#4F46E5"
+                  />
+                </View>
               </TouchableOpacity>
             )}
           />
