@@ -72,31 +72,54 @@ export default function LeaderboardScreen() {
     </Text>
   );
 
-  const UserCard = ({ item, index }) => (
-    <View className="bg-white mx-4 px-4 py-3 rounded-xl mb-3 shadow">
-      <View className="flex-row items-center">
-        <Text className="text-2xl font-bold text-indigo-500 w-10">
-          #{index + 1}
-        </Text>
+  const UserCard = ({ item, index }) => {
+  const lastUsedFormatted = item.lastUsed
+  ? new Date(item.lastUsed).toLocaleString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: true,
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+  : "No activity";
 
-        <MaterialCommunityIcons name="account-circle" size={40} color="#6366F1" />
-
-        <View className="ml-3 flex-1">
-          <Text className="text-lg font-semibold text-gray-800">
-            {item._id?.fullName}
+    return (
+      <View className="bg-white mx-4 px-4 py-3 rounded-xl mb-3 shadow">
+        <View className="flex-row items-center">
+          <Text className="text-xs font-bold text-indigo-500 ">
+            #{index + 1}
           </Text>
-          <Text className="text-gray-500 capitalize">{item._id?.role}</Text>
-        </View>
 
-        <View className="items-end">
-          <Text className="text-xl font-bold text-indigo-600">
-            {item.apiCount}
-          </Text>
-          <Text className="text-gray-400 text-sm">requests</Text>
+          <MaterialCommunityIcons
+            name="account-circle"
+            size={40}
+            color="#6366F1"
+          />
+
+          <View className="ml-3 flex-1">
+            <Text className="text-lg font-semibold text-gray-800">
+              {item._id?.fullName}
+            </Text>
+            <Text className="text-gray-500 capitalize">{item._id?.role}</Text>
+
+            {/* 🔥 Show Last Used */}
+            <Text className="text-gray-400 text-xs mt-1">
+              Last Used: {lastUsedFormatted}
+            </Text>
+          </View>
+
+          <View className="items-end">
+            <Text className="text-xl font-bold text-indigo-600">
+              {item.apiCount}
+            </Text>
+            <Text className="text-gray-400 text-sm">requests</Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // const ProjectCard = ({ item, index }) => (
   //   <View className="bg-white mx-4 px-4 py-3 rounded-xl mb-3 shadow">
