@@ -32,19 +32,19 @@ export default function LeaderboardScreen() {
         api.get("/usage/users/leaderboard", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        api.get("/usage/projects/most-active", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        // api.get("/usage/projects/most-active", {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // }),
       ]);
 
       console.log("🟦 USERS LEADERBOARD RAW DATA:");
       console.log(JSON.stringify(usersRes.data, null, 2));
 
-      console.log("🟩 PROJECT LEADERBOARD RAW DATA:");
-      console.log(JSON.stringify(projectsRes.data, null, 2));
+      // console.log("🟩 PROJECT LEADERBOARD RAW DATA:");
+      // console.log(JSON.stringify(projectsRes.data, null, 2));
 
       setUserLeaderboard(usersRes.data);
-      setProjectLeaderboard(projectsRes.data);
+      // setProjectLeaderboard(projectsRes.data);
     } catch (err) {
       console.log("❌ Leaderboard fetch error:", err);
     } finally {
@@ -98,30 +98,30 @@ export default function LeaderboardScreen() {
     </View>
   );
 
-  const ProjectCard = ({ item, index }) => (
-    <View className="bg-white mx-4 px-4 py-3 rounded-xl mb-3 shadow">
-      <View className="flex-row items-center">
-        <Text className="text-2xl font-bold text-green-600 w-10">
-          #{index + 1}
-        </Text>
+  // const ProjectCard = ({ item, index }) => (
+  //   <View className="bg-white mx-4 px-4 py-3 rounded-xl mb-3 shadow">
+  //     <View className="flex-row items-center">
+  //       <Text className="text-2xl font-bold text-green-600 w-10">
+  //         #{index + 1}
+  //       </Text>
 
-        <MaterialCommunityIcons name="file-tree" size={40} color="#10B981" />
+  //       <MaterialCommunityIcons name="file-tree" size={40} color="#10B981" />
 
-        <View className="ml-3 flex-1">
-          <Text className="text-lg font-semibold text-gray-800">
-            {item._id?.projectName}
-          </Text>
-        </View>
+  //       <View className="ml-3 flex-1">
+  //         <Text className="text-lg font-semibold text-gray-800">
+  //           {item._id?.projectName}
+  //         </Text>
+  //       </View>
 
-        <View className="items-end">
-          <Text className="text-xl font-bold text-green-600">
-            {item.activityCount}
-          </Text>
-          <Text className="text-gray-400 text-sm">requests</Text>
-        </View>
-      </View>
-    </View>
-  );
+  //       <View className="items-end">
+  //         <Text className="text-xl font-bold text-green-600">
+  //           {item.activityCount}
+  //         </Text>
+  //         <Text className="text-gray-400 text-sm">requests</Text>
+  //       </View>
+  //     </View>
+  //   </View>
+  // );
 
   // -------------------------------------
   // MAIN SCREEN UI
@@ -156,9 +156,9 @@ export default function LeaderboardScreen() {
       )}
 
       {/* PROJECT LEADERBOARD */}
-      <SectionTitle title="Most Active Projects" />
+      {/* <SectionTitle title="Most Active Projects" /> */}
 
-      {projectLeaderboard.length === 0 ? (
+      {/* {projectLeaderboard.length === 0 ? (
         <Text className="text-gray-500 text-center mt-3">
           No project activity found.
         </Text>
@@ -166,7 +166,7 @@ export default function LeaderboardScreen() {
         projectLeaderboard.map((item, index) => (
           <ProjectCard key={index} item={item} index={index} />
         ))
-      )}
+      )} */}
     </ScrollView>
   );
 }
