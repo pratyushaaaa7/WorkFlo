@@ -70,16 +70,26 @@ export default function DrawerLayout() {
         }}
       /> */}
 
-      {user?.role === "admin" && (
+      {user?.role === "admin" ? (
         <Drawer.Screen
           name="usage"
           options={{
             drawerLabel: "Usage",
             title: "Usage",
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="document-text-outline" size={size} color={color}
+              <Ionicons
+                name="document-text-outline"
+                size={size}
+                color={color}
               />
             ),
+          }}
+        />
+      ) : (
+        <Drawer.Screen
+          name="usage"
+          options={{
+            drawerItemStyle: { display: "none" }, // hide from drawer
           }}
         />
       )}
