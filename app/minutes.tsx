@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext"; // adjust path
 import api from "../lib/api"; // axios instance with baseURL
+import CircleProgress from "@/components/CircleProgress";
 
 const Minutes = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
@@ -32,6 +33,7 @@ const Minutes = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeetings(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch meetings", err);
       } finally {
@@ -102,26 +104,50 @@ const Minutes = () => {
               }}
             >
               {/* Meeting Header */}
-              <View className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100">
-                <View className="flex-row items-center">
-                  <Ionicons name="calendar-outline" size={20} color="#0369A1" />
-                  <Text className="ml-2 text-lg font-bold text-sky-800">
-                    Meeting #{meeting.meetingNumber}
-                  </Text>
+              <View className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100 flex-row justify-between items-center">
+                {/* LEFT TEXT SECTION */}
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color="#0369A1"
+                    />
+                    <Text className="ml-2 text-lg font-bold text-sky-800">
+                      Meeting #{meeting.meetingNumber}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center mt-1">
+                    <Ionicons name="time-outline" size={16} color="#475569" />
+                    <Text className="ml-1 text-gray-700 text-sm">
+                      {new Date(meeting.meetingDate).toLocaleDateString()} •{" "}
+                      {meeting.meetingTime}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center mt-1">
+                    <Ionicons
+                      name="location-outline"
+                      size={16}
+                      color="#94A3B8"
+                    />
+                    <Text className="ml-1 text-gray-500 text-sm">
+                      {meeting.meetingVenue}
+                    </Text>
+                  </View>
                 </View>
 
-                <View className="flex-row items-center mt-1">
-                  <Ionicons name="time-outline" size={16} color="#475569" />
-                  <Text className="ml-1 text-gray-700 text-sm">
-                    {new Date(meeting.meetingDate).toLocaleDateString()} •{" "}
-                    {meeting.meetingTime}
-                  </Text>
-                </View>
+                {/* RIGHT PIE GRAPH */}
+                <View className="items-center ml-3">
+                  <CircleProgress
+                    percentage={parseFloat(meeting.openPercentage)}
+                    size={55}
+                    label={`${meeting.openCount}/${meeting.totalMinutes}`}
+                  />
 
-                <View className="flex-row items-center mt-1">
-                  <Ionicons name="location-outline" size={16} color="#94A3B8" />
-                  <Text className="ml-1 text-gray-500 text-sm">
-                    {meeting.meetingVenue}
+                  <Text className="text-xs mt-1 text-gray-700 font-semibold">
+                    {meeting.openPercentage}% Open
                   </Text>
                 </View>
               </View>
