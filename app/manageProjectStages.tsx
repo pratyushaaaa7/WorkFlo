@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -38,14 +33,23 @@ const defaultStages = {
 export default function ManageStages() {
   const { projectId, company } = useLocalSearchParams();
   const router = useRouter();
+  console.log(company, "company");
 
   const [stageList, setStageList] = useState<string[]>([]);
   const [newStage, setNewStage] = useState("");
 
   // Load default stages
   useEffect(() => {
-    setStageList(defaultStages[company] || []);
-  }, []);
+    if (company) {
+      setStageList(defaultStages[company] || []);
+    }
+  }, [company]);
+
+
+  useEffect(() => {
+  console.log("Company →", company);
+  console.log("Loaded stages →", defaultStages[company]);
+}, [company]);
 
   const toggleStage = (stage: string) => {
     if (stageList.includes(stage)) {
@@ -71,7 +75,10 @@ export default function ManageStages() {
     <View className="flex-1 bg-white">
       <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
         <View className="pt-16 pb-6 px-4 flex-row items-center shadow-md">
-          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-row items-center"
+          >
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-semibold text-white ml-4">
               Manage Stages
@@ -83,7 +90,7 @@ export default function ManageStages() {
       {/* Draggable List */}
       <DraggableFlatList
         data={stageList}
-        keyExtractor={(item) => item}
+        keyExtractor={(item, index) => index.toString()}
         onDragEnd={({ data }) => setStageList(data)}
         renderItem={({ item, index, drag, isActive }) => (
           <ScaleDecorator>
@@ -105,6 +112,23 @@ export default function ManageStages() {
                 color="#4F46E5"
                 style={{ marginRight: 10 }}
               />
+
+              {/* Numbering */}
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  backgroundColor: "#EEF2FF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 12,
+                }}
+              >
+                <Text className="text-indigo-600 font-semibold">
+                  {index + 1}
+                </Text>
+              </View>
 
               <Text className="text-base flex-1">{item}</Text>
             </TouchableOpacity>
