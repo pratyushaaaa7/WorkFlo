@@ -1,12 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import DraggableFlatList, {
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 
 const defaultStages = {
-  WP: ["Feasibility", "Design Management", "Tender Management", "Contract Management", "Construction Management", "Practice Development", "Closing and Handover", "Defects Liability Stage"],
-  WAL: ["Feasibility", "Concept Design", "Schematic Design", "Tender", "Sanction Drawing", "Design Development", "Working Drawing", "During Construction"],
+  WP: [
+    "Feasibility",
+    "Design Management",
+    "Tender Management",
+    "Contract Management",
+    "Construction Management",
+    "Practice Development",
+    "Closing and Handover",
+    "Defects Liability Stage",
+  ],
+  WAL: [
+    "Feasibility",
+    "Concept Design",
+    "Schematic Design",
+    "Tender",
+    "Sanction Drawing",
+    "Design Development",
+    "Working Drawing",
+    "During Construction",
+  ],
 };
 
 export default function ManageStages() {
@@ -16,7 +42,7 @@ export default function ManageStages() {
   const [stageList, setStageList] = useState<string[]>([]);
   const [newStage, setNewStage] = useState("");
 
-  // Load default stages on mount
+  // Load default stages
   useEffect(() => {
     setStageList(defaultStages[company] || []);
   }, []);
@@ -36,20 +62,16 @@ export default function ManageStages() {
   };
 
   const saveStages = async () => {
-    // TODO: send to backend: POST /projects/:id/stages
+    // TODO: send to backend
     // await api.put(`/projects/${projectId}/stages`, { stages: stageList });
-
     router.back();
   };
 
   return (
-    <View className="flex-1 bg-white ">
-       <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row  items-center shadow-md">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-          >
+    <View className="flex-1 bg-white">
+      <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
+        <View className="pt-16 pb-6 px-4 flex-row items-center shadow-md">
+          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center">
             <Ionicons name="arrow-back" size={24} color="#fff" />
             <Text className="text-xl font-semibold text-white ml-4">
               Manage Stages
@@ -58,38 +80,56 @@ export default function ManageStages() {
         </View>
       </LinearGradient>
 
-      <ScrollView>
-        {defaultStages[company]?.map((stage:any , idx:any) => (
-          <TouchableOpacity
-            key={idx}
-            onPress={() => toggleStage(stage)}
-            className="flex-row items-center p-3 border-b border-gray-200"
-          >
-            <MaterialCommunityIcons
-              name={stageList.includes(stage) ? "checkbox-marked" : "checkbox-blank-outline"}
-              size={24}
-              color="#4F46E5"
-            />
-            <Text className="ml-3 text-base">{stage}</Text>
-          </TouchableOpacity>
-        ))}
+      {/* Draggable List */}
+      <DraggableFlatList
+        data={stageList}
+        keyExtractor={(item) => item}
+        onDragEnd={({ data }) => setStageList(data)}
+        renderItem={({ item, index, drag, isActive }) => (
+          <ScaleDecorator>
+            <TouchableOpacity
+              onLongPress={drag}
+              disabled={isActive}
+              className="flex-row items-center p-3 border-b border-gray-200"
+            >
+              <MaterialCommunityIcons
+                name="drag"
+                size={24}
+                color="#9CA3AF"
+                style={{ marginRight: 10 }}
+              />
 
-        {/* Add custom stage */}
-        <View className="mt-6 px-2">
-          <Text className="font-semibold mb-2">Add Custom Stage</Text>
-          <View className="flex-row items-center">
-            <TextInput
-              value={newStage}
-              onChangeText={setNewStage}
-              placeholder="Enter stage name"
-              className="flex-1 border px-3 py-2 rounded-lg"
-            />
-            <TouchableOpacity onPress={addCustomStage} className="ml-2 bg-indigo-600 px-3 py-2 rounded-lg">
-              <Text className="text-white font-medium">Add</Text>
+              <MaterialCommunityIcons
+                name="checkbox-marked"
+                size={24}
+                color="#4F46E5"
+                style={{ marginRight: 10 }}
+              />
+
+              <Text className="text-base flex-1">{item}</Text>
             </TouchableOpacity>
-          </View>
+          </ScaleDecorator>
+        )}
+      />
+
+      {/* Add custom stage */}
+      <View className="px-3 py-4 border-t border-gray-200">
+        <Text className="font-semibold mb-2">Add Custom Stage</Text>
+        <View className="flex-row items-center">
+          <TextInput
+            value={newStage}
+            onChangeText={setNewStage}
+            placeholder="Enter stage name"
+            className="flex-1 border px-3 py-2 rounded-lg"
+          />
+          <TouchableOpacity
+            onPress={addCustomStage}
+            className="ml-2 bg-indigo-600 px-3 py-2 rounded-lg"
+          >
+            <Text className="text-white font-medium">Add</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
 
       <TouchableOpacity
         onPress={saveStages}
