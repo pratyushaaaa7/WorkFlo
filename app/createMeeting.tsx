@@ -772,12 +772,17 @@ const CreateMinutes = () => {
       <KeyboardAwareScrollView
         // enableOnAndroid
         // keyboardShouldPersistTaps="handled"
-        keyboardShouldPersistTaps="always"
-        enableOnAndroid={false} //  ❌ prevent auto scroll
-        enableAutomaticScroll={false} //  ❌ prevent moving background
-        extraScrollHeight={0} //  ❌ no screen shifting
-        // extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
-        contentContainerStyle={{ padding: 10, paddingBottom: 80 }}
+        // keyboardShouldPersistTaps="always"
+        // enableOnAndroid={false} //  ❌ prevent auto scroll
+        // enableAutomaticScroll={false} //  ❌ prevent moving background
+        // extraScrollHeight={100} //  ❌ no screen shifting
+        // // extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
+           enableOnAndroid={false}
+  enableAutomaticScroll={false}
+  scrollEnabled={true}
+  extraScrollHeight={0}
+  keyboardShouldPersistTaps="always"
+  contentContainerStyle={{ padding: 10, paddingBottom: 220 }}
       >
         {/* <Text className="text-2xl font-bold text-gray-800 text-center my-4">
           {projectName || ""} MOM

@@ -229,7 +229,7 @@ const CompanyProjectSelectionScreen = () => {
           />
         </View>
 
-        {/* Enter Button */}
+       
         <TouchableOpacity
           className="bg-indigo-600 mt-6 py-3 rounded-xl items-center shadow-lg active:scale-95"
           onPress={handleEnter}
@@ -237,14 +237,14 @@ const CompanyProjectSelectionScreen = () => {
           <Text className="text-white font-bold text-base">Enter</Text>
         </TouchableOpacity>
 
-        {/* Dashboard Section */}
-        <TouchableOpacity
+        
+        {/* <TouchableOpacity
           className="mt-8 shadow-lg rounded-3xl border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}
           style={{ borderColor: "#4338ca", height: 100 }}
           onPress={() => router.push("/myDashboard")}
         >
-          {/* BACK GRADIENT (Purple → Indigo) */}
+          
           <Animated.View
             style={[{ ...StyleSheet.absoluteFillObject }, reverseAnimatedStyle]}
           >
@@ -256,7 +256,7 @@ const CompanyProjectSelectionScreen = () => {
             />
           </Animated.View>
 
-          {/* FRONT GRADIENT (Indigo → Purple) */}
+        
           <Animated.View
             style={[{ ...StyleSheet.absoluteFillObject }, animatedStyle]}
           >
@@ -268,7 +268,7 @@ const CompanyProjectSelectionScreen = () => {
             />
           </Animated.View>
 
-          {/* CONTENT */}
+          
           <View className="flex-row items-center gap-4 p-6">
             <MaterialCommunityIcons
               name="view-dashboard-outline"
@@ -282,7 +282,7 @@ const CompanyProjectSelectionScreen = () => {
               </Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </ScrollView>
     </View>
   );
