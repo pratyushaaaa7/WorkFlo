@@ -148,7 +148,6 @@ export default function DrawerLayout() {
         }}
       />
 
-
       <Drawer.Screen
         name="centralUserDirectory"
         options={{
@@ -181,8 +180,11 @@ export default function DrawerLayout() {
           drawerLabel: "Master User Directory",
           title: "Maste User Directory",
           drawerIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name="account-group-outline" size={size} color={color} />
-
+            <MaterialCommunityIcons
+              name="account-group-outline"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
