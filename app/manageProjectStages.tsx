@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity} from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -9,6 +9,8 @@ import DraggableFlatList, {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as Haptics from "expo-haptics";
 import Modal from "react-native-modal";
+import api from "@/lib/api";
+import { AuthContext } from "@/context/AuthContext";
 
 // Default stages
 const defaultStages = {
@@ -21,6 +23,7 @@ const defaultStages = {
     "Practice Development",
     "Closing and Handover",
     "Defects Liability Stage",
+    
   ],
   WAL: [
     "Feasibility",
@@ -178,6 +181,7 @@ const AddStageModal = ({
           value={newStage}
           onChangeText={setNewStage}
           placeholder="Enter stage name"
+          placeholderTextColor={"#888"}
           style={{
             borderWidth: 1,
             borderColor: "#E5E7EB",
@@ -218,12 +222,15 @@ const AddStageModal = ({
 
 // ------------------- Main Component -------------------
 export default function ManageStages() {
-  const { company } = useLocalSearchParams();
+  const { company, projectId } = useLocalSearchParams();
   const router = useRouter();
 
   const [stageList, setStageList] = useState<Stage[]>([]);
   const [newStage, setNewStage] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+
+  const authContext = useContext(AuthContext);
+  const token = authContext?.token;
 
   // sorting function
   const sortStages = (list: Stage[]) =>
@@ -233,17 +240,48 @@ export default function ManageStages() {
       return a.order - b.order;
     });
 
-  useEffect(() => {
-    if (company) {
-      const stages = (defaultStages[company] || []).map((s, i) => ({
-        id: `${i}`,
-        name: s,
-        order: i + 1,
-        selected: true,
-      }));
-      setStageList(sortStages(stages));
+useEffect(() => {
+  if (!projectId) return;
+
+  const loadStages = async () => {
+    try {
+      const response = await api.get(`/stages/${projectId}/stages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const dbStages = response.data?.stages || [];
+
+      // If DB already has saved stages → use them
+      if (dbStages.length > 0) {
+        const mapped = dbStages.map((stage: any) => ({
+          id: stage._id,          // MongoDB stage ID
+          name: stage.title,
+          order: stage.order,
+          selected: true,
+        }));
+
+        setStageList(sortStages(mapped));
+        return;
+      }
+
+      // If DB has no stages → load defaults based on company
+      if (company) {
+        const defaults = (defaultStages[company] || []).map((s, i) => ({
+          id: `${i}`,
+          name: s,
+          order: i + 1,
+          selected: true,
+        }));
+        setStageList(sortStages(defaults));
+      }
+    } catch (error) {
+      console.error("Error fetching stages:", error);
     }
-  }, [company]);
+  };
+
+  loadStages();
+}, [projectId, company, token]);
+
 
   const toggleStage = (id: string) => {
     const updated = stageList.map((stage) =>
@@ -270,7 +308,35 @@ export default function ManageStages() {
     setModalVisible(false);
   };
 
-  const saveStages = () => router.back();
+  const saveStages = async () => {67
+    const selectedStages = stageList
+      .filter((s) => s.selected)
+      .map((s, index) => ({
+        title: s.name,
+        order: index, // backend accepts index-based order
+      }));
+
+    try {
+      const response = await api.post(
+        `/stages/${projectId}/stages`,
+        {
+          projectId,
+          stages: selectedStages,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Stages saved:", response.data);
+
+      router.back(); // go back
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
