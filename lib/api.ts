@@ -15,6 +15,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
+    const code = error.response?.data?.code;
     const message = error.response?.data?.message;
 
     // TOKEN EXPIRED → 401
@@ -32,7 +33,7 @@ api.interceptors.response.use(
     }
 
     // ACCOUNT DEACTIVATED → 403
-    if (status === 403) {
+    if (status === 403 && code === "ACCOUNT_DEACTIVATED") {
       setTimeout(() => {
         Toast.show({
           type: "error",
@@ -49,8 +50,6 @@ api.interceptors.response.use(
   }
 );
 export default api;
-
-
 
 //FINAL DEPLOYED OUR OWN BACKEND CODE FOR PRODUCTION PHASE!!!!!!!!!!!!!!
 // import axios from "axios";

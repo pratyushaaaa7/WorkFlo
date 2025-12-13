@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +14,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext"; // adjust path
 import api from "../lib/api"; // axios instance with baseURL
 import CircleProgress from "@/components/CircleProgress";
+import Toast from "react-native-toast-message";
 
 const Minutes = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
@@ -43,6 +45,58 @@ const Minutes = () => {
 
     if (projectId) fetchMeetings();
   }, [projectId, token]);
+
+  const handleDeleteMeeting = (meetingId) => {
+    Alert.alert(
+      "Delete Meeting",
+      "This meeting will be permanently deleted. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/minutes/${meetingId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              // remove from UI
+              setMeetings((prev) => prev.filter((m) => m._id !== meetingId));
+              // ✅ SHOW TOAST
+              Toast.show({
+                type: "success",
+                text1: "Meeting deleted",
+                text2: "The meeting was removed successfully",
+                position: "bottom",
+                visibilityTime: 2000,
+              });
+            } catch (err: any) {
+              console.error("Delete failed", err);
+              if (err.response?.status === 418) {
+                // Not authorized
+                Toast.show({
+                  type: "error",
+                  text1: "Not Authorized",
+                  text2: "Please contact Team leader or admin ",
+                  position: "bottom",
+                });
+              } else {
+                // Generic error
+                Toast.show({
+                  type: "error",
+                  text1: "Delete failed",
+                  text2: "Please try again",
+                  position: "bottom",
+                });
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View className="flex-1  bg-gray-50">
       {/* Header */}
@@ -152,25 +206,39 @@ const Minutes = () => {
                 </View>
               </View>
 
-              {/* Status Chips */}
-              <View className="flex-row flex-wrap px-4 py-2 gap-2">
-                {meeting.agendaSubmitted && (
-                  <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
-                    <Ionicons name="checkmark" size={14} color="#0369A1" />
-                    <Text className="text-sky-700 text-xs font-semibold ml-1">
-                      Agenda Submitted
-                    </Text>
-                  </View>
-                )}
+              <View className="flex-row  justify-between">
+                {/* Status Chips */}
+                <View className="flex-row flex-wrap px-4 py-2 gap-2">
+                  {meeting.agendaSubmitted && (
+                    <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
+                      <Ionicons name="checkmark" size={14} color="#0369A1" />
+                      <Text className="text-sky-700 text-xs font-semibold ml-1">
+                        Agenda Submitted
+                      </Text>
+                    </View>
+                  )}
 
-                {meeting.meetingStage === "mom_submitted" && (
-                  <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
-                    <Ionicons name="checkmark-done" size={14} color="#15803D" />
-                    <Text className="text-green-700 text-xs font-semibold ml-1">
-                      Minutes Published
-                    </Text>
-                  </View>
-                )}
+                  {meeting.meetingStage === "mom_submitted" && (
+                    <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
+                      <Ionicons
+                        name="checkmark-done"
+                        size={14}
+                        color="#15803D"
+                      />
+                      <Text className="text-green-700 text-xs font-semibold ml-1">
+                        Minutes Published
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {/* DELETE ICON */}
+                <TouchableOpacity
+                  onPress={() => handleDeleteMeeting(meeting._id)}
+                  className="p-2"
+                  hitSlop={10}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                </TouchableOpacity>
               </View>
 
               {/* Action Buttons */}
