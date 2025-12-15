@@ -37,7 +37,8 @@ const handleDownloadAgenda = async (
   projectName: any,
   accountName: any,
   company: any,
-  token: any
+  token: any,
+  format: "pdf" | "excel"
 ) => {
   try {
     const payload = {
@@ -47,26 +48,50 @@ const handleDownloadAgenda = async (
       company,
     };
 
-    const response = await api.post("/minutes/export/agenda", payload, {
-      responseType: "blob", // important for binary files
+    // 🔀 Route selection
+    const endpoint =
+      format === "pdf"
+        ? "/minutes/export/agenda/pdf"
+        : "/minutes/export/agenda";
+
+    const response = await api.post(endpoint, payload, {
+      responseType: "blob",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    const fileName = `Meeting_${meeting.meetingNumber}_Agenda.xlsx`;
+    // 🔀 File name & MIME
+    const fileName =
+      format === "pdf"
+        ? `Meeting_${meeting.meetingNumber}_Agenda.pdf`
+        : `Meeting_${meeting.meetingNumber}_Agenda.xlsx`;
 
+    const mimeType =
+      format === "pdf"
+        ? "application/pdf"
+        : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    const uti =
+      format === "pdf"
+        ? "com.adobe.pdf"
+        : "com.microsoft.excel.xlsx";
+
+    // 🌐 WEB
     if (Platform.OS === "web") {
-      // Web: download via anchor tag
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = url;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
+
+      window.URL.revokeObjectURL(url);
     } else {
-      // Mobile: write to cache and share
+      // 📱 MOBILE
       const blobToBase64 = (blob: Blob) =>
         new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -79,15 +104,18 @@ const handleDownloadAgenda = async (
       const base64data = await blobToBase64(response.data);
 
       const fileUri = FileSystem.cacheDirectory + fileName;
+
       await FileSystem.writeAsStringAsync(fileUri, base64data, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       await Sharing.shareAsync(fileUri, {
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        dialogTitle: "Share Meeting Agenda",
-        UTI: "com.microsoft.excel.xlsx",
+        mimeType,
+        dialogTitle:
+          format === "pdf"
+            ? "Share Meeting Agenda (PDF)"
+            : "Share Meeting Agenda (Excel)",
+        UTI: uti,
       });
     }
   } catch (err) {
@@ -95,6 +123,7 @@ const handleDownloadAgenda = async (
     alert("Failed to download agenda");
   }
 };
+
 
 type DirectoryUser = {
   label: string;
@@ -120,6 +149,8 @@ const CreateMinutes = () => {
 
   const STORAGE_KEY = `minutes_draft_${projectId || "new"}`;
   const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const [modalVisible, setModalVisible] = useState(false);
 
   const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
   const [isMomSubmitting, setIsMomSubmitting] = useState(false);
@@ -777,12 +808,12 @@ const CreateMinutes = () => {
         // enableAutomaticScroll={false} //  ❌ prevent moving background
         // extraScrollHeight={100} //  ❌ no screen shifting
         // // extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
-           enableOnAndroid={false}
-  enableAutomaticScroll={false}
-  scrollEnabled={true}
-  extraScrollHeight={0}
-  keyboardShouldPersistTaps="always"
-  contentContainerStyle={{ padding: 10, paddingBottom: 220 }}
+        enableOnAndroid={false}
+        enableAutomaticScroll={false}
+        scrollEnabled={true}
+        extraScrollHeight={0}
+        keyboardShouldPersistTaps="always"
+        contentContainerStyle={{ padding: 10, paddingBottom: 220 }}
       >
         {/* <Text className="text-2xl font-bold text-gray-800 text-center my-4">
           {projectName || ""} MOM
@@ -1659,27 +1690,28 @@ const CreateMinutes = () => {
             {meetingId ? (
               <TouchableOpacity
                 disabled={isAgendaDownloading}
-                onPress={async () => {
-                  setIsAgendaDownloading(true);
-                  try {
-                    await handleDownloadAgenda(
-                      {
-                        meetingDate,
-                        meetingTime,
-                        meetingVenue,
-                        meetingNumber,
-                        attendees,
-                        minutes,
-                      },
-                      projectName,
-                      auth?.user?.fullName ?? "Unknown",
-                      company,
-                      auth?.token
-                    );
-                  } finally {
-                    setIsAgendaDownloading(false);
-                  }
-                }}
+                // onPress={async () => {
+                //   setIsAgendaDownloading(true);
+                //   try {
+                //     await handleDownloadAgenda(
+                //       {
+                //         meetingDate,
+                //         meetingTime,
+                //         meetingVenue,
+                //         meetingNumber,
+                //         attendees,
+                //         minutes,
+                //       },
+                //       projectName,
+                //       auth?.user?.fullName ?? "Unknown",
+                //       company,
+                //       auth?.token
+                //     );
+                //   } finally {
+                //     setIsAgendaDownloading(false);
+                //   }
+                // }}
+                onPress={() => setModalVisible(true)}
                 className={`flex-1 px-2 py-4 rounded-xl items-center ${
                   isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
                 }`}
@@ -1727,6 +1759,104 @@ const CreateMinutes = () => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/40">
+            <View className="bg-white rounded-2xl p-6 w-80 shadow-lg relative">
+              {/* Close Button */}
+              <TouchableOpacity
+                className="absolute bg-gray-200  rounded-full top-4 right-4 p-2"
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: 999,
+                  padding: 8,
+                  zIndex: 50,
+                  elevation: 10, // IMPORTANT for Android
+                }}
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+
+              <Text className="text-xl font-bold mb-6 text-gray-800 text-left">
+                Select Download Format
+              </Text>
+
+              <View className="flex-row justify-between gap-3">
+                {/* PDF Button */}
+                <TouchableOpacity
+                  className="flex-1 py-3 rounded-lg bg-red-500 items-center"
+                  onPress={async () => {
+                    setModalVisible(false);
+                    setIsAgendaDownloading(true);
+                    try {
+                      await handleDownloadAgenda(
+                        {
+                          meetingDate,
+                          meetingTime,
+                          meetingVenue,
+                          meetingNumber,
+                          attendees,
+                          minutes,
+                        },
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        auth?.token,
+                        "pdf"
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                >
+                  <Text className="text-white font-semibold text-lg">PDF</Text>
+                </TouchableOpacity>
+
+                {/* Excel Button */}
+                <TouchableOpacity
+                  className="flex-1 py-3 rounded-lg bg-green-500 items-center"
+                  onPress={async () => {
+                    setModalVisible(false);
+                    setIsAgendaDownloading(true);
+                    try {
+                      await handleDownloadAgenda(
+                        {
+                          meetingDate,
+                          meetingTime,
+                          meetingVenue,
+                          meetingNumber,
+                          attendees,
+                          minutes,
+                        },
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        auth?.token,
+                        "excel"
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                >
+                  <Text className="text-white font-semibold text-lg">
+                    Excel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* <TouchableOpacity
           onPress={handleSubmit}
