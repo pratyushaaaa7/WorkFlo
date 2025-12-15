@@ -196,14 +196,30 @@ const ProjectMain = () => {
           },
         }),
     },
+    {
+      key: "projectStage",
+      label: "Project Stage",
+      icon: (
+        <MaterialCommunityIcons
+          name="timeline-check-outline"
+          size={40}
+          color="#D946EF"
+        />
+      ),
+      onPress: () =>
+        router.push({
+          pathname: "/projectStage",
+          params: { company, projectId, projectName: project?.projectName },
+        }),
+    },
     // {
-    //   key: "projectStage",
-    //   label: "Project Stage",
+    //   key: "runningNotes",
+    //   label: "Running Notes",
     //   icon: (
     //     <MaterialCommunityIcons
-    //       name="timeline-check-outline"
+    //       name="note-text-outline"
     //       size={40}
-    //       color="#D946EF"
+    //       color="#92400E"
     //     />
     //   ),
     //   onPress: () =>

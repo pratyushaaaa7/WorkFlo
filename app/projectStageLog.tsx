@@ -216,13 +216,16 @@ const StageDetail: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        
       </LinearGradient>
+
+      
 
       <ScrollView contentContainerStyle={{ padding: 12 }}>
         {stageData.map((stageItem, index) => (
           <View
             key={index}
-            className="bg-white p-4 rounded-xl shadow mb-4 border border-gray-200"
+            className="bg-white p-4 rounded-2xl shadow-sm mb-4 border border-gray-100"
           >
             {!stageItem.saved ? (
               <>
@@ -418,47 +421,68 @@ const StageDetail: React.FC = () => {
                 </View>
 
                 {/* Activity log toggle */}
-                {stageItem.logs && stageItem.logs.length > 0 && (
-                  <>
-                    <TouchableOpacity
-                      onPress={() =>
-                        setShowLogIndex(showLogIndex === index ? null : index)
-                      }
-                      className="mt-3"
-                    >
-                      <Text className="text-indigo-500 font-semibold">
-                        {showLogIndex === index
-                          ? "Hide Activity Log"
-                          : "View Activity Log"}
-                      </Text>
-                    </TouchableOpacity>
+              {/* Activity Log (Improved Timeline Style) */}
+{stageItem.logs && stageItem.logs.length > 0 && (
+  <>
+    <TouchableOpacity
+      onPress={() =>
+        setShowLogIndex(showLogIndex === index ? null : index)
+      }
+      className="mt-3"
+    >
+      <Text className="text-indigo-500 font-semibold">
+        {showLogIndex === index ? "Hide Activity Log" : "View Activity Log"}
+      </Text>
+    </TouchableOpacity>
 
-                    {showLogIndex === index && (
-                      <View className="mt-2 bg-white p-3 rounded-xl border border-gray-200">
-                        {stageItem.logs
-                          .slice()
-                          .reverse()
-                          .map((log, i) => (
-                            <View key={i} className="mb-2">
-                              <Text className="text-gray-600 text-sm">
-                                • {new Date(log.timestamp).toLocaleString()} —{" "}
-                                <Text className="font-medium">{log.user}</Text>{" "}
-                                {log.action.replace("_", " ")}
-                                {log.field ? ` (${log.field})` : ""}
-                              </Text>
-                              {log.oldValue || log.newValue ? (
-                                <Text className="text-gray-500 text-xs mt-1">
-                                  {log.oldValue ? `From: ${log.oldValue}` : ""}
-                                  {log.oldValue && log.newValue ? " — " : ""}
-                                  {log.newValue ? `To: ${log.newValue}` : ""}
-                                </Text>
-                              ) : null}
-                            </View>
-                          ))}
-                      </View>
-                    )}
-                  </>
-                )}
+    {showLogIndex === index && (
+      <View className="mt-4">
+        <Text className="text-gray-800 font-semibold mb-2">Activity Timeline</Text>
+
+        <View className="border-l-2 border-indigo-300 pl-4">
+          {stageItem.logs.slice().reverse().map((log, i) => (
+            <View key={i} className="mb-5 relative">
+
+              {/* Timeline Dot */}
+              <View className="w-3 h-3 bg-indigo-500 rounded-full absolute -left-[9px] top-1.5" />
+
+              {/* Action Title */}
+              <Text className="text-gray-800 font-medium">
+                {log.action.replace("_", " ")}
+              </Text>
+
+              {/* Timestamp + User */}
+              <Text className="text-gray-500 text-xs mt-1">
+                {new Date(log.timestamp).toLocaleString()} — {log.user}
+              </Text>
+
+              {/* Old/New Values */}
+              {(log.oldValue || log.newValue) && (
+                <View className="mt-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+
+                  {log.oldValue && (
+                    <Text className="text-gray-700 text-xs">
+                      <Text className="font-semibold">From: </Text>
+                      {log.oldValue}
+                    </Text>
+                  )}
+
+                  {log.newValue && (
+                    <Text className="text-gray-700 text-xs mt-1">
+                      <Text className="font-semibold">To: </Text>
+                      {log.newValue}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+    )}
+  </>
+)}
+
               </View>
             )}
           </View>
