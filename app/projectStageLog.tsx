@@ -16,7 +16,7 @@ import DateTimePicker, {
 import { AuthContext } from "../context/AuthContext";
 
 type ActivityLog = {
-  action: "start_set" | "end_set" | "remark_added" | "saved" | "edited";
+  action: string;
   field?: string;
   oldValue?: string | null;
   newValue?: string | null;
@@ -24,15 +24,32 @@ type ActivityLog = {
   user: string;
 };
 
-type StageEntry = {
+type Revision = {
+  revisionNumber: number;
   start?: string;
   end?: string;
+  originalEnd?: string;
   remark?: string;
-  saved: boolean;
   createdBy: string;
-  updatedBy?: string;
-  updatedAt?: string;
+  saved?: boolean;
+  delayDays?: number;
   logs?: ActivityLog[];
+};
+
+type Props = {
+  revisions: Revision[];
+  onSave: (index: number) => void;
+  onAddRevision: () => void;
+  onUpdate: (index: number, field: string, value: string) => void;
+};
+
+const calculateDelay = (originalEnd?: string, end?: string) => {
+  if (!originalEnd || !end) return 0;
+  const diff = Math.ceil(
+    (new Date(end).getTime() - new Date(originalEnd).getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+  return diff > 0 ? diff : 0;
 };
 
 const StageDetail: React.FC = () => {
@@ -113,7 +130,6 @@ const StageDetail: React.FC = () => {
   };
 
   const onChangeDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    // DateTimePicker on Android returns event.type === 'dismissed' when canceled
     if ((event as any).type === "dismissed") {
       setPicker({ show: false, type: "" });
       return;
@@ -128,7 +144,6 @@ const StageDetail: React.FC = () => {
 
     setStages((prev) => {
       const updated = [...(prev[stageKey] || [])];
-      // ensure entry exists
       while (updated.length <= index) {
         updated.push({
           saved: false,
@@ -136,6 +151,7 @@ const StageDetail: React.FC = () => {
           logs: [],
         });
       }
+
       const oldValue = (updated[index] as any)[field];
 
       updated[index] = {
@@ -145,19 +161,35 @@ const StageDetail: React.FC = () => {
         updatedAt: new Date().toISOString(),
       };
 
+      // If actualEnd changes, recalc delay
+      if (field === "actualEnd") {
+        const delay = calculateDelay(updated[index].plannedEnd, formatted);
+        updated[index].delayDays = delay;
+      }
+
       return { ...prev, [stageKey]: updated };
     });
 
-    addLog(stageKey, index, {
-      action: field === "start" ? "start_set" : "end_set",
-      field,
-      oldValue: undefined,
-      newValue: formatted,
-      timestamp: new Date().toISOString(),
-      user: user?.username || "unknown",
+    setPicker({ show: false, type: "" });
+  };
+
+  const addRevision = (lastIndex: number) => {
+    const stageKey = stage!;
+    setStages((prev) => {
+      const updated = [...(prev[stageKey] || [])];
+
+      // Add a new revision after the last one
+      updated.push({
+        saved: false,
+        createdBy: user?.username || "unknown",
+        logs: [],
+        revisionNumber: (updated[lastIndex]?.revisionNumber || 0) + 1,
+      });
+
+      return { ...prev, [stageKey]: updated };
     });
 
-    setPicker({ show: false, type: "" });
+    // Optionally scroll to the new revision or open it
   };
 
   const handleRemarkChange = (
@@ -185,20 +217,73 @@ const StageDetail: React.FC = () => {
 
       return { ...prev, [stageKey]: updated };
     });
-
-    addLog(stageKey, index, {
-      action: "remark_added",
-      field: "remark",
-      oldValue: undefined,
-      newValue: text,
-      timestamp: new Date().toISOString(),
-      user: user?.username || "unknown",
-    });
   };
 
   const canSave = (item: StageEntry) => {
-    if (item.end && !item.remark?.trim()) return false;
-    return Boolean(item.start || item.end || item.remark);
+    // must have at least something
+    if (!item.start && !item.end && !item.remark) return false;
+
+    // revision 1+ → remark is mandatory
+    if ((item.revisionNumber ?? 0) > 0) {
+      return Boolean(item.remark && item.remark.trim().length > 0);
+    }
+
+    // revision 0 → remark optional
+    return true;
+  };
+
+  const saveStage = (index: number) => {
+    const stageKey = stage!;
+    const now = new Date().toISOString();
+
+    setStages((prev) => {
+      const updated = [...(prev[stageKey] || [])];
+      const item = updated[index];
+
+      if (!canSave(item)) return prev;
+
+      const finalizedLogs: ActivityLog[] = [];
+
+      if (item.start) {
+        finalizedLogs.push({
+          action: "Expected Start Date",
+          field: "start",
+          newValue: item.start,
+          timestamp: now,
+          user: user?.username || "unknown",
+        });
+      }
+
+      if (item.end) {
+        finalizedLogs.push({
+          action: "Expected End Date",
+          field: "end",
+          newValue: item.end,
+          timestamp: now,
+          user: user?.username || "unknown",
+        });
+      }
+
+      if (item.remark) {
+        finalizedLogs.push({
+          action: "Remark Added",
+          field: "remark",
+          newValue: item.remark,
+          timestamp: now,
+          user: user?.username || "unknown",
+        });
+      }
+
+      updated[index] = {
+        ...item,
+        saved: true,
+        updatedBy: user?.username,
+        updatedAt: now,
+        logs: finalizedLogs, // 🔥 ONLY finalized logs
+      };
+
+      return { ...prev, [stageKey]: updated };
+    });
   };
 
   return (
@@ -216,308 +301,182 @@ const StageDetail: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        
       </LinearGradient>
 
-      
-
-      <ScrollView contentContainerStyle={{ padding: 12 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {stageData.map((stageItem, index) => (
           <View
             key={index}
-            className="bg-white p-4 rounded-2xl shadow-sm mb-4 border border-gray-100"
+            className="bg-white rounded-2xl shadow-md mb-5 border border-gray-100 overflow-hidden"
           >
-            {!stageItem.saved ? (
-              <>
-                <View className="flex-row justify-between mt-3 gap-3">
-                  {/* Start Date */}
-                  <View className="flex-1">
-                    <Text>Start Date</Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        setPicker({ show: true, stage, type: "start", index })
-                      }
-                      className={`border border-gray-200 rounded-xl px-3 py-3 flex-row items-center ${
-                        stageItem.start ? "bg-gray-100" : "bg-white"
-                      }`}
-                    >
-                      <MaterialCommunityIcons
-                        name="calendar-start"
-                        size={18}
-                        color="#6B7280"
-                      />
-                      <Text className="ml-2 text-gray-700 text-sm flex-shrink">
-                        {stageItem.start
-                          ? new Date(stageItem.start).toDateString()
-                          : "Start Date"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+            {/* Revision Header */}
+            <View className="p-4 border-b border-gray-200 flex-row justify-between items-center">
+              <Text className="text-gray-700 font-semibold text-sm">
+                Revision {stageItem.revisionNumber || 0}
+              </Text>
+              <Text className="text-gray-500 text-xs">
+                Duration: {getDuration(stageItem)} day(s)
+              </Text>
+            </View>
 
-                  {/* End Date */}
-                  <View className="flex-1">
-                    <Text>End Date</Text>
-                    <TouchableOpacity
-                      disabled={!stageItem.start}
-                      onPress={() =>
-                        setPicker({ show: true, stage, type: "end", index })
-                      }
-                      className={`border border-gray-200 rounded-xl px-3 py-3 flex-row items-center ${
-                        stageItem.end
-                          ? "bg-gray-100"
-                          : stageItem.start
-                          ? "bg-white"
-                          : "bg-gray-100 opacity-50"
-                      }`}
-                    >
-                      <MaterialCommunityIcons
-                        name="calendar-end"
-                        size={18}
-                        color="#6B7280"
-                      />
-                      <Text className="ml-2 text-gray-700 text-sm flex-shrink">
-                        {stageItem.end
-                          ? new Date(stageItem.end).toDateString()
-                          : "End Date"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* Remark */}
-                {stageItem.start && (
-                  <View className="mt-3">
-                    <Text className="text-gray-700 text-sm mb-1 font-medium">
-                      Remark
-                    </Text>
-                    <TextInput
-                      multiline
-                      editable
-                      value={stageItem.remark || ""}
-                      onChangeText={(text) =>
-                        handleRemarkChange(stage!, index, text)
-                      }
-                      placeholder="Add remark..."
-                      placeholderTextColor="#9CA3AF"
-                      textAlignVertical="top"
-                      className="border border-gray-200 rounded-xl px-2 py-2 bg-gray-50 text-gray-900"
-                    />
-                  </View>
-                )}
-
-                {/* Save Button */}
-                <TouchableOpacity
-                  onPress={() => {
-                    setStages((prev) => {
-                      const updated = [...(prev[stage!] || [])];
-                      while (updated.length <= index) {
-                        updated.push({
-                          saved: false,
-                          createdBy: user?.username || "unknown",
-                          logs: [],
-                        });
-                      }
-                      updated[index] = {
-                        ...updated[index],
-                        saved: true,
-                        updatedBy: user?.username,
-                        updatedAt: new Date().toISOString(),
-                      };
-                      return { ...prev, [stage!]: updated };
-                    });
-
-                    addLog(stage!, index, {
-                      action: "saved",
-                      timestamp: new Date().toISOString(),
-                      user: user?.username || "unknown",
-                    });
-                  }}
-                  disabled={!canSave(stageItem)}
-                  className={`mt-4 py-3 rounded-xl ${
-                    !canSave(stageItem) ? "bg-gray-300" : "bg-indigo-500"
-                  }`}
-                >
-                  <Text className="text-white text-center font-semibold">
-                    Save Stage
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View className="mt-3 bg-gray-50 rounded-xl p-4 border border-gray-200 relative">
-                {/* Edit */}
+            {/* Dates */}
+            <View className="p-4 flex-row justify-between gap-3">
+              <View className="flex-1">
+                <Text className="text-gray-600 mb-1 text-sm">Start Date</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setStages((prev) => {
-                      const updated = [...(prev[stage!] || [])];
-                      while (updated.length <= index) {
-                        updated.push({
-                          saved: false,
-                          createdBy: user?.username || "unknown",
-                          logs: [],
-                        });
-                      }
-                      updated[index] = { ...updated[index], saved: false };
-                      return { ...prev, [stage!]: updated };
-                    })
+                    setPicker({ show: true, stage, type: "start", index })
                   }
-                  className="absolute top-2 right-2 p-2 rounded-full bg-indigo-50"
-                  activeOpacity={0.8}
+                  className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
+                    stageItem.start ? "bg-gray-100" : "bg-white"
+                  }`}
                 >
                   <MaterialCommunityIcons
-                    name="pencil"
-                    size={18}
-                    color="#4F46E5"
+                    name="calendar-start"
+                    size={20}
+                    color="#6B7280"
                   />
-                </TouchableOpacity>
-
-                {stageItem.start && (
-                  <View className="flex-row items-center">
-                    <MaterialCommunityIcons
-                      name="calendar-start"
-                      size={18}
-                      color="#2563EB"
-                    />
-                    <Text className="text-gray-800 font-medium ml-2">
-                      Start: {new Date(stageItem.start).toDateString()}
-                    </Text>
-                  </View>
-                )}
-
-                {stageItem.end && (
-                  <View className="flex-row items-center mt-2">
-                    <MaterialCommunityIcons
-                      name="calendar-check"
-                      size={18}
-                      color="#16A34A"
-                    />
-                    <Text className="text-gray-800 font-medium ml-2">
-                      End: {new Date(stageItem.end).toDateString()}
-                    </Text>
-                  </View>
-                )}
-
-                {stageItem.remark && (
-                  <View className="flex-row items-start mt-2">
-                    <MaterialCommunityIcons
-                      name="comment-text-outline"
-                      size={18}
-                      color="#6B7280"
-                    />
-                    <Text className="text-gray-600 ml-2 flex-1">
-                      {stageItem.remark}
-                    </Text>
-                  </View>
-                )}
-
-                <View className="flex-row items-center mt-2">
-                  <Text className="text-gray-700 font-medium">
-                    Status: {getStatus(stageItem)}
+                  <Text className="ml-2 text-gray-700 text-sm">
+                    {stageItem.start
+                      ? new Date(stageItem.start).toDateString()
+                      : "Select"}
                   </Text>
-                  {getDuration(stageItem) && (
-                    <Text className="text-gray-700 font-medium ml-4">
-                      Duration: {getDuration(stageItem)} day(s)
-                    </Text>
-                  )}
-                </View>
+                </TouchableOpacity>
+              </View>
 
-                {/* Activity log toggle */}
-              {/* Activity Log (Improved Timeline Style) */}
-{stageItem.logs && stageItem.logs.length > 0 && (
-  <>
-    <TouchableOpacity
-      onPress={() =>
-        setShowLogIndex(showLogIndex === index ? null : index)
-      }
-      className="mt-3"
-    >
-      <Text className="text-indigo-500 font-semibold">
-        {showLogIndex === index ? "Hide Activity Log" : "View Activity Log"}
-      </Text>
-    </TouchableOpacity>
+              <View className="flex-1">
+                <Text className="text-gray-600 mb-1 text-sm">End Date</Text>
+                <TouchableOpacity
+                  disabled={!stageItem.start}
+                  onPress={() =>
+                    setPicker({ show: true, stage, type: "end", index })
+                  }
+                  className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
+                    stageItem.end
+                      ? "bg-gray-100"
+                      : stageItem.start
+                      ? "bg-white"
+                      : "bg-gray-100 opacity-50"
+                  }`}
+                >
+                  <MaterialCommunityIcons
+                    name="calendar-end"
+                    size={20}
+                    color="#6B7280"
+                  />
+                  <Text className="ml-2 text-gray-700 text-sm">
+                    {stageItem.end
+                      ? new Date(stageItem.end).toDateString()
+                      : "Select"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-    {showLogIndex === index && (
-      <View className="mt-4">
-        <Text className="text-gray-800 font-semibold mb-2">Activity Timeline</Text>
-
-        <View className="border-l-2 border-indigo-300 pl-4">
-          {stageItem.logs.slice().reverse().map((log, i) => (
-            <View key={i} className="mb-5 relative">
-
-              {/* Timeline Dot */}
-              <View className="w-3 h-3 bg-indigo-500 rounded-full absolute -left-[9px] top-1.5" />
-
-              {/* Action Title */}
-              <Text className="text-gray-800 font-medium">
-                {log.action.replace("_", " ")}
-              </Text>
-
-              {/* Timestamp + User */}
-              <Text className="text-gray-500 text-xs mt-1">
-                {new Date(log.timestamp).toLocaleString()} — {log.user}
-              </Text>
-
-              {/* Old/New Values */}
-              {(log.oldValue || log.newValue) && (
-                <View className="mt-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
-
-                  {log.oldValue && (
-                    <Text className="text-gray-700 text-xs">
-                      <Text className="font-semibold">From: </Text>
-                      {log.oldValue}
-                    </Text>
-                  )}
-
-                  {log.newValue && (
-                    <Text className="text-gray-700 text-xs mt-1">
-                      <Text className="font-semibold">To: </Text>
-                      {log.newValue}
-                    </Text>
-                  )}
+            {/* Delay Calculation */}
+            {stageItem.revisionNumber &&
+              stageItem.originalEnd &&
+              stageItem.end && (
+                <View className="px-4 pb-2">
+                  <Text className="text-red-500 text-sm">
+                    Delay:{" "}
+                    {calculateDelay(stageItem.originalEnd, stageItem.end)}{" "}
+                    day(s)
+                  </Text>
                 </View>
               )}
-            </View>
-          ))}
-        </View>
-      </View>
-    )}
-  </>
-)}
 
+            {/* Remark / Reason */}
+            <View className="px-4 pb-4">
+              <Text className="text-gray-600 mb-1 text-sm">
+                {stageItem.revisionNumber ? "Reason for Revision" : "Remark"}
+              </Text>
+              <TextInput
+                multiline
+                value={stageItem.remark || ""}
+                onChangeText={(text) => handleRemarkChange(stage!, index, text)}
+                placeholder={
+                  stageItem.revisionNumber
+                    ? "Why revision happened..."
+                    : "Add remark..."
+                }
+                placeholderTextColor="#9CA3AF"
+                textAlignVertical="top"
+                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+              />
+            </View>
+
+            {/* Save / Add Revision */}
+            <View className="px-4 pb-4 flex-row gap-2">
+              {!stageItem.saved && (
+                <TouchableOpacity
+                  onPress={() => saveStage(index)}
+                  disabled={!canSave(stageItem)}
+                  className={`flex-1 py-3 rounded-xl items-center ${
+                    canSave(stageItem) ? "bg-indigo-500" : "bg-gray-300"
+                  }`}
+                >
+                  <Text className="text-white font-semibold text-sm">Save</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Timeline / Activity Log */}
+            {stageItem.saved && stageItem.logs && stageItem.logs.length > 0 && (
+              <View className="px-4 pb-4">
+                <Text className="text-gray-800 font-semibold mb-2 text-sm">
+                  Activity Timeline
+                </Text>
+                <View className="border-l-2 border-indigo-300 pl-4">
+                  {stageItem.logs
+                    .slice()
+                    .reverse()
+                    .map((log, i) => (
+                      <View key={i} className="mb-5 relative">
+                        <View className="w-3 h-3 bg-indigo-500 rounded-full absolute -left-[9px] top-1.5" />
+                        <Text className="text-gray-800 font-medium text-sm">
+                          {log.action.replace("_", " ")}
+                        </Text>
+                        <Text className="text-gray-500 text-xs mt-1">
+                          {new Date(log.timestamp).toLocaleString()} —{" "}
+                          {log.user}
+                        </Text>
+                        {(log.oldValue || log.newValue) && (
+                          <View className="mt-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            {log.oldValue && (
+                              <Text className="text-gray-700 text-xs">
+                                From: {log.oldValue}
+                              </Text>
+                            )}
+                            {log.newValue && (
+                              <Text className="text-gray-700 text-xs mt-1">
+                                To: {log.newValue}
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </View>
+                    ))}
+                </View>
               </View>
             )}
           </View>
         ))}
-
-        {/* + Add New Range button appears only if last entry has an end date AND is saved */}
-        {stageData[stageData.length - 1]?.end &&
-          stageData[stageData.length - 1]?.saved && (
-            <TouchableOpacity
-              onPress={() =>
-                setStages((prev) => ({
-                  ...prev,
-                  [stage!]: [
-                    ...(prev[stage!] || []),
-                    {
-                      saved: false,
-                      createdBy: user?.username || "unknown",
-                      logs: [],
-                    },
-                  ],
-                }))
-              }
-              className="flex-row items-center justify-center mt-2 mb-6 py-3 bg-green-500 rounded-xl"
-            >
-              <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-              <Text className="text-white font-semibold ml-2">
-                Add New Range
-              </Text>
-            </TouchableOpacity>
-          )}
+        {/* Add Revision button - only if revision 0 exists and is saved */}
+        {stageData[0]?.saved && (
+          <TouchableOpacity
+            onPress={() => addRevision(stageData.length - 1)}
+            className="flex-1 py-3 rounded-xl items-center bg-green-500"
+          >
+            <Text className="text-white font-semibold text-sm">
+              Add Revision
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {picker.show && (
           <DateTimePicker
             value={
-              // if a start exists for this picker, use it; else fallback to today
               picker.type === "start"
                 ? stageData[picker.index ?? 0]?.start
                   ? new Date(stageData[picker.index ?? 0]!.start!)
@@ -529,7 +488,6 @@ const StageDetail: React.FC = () => {
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={onChangeDate}
-            // For end date, you could add a minimum date to prevent selecting before start:
             minimumDate={
               picker.type === "end" && stageData[picker.index ?? 0]?.start
                 ? new Date(stageData[picker.index ?? 0]!.start!)
