@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 type SVRItem = {
   _id: string;
@@ -80,13 +82,35 @@ const SVRs = () => {
     );
   };
 
+  const downloadSVR = async (url: string, fileName: string) => {
+    try {
+      const downloadUri = FileSystem.documentDirectory + fileName;
+
+      const { uri } = await FileSystem.downloadAsync(url, downloadUri);
+
+      // Open share sheet (Save to Files / Drive / Downloads)
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Alert.alert("Downloaded", "File downloaded successfully");
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+      Alert.alert("Error", "Failed to download file");
+    }
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
           <TouchableOpacity
-            onPress={() => router.push(`/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`)}
+            onPress={() =>
+              router.push(
+                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`
+              )
+            }
             className="flex-row items-center"
             activeOpacity={0.7}
           >
@@ -128,14 +152,13 @@ const SVRs = () => {
                   </Text>
                 </View>
 
-                {/* Right: Icon Container */}
-                <View className="bg-indigo-50 p-3 rounded-xl">
-                  <Ionicons
-                    name="document-text-outline"
-                    size={22}
-                    color="#4F46E5"
-                  />
-                </View>
+                {/* Right: Download Button */}
+                <TouchableOpacity
+                  onPress={() => downloadSVR(item.url, item.fileName)}
+                  className="bg-green-50 p-3 rounded-xl ml-3"
+                >
+                  <Ionicons name="download-outline" size={22} color="#16A34A" />
+                </TouchableOpacity>
               </TouchableOpacity>
             )}
           />
