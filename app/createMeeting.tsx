@@ -267,7 +267,7 @@ const CreateMinutes = () => {
     }
   }, [meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
 
-  // Fetch usersc
+  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
