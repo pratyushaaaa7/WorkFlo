@@ -149,7 +149,7 @@ const CompanyProjectSelectionScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Company Dropdown */}
-        <View className="mb-4 bg-white p-3 rounded-3xl shadow">
+        <View className="mb-4 bg-white p-3 rounded-xl shadow">
           <Text className="text-sm font-semibold text-gray-600 mb-2">
             Select Company <Text className="text-red-500">*</Text>
           </Text>
@@ -161,11 +161,11 @@ const CompanyProjectSelectionScreen = () => {
             value={selectedCompany}
             onChange={(item) => setSelectedCompany(item.value)}
             style={{
-              height: 55,
+              height: 50,
               borderRadius: 14,
               paddingHorizontal: 16,
-              backgroundColor: "#F9FAFB",
-              borderWidth: 1,
+             backgroundColor: "#F9FAFB",
+              // borderWidth: 1,
               borderColor: "#E5E7EB",
               justifyContent: "center",
             }}
@@ -184,7 +184,7 @@ const CompanyProjectSelectionScreen = () => {
         </View>
 
         {/* Project Dropdown */}
-        <View className="mb-4  bg-white p-4 rounded-3xl shadow">
+        <View className="mb-4  bg-white p-4 rounded-xl shadow">
           <Text className="text-sm font-semibold text-gray-600 mb-2">
             Select Project <Text className="text-red-500">*</Text>
           </Text>
@@ -205,11 +205,11 @@ const CompanyProjectSelectionScreen = () => {
               paddingHorizontal: 12,
             }}
             style={{
-              height: 55,
+              height: 50,
               borderRadius: 14,
               paddingHorizontal: 16,
               backgroundColor: "#F9FAFB",
-              borderWidth: 1,
+              // borderWidth: 1,
               borderColor: "#E5E7EB",
               justifyContent: "center",
               shadowColor: "#000",
@@ -257,7 +257,7 @@ const CompanyProjectSelectionScreen = () => {
                   }}
                 >
                   <Text style={{ fontSize: 12, color: "#6B7280" }}>
-                    {item.fileNumber || "—"}
+                    #{item.fileNumber || "—"}
                   </Text>
 
                   <View
