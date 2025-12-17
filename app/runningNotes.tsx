@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
+import api from "@/lib/api";
 
 type Note = {
   id: string;
@@ -46,18 +47,29 @@ const RunningNotes = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
 
+  // ✅ Fetch users for the dropdown
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const resp = await fetch("https://your-backend.com/api/users");
-        const data = await resp.json();
-        setUsers(data.map((u: any) => ({ label: u.username, value: u._id })));
+        if (!token || !projectId) return;
+        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const formatted = res.data.map((u: any) => ({
+          label: `${u.individualName} (${u.firmName})`,
+          value: u._id,
+        }));
+
+        setUsers(formatted);
       } catch (err) {
-        console.log("Error fetching users:", err);
+        Toast.show({ type: "error", text1: "Error fetching users" });
+        console.log(err);
       }
     };
+
     fetchUsers();
-  }, []);
+  }, [token, projectId]);
 
   const addNote = () => {
     if (!noteText.trim()) return alert("Note text is required.");
@@ -79,61 +91,60 @@ const RunningNotes = () => {
 
   const renderHeader = React.useMemo(() => {
     return (
-      <View className="p-4">
-        <View className="bg-white p-4 rounded-2xl shadow-md">
-          <Text className="font-semibold mb-2 text-lg">Add New Note</Text>
+      <View className="p-3">
+        <View className="bg-white p-3 rounded-2xl shadow-md">
+          <Text className="font-semibold mb-2 text-base">Add New Note</Text>
 
+          {/* Row 1: Note input */}
           <TextInput
             placeholder="Enter note..."
             placeholderTextColor="#888"
             value={noteText}
+            multiline
             onChangeText={setNoteText}
-            className="border border-gray-300 rounded-xl p-3 mb-3"
+            className="border border-gray-200 rounded-xl p-2 mb-2 text-sm"
           />
 
-          {/* Status Dropdown */}
-          <Dropdown
-            style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 16,
-              padding: 12,
-              marginBottom: 12,
-            }}
-            data={statusOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select status"
-            value={status}
-            onChange={(item) => setStatus(item.value)}
-          />
+          {/* Row 2: Status + Target date */}
+          <View className="flex-row justify-between mb-2 gap-2">
+            {/* Status Dropdown */}
+            <Dropdown
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                borderRadius: 12,
+                paddingVertical: 2,
+                paddingHorizontal: 10,
+                height: 38,
+              }}
+              placeholderStyle={{ fontSize: 14, color: "#888" }}
+              selectedTextStyle={{
+                fontSize: 13,
+                color: "#111827",
+                // fontWeight: "500",
+              }}
+              containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
+              activeColor="#EEF2FF"
+              data={statusOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select status"
+              value={status}
+              onChange={(item) => setStatus(item.value)}
+            />
 
-          {/* Responsible Dropdown */}
-          <Dropdown
-            style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 16,
-              padding: 12,
-              marginBottom: 12,
-            }}
-            data={users}
-            labelField="label"
-            valueField="value"
-            placeholder="Select responsible"
-            value={responsible}
-            onChange={(item) => setResponsible(item.value)}
-          />
-
-          {/* Date picker */}
-          <TouchableOpacity
-            className="border border-gray-300 p-3 rounded-xl mb-3"
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text>
-              {targetDate ? targetDate.toDateString() : "Select target date"}
-            </Text>
-          </TouchableOpacity>
+            {/* Target date */}
+            <TouchableOpacity
+              className="border border-gray-200 rounded-xl flex-1 justify-center px-3"
+              style={{ height: 38 }}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text className="text-sm">
+                {targetDate ? targetDate.toDateString() : "Select target date"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {showDatePicker && (
             <DateTimePicker
@@ -147,11 +158,43 @@ const RunningNotes = () => {
             />
           )}
 
+          {/* Row 3: Responsible + Add Note */}
+          <View className="flex-row justify-between ">
+            {/* Responsible Dropdown */}
+            <Dropdown
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                borderRadius: 12,
+                paddingVertical: 2,
+                paddingHorizontal: 10,
+                height: 38,
+              }}
+                placeholderStyle={{ fontSize: 14, color: "#888" }}
+              selectedTextStyle={{
+                fontSize: 13,
+                color: "#111827",
+                // fontWeight: "500",
+              }}
+               activeColor="#EEF2FF"
+              containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
+              data={users}
+              labelField="label"
+              valueField="value"
+              placeholder="Select responsible"
+              value={responsible}
+              onChange={(item) => setResponsible(item.value)}
+            />
+          </View>
+
+          {/* Add Note button */}
           <TouchableOpacity
-            className="bg-indigo-600 p-3 rounded-xl items-center"
+            className="bg-indigo-600 mt-2 rounded-lg flex-1 items-center justify-center"
+            style={{ height: 40 }}
             onPress={addNote}
           >
-            <Text className="text-white font-bold">Add Note</Text>
+            <Text className="text-white font-semibold text-sm">Add Note</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -163,11 +206,12 @@ const RunningNotes = () => {
       statusOptions.find((s) => s.value === item.status)?.color || "#000";
 
     return (
-      <View className="bg-white mx-4 mb-3 p-4 rounded-2xl shadow-md">
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="font-semibold text-base">{item.text}</Text>
+      <View className="bg-white mx-4 mb-2 p-3 rounded-2xl shadow-md">
+        {/* Note text & status */}
+        <View className="flex-row justify-between items-start mb-1">
+          <Text className="font-semibold text-sm flex-1 mr-2">{item.text}</Text>
           <View
-            className="px-2 py-1 rounded-lg"
+            className="px-2 py-0.5 rounded-lg"
             style={{ backgroundColor: statusColor }}
           >
             <Text className="text-white font-semibold text-xs">
@@ -176,14 +220,18 @@ const RunningNotes = () => {
           </View>
         </View>
 
-        <View className="flex-row justify-between mb-1">
-          <Text>
-            Responsible:{" "}
-            {users.find((u) => u.value === item.responsible)?.label || "N/A"}
-          </Text>
-          <Text>Target: {item.targetDate?.toDateString() || "N/A"}</Text>
-        </View>
+        {/* Responsible (full name) */}
+        <Text className="text-sm mb-0.5">
+          Responsible:{" "}
+          {users.find((u) => u.value === item.responsible)?.label || "N/A"}
+        </Text>
 
+        {/* Target date */}
+        <Text className="text-sm mb-0.5">
+          Target: {item.targetDate?.toDateString() || "N/A"}
+        </Text>
+
+        {/* Created info */}
         <Text className="text-gray-500 text-xs">
           Added by {item.createdBy} on {item.createdAt.toLocaleString()}
         </Text>
