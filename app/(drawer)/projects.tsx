@@ -58,9 +58,13 @@ const CompanyProjectSelectionScreen = () => {
         });
 
         const dropdownProjects = res.data.projects.map((project: any) => ({
-          label: project.projectName,
+          label: `${project.fileNumber} • ${project.projectName}`,
           value: project._id,
+
+          // keep raw data for later use
           projectName: project.projectName,
+          status: project.status,
+          fileNumber: project.fileNumber,
         }));
 
         // console.log("Fetched projects:", dropdownProjects);
@@ -145,8 +149,8 @@ const CompanyProjectSelectionScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Company Dropdown */}
-        <View className="mb-5 bg-white rounded-xl shadow-md p-4">
-          <Text className="text-base font-semibold text-gray-700 mb-2">
+        <View className="mb-4 bg-white p-3 rounded-3xl shadow">
+          <Text className="text-sm font-semibold text-gray-600 mb-2">
             Select Company <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
@@ -157,31 +161,31 @@ const CompanyProjectSelectionScreen = () => {
             value={selectedCompany}
             onChange={(item) => setSelectedCompany(item.value)}
             style={{
-              height: 48,
-              borderRadius: 10,
-              paddingHorizontal: 10,
+              height: 55,
+              borderRadius: 14,
+              paddingHorizontal: 16,
               backgroundColor: "#F9FAFB",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              justifyContent: "center",
             }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: "#9CA3AF",
-            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
             selectedTextStyle={{
               fontSize: 14,
               color: "#111827",
+              fontWeight: "500",
             }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            activeColor="#E0E7FF"
+            containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
+            activeColor="#EEF2FF"
+            renderRightIcon={() => (
+              <Ionicons name="chevron-down" size={20} color="#6B7280" />
+            )}
           />
         </View>
 
         {/* Project Dropdown */}
-        <View className="mb-5 bg-white rounded-xl shadow-md p-4">
-          <Text className="text-base font-semibold text-gray-700 mb-2">
+        <View className="mb-4  bg-white p-4 rounded-3xl shadow">
+          <Text className="text-sm font-semibold text-gray-600 mb-2">
             Select Project <Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
@@ -192,44 +196,108 @@ const CompanyProjectSelectionScreen = () => {
             value={selectedProject}
             onChange={(item) => setSelectedProject(item.value)}
             search
-            searchPlaceholder="Search..."
+            //  searchBy={["projectName", "fileNumber"]} // no need
+            searchPlaceholder="Search project..."
             inputSearchStyle={{
               fontSize: 14,
               color: "#111827",
               borderRadius: 8,
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
             }}
             style={{
-              height: 48,
-              borderRadius: 10,
-              paddingHorizontal: 10,
+              height: 55,
+              borderRadius: 14,
+              paddingHorizontal: 16,
               backgroundColor: "#F9FAFB",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              justifyContent: "center",
+              shadowColor: "#000",
+              // shadowOffset: { width: 0, height: 2 },
+              // shadowOpacity: 0.05,
+              // shadowRadius: 4,
+              // elevation: 2,
             }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: "#9CA3AF",
-            }}
+            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
             selectedTextStyle={{
               fontSize: 14,
               color: "#111827",
+              fontWeight: "500",
             }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: "#fff",
-              elevation: 4,
-            }}
-            activeColor="#E0E7FF"
+            containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
+            activeColor="#EEF2FF"
             renderRightIcon={() =>
               loading ? (
                 <ActivityIndicator size="small" color="#6366F1" />
               ) : (
-                <Ionicons name="chevron-down" size={18} color="#6B7280" /> // gray-500
+                <Ionicons name="chevron-down" size={20} color="#6B7280" />
               )
             }
+            renderItem={(item) => (
+              <View
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#F3F4F6",
+                }}
+              >
+                <Text
+                  style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}
+                >
+                  {item.projectName}
+                </Text>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: 6,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, color: "#6B7280" }}>
+                    {item.fileNumber || "—"}
+                  </Text>
+
+                  <View
+                    style={{
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 999,
+                      backgroundColor:
+                        item.status === "active"
+                          ? "#DCFCE7"
+                          : item.status === "BD"
+                          ? "#FEF9C3"
+                          : item.status === "inactive"
+                          ? "#E5E7EB"
+                          : "#FEE2E2",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: "700",
+                        color:
+                          item.status === "active"
+                            ? "#166534"
+                            : item.status === "BD"
+                            ? "#854D0E"
+                            : item.status === "inactive"
+                            ? "#374151"
+                            : "#991B1B",
+                      }}
+                    >
+                      {item.status.toUpperCase()}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
           />
         </View>
 
-       
         <TouchableOpacity
           className="bg-indigo-600 mt-6 py-3 rounded-xl items-center shadow-lg active:scale-95"
           onPress={handleEnter}
@@ -237,7 +305,6 @@ const CompanyProjectSelectionScreen = () => {
           <Text className="text-white font-bold text-base">Enter</Text>
         </TouchableOpacity>
 
-        
         {/* <TouchableOpacity
           className="mt-8 shadow-lg rounded-3xl border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}

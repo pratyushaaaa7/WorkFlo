@@ -36,7 +36,7 @@ type Project = {
   clientName?: string;
   siteArea?: string;
   designedArea?: string;
-  status: "active" | "inactive" | "closed";
+  status: "active" | "inactive" | "closed" | "BD";
 
   notes: Note[];
   activities: Activity[];

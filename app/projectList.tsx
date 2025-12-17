@@ -154,13 +154,13 @@ const ProjectList = () => {
   }, [projects, searchQuery]);
 
   const renderItem = ({ item }: { item: Project }) => (
-    <View className="flex-row items-center justify-between px-6 py-4 bg-white rounded-2xl mx-4 my-2 shadow-md ">
-      {/* Project Info */}
+    <View className="bg-white rounded-2xl mx-4 my-2 p-4 shadow-md flex-row justify-between items-center">
+      {/* Left: Project Info */}
       <TouchableOpacity
-        className="flex-1 pr-4"
+        className="flex-1 pr-3"
         onPress={() =>
           router.push({
-            pathname: "/projectDetails", // ✅ new page
+            pathname: "/projectDetails",
             params: {
               id: item._id,
               project: JSON.stringify(item),
@@ -169,30 +169,71 @@ const ProjectList = () => {
         }
         activeOpacity={0.7}
       >
-        <Text className="text-lg font-semibold text-gray-900">
+        {/* Project Name */}
+        <Text className="text-base font-semibold text-gray-900 mb-2">
           {item.projectName}
         </Text>
-        <Text className="text-sm text-gray-500 mt-1">{item.company}</Text>
+
+        {/* Row with File Number, Status, Company */}
+        <View className="flex-row items-center justify-start gap-4">
+          {/* File Number */}
+          <View className="flex-1">
+            <Text className="text-sm text-gray-500 truncate">
+              #{item.fileNumber || "—"}
+            </Text>
+          </View>
+
+          {/* Status Badge */}
+          <View
+            className={`px-2 py-0.5 rounded-full ${
+              item.status === "active"
+                ? "bg-green-100"
+                : item.status === "BD"
+                ? "bg-yellow-100"
+                : item.status === "inactive"
+                ? "bg-gray-200"
+                : "bg-red-100"
+            }`}
+          >
+            <Text
+              className={`text-xs font-bold ${
+                item.status === "active"
+                  ? "text-green-700"
+                  : item.status === "BD"
+                  ? "text-yellow-800"
+                  : item.status === "inactive"
+                  ? "text-gray-700"
+                  : "text-red-700"
+              }`}
+            >
+              {item.status?.toUpperCase() || "—"}
+            </Text>
+          </View>
+
+          {/* Company */}
+          <View className="flex-1">
+            <Text className="text-sm text-gray-500 truncate">
+              {item.company}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
 
-      {/* Action Buttons (Edit/ Delete) only for admin */}
+      {/* Right: Action Buttons (Edit/Delete) */}
       {user?.role === "admin" && (
-        <View className="flex-row items-center gap-3">
-          {/* Edit Button */}
+        <View className="flex-row items-center gap-2 ml-2">
           <TouchableOpacity
             className="p-2 rounded-full bg-blue-50"
-            // onPress={() => console.log("Edit pressed")}
             onPress={() =>
               router.push({
                 pathname: "/createProject",
-                params: { project: JSON.stringify(item) }, // ✅ pass single project
+                params: { project: JSON.stringify(item) },
               })
             }
           >
             <Ionicons name="pencil" size={20} color="blue" />
           </TouchableOpacity>
 
-          {/* Delete Button */}
           <TouchableOpacity
             className="p-2 rounded-full bg-red-50"
             onPress={() => handleDelete(item._id)}
