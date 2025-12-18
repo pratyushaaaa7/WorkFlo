@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TextInput,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,15 +15,8 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { AuthContext } from "../context/AuthContext";
-
-type ActivityLog = {
-  action: string;
-  field?: string;
-  oldValue?: string | null;
-  newValue?: string | null;
-  timestamp: string;
-  user: string;
-};
+import GanttChart from "../components/projectStageGanttChart";
+import api from "@/lib/api";
 
 type Revision = {
   revisionNumber: number;
@@ -31,16 +25,10 @@ type Revision = {
   originalEnd?: string;
   remark?: string;
   createdBy: string;
+  updatedBy?: string;
+  updatedAt?: string;
   saved?: boolean;
   delayDays?: number;
-  logs?: ActivityLog[];
-};
-
-type Props = {
-  revisions: Revision[];
-  onSave: (index: number) => void;
-  onAddRevision: () => void;
-  onUpdate: (index: number, field: string, value: string) => void;
 };
 
 const calculateDelay = (originalEnd?: string, end?: string) => {
@@ -54,70 +42,37 @@ const calculateDelay = (originalEnd?: string, end?: string) => {
 
 const StageDetail: React.FC = () => {
   const router = useRouter();
-  const { stage } = useLocalSearchParams<{ stage: string }>();
+  const { stageId, projectId, stage } = useLocalSearchParams<{
+    stageId: string;
+    stage: string;
+    projectId: string;
+  }>();
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  const token = auth?.token;
 
   // Initialize stages state with a safe default for the current stage
-  const [stages, setStages] = useState<{ [stageName: string]: StageEntry[] }>(
-    () => ({
-      [stage!]: [
-        {
-          saved: false,
-          createdBy: user?.username || "unknown",
-          logs: [],
-        },
-      ],
-    })
-  );
+  const [stages, setStages] = useState<Record<string, Revision[]>>(() => ({
+    [stageId!]: [
+      {
+        revisionNumber: 0,
+        saved: false,
+        createdBy: user?.username || "unknown",
+      },
+    ],
+  }));
 
   // Picker state
   const [picker, setPicker] = useState<{
     show: boolean;
     type: "start" | "end" | "";
-    stage?: string;
+    stageId?: string;
     index?: number;
   }>({ show: false, type: "" });
 
-  // Which saved-card's logs are visible
-  const [showLogIndex, setShowLogIndex] = useState<number | null>(null);
+  const stageData = stages[stageId!] ?? [];
 
-  // safe accessor: if stage key missing, ensure empty array
-  if (!stages[stage!]) {
-    stages[stage!] = [
-      {
-        saved: false,
-        createdBy: user?.username || "unknown",
-        logs: [],
-      },
-    ];
-  }
-
-  const stageData = stages[stage!];
-
-  const addLog = (stageName: string, index: number, log: ActivityLog) => {
-    setStages((prev) => {
-      const updated = [...(prev[stageName] || [])];
-      // ensure entry exists
-      while (updated.length <= index) {
-        updated.push({
-          saved: false,
-          createdBy: user?.username || "unknown",
-          logs: [],
-        });
-      }
-      updated[index].logs = [...(updated[index].logs || []), log];
-      return { ...prev, [stageName]: updated };
-    });
-  };
-
-  const getStatus = (data: StageEntry) => {
-    if (!data.start) return "Not Started";
-    if (data.start && !data.end) return "Ongoing";
-    return "Completed";
-  };
-
-  const getDuration = (data: StageEntry) => {
+  const getDuration = (data: Revision) => {
     if (data.start && data.end) {
       return (
         Math.ceil(
@@ -135,61 +90,42 @@ const StageDetail: React.FC = () => {
       return;
     }
 
-    const currentDate = selectedDate || new Date();
-    const formatted = currentDate.toISOString().split("T")[0];
+    if (!picker.stageId || picker.index == null) return;
 
-    const stageKey = picker.stage!;
-    const index = picker.index ?? 0;
-    const field = picker.type;
+    const formatted = (selectedDate ?? new Date()).toISOString().split("T")[0];
 
     setStages((prev) => {
-      const updated = [...(prev[stageKey] || [])];
-      while (updated.length <= index) {
-        updated.push({
-          saved: false,
-          createdBy: user?.username || "unknown",
-          logs: [],
-        });
-      }
+      const updated = [...(prev[picker.stageId!] || [])];
 
-      const oldValue = (updated[index] as any)[field];
-
-      updated[index] = {
-        ...updated[index],
-        [field]: formatted,
-        updatedBy: user?.username,
-        updatedAt: new Date().toISOString(),
+      updated[picker.index!] = {
+        ...updated[picker.index!],
+        [picker.type]: formatted,
+        saved: false,
       };
 
-      // If actualEnd changes, recalc delay
-      if (field === "actualEnd") {
-        const delay = calculateDelay(updated[index].plannedEnd, formatted);
-        updated[index].delayDays = delay;
-      }
-
-      return { ...prev, [stageKey]: updated };
+      return { ...prev, [picker.stageId!]: updated };
     });
 
     setPicker({ show: false, type: "" });
   };
 
   const addRevision = (lastIndex: number) => {
-    const stageKey = stage!;
-    setStages((prev) => {
-      const updated = [...(prev[stageKey] || [])];
+    const stageKey = stageId!;
 
-      // Add a new revision after the last one
+    setStages((prev) => {
+      const updated = [...prev[stageKey]];
+
+      // block adding if last not saved
+      if (!updated[lastIndex]?.saved) return prev;
+
       updated.push({
+        revisionNumber: updated[lastIndex].revisionNumber + 1,
         saved: false,
         createdBy: user?.username || "unknown",
-        logs: [],
-        revisionNumber: (updated[lastIndex]?.revisionNumber || 0) + 1,
       });
 
       return { ...prev, [stageKey]: updated };
     });
-
-    // Optionally scroll to the new revision or open it
   };
 
   const handleRemarkChange = (
@@ -203,14 +139,12 @@ const StageDetail: React.FC = () => {
         updated.push({
           saved: false,
           createdBy: user?.username || "unknown",
-          logs: [],
         });
       }
-      const oldValue = updated[index].remark;
-
       updated[index] = {
         ...updated[index],
         remark: text,
+        saved: false, // 👈 ADD THIS
         updatedBy: user?.username,
         updatedAt: new Date().toISOString(),
       };
@@ -219,7 +153,7 @@ const StageDetail: React.FC = () => {
     });
   };
 
-  const canSave = (item: StageEntry) => {
+  const canSave = (item: Revision) => {
     // must have at least something
     if (!item.start && !item.end && !item.remark) return false;
 
@@ -232,58 +166,98 @@ const StageDetail: React.FC = () => {
     return true;
   };
 
-  const saveStage = (index: number) => {
-    const stageKey = stage!;
-    const now = new Date().toISOString();
+  useEffect(() => {
+    if (!projectId || !stageId || !token) return;
 
-    setStages((prev) => {
-      const updated = [...(prev[stageKey] || [])];
-      const item = updated[index];
+    const fetchRevisions = async () => {
+      try {
+        const res = await api.get(
+          `/stages/${projectId}/stages/${stageId}/revisions`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log(res.data);
+        const revisionsFromBackend: Revision[] = res.data.revisions.map(
+          (r: any) => ({
+            revisionNumber: r.revisionNumber,
+            start: r.start,
+            end: r.end,
+            remark: r.remark,
+            originalEnd: r.originalEnd,
+            createdBy: r.createdBy,
+            updatedBy: r.updatedBy,
+            updatedAt: r.updatedAt,
+            saved: true, // mark fetched revisions as saved
+          })
+        );
 
-      if (!canSave(item)) return prev;
-
-      const finalizedLogs: ActivityLog[] = [];
-
-      if (item.start) {
-        finalizedLogs.push({
-          action: "Expected Start Date",
-          field: "start",
-          newValue: item.start,
-          timestamp: now,
-          user: user?.username || "unknown",
-        });
+        setStages((prev) => ({
+          ...prev,
+          [stageId!]: revisionsFromBackend.length
+            ? revisionsFromBackend
+            : prev[stageId!] || [],
+        }));
+      } catch (err) {
+        console.error("Failed to fetch revisions:", err);
       }
+    };
 
-      if (item.end) {
-        finalizedLogs.push({
-          action: "Expected End Date",
-          field: "end",
-          newValue: item.end,
-          timestamp: now,
-          user: user?.username || "unknown",
-        });
-      }
+    fetchRevisions();
+  }, [projectId, stageId, token]);
 
-      if (item.remark) {
-        finalizedLogs.push({
-          action: "Remark Added",
-          field: "remark",
-          newValue: item.remark,
-          timestamp: now,
-          user: user?.username || "unknown",
-        });
-      }
+  // ... rest of your component code (date picker, saveStage, addRevision, etc.) remains the same
 
-      updated[index] = {
-        ...item,
-        saved: true,
-        updatedBy: user?.username,
-        updatedAt: now,
-        logs: finalizedLogs, // 🔥 ONLY finalized logs
+  const saveStage = async (index: number) => {
+    const stageKey = stageId!;
+    const item = stageData[index];
+
+    if (!canSave(item)) return;
+
+    try {
+      const payload: any = {
+        start: item.start,
+        end: item.end,
+        remark: item.remark,
       };
 
-      return { ...prev, [stageKey]: updated };
-    });
+      // ONLY send revisionNumber if editing an already-saved revision
+      if (item.saved) {
+        payload.revisionNumber = item.revisionNumber;
+      }
+
+      const res = await api.post(
+        `/stages/${projectId}/stages/${stageId}/revisions`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const savedRevision = res.data.revision;
+
+      // ✅ Update UI from backend response
+      setStages((prev) => {
+        const updated = [...prev[stageKey]];
+
+        updated[index] = {
+          ...updated[index],
+          ...savedRevision,
+          saved: true,
+        };
+
+        return { ...prev, [stageKey]: updated };
+      });
+    } catch (err: any) {
+      console.error("Save failed:", err);
+
+      Alert.alert(
+        "Save failed",
+        err?.response?.data?.message || "Something went wrong"
+      );
+    }
   };
 
   return (
@@ -302,6 +276,8 @@ const StageDetail: React.FC = () => {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+
+      <GanttChart stages={stageData} stage={stage ?? "Stage"} />
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {stageData.map((stageItem, index) => (
@@ -325,7 +301,7 @@ const StageDetail: React.FC = () => {
                 <Text className="text-gray-600 mb-1 text-sm">Start Date</Text>
                 <TouchableOpacity
                   onPress={() =>
-                    setPicker({ show: true, stage, type: "start", index })
+                    setPicker({ show: true, stageId, type: "start", index })
                   }
                   className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
                     stageItem.start ? "bg-gray-100" : "bg-white"
@@ -349,7 +325,7 @@ const StageDetail: React.FC = () => {
                 <TouchableOpacity
                   disabled={!stageItem.start}
                   onPress={() =>
-                    setPicker({ show: true, stage, type: "end", index })
+                    setPicker({ show: true, stageId, type: "end", index })
                   }
                   className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
                     stageItem.end
@@ -374,7 +350,7 @@ const StageDetail: React.FC = () => {
             </View>
 
             {/* Delay Calculation */}
-            {stageItem.revisionNumber &&
+            {stageItem.revisionNumber > 0 &&
               stageItem.originalEnd &&
               stageItem.end && (
                 <View className="px-4 pb-2">
@@ -392,9 +368,13 @@ const StageDetail: React.FC = () => {
                 {stageItem.revisionNumber ? "Reason for Revision" : "Remark"}
               </Text>
               <TextInput
+                editable={!stageItem.saved} // 👈 KEY LINE
+                showSoftInputOnFocus={!stageItem.saved}
                 multiline
                 value={stageItem.remark || ""}
-                onChangeText={(text) => handleRemarkChange(stage!, index, text)}
+                onChangeText={(text) =>
+                  handleRemarkChange(stageId!, index, text)
+                }
                 placeholder={
                   stageItem.revisionNumber
                     ? "Why revision happened..."
@@ -420,46 +400,6 @@ const StageDetail: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
-
-            {/* Timeline / Activity Log */}
-            {stageItem.saved && stageItem.logs && stageItem.logs.length > 0 && (
-              <View className="px-4 pb-4">
-                <Text className="text-gray-800 font-semibold mb-2 text-sm">
-                  Activity Timeline
-                </Text>
-                <View className="border-l-2 border-indigo-300 pl-4">
-                  {stageItem.logs
-                    .slice()
-                    .reverse()
-                    .map((log, i) => (
-                      <View key={i} className="mb-5 relative">
-                        <View className="w-3 h-3 bg-indigo-500 rounded-full absolute -left-[9px] top-1.5" />
-                        <Text className="text-gray-800 font-medium text-sm">
-                          {log.action.replace("_", " ")}
-                        </Text>
-                        <Text className="text-gray-500 text-xs mt-1">
-                          {new Date(log.timestamp).toLocaleString()} —{" "}
-                          {log.user}
-                        </Text>
-                        {(log.oldValue || log.newValue) && (
-                          <View className="mt-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
-                            {log.oldValue && (
-                              <Text className="text-gray-700 text-xs">
-                                From: {log.oldValue}
-                              </Text>
-                            )}
-                            {log.newValue && (
-                              <Text className="text-gray-700 text-xs mt-1">
-                                To: {log.newValue}
-                              </Text>
-                            )}
-                          </View>
-                        )}
-                      </View>
-                    ))}
-                </View>
-              </View>
-            )}
           </View>
         ))}
         {/* Add Revision button - only if revision 0 exists and is saved */}

@@ -149,7 +149,11 @@ const ProjectStage: React.FC = () => {
                   onPress={() =>
                     router.push({
                       pathname: "/projectStageLog",
-                      params: { stageId: stage._id, projectId },
+                      params: {
+                        stageId: stage._id,
+                        projectId,
+                        stage: stage.title,
+                      },
                     })
                   }
                   className="bg-indigo-500 px-4 py-2 rounded-xl"
