@@ -188,95 +188,93 @@ const RunningNotes = () => {
           </View>
         </TouchableOpacity>
 
-       <Modal
-  transparent
-  animationType="fade"
-  visible={statusModalVisible}
-  onRequestClose={() => setStatusModalVisible(false)}
->
-  <View className="flex-1 bg-black/50 justify-center items-center px-6">
-    <View className="bg-white w-full rounded-2xl overflow-hidden shadow-2xl">
-      
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={["#6366F1", "#8B5CF6"]}
-        className="px-4 py-3 flex-row justify-between items-center"
-      >
-        <Text className="text-white text-lg font-semibold">
-          Change Status
-        </Text>
-
-        <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
-          <Ionicons name="close" size={22} color="#fff" />
-        </TouchableOpacity>
-      </LinearGradient>
-
-      {/* Content */}
-      <View className="p-4">
-        <Text className="text-sm text-gray-500 mb-3">
-          Select the new status for this note
-        </Text>
-
-        {/* Status options */}
-        {statusOptions.map((opt) => {
-          const isSelected = editingStatus === opt.value;
-
-          return (
-            <TouchableOpacity
-              key={opt.value}
-              onPress={() => setEditingStatus(opt.value)}
-              className={`flex-row items-center justify-between border rounded-xl px-4 py-3 mb-2 ${
-                isSelected
-                  ? "border-indigo-600 bg-indigo-50"
-                  : "border-gray-300"
-              }`}
-            >
-              <View className="flex-row items-center">
-                {/* Color indicator */}
-                <View
-                  className="w-3 h-3 rounded-full mr-3"
-                  style={{ backgroundColor: opt.color }}
-                />
-
-                <Text
-                  className={`font-medium ${
-                    isSelected ? "text-indigo-600" : "text-gray-700"
-                  }`}
-                >
-                  {opt.label}
-                </Text>
-              </View>
-
-              {isSelected && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color="#4F46E5"
-                />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* Save button */}
-        <TouchableOpacity
-          className="mt-4 rounded-xl overflow-hidden"
-          onPress={saveStatusChange}
+        <Modal
+          transparent
+          animationType="fade"
+          visible={statusModalVisible}
+          onRequestClose={() => setStatusModalVisible(false)}
         >
-          <LinearGradient
-            colors={["#4F46E5", "#7C3AED"]}
-            className="py-3 items-center"
-          >
-            <Text className="text-white font-semibold text-base">
-              Save Changes
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+          <View className="flex-1 bg-black/50 justify-center items-center px-6">
+            <View className="bg-white w-full rounded-2xl overflow-hidden shadow-2xl">
+              {/* Gradient Header */}
+              <LinearGradient
+                colors={["#6366F1", "#8B5CF6"]}
+                className="px-4 py-3 flex-row justify-between items-center"
+              >
+                <Text className="text-white text-lg font-semibold">
+                  Change Status
+                </Text>
 
+                <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
+                  <Ionicons name="close" size={22} color="#fff" />
+                </TouchableOpacity>
+              </LinearGradient>
+
+              {/* Content */}
+              <View className="p-4">
+                <Text className="text-sm text-gray-500 mb-3">
+                  Select the new status for this note
+                </Text>
+
+                {/* Status options */}
+                {statusOptions.map((opt) => {
+                  const isSelected = editingStatus === opt.value;
+
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      onPress={() => setEditingStatus(opt.value)}
+                      className={`flex-row items-center justify-between border rounded-xl px-4 py-3 mb-2 ${
+                        isSelected
+                          ? "border-indigo-600 bg-indigo-50"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      <View className="flex-row items-center">
+                        {/* Color indicator */}
+                        <View
+                          className="w-3 h-3 rounded-full mr-3"
+                          style={{ backgroundColor: opt.color }}
+                        />
+
+                        <Text
+                          className={`font-medium ${
+                            isSelected ? "text-indigo-600" : "text-gray-700"
+                          }`}
+                        >
+                          {opt.label}
+                        </Text>
+                      </View>
+
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#4F46E5"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+
+                {/* Save button */}
+                <TouchableOpacity
+                  className="mt-4 rounded-xl overflow-hidden"
+                  onPress={saveStatusChange}
+                >
+                  <LinearGradient
+                    colors={["#4F46E5", "#7C3AED"]}
+                    className="py-3 items-center"
+                  >
+                    <Text className="text-white font-semibold text-base">
+                      Save Changes
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Responsible */}
         <View
