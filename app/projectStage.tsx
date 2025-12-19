@@ -12,16 +12,17 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { AuthContext } from "../context/AuthContext"; // adjust path
 import api from "@/lib/api";
 
-// Sample activity data structure
+type StageStatus = "not_started" | "in_progress" | "paused" | "completed";
+
 type StageActivity = {
-  status: "Not Started" | "Ongoing" | "Completed";
+  status: StageStatus;
   savedAt: string;
 };
 
 type ProjectStageType = {
   _id: string;
   title: string;
-  status: string;
+  status: StageStatus;
   latestRemark?: string;
   history?: StageActivity[];
 };
@@ -34,22 +35,33 @@ const ProjectStage: React.FC = () => {
     company?: string;
   }>();
 
+  const statusColor: Record<string, string> = {
+    not_started: "bg-gray-400",
+    in_progress: "bg-blue-500",
+    paused: "bg-yellow-400",
+    completed: "bg-green-500",
+  };
+
   const [stages, setStages] = useState<ProjectStageType[]>([]);
   const [loading, setLoading] = useState(true);
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
 
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || !token) return;
 
     const fetchStages = async () => {
       try {
         setLoading(true);
+
         const res = await api.get(`/stages/${projectId}/stages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setStages(res.data.stages || []);
-        console.log(stages, "hello");
+
+        const fetchedStages = res.data.stages || [];
+        console.log("API stages:", fetchedStages); // ✅ correct
+
+        setStages(fetchedStages);
       } catch (err) {
         console.error("Error fetching project stages:", err);
         setStages([]);
@@ -59,14 +71,9 @@ const ProjectStage: React.FC = () => {
     };
 
     fetchStages();
-  }, [projectId]);
+  }, [projectId, token]);
 
-  const statusColor: Record<string, string> = {
-    not_started: "bg-gray-400",
-    in_progress: "bg-blue-500",
-    paused: "bg-yellow-400",
-    completed: "bg-green-500",
-  };
+
 
   return (
     <View className="flex-1 bg-gray-100">

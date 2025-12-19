@@ -11,6 +11,9 @@ import * as Haptics from "expo-haptics";
 import Modal from "react-native-modal";
 import api from "@/lib/api";
 import { AuthContext } from "@/context/AuthContext";
+import uuid from 'react-native-uuid';
+
+const uiId = uuid.v4().toString();
 
 // Default stages
 const defaultStages = {
@@ -23,7 +26,6 @@ const defaultStages = {
     "Practice Development",
     "Closing and Handover",
     "Defects Liability Stage",
-    
   ],
   WAL: [
     "Feasibility",
@@ -37,7 +39,13 @@ const defaultStages = {
   ],
 };
 
-type Stage = { id: string; name: string; order: number; selected: boolean };
+type Stage = {
+  uiId: string; // always exists (uuid or timestamp)
+  _id?: string; // MongoDB id (only if saved)
+  name: string;
+  order: number;
+  selected: boolean;
+};
 
 // ------------------- Header -------------------
 const Header = ({ title, onBack }: { title: string; onBack: () => void }) => (
@@ -75,7 +83,7 @@ const StageItem = ({ item, number, toggleStage, drag, isActive }: any) => (
       <TouchableOpacity
         onPress={() => {
           Haptics.selectionAsync();
-          toggleStage(item.id);
+          toggleStage(item.uiId);
         }}
       >
         <MaterialCommunityIcons
@@ -107,7 +115,7 @@ const DraggableStageList = ({ stageList, setStageList, toggleStage }: any) => {
   return (
     <DraggableFlatList
       data={sorted}
-      keyExtractor={(item: Stage) => item.id}
+      keyExtractor={(item: Stage) => item.uiId}
       onDragEnd={({ data }) => {
         // assign new order then sort again
         const reordered = data.map((item, i) => ({ ...item, order: i + 1 }));
@@ -116,7 +124,7 @@ const DraggableStageList = ({ stageList, setStageList, toggleStage }: any) => {
       renderItem={({ item, drag, isActive }) => {
         const selectedStages = sorted.filter((s: Stage) => s.selected);
         const number = item.selected
-          ? selectedStages.findIndex((s) => s.id === item.id) + 1
+          ? selectedStages.findIndex((s) => s.uiId === item.uiId) + 1
           : null;
 
         return (
@@ -240,80 +248,80 @@ export default function ManageStages() {
       return a.order - b.order;
     });
 
-useEffect(() => {
-  if (!projectId) return;
+  useEffect(() => {
+    if (!projectId) return;
 
-  const loadStages = async () => {
-    try {
-      const response = await api.get(`/stages/${projectId}/stages`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const loadStages = async () => {
+      try {
+        const response = await api.get(`/stages/${projectId}/stages`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const dbStages = response.data?.stages || [];
+        const dbStages = response.data?.stages || [];
 
-      // If DB already has saved stages → use them
-      if (dbStages.length > 0) {
-        const mapped = dbStages.map((stage: any) => ({
-          id: stage._id,          // MongoDB stage ID
-          name: stage.title,
-          order: stage.order,
-          selected: true,
-        }));
+        // If DB already has saved stages → use them
+        if (dbStages.length > 0) {
+          const mapped = dbStages.map((stage: any) => ({
+             uiId: uuid.v4().toString(), // ← updated
+            _id: stage._id, // 🔐 protected
+            name: stage.title,
+            order: stage.order,
+            selected: true,
+          }));
 
-        setStageList(sortStages(mapped));
-        return;
+          setStageList(sortStages(mapped));
+          return;
+        }
+
+        // If DB has no stages → load defaults based on company
+        if (company) {
+          const defaults = (defaultStages[company] || []).map((s, i) => ({
+            uiId: uuid.v4().toString(), // ← updated
+            name: s,
+            order: i,
+            selected: true,
+          }));
+
+          setStageList(sortStages(defaults));
+        }
+      } catch (error) {
+        console.error("Error fetching stages:", error);
       }
+    };
 
-      // If DB has no stages → load defaults based on company
-      if (company) {
-        const defaults = (defaultStages[company] || []).map((s, i) => ({
-          id: `${i}`,
-          name: s,
-          order: i + 1,
-          selected: true,
-        }));
-        setStageList(sortStages(defaults));
-      }
-    } catch (error) {
-      console.error("Error fetching stages:", error);
-    }
-  };
+    loadStages();
+  }, [projectId, company, token]);
 
-  loadStages();
-}, [projectId, company, token]);
-
-
-  const toggleStage = (id: string) => {
-    const updated = stageList.map((stage) =>
-      stage.id === id ? { ...stage, selected: !stage.selected } : stage
+  const toggleStage = (uiId: string) => {
+    setStageList((prev) =>
+      prev.map((s) => (s.uiId === uiId ? { ...s, selected: !s.selected } : s))
     );
-    setStageList(sortStages(updated));
   };
 
   const addCustomStage = () => {
     if (!newStage.trim()) return;
 
-    const updated = [
-      ...stageList,
+    setStageList((prev) => [
+      ...prev,
       {
-        id: `${Date.now()}`,
+        uiId: uuid.v4().toString(), // ← updated
         name: newStage.trim(),
-        order: stageList.length + 1,
+        order: prev.length,
         selected: true,
       },
-    ];
+    ]);
 
-    setStageList(sortStages(updated));
     setNewStage("");
     setModalVisible(false);
   };
 
-  const saveStages = async () => {67
+  const saveStages = async () => {
     const selectedStages = stageList
       .filter((s) => s.selected)
       .map((s, index) => ({
+        _id: s._id, // only DB stages have this
         title: s.name,
-        order: index, // backend accepts index-based order
+        order: index,
       }));
 
     try {
