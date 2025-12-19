@@ -14,6 +14,7 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { AuthContext } from "../context/AuthContext";
 import GanttChart from "../components/projectStageGanttChart";
 import api from "@/lib/api";
@@ -29,6 +30,7 @@ type Revision = {
   updatedAt?: string;
   saved?: boolean;
   delayDays?: number;
+  daysDifference?: number; // ✅ new field from backend
 };
 
 const calculateDelay = (originalEnd?: string, end?: string) => {
@@ -189,6 +191,7 @@ const StageDetail: React.FC = () => {
             updatedBy: r.updatedBy,
             updatedAt: r.updatedAt,
             saved: true, // mark fetched revisions as saved
+            delayDays: r.delayDays, // ✅ include this
           })
         );
 
@@ -279,7 +282,12 @@ const StageDetail: React.FC = () => {
 
       <GanttChart stages={stageData} stage={stage ?? "Stage"} />
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        enableOnAndroid
+        extraScrollHeight={120}
+        keyboardShouldPersistTaps="handled"
+      >
         {stageData.map((stageItem, index) => (
           <View
             key={index}
@@ -351,13 +359,24 @@ const StageDetail: React.FC = () => {
 
             {/* Delay Calculation */}
             {stageItem.revisionNumber > 0 &&
-              stageItem.originalEnd &&
-              stageItem.end && (
+              stageItem.delayDays !== undefined && (
                 <View className="px-4 pb-2">
-                  <Text className="text-red-500 text-sm">
-                    Delay:{" "}
-                    {calculateDelay(stageItem.originalEnd, stageItem.end)}{" "}
-                    day(s)
+                  <Text
+                    className={`text-sm ${
+                      stageItem.delayDays > 0
+                        ? "text-red-500"
+                        : stageItem.delayDays < 0
+                        ? "text-green-500"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {stageItem.delayDays > 0
+                      ? `Delayed by ${stageItem.delayDays} day(s)`
+                      : stageItem.delayDays < 0
+                      ? `Completed ${Math.abs(
+                          stageItem.delayDays
+                        )} day(s) early`
+                      : "Completed on time"}
                   </Text>
                 </View>
               )}
@@ -435,7 +454,7 @@ const StageDetail: React.FC = () => {
             }
           />
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 };
