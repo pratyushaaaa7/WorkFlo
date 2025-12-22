@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   // ScrollView,
   Alert,
+  ActivityIndicator,
   Image,
 } from "react-native";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,6 +28,7 @@ const CreateSupport = () => {
   // const [user, setUser] = useState("");
   const [date, setDate] = useState("");
   const [type, setType] = useState("Issue");
+  const [loading, setLoading] = useState(false); // ✅ ADD THIS
 
   const [relatedPage, setRelatedPage] = useState("");
   const [description, setDescription] = useState("");
@@ -66,6 +68,8 @@ const CreateSupport = () => {
   };
 
   const handleSubmit = async () => {
+    if (loading) return; // Prevent multiple clicks
+
     if (!type || !description.trim() || !relatedPage.trim()) {
       Toast.show({
         type: "error",
@@ -75,7 +79,7 @@ const CreateSupport = () => {
       });
       return;
     }
-
+    setLoading(true); //  START LOADER
     // const formData = {
     //   raisedBy: user,
     //   date,
@@ -137,6 +141,8 @@ const CreateSupport = () => {
         text2: "Could not reach the server.",
         position: "bottom",
       });
+    } finally {
+      setLoading(false); //  STOP LOADER
     }
 
     // console.log("App Support Submitted:", formData);
@@ -238,7 +244,8 @@ const CreateSupport = () => {
 
           {/* description */}
           <Text className="text-gray-600 mb-2">
-            Describe your {type || "issue"} <Text className="text-red-500">*</Text>
+            Describe your {type || "issue"}{" "}
+            <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             multiline
@@ -314,12 +321,25 @@ const CreateSupport = () => {
           {/* Submit Button */}
           <TouchableOpacity
             onPress={handleSubmit}
-            className="mt-6 rounded-xl overflow-hidden"
+            disabled={loading}
+            activeOpacity={0.8}
+            className={`mt-6 rounded-xl overflow-hidden ${
+              loading ? "opacity-70" : ""
+            }`}
           >
-            <View className="p-4 rounded-xl bg-indigo-600 items-center">
-              <Text className="text-white font-semibold text-lg">
-                Submit Feedback
-              </Text>
+            <View className="p-4 rounded-xl bg-indigo-600 items-center flex-row justify-center">
+              {loading ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text className="text-white font-semibold text-lg ml-3">
+                    Submitting...
+                  </Text>
+                </>
+              ) : (
+                <Text className="text-white font-semibold text-lg">
+                  Submit Feedback
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
         </View>
