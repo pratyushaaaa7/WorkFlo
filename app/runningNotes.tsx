@@ -15,16 +15,51 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
+import { Swipeable } from "react-native-gesture-handler";
+
 
 const formatDate = (date: Date) => {
-  return date
-    .toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })
-    .replace(",", "");
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = String(date.getFullYear()).slice(-2);
+  return `${d}-${m}-${y}`;
 };
+
+const getNoteBgColor = (status: string) => {
+  switch (status) {
+    case "Open":
+      return "#FEF2F2"; // red-50
+    case "In Progress":
+      return "#FFFBEB"; // amber-50
+    case "Closed":
+      return "#ECFDF5"; // green-50
+    default:
+      return "#FFFFFF";
+  }
+};
+
+const renderRightActions = (item: Note) => (
+  <View className="flex-row h-full">
+    {/* Edit */}
+    <TouchableOpacity
+      className="bg-indigo-600 w-16 items-center justify-center"
+      onPress={() => startEdit(item)}
+    >
+      <Ionicons name="create-outline" size={18} color="#fff" />
+      <Text className="text-white text-[10px]">Edit</Text>
+    </TouchableOpacity>
+
+    {/* Status */}
+    <TouchableOpacity
+      className="bg-amber-500 w-20 items-center justify-center"
+      onPress={() => openStatusModal(item)}
+    >
+      <Ionicons name="sync-outline" size={18} color="#fff" />
+      <Text className="text-white text-[10px]">Status</Text>
+    </TouchableOpacity>
+  </View>
+);
+
 
 type Note = {
   id: string;
@@ -104,194 +139,76 @@ const RunningNotes = () => {
   };
 
   const COL = {
-    date: 120 as const,
-    note: 250 as const,
-    status: 100 as const,
-    responsible: 150 as const,
-    target: 120 as const,
+    note: 190 as const, // was 300
+    responsible: 100 as const, // was 180
+    target: 70 as const, // was 140
   };
 
   // Table column headers
   const TableColumnHeader = () => (
-    <View className="flex-row border-l border-t border-gray-400 bg-gray-200">
+    <View className="flex-row border-l border-t border-slate-300 bg-slate-100">
       {[
-        ["Date", COL.date],
         ["Note", COL.note],
-        ["Status", COL.status],
         ["Responsible", COL.responsible],
         ["Target Date", COL.target],
       ].map(([label, width]) => (
         <View
           key={label}
-          className="border-r border-b border-gray-400 px-2 py-2"
+          className="border-r border-b border-gray-400 px-1 py-1"
           style={{ width }}
         >
-          <Text className="font-semibold text-sm">{label}</Text>
+          <Text className="font-semibold text-xs text-slate-700">{label}</Text>
         </View>
       ))}
     </View>
   );
 
-  const saveStatusChange = () => {
-    if (!editingNoteId) return;
+  const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
+    const dateKey = formatDate(note.createdAt);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(note);
+    return acc;
+  }, {});
 
-    setNotes((prev) =>
-      prev.map((n) =>
-        n.id === editingNoteId ? { ...n, status: editingStatus } : n
-      )
-    );
+  const DateHeader = ({ date }: { date: string }) => (
+   <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
 
-    setStatusModalVisible(false);
-    setEditingNoteId(null);
-  };
+     <Text className="font-semibold text-xs text-indigo-800">
+{date}</Text>
+    </View>
+  );
 
   // Note row
   const renderNote = ({ item }: { item: Note }) => {
-    const statusColor =
-      statusOptions.find((s) => s.value === item.status)?.color || "#000";
-
     return (
-      <View className="flex-row border-l border-gray-400">
-        {/* Date */}
-        <View
-          className="border-r border-b border-gray-300 px-2 py-2 justify-center"
-          style={{ width: COL.date }}
-        >
-          <Text className="text-sm">{formatDate(item.createdAt)}</Text>
-        </View>
-
+      <View className="flex-row border-l border-slate-400">
         {/* Note */}
         <View
-          className="border-r border-b border-gray-300 px-2 py-2"
-          style={{ width: COL.note }}
-        >
-          <Text className="text-sm">{item.text}</Text>
-        </View>
-
-        {/* Status */}
-        <TouchableOpacity
-          className="border-r border-b border-gray-300 px-2 py-2 items-center justify-center"
-          style={{ width: COL.status }}
-          onPress={() => {
-            setEditingNoteId(item.id);
-            setEditingStatus(item.status); // preselect
-            setStatusModalVisible(true);
+          className="border-r border-b border-gray-300 px-2 py-1"
+          style={{
+            width: COL.note,
+            backgroundColor: getNoteBgColor(item.status),
           }}
         >
-          <View
-            className="rounded-md px-2 py-1"
-            style={{ backgroundColor: statusColor }}
-          >
-            <Text className="text-white font-semibold text-xs">
-              {item.status}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        <Modal
-          transparent
-          animationType="fade"
-          visible={statusModalVisible}
-          onRequestClose={() => setStatusModalVisible(false)}
-        >
-          <View className="flex-1 bg-black/50 justify-center items-center px-6">
-            <View className="bg-white w-full rounded-2xl overflow-hidden shadow-2xl">
-              {/* Gradient Header */}
-              <LinearGradient
-                colors={["#6366F1", "#8B5CF6"]}
-                className="px-4 py-3 flex-row justify-between items-center"
-              >
-                <Text className="text-white text-lg font-semibold">
-                  Change Status
-                </Text>
-
-                <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
-                  <Ionicons name="close" size={22} color="#fff" />
-                </TouchableOpacity>
-              </LinearGradient>
-
-              {/* Content */}
-              <View className="p-4">
-                <Text className="text-sm text-gray-500 mb-3">
-                  Select the new status for this note
-                </Text>
-
-                {/* Status options */}
-                {statusOptions.map((opt) => {
-                  const isSelected = editingStatus === opt.value;
-
-                  return (
-                    <TouchableOpacity
-                      key={opt.value}
-                      onPress={() => setEditingStatus(opt.value)}
-                      className={`flex-row items-center justify-between border rounded-xl px-4 py-3 mb-2 ${
-                        isSelected
-                          ? "border-indigo-600 bg-indigo-50"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      <View className="flex-row items-center">
-                        {/* Color indicator */}
-                        <View
-                          className="w-3 h-3 rounded-full mr-3"
-                          style={{ backgroundColor: opt.color }}
-                        />
-
-                        <Text
-                          className={`font-medium ${
-                            isSelected ? "text-indigo-600" : "text-gray-700"
-                          }`}
-                        >
-                          {opt.label}
-                        </Text>
-                      </View>
-
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color="#4F46E5"
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-
-                {/* Save button */}
-                <TouchableOpacity
-                  className="mt-4 rounded-xl overflow-hidden"
-                  onPress={saveStatusChange}
-                >
-                  <LinearGradient
-                    colors={["#4F46E5", "#7C3AED"]}
-                    className="py-3 items-center"
-                  >
-                    <Text className="text-white font-semibold text-base">
-                      Save Changes
-                    </Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
+          <Text className="text-xs text-gray-800">{item.text}</Text>
+        </View>
 
         {/* Responsible */}
         <View
-          className="border-r border-b border-gray-300 px-2 py-2"
+          className="border-r border-b border-gray-300 px-1 py-1"
           style={{ width: COL.responsible }}
         >
-          <Text className="text-sm">
+          <Text className="text-xs" numberOfLines={2} ellipsizeMode="tail">
             {users.find((u) => u.value === item.responsible)?.label || "N/A"}
           </Text>
         </View>
 
         {/* Target Date */}
         <View
-          className="border-r border-b border-gray-300 px-2 py-2"
+          className="border-r border-b border-gray-300 px-1 py-1"
           style={{ width: COL.target }}
         >
-          <Text className="text-sm">
+          <Text className="text-xs">
             {item.targetDate ? formatDate(item.targetDate) : "N/A"}
           </Text>
         </View>
@@ -300,8 +217,8 @@ const RunningNotes = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+    <View className="flex-1 bg-slate-50">
+      <LinearGradient colors={["#4F46E5", "#6366F1"]}>
         <View className="pt-16 pb-6 px-4 flex-row items-center">
           <TouchableOpacity
             onPress={() =>
@@ -319,9 +236,11 @@ const RunningNotes = () => {
         </View>
       </LinearGradient>
 
-      <View className="p-3">
-        <View className="bg-white p-3 rounded-2xl shadow-md">
-          <Text className="font-semibold mb-2 text-base">Add New Note</Text>
+      <View className="p-2">
+        <View className="bg-white px-2 py-2 rounded-2xl shadow-md">
+          <Text className="font-semibold px-1 mb-1 text-base">
+            Add New Note
+          </Text>
 
           <TextInput
             placeholder="Enter note..."
@@ -329,17 +248,17 @@ const RunningNotes = () => {
             value={noteText}
             multiline
             onChangeText={setNoteText}
-            className="border border-gray-200 rounded-xl p-2 mb-2 text-sm"
+            className="border border-gray-200 rounded-xl p-2 mb-1 text-sm"
           />
 
-          <View className="flex-row justify-between mb-2 gap-2">
+          <View className="flex-row justify-between mb-1 gap-2">
             <Dropdown
               style={{
                 flex: 1,
                 borderWidth: 1,
                 borderColor: "#E5E7EB",
                 borderRadius: 12,
-                height: 38,
+                height: 34,
                 paddingHorizontal: 10,
               }}
               placeholderStyle={{ fontSize: 14, color: "#888" }}
@@ -355,7 +274,7 @@ const RunningNotes = () => {
             />
             <TouchableOpacity
               className="border border-gray-200 rounded-xl flex-1 justify-center px-3"
-              style={{ height: 38 }}
+              style={{ height: 34 }}
               onPress={() => setShowDatePicker(true)}
             >
               <Text className="text-sm">
@@ -376,50 +295,62 @@ const RunningNotes = () => {
             />
           )}
 
-          <Dropdown
-            style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 12,
-              height: 38,
-              paddingHorizontal: 10,
-            }}
-            placeholderStyle={{ fontSize: 14, color: "#888" }}
-            selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-            containerStyle={{
-              borderRadius: 14,
-              backgroundColor: "#fff",
-              marginBottom: 8,
-            }}
-            activeColor="#EEF2FF"
-            data={users}
-            labelField="label"
-            valueField="value"
-            placeholder="Select responsible"
-            value={responsible}
-            onChange={(item) => setResponsible(item.value)}
-          />
+          <View className="flex-row items-center gap-2">
+            {/* Responsible Dropdown */}
+            <View style={{ flex: 1 }}>
+              <Dropdown
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                  borderRadius: 12,
+                  height: 34,
+                  paddingHorizontal: 10,
+                }}
+                placeholderStyle={{ fontSize: 13, color: "#888" }}
+                selectedTextStyle={{ fontSize: 13, color: "#111827" }}
+                containerStyle={{
+                  borderRadius: 14,
+                  backgroundColor: "#fff",
+                  marginBottom: 0,
+                }}
+                activeColor="#EEF2FF"
+                data={users}
+                labelField="label"
+                valueField="value"
+                placeholder="Responsible"
+                value={responsible}
+                onChange={(item) => setResponsible(item.value)}
+              />
+            </View>
 
-          <TouchableOpacity
-            className="bg-indigo-600 mt-2 rounded-lg  items-center justify-center"
-            style={{ height: 40 }}
-            onPress={addNote}
-          >
-            <Text className="text-white font-semibold text-sm">Add Note</Text>
-          </TouchableOpacity>
+            {/* Add Note Button */}
+            <TouchableOpacity
+              className="bg-indigo-600 rounded-lg items-center justify-center"
+              style={{ height: 34, width: 90 }}
+              onPress={addNote}
+            >
+              <Text className="text-white font-semibold text-xs">Add</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      {/* Horizontal scroll for table */}
-      <ScrollView horizontal showsHorizontalScrollIndicator>
-        <View style={{ minWidth: 740 }}>
-          <FlatList
-            data={notes}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={<TableColumnHeader />}
-            renderItem={renderNote}
-            // contentContainerStyle={{ paddingBottom: 32 }}
-          />
+      {/* Fixed Table Header */}
+      <View style={{ backgroundColor: "#E5E7EB" }}>
+        <TableColumnHeader />
+      </View>
+
+      <ScrollView>
+        <View>
+          {Object.entries(groupedNotes).map(([date, notes]) => (
+            <View key={date}>
+              <DateHeader date={date} />
+
+              {notes.map((note) => (
+                <View key={note.id}>{renderNote({ item: note })}</View>
+              ))}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </View>
