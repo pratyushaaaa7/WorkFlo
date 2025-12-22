@@ -759,135 +759,135 @@ ${caseStudyRemarks}
       });
 
       //TO DIRECTLY UPLOAD
-      // 🔹 Prepare FormData for backend upload
-      //   const formData = new FormData();
-      //   formData.append("projectName", projectName);
-      //   formData.append("projectId", projectId);
-      //   formData.append("createdBy", createdBy);
-      //   formData.append("mode", mode); // ✅ ADD THIS
+      //Prepare FormData for backend upload
+        const formData = new FormData();
+        formData.append("projectName", projectName);
+        formData.append("projectId", projectId);
+        formData.append("createdBy", createdBy);
+        formData.append("mode", mode); // ✅ ADD THIS
 
-      //   formData.append("file", {
-      //     uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
-      //     name: newFileName, // e.g., "SVR_01.pdf"
-      //     type: "application/pdf",
-      //   } as any);
+        formData.append("file", {
+          uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+          name: newFileName, // e.g., "SVR_01.pdf"
+          type: "application/pdf",
+        } as any);
 
-      //   // 🔹 Upload to your backend (which sends it to object storage)
-      //   const response = await api.post("/svr", formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   });
+        // 🔹 Upload to your backend (which sends it to object storage)
+        const response = await api.post("/svr", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      //   if (response.data.success) {
-      //     Toast.show({
-      //       type: "success",
-      //       text1: "Success",
-      //       text2: "SVR uploaded successfully",
-      //       position: "bottom",
-      //     });
+        if (response.data.success) {
+          Toast.show({
+            type: "success",
+            text1: "Success",
+            text2: "SVR uploaded successfully",
+            position: "bottom",
+          });
 
-      //     // 🔥 DELETE PHOTO FILES ONLY ON SUCCESS
-      //     await cleanupLocalPhotos(photos);
+          // 🔥 DELETE PHOTO FILES ONLY ON SUCCESS
+          await cleanupLocalPhotos(photos);
 
-      //     await AsyncStorage.removeItem(STORAGE_KEY);
-      //     await AsyncStorage.removeItem("SVR_FORM_DATA");
-      //     setPhotos([]);
+          await AsyncStorage.removeItem(STORAGE_KEY);
+          await AsyncStorage.removeItem("SVR_FORM_DATA");
+          setPhotos([]);
 
-      //     try {
-      //       await FileSystem.deleteAsync(
-      //         FileSystem.cacheDirectory + "ImageManipulator",
-      //         { idempotent: true }
-      //       );
-      //     } catch {}
+          try {
+            await FileSystem.deleteAsync(
+              FileSystem.cacheDirectory + "ImageManipulator",
+              { idempotent: true }
+            );
+          } catch {}
 
-      //     // Optional: navigate after delay
-      //     setTimeout(() => {
-      //       router.push({
-      //         pathname: "/svrs",
-      //         params: { projectId },
-      //       });
-      //     }, 300);
-      //   } else {
-      //     Toast.show({
-      //       type: "error",
-      //       text1: "Error",
-      //       text2: "Upload failed",
-      //       position: "bottom",
-      //     });
-      //   }
+          // Optional: navigate after delay
+          setTimeout(() => {
+            router.push({
+              pathname: "/svrs",
+              params: { projectId },
+            });
+          }, 300);
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Upload failed",
+            position: "bottom",
+          });
+        }
 
-      //   // 🔹 Cleanup after upload
-      //   // await AsyncStorage.removeItem(STORAGE_KEY);
-      //   // await AsyncStorage.removeItem("SVR_FORM_DATA");
-      //   // setPhotos([]);
-      //   // try {
-      //   //   await FileSystem.deleteAsync(
-      //   //     FileSystem.cacheDirectory + "ImageManipulator",
-      //   //     { idempotent: true }
-      //   //   );
-      //   // } catch (e) {
-      //   //   console.warn("Cache cleanup failed", e);
-      //   // }
-      // } catch (err: any) {
-      //   console.error("Upload error:", err);
-      //   Alert.alert(
-      //     "Upload Error",
-      //     err?.response?.data?.error || err?.message || "Something went wrong."
-      //   );
-      //   Toast.show({
-      //     type: "error",
-      //     text1: "Error",
-      //     text2: "Failed to upload SVR",
-      //     position: "bottom",
-      //   });
-      // } finally {
-      //   setUploading(false);
-      // }
+        // 🔹 Cleanup after upload
+        // await AsyncStorage.removeItem(STORAGE_KEY);
+        // await AsyncStorage.removeItem("SVR_FORM_DATA");
+        // setPhotos([]);
+        // try {
+        //   await FileSystem.deleteAsync(
+        //     FileSystem.cacheDirectory + "ImageManipulator",
+        //     { idempotent: true }
+        //   );
+        // } catch (e) {
+        //   console.warn("Cache cleanup failed", e);
+        // }
+      } catch (err: any) {
+        console.error("Upload error:", err);
+        Alert.alert(
+          "Upload Error",
+          err?.response?.data?.error || err?.message || "Something went wrong."
+        );
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Failed to upload SVR",
+          position: "bottom",
+        });
+      } finally {
+        setUploading(false);
+      }
 
       //FOR DOWNLOAD IN LOCAL STORAGE
-      console.log("PDF generated at:", newUri);
+    //   console.log("PDF generated at:", newUri);
 
-      // // Optional sharing
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Share or Save Photo Report",
-          UTI: "com.adobe.pdf",
-        });
-      } else {
-        Alert.alert("PDF generated", `Saved at: ${newUri}`);
-      }
+    //   // // Optional sharing
+    //   if (await Sharing.isAvailableAsync()) {
+    //     await Sharing.shareAsync(newUri, {
+    //       mimeType: "application/pdf",
+    //       dialogTitle: "Share or Save Photo Report",
+    //       UTI: "com.adobe.pdf",
+    //     });
+    //   } else {
+    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
+    //   }
 
-      Toast.show({
-        type: "success",
-        text1: "PDF Generated",
-        text2: "Photo report saved locally.",
-        position: "bottom",
-      });
-      // CLEANUP AFTER DOWNLOAD
+    //   Toast.show({
+    //     type: "success",
+    //     text1: "PDF Generated",
+    //     text2: "Photo report saved locally.",
+    //     position: "bottom",
+    //   });
+    //   // CLEANUP AFTER DOWNLOAD
 
-      // 🔥 CLEAR FORM ONLY ON SUCCESS
-      await AsyncStorage.removeItem(STORAGE_KEY);
-      await AsyncStorage.removeItem("SVR_FORM_DATA");
-      setPhotos([]);
-    } catch (err: any) {
-      console.error("PDF generation error:", err);
-      Alert.alert("Error", err?.message || "Failed to generate PDF.");
-    } finally {
-      setUploading(false);
-      try {
-        await FileSystem.deleteAsync(
-          FileSystem.cacheDirectory + "ImageManipulator",
-          {
-            idempotent: true,
-          }
-        );
-      } catch (e) {
-        console.warn("Cleanup failed:", e);
-      }
-    }
+    //   // 🔥 CLEAR FORM ONLY ON SUCCESS
+    //   await AsyncStorage.removeItem(STORAGE_KEY);
+    //   await AsyncStorage.removeItem("SVR_FORM_DATA");
+    //   setPhotos([]);
+    // } catch (err: any) {
+    //   console.error("PDF generation error:", err);
+    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
+    // } finally {
+    //   setUploading(false);
+    //   try {
+    //     await FileSystem.deleteAsync(
+    //       FileSystem.cacheDirectory + "ImageManipulator",
+    //       {
+    //         idempotent: true,
+    //       }
+    //     );
+    //   } catch (e) {
+    //     console.warn("Cleanup failed:", e);
+    //   }
+    // }
   };
 
   return (
