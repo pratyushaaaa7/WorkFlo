@@ -17,7 +17,6 @@ import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
 import { Swipeable } from "react-native-gesture-handler";
 
-
 const formatDate = (date: Date) => {
   const d = String(date.getDate()).padStart(2, "0");
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -37,29 +36,6 @@ const getNoteBgColor = (status: string) => {
       return "#FFFFFF";
   }
 };
-
-const renderRightActions = (item: Note) => (
-  <View className="flex-row h-full">
-    {/* Edit */}
-    <TouchableOpacity
-      className="bg-indigo-600 w-16 items-center justify-center"
-      onPress={() => startEdit(item)}
-    >
-      <Ionicons name="create-outline" size={18} color="#fff" />
-      <Text className="text-white text-[10px]">Edit</Text>
-    </TouchableOpacity>
-
-    {/* Status */}
-    <TouchableOpacity
-      className="bg-amber-500 w-20 items-center justify-center"
-      onPress={() => openStatusModal(item)}
-    >
-      <Ionicons name="sync-outline" size={18} color="#fff" />
-      <Text className="text-white text-[10px]">Status</Text>
-    </TouchableOpacity>
-  </View>
-);
-
 
 type Note = {
   id: string;
@@ -98,6 +74,8 @@ const RunningNotes = () => {
   const [editingStatus, setEditingStatus] = useState<
     "Open" | "In Progress" | "Closed"
   >("Open");
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
 
   // Fetch users
   useEffect(() => {
@@ -171,17 +149,33 @@ const RunningNotes = () => {
   }, {});
 
   const DateHeader = ({ date }: { date: string }) => (
-   <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
+    <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
+      <Text className="font-semibold text-xs text-indigo-800">{date}</Text>
+    </View>
+  );
 
-     <Text className="font-semibold text-xs text-indigo-800">
-{date}</Text>
+  const renderRightActions = (item: Note) => (
+    <View className="flex-row h-full">
+      <TouchableOpacity
+        className="bg-red-600 w-20 items-center justify-center"
+        onPress={() => {
+          setNoteToDelete(item);
+          setDeleteModalVisible(true);
+        }}
+      >
+        <Ionicons name="trash-outline" size={20} color="#fff" />
+    
+      </TouchableOpacity>
     </View>
   );
 
   // Note row
-  const renderNote = ({ item }: { item: Note }) => {
-    return (
-      <View className="flex-row border-l border-slate-400">
+  const renderNote = ({ item }: { item: Note }) => (
+    <Swipeable
+      renderRightActions={() => renderRightActions(item)}
+      overshootRight={false}
+    >
+      <View className="flex-row border-l border-slate-400 bg-white">
         {/* Note */}
         <View
           className="border-r border-b border-gray-300 px-2 py-1"
@@ -198,7 +192,7 @@ const RunningNotes = () => {
           className="border-r border-b border-gray-300 px-1 py-1"
           style={{ width: COL.responsible }}
         >
-          <Text className="text-xs" numberOfLines={2} ellipsizeMode="tail">
+          <Text className="text-xs" numberOfLines={2}>
             {users.find((u) => u.value === item.responsible)?.label || "N/A"}
           </Text>
         </View>
@@ -213,8 +207,8 @@ const RunningNotes = () => {
           </Text>
         </View>
       </View>
-    );
-  };
+    </Swipeable>
+  );
 
   return (
     <View className="flex-1 bg-slate-50">
@@ -353,6 +347,48 @@ const RunningNotes = () => {
           ))}
         </View>
       </ScrollView>
+
+      <Modal visible={deleteModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/40 justify-center items-center px-6">
+          <View className="bg-white rounded-2xl w-full p-4">
+            <Text className="text-base font-semibold text-gray-900 mb-2">
+              Delete Note
+            </Text>
+
+            <Text className="text-sm text-gray-600 mb-4">
+              Are you sure you want to delete this note? This action cannot be
+              undone.
+            </Text>
+
+            <View className="flex-row justify-end gap-3">
+              <TouchableOpacity
+                className="px-4 py-2 rounded-lg bg-slate-100"
+                onPress={() => {
+                  setDeleteModalVisible(false);
+                  setNoteToDelete(null);
+                }}
+              >
+                <Text className="text-slate-700 text-sm">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="px-4 py-2 rounded-lg bg-red-600"
+                onPress={() => {
+                  if (noteToDelete) {
+                    setNotes((prev) =>
+                      prev.filter((n) => n.id !== noteToDelete.id)
+                    );
+                  }
+                  setDeleteModalVisible(false);
+                  setNoteToDelete(null);
+                }}
+              >
+                <Text className="text-white text-sm font-semibold">Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
