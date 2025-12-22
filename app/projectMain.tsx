@@ -212,22 +212,22 @@ const ProjectMain = () => {
           params: { company, projectId, projectName: project?.projectName },
         }),
     },
-    // {
-    //   key: "runningNotes",
-    //   label: "Running Notes",
-    //   icon: (
-    //     <MaterialCommunityIcons
-    //       name="note-text-outline"
-    //       size={40}
-    //       color="#92400E"
-    //     />
-    //   ),
-    //   onPress: () =>
-    //     router.push({
-    //       pathname: "/runningNotes",
-    //       params: { company, projectId, projectName: project?.projectName },
-    //     }),
-    // },
+    {
+      key: "runningNotes",
+      label: "Running Notes",
+      icon: (
+        <MaterialCommunityIcons
+          name="note-text-outline"
+          size={40}
+          color="#92400E"
+        />
+      ),
+      onPress: () =>
+        router.push({
+          pathname: "/runningNotes",
+          params: { company, projectId, projectName: project?.projectName },
+        }),
+    },
   ];
 
   return (

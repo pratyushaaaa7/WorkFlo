@@ -323,56 +323,62 @@ const IlrActivities = () => {
 
                 {/* Toggle-style Status Badge with Gradient */}
                 <TouchableOpacity
-  onPress={toggleStatus}
-  activeOpacity={0.9}
-  style={{
-    width: 80,
-    height: 32,
-    borderRadius: 16,
-  }}
->
-  <LinearGradient
-    colors={
-      ilr.status === "Open"
-        ? ["#FF4D4D", "#B91C1C"]
-        : ["#4B5563", "#D1D5DB"]
-    }
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 0 }}
-    style={{
-      flex: 1,
-      borderRadius: 16,
-      justifyContent: "center",
-    }}
-  >
-    {/* Toggle Circle */}
-    <View
-      style={{
-        position: "absolute",
-        top: 4,
-        left: ilr.status === "Open" ? 4 : undefined,
-        right: ilr.status === "Closed" ? 4 : undefined,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "#fff",
-      }}
-    />
+                  onPress={toggleStatus}
+                  activeOpacity={0.9}
+                  style={{
+                    width: 80,
+                    height: 32,
+                    borderRadius: 16,
+                  }}
+                >
+                  <LinearGradient
+                    colors={
+                      ilr.status === "Open"
+                        ? ["#FF4D4D", "#B91C1C"]
+                        : ["#4B5563", "#D1D5DB"]
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      flex: 1,
+                      borderRadius: 16,
+                      justifyContent: "center",
+                    }}
+                  >
+                    {/* Toggle Circle */}
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: 4,
+                        left: ilr.status === "Open" ? 4 : undefined,
+                        right: ilr.status === "Closed" ? 4 : undefined,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: "#fff",
+                      }}
+                    />
 
-    {/* Status Text */}
-    <View
-      style={{
-        alignItems:
-          ilr.status === "Open" ? "flex-end" : "flex-start",
-        paddingHorizontal: 8,
-      }}
-    >
-      <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
-        {ilr.status}
-      </Text>
-    </View>
-  </LinearGradient>
-</TouchableOpacity>
+                    {/* Status Text */}
+                    <View
+                      style={{
+                        alignItems:
+                          ilr.status === "Open" ? "flex-end" : "flex-start",
+                        paddingHorizontal: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#fff",
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
+                      >
+                        {ilr.status}
+                      </Text>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
 
                 {/* <TouchableOpacity
                   onPress={toggleStatus}
@@ -389,8 +395,8 @@ const IlrActivities = () => {
                     end={{ x: 1, y: 0 }}
                     className="flex-1 h-full rounded-full relative"
                   > */}
-                    {/* Circle */}
-                    {/* <View
+                {/* Circle */}
+                {/* <View
                       className="w-6 h-6 rounded-full bg-white shadow absolute top-1"
                       style={{
                         left: ilr.status === "Open" ? 1 : undefined,
@@ -398,8 +404,8 @@ const IlrActivities = () => {
                       }}
                     /> */}
 
-                    {/* Text */}
-                    {/* <View
+                {/* Text */}
+                {/* <View
                       className="absolute w-full h-full justify-center px-2"
                       style={{
                         alignItems:
@@ -410,7 +416,7 @@ const IlrActivities = () => {
                         {ilr.status}
                       </Text>
                     </View> */}
-                  {/* </LinearGradient>
+                {/* </LinearGradient>
                 </TouchableOpacity> */}
               </View>
             </View>

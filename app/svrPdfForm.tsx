@@ -1,3 +1,4 @@
+// changed pdf layout
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,6 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Linking,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -59,6 +61,16 @@ const getBase64ImageFromAsset = async (
     console.warn("Logo load failed in getBase64ImageFromAsset:", error);
     // Inline blank PNG fallback
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
+  }
+};
+
+const cleanupLocalPhotos = async (photos: PhotoItem[]) => {
+  for (const p of photos) {
+    try {
+      if (p.uri?.startsWith(FileSystem.documentDirectory)) {
+        await FileSystem.deleteAsync(p.uri, { idempotent: true });
+      }
+    } catch {}
   }
 };
 
@@ -196,12 +208,13 @@ const SVRPhotoReport: React.FC = () => {
         const assets = (result as any).assets as Array<any>;
 
         for (const asset of assets) {
+          const persistedUri = await saveImageToDocuments(asset.uri);
+
           const newPhoto: PhotoItem = {
             id: uuid.v4().toString(),
-            uri: asset.uri,
+            uri: persistedUri, // ✅ SAFE
             caption: "",
           };
-
           // Add each image one by one to state
           setPhotos((prev) => {
             const updated = [...prev, newPhoto];
@@ -249,11 +262,14 @@ const SVRPhotoReport: React.FC = () => {
 
       if (!result.canceled && (result as any).assets?.length > 0) {
         const asset = (result as any).assets[0];
+        const persistedUri = await saveImageToDocuments(asset.uri);
+
         const newPhoto: PhotoItem = {
           id: uuid.v4().toString(),
-          uri: asset.uri,
+          uri: persistedUri,
           caption: "",
         };
+
         const updated = [...photos, newPhoto];
         setPhotos(updated);
         savePhotos(updated);
@@ -274,6 +290,24 @@ const SVRPhotoReport: React.FC = () => {
     const updated = photos.filter((p) => p.id !== id);
     setPhotos(updated);
     savePhotos(updated);
+  };
+
+  const saveImageToDocuments = async (tempUri: string) => {
+    const fileName = `svr_${Date.now()}.jpg`;
+    const dest = `${FileSystem.documentDirectory}svr/photos/${fileName}`;
+
+    // Ensure folder exists
+    await FileSystem.makeDirectoryAsync(
+      `${FileSystem.documentDirectory}svr/photos`,
+      { intermediates: true }
+    );
+
+    await FileSystem.copyAsync({
+      from: tempUri,
+      to: dest,
+    });
+
+    return dest; // 🔥 SAFE URI
   };
 
   // Load saved photos from AsyncStorage
@@ -349,7 +383,7 @@ const SVRPhotoReport: React.FC = () => {
         return;
       }
 
-      setUploading(true);
+      // setUploading(true);  (already called once)
 
       const createdBy = user?.fullName || "Unknown";
 
@@ -515,16 +549,8 @@ ${caseStudyRemarks}
 
             </div>
 
-       <div style="
-              width: 94%;
-              height: 66vh;
-              border: 2px solid #000;
-              border-radius: 8px;
-              margin: 20px auto 0 auto;
-              padding: 6px;
-              overflow: hidden;
-              text-align: center;   /* optional: centers the image */
-            ">
+  <div class="image-container">
+
               <img src="${p.base64}" style="
                 max-height: 100%;
                 max-width: 100%;
@@ -547,24 +573,43 @@ ${caseStudyRemarks}
       }
 
       // --- WRAP ALL PAGES ---
-      // --- WRAP ALL PAGES ---
       const html = `
 <html>
   <head>
     <meta charset="utf-8" />
     <style>
-      body {
+     
+         @page {
+              size: A4 portrait;
+            }
+
+                 * {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+               box-sizing: border-box;
+            }
+
+         body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-      }
-      .page {
-        page-break-after: always;
-        padding: 60px 20px 20px 20px; /* reduced padding */
-        box-sizing: border-box;
-      }
+      }    
+
+       .page {
+              position: relative;
+       page-break-after: always;
+          padding: 90px 20px 20px 20px; /* header-safe */
+            break-after: page; 
+            }
+
+      .page:last-child {
+  page-break-after: auto;
+   break-after: auto;
+}        
+
+
       .header-left {
-        position: fixed;
+          position: absolute;
         top: 10px;
         left: 10px;
         font-size: 14px;
@@ -575,20 +620,26 @@ ${caseStudyRemarks}
         padding: 4px 8px;
       }
       .header-right {
-        position: fixed;
+       position: absolute;
         top: 10px;
         right: 10px;
       }
+
+      .header-left,
+.header-right {
+  z-index: 10;
+}
+
       .header-right img {
         width: 160px;
-        height: auto;
+         object-fit: contain;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
-        page-break-inside: auto; /* allow table to break across pages */
+        page-break-inside: auto; 
       }
       tr {
         page-break-inside: avoid; /* prevent row from splitting */
@@ -608,18 +659,34 @@ ${caseStudyRemarks}
         word-wrap: break-word;
       }
 
-      .photo {
-        page-break-inside: avoid; /* keep image + caption on same page */
-        display: block;
-        margin-top: 20px;
-      }
-      .photo img {
-        max-width: 100%;
-        max-height: 66vh;
-        display: block;
-        margin: 0 auto;
-        object-fit: contain;
-      }
+  
+
+.image-container {
+  width: 94%;
+  height: 500pt;              /* FIXED – iOS safe */
+  border: 2px solid #000;     /* SINGLE BORDER */
+  border-radius: 8px;
+  margin: 20pt auto 0 auto;
+  padding: 6pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+    padding: 0;                /* 🔥 IMPORTANT */
+  overflow: hidden;          /* 🔥 IMPORTANT */
+  background: #fff;
+}
+
+.image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+
+   border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
       .caption {
         font-size: 18px;
         color: #222;
@@ -657,128 +724,170 @@ ${caseStudyRemarks}
       }
 
       // ------------------ GENERATE PDF ------------------
-      const { uri } = await Print.printToFileAsync({ html });
+
+      const printOptions: Print.FilePrintOptions =
+        Platform.OS === "ios"
+          ? {
+              html,
+              width: 595.28, // A4 width (pt)
+              height: 841.89, // A4 height (pt)
+              margins: {
+                top: 36,
+                right: 36,
+                bottom: 36,
+                left: 36,
+              },
+            }
+          : {
+              html,
+            };
+
+      const { uri } = await Print.printToFileAsync(printOptions);
       const newFileName = `SVR_${
         projectName || "Project"
       }_${getFormattedDate()}.pdf`;
-      const newUri = `${FileSystem.cacheDirectory}${newFileName}`;
-      await FileSystem.moveAsync({ from: uri, to: newUri });
+      const newUri = `${FileSystem.documentDirectory}svr/pdfs/${newFileName}`;
+
+      await FileSystem.makeDirectoryAsync(
+        `${FileSystem.documentDirectory}svr/pdfs`,
+        { intermediates: true }
+      );
+
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newUri,
+      });
 
       //TO DIRECTLY UPLOAD
       // 🔹 Prepare FormData for backend upload
-      const formData = new FormData();
-      formData.append("projectName", projectName);
-      formData.append("projectId", projectId);
-      formData.append("createdBy", createdBy);
-      formData.append("mode", mode); // ✅ ADD THIS
+      //   const formData = new FormData();
+      //   formData.append("projectName", projectName);
+      //   formData.append("projectId", projectId);
+      //   formData.append("createdBy", createdBy);
+      //   formData.append("mode", mode); // ✅ ADD THIS
 
-      formData.append("file", {
-        uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
-        name: newFileName, // e.g., "SVR_01.pdf"
-        type: "application/pdf",
-      } as any);
+      //   formData.append("file", {
+      //     uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
+      //     name: newFileName, // e.g., "SVR_01.pdf"
+      //     type: "application/pdf",
+      //   } as any);
 
-      // 🔹 Upload to your backend (which sends it to object storage)
-      const response = await api.post("/svr", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      //   // 🔹 Upload to your backend (which sends it to object storage)
+      //   const response = await api.post("/svr", formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
 
-      if (response.data.success) {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "SVR uploaded successfully",
-          position: "bottom",
+      //   if (response.data.success) {
+      //     Toast.show({
+      //       type: "success",
+      //       text1: "Success",
+      //       text2: "SVR uploaded successfully",
+      //       position: "bottom",
+      //     });
+
+      //     // 🔥 DELETE PHOTO FILES ONLY ON SUCCESS
+      //     await cleanupLocalPhotos(photos);
+
+      //     await AsyncStorage.removeItem(STORAGE_KEY);
+      //     await AsyncStorage.removeItem("SVR_FORM_DATA");
+      //     setPhotos([]);
+
+      //     try {
+      //       await FileSystem.deleteAsync(
+      //         FileSystem.cacheDirectory + "ImageManipulator",
+      //         { idempotent: true }
+      //       );
+      //     } catch {}
+
+      //     // Optional: navigate after delay
+      //     setTimeout(() => {
+      //       router.push({
+      //         pathname: "/svrs",
+      //         params: { projectId },
+      //       });
+      //     }, 300);
+      //   } else {
+      //     Toast.show({
+      //       type: "error",
+      //       text1: "Error",
+      //       text2: "Upload failed",
+      //       position: "bottom",
+      //     });
+      //   }
+
+      //   // 🔹 Cleanup after upload
+      //   // await AsyncStorage.removeItem(STORAGE_KEY);
+      //   // await AsyncStorage.removeItem("SVR_FORM_DATA");
+      //   // setPhotos([]);
+      //   // try {
+      //   //   await FileSystem.deleteAsync(
+      //   //     FileSystem.cacheDirectory + "ImageManipulator",
+      //   //     { idempotent: true }
+      //   //   );
+      //   // } catch (e) {
+      //   //   console.warn("Cache cleanup failed", e);
+      //   // }
+      // } catch (err: any) {
+      //   console.error("Upload error:", err);
+      //   Alert.alert(
+      //     "Upload Error",
+      //     err?.response?.data?.error || err?.message || "Something went wrong."
+      //   );
+      //   Toast.show({
+      //     type: "error",
+      //     text1: "Error",
+      //     text2: "Failed to upload SVR",
+      //     position: "bottom",
+      //   });
+      // } finally {
+      //   setUploading(false);
+      // }
+
+      //FOR DOWNLOAD IN LOCAL STORAGE
+      console.log("PDF generated at:", newUri);
+
+      // // Optional sharing
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(newUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share or Save Photo Report",
+          UTI: "com.adobe.pdf",
         });
-
-        // Optional: navigate after delay
-        setTimeout(() => {
-          router.push({
-            pathname: "/svrs",
-            params: { projectId },
-          });
-        }, 300);
       } else {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Upload failed",
-          position: "bottom",
-        });
+        Alert.alert("PDF generated", `Saved at: ${newUri}`);
       }
 
-      // 🔹 Cleanup after upload
+      Toast.show({
+        type: "success",
+        text1: "PDF Generated",
+        text2: "Photo report saved locally.",
+        position: "bottom",
+      });
+      // CLEANUP AFTER DOWNLOAD
+
+      // 🔥 CLEAR FORM ONLY ON SUCCESS
       await AsyncStorage.removeItem(STORAGE_KEY);
       await AsyncStorage.removeItem("SVR_FORM_DATA");
       setPhotos([]);
-      try {
-        await FileSystem.deleteAsync(FileSystem.cacheDirectory, {
-          idempotent: true,
-        });
-      } catch (e) {
-        console.warn("Cache cleanup failed", e);
-      }
     } catch (err: any) {
-      console.error("Upload error:", err);
-      Alert.alert(
-        "Upload Error",
-        err?.response?.data?.error || err?.message || "Something went wrong."
-      );
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to upload SVR",
-        position: "bottom",
-      });
+      console.error("PDF generation error:", err);
+      Alert.alert("Error", err?.message || "Failed to generate PDF.");
     } finally {
       setUploading(false);
+      try {
+        await FileSystem.deleteAsync(
+          FileSystem.cacheDirectory + "ImageManipulator",
+          {
+            idempotent: true,
+          }
+        );
+      } catch (e) {
+        console.warn("Cleanup failed:", e);
+      }
     }
-
-    //FOR DOWNLOAD IN LOCAL STORAGE
-    //   console.log("PDF generated at:", newUri);
-
-    //   // // Optional sharing
-    //   if (await Sharing.isAvailableAsync()) {
-    //     await Sharing.shareAsync(newUri, {
-    //       mimeType: "application/pdf",
-    //       dialogTitle: "Share or Save Photo Report",
-    //       UTI: "com.adobe.pdf",
-    //     });
-    //   } else {
-    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
-    //   }
-
-    //   Toast.show({
-    //     type: "success",
-    //     text1: "PDF Generated",
-    //     text2: "Photo report saved locally.",
-    //     position: "bottom",
-    //   });
-    //   // CLEANUP AFTER DOWNLOAD
-
-    //   // 🔥 CLEAR FORM ONLY ON SUCCESS
-    //   await AsyncStorage.removeItem(STORAGE_KEY);
-    //   await AsyncStorage.removeItem("SVR_FORM_DATA");
-    //   setPhotos([]);
-    // } catch (err: any) {
-    //   console.error("PDF generation error:", err);
-    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
-    // } finally {
-    //   setUploading(false);
-    //   try {
-    //     await FileSystem.deleteAsync(
-    //       FileSystem.cacheDirectory + "ImageManipulator",
-    //       {
-    //         idempotent: true,
-    //       }
-    //     );
-    //   } catch (e) {
-    //     console.warn("Cleanup failed:", e);
-    //   }
-    // }
   };
 
   return (
