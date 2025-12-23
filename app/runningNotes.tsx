@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   FlatList,
   ScrollView,
@@ -27,15 +27,39 @@ const formatDate = (date: Date) => {
 const getNoteBgColor = (status: string) => {
   switch (status) {
     case "Open":
-      return "#FEF2F2"; // red-50
+      return "#FEE2E2"; // red-100 (clear but not aggressive)
     case "In Progress":
-      return "#FFFBEB"; // amber-50
+      return "#FEF3C7"; // amber-100 (warm, readable)
     case "Closed":
-      return "#ECFDF5"; // green-50
+      return "#D1FAE5"; // green-100 (soft success)
     default:
       return "#FFFFFF";
   }
 };
+
+const statusOptions = [
+  {
+    value: "Open",
+    label: "Open",
+    color: "#EF4444", // red-500
+    bg: "bg-red-500",
+    border: "border-red-500",
+  },
+  {
+    value: "In Progress",
+    label: "In Progress",
+    color: "#F59E0B", // amber-500
+    bg: "bg-amber-500",
+    border: "border-amber-500",
+  },
+  {
+    value: "Closed",
+    label: "Closed",
+    color: "#22C55E", // green-500
+    bg: "bg-green-500",
+    border: "border-green-500",
+  },
+];
 
 type Note = {
   id: string;
@@ -46,12 +70,6 @@ type Note = {
   createdBy: string;
   createdAt: Date;
 };
-
-const statusOptions = [
-  { label: "Open", value: "Open", color: "#EF4444" },
-  { label: "In Progress", value: "In Progress", color: "#F59E0B" },
-  { label: "Closed", value: "Closed", color: "#10B981" },
-];
 
 const RunningNotes = () => {
   const router = useRouter();
@@ -65,6 +83,8 @@ const RunningNotes = () => {
   const [status, setStatus] = useState<"Open" | "In Progress" | "Closed">(
     "Open"
   );
+  const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
+
   const [responsible, setResponsible] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -74,6 +94,10 @@ const RunningNotes = () => {
   const [editingStatus, setEditingStatus] = useState<
     "Open" | "In Progress" | "Closed"
   >("Open");
+
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
 
@@ -154,59 +178,77 @@ const RunningNotes = () => {
     </View>
   );
 
-  const renderRightActions = (item: Note) => (
-    <View className="flex-row h-full">
-      <TouchableOpacity
-        className="bg-red-600 w-20 items-center justify-center"
-        onPress={() => {
-          setNoteToDelete(item);
-          setDeleteModalVisible(true);
-        }}
-      >
-        <Ionicons name="trash-outline" size={20} color="#fff" />
-    
-      </TouchableOpacity>
+  const renderRightActions = () => (
+    <View
+      style={{
+        width: 160,
+        backgroundColor: "#dc2626",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Ionicons name="trash-outline" size={20} color="#fff" />
     </View>
   );
 
   // Note row
   const renderNote = ({ item }: { item: Note }) => (
     <Swipeable
-      renderRightActions={() => renderRightActions(item)}
-      overshootRight={false}
+      ref={(ref) => {
+        if (ref) swipeableRefs.current.set(item.id, ref);
+      }}
+      renderRightActions={renderRightActions}
+      overshootRight={true}
+      rightThreshold={120} // must fully overshoot
+      onSwipeableWillOpen={() => {
+        // 🔥 close FIRST → avoids visual stop
+        swipeableRefs.current.get(item.id)?.close();
+
+        // 🔥 open modal immediately
+        setNoteToDelete(item);
+        setDeleteModalVisible(true);
+      }}
     >
-      <View className="flex-row border-l border-slate-400 bg-white">
-        {/* Note */}
-        <View
-          className="border-r border-b border-gray-300 px-2 py-1"
-          style={{
-            width: COL.note,
-            backgroundColor: getNoteBgColor(item.status),
-          }}
-        >
-          <Text className="text-xs text-gray-800">{item.text}</Text>
-        </View>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          setEditingNote(item);
+          setEditModalVisible(true);
+        }}
+      >
+        <View className="flex-row border-l border-slate-400 bg-white">
+          {/* Note */}
+          <View
+            className="border-r border-b border-gray-300 px-2 py-1"
+            style={{
+              width: COL.note,
+              backgroundColor: getNoteBgColor(item.status),
+            }}
+          >
+            <Text className="text-sm text-black">{item.text}</Text>
+          </View>
 
-        {/* Responsible */}
-        <View
-          className="border-r border-b border-gray-300 px-1 py-1"
-          style={{ width: COL.responsible }}
-        >
-          <Text className="text-xs" numberOfLines={2}>
-            {users.find((u) => u.value === item.responsible)?.label || "N/A"}
-          </Text>
-        </View>
+          {/* Responsible */}
+          <View
+            className="border-r border-b border-gray-300 px-1 py-1"
+            style={{ width: COL.responsible }}
+          >
+            <Text className="text-xs" numberOfLines={2}>
+              {users.find((u) => u.value === item.responsible)?.label || "N/A"}
+            </Text>
+          </View>
 
-        {/* Target Date */}
-        <View
-          className="border-r border-b border-gray-300 px-1 py-1"
-          style={{ width: COL.target }}
-        >
-          <Text className="text-xs">
-            {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-          </Text>
+          {/* Target Date */}
+          <View
+            className="border-r border-b border-gray-300 px-1 py-1"
+            style={{ width: COL.target }}
+          >
+            <Text className="text-xs">
+              {item.targetDate ? formatDate(item.targetDate) : "N/A"}
+            </Text>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </Swipeable>
   );
 
@@ -384,6 +426,168 @@ const RunningNotes = () => {
                 }}
               >
                 <Text className="text-white text-sm font-semibold">Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={editModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/40 justify-center items-center px-4">
+          {/* Modal Card */}
+          <View className="bg-white rounded-3xl w-full p-5 shadow-2xl">
+            {/* Header */}
+            <Text className="text-lg font-semibold text-gray-900 mb-4">
+              Edit Note
+            </Text>
+
+            {/* NOTE SECTION */}
+            <Text className="text-xs font-semibold text-gray-500 mb-1">
+              NOTE
+            </Text>
+
+            <TextInput
+              value={editingNote?.text}
+              multiline
+              placeholder="Edit note..."
+              placeholderTextColor="#9CA3AF"
+              onChangeText={(text) =>
+                setEditingNote((prev) => prev && { ...prev, text })
+              }
+              className="border border-gray-200 rounded-2xl p-3 mb-4 text-sm bg-slate-50"
+            />
+
+            {/* STATUS SECTION */}
+            <Text className="text-xs font-semibold text-gray-500 mb-2">
+              STATUS
+            </Text>
+
+            <View className="flex-row flex-wrap gap-2 mb-4">
+              {statusOptions.map((s) => {
+                const active = editingNote?.status === s.value;
+
+                return (
+                  <TouchableOpacity
+                    key={s.value}
+                    onPress={() =>
+                      setEditingNote(
+                        (prev) => prev && { ...prev, status: s.value }
+                      )
+                    }
+                    className={`flex-row items-center gap-2 px-3 py-1.5 rounded-full border ${
+                      active
+                        ? `${s.bg} ${s.border}`
+                        : "border-gray-300 bg-white"
+                    }`}
+                  >
+                    {/* status dot */}
+                    <View
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{
+                        backgroundColor: active ? "#fff" : s.color,
+                      }}
+                    />
+
+                    {/* label */}
+                    <Text
+                      className={`text-xs font-medium ${
+                        active ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      {s.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* DETAILS SECTION */}
+            <Text className="text-xs font-semibold text-gray-500 mb-2">
+              DETAILS
+            </Text>
+
+            {/* Responsible */}
+            <View className="mb-3">
+              <Dropdown
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                  borderRadius: 14,
+                  height: 38,
+                  paddingHorizontal: 12,
+                  backgroundColor: "#F8FAFC",
+                }}
+                placeholder="Select responsible"
+                placeholderStyle={{ fontSize: 13, color: "#9CA3AF" }}
+                selectedTextStyle={{ fontSize: 13, color: "#111827" }}
+                data={users}
+                labelField="label"
+                valueField="value"
+                value={editingNote?.responsible}
+                onChange={(item) =>
+                  setEditingNote(
+                    (prev) => prev && { ...prev, responsible: item.value }
+                  )
+                }
+              />
+            </View>
+
+            {/* Target Date */}
+            <TouchableOpacity
+              className="flex-row items-center gap-2 border border-gray-200 rounded-2xl px-3 py-2.5 mb-4 bg-slate-50"
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+              <Text className="text-sm text-gray-700">
+                {editingNote?.targetDate
+                  ? editingNote.targetDate.toDateString()
+                  : "Select target date"}
+              </Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={editingNote?.targetDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, date) => {
+                  setShowDatePicker(false);
+                  if (date) {
+                    setEditingNote(
+                      (prev) => prev && { ...prev, targetDate: date }
+                    );
+                  }
+                }}
+              />
+            )}
+
+            {/* ACTIONS */}
+            <View className="flex-row justify-end gap-3 mt-2">
+              <TouchableOpacity
+                className="px-4 py-2 rounded-xl bg-slate-100"
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setEditingNote(null);
+                }}
+              >
+                <Text className="text-slate-700 font-medium">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="px-5 py-2 rounded-xl bg-indigo-600"
+                disabled={!editingNote?.text.trim()}
+                onPress={() => {
+                  if (!editingNote) return;
+
+                  setNotes((prev) =>
+                    prev.map((n) => (n.id === editingNote.id ? editingNote : n))
+                  );
+
+                  setEditModalVisible(false);
+                  setEditingNote(null);
+                }}
+              >
+                <Text className="text-white font-semibold">Save Changes</Text>
               </TouchableOpacity>
             </View>
           </View>
