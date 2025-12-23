@@ -128,14 +128,14 @@ const RunningNotes = () => {
       {[
         ["Note", COL.note],
         ["Responsible", COL.responsible],
-        ["Target Date", COL.target],
+        ["T Date", COL.target],
       ].map(([label, width]) => (
         <View
           key={label}
           className="border-r border-b border-gray-400 px-1 py-1"
           style={{ width }}
         >
-          <Text className="font-semibold text-xs text-slate-700">{label}</Text>
+          <Text className="font-semibold text-sm text-slate-700">{label}</Text>
         </View>
       ))}
     </View>
