@@ -142,7 +142,7 @@ const RunningNotes = () => {
         createdAt: new Date(note.createdAt),
       }));
       setNotes(formattedNotes);
-      console.log(formattedNotes )
+      console.log(formattedNotes);
     } catch (err) {
       console.log("Error fetching notes:", err);
     } finally {
@@ -322,6 +322,11 @@ const RunningNotes = () => {
         setNoteToDelete(item);
         setDeleteModalVisible(true);
       }}
+      // onSwipeableOpen={() => {
+      //   setNoteToDelete(item);
+      //   setDeleteModalVisible(true);
+      //   setTimeout(() => swipeableRefs.current.get(item.id)?.close(), 100);
+      // }}
     >
       <TouchableOpacity
         activeOpacity={0.8}
