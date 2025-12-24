@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
   Modal,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
@@ -67,7 +69,7 @@ type Note = {
   status: "Open" | "In Progress" | "Closed";
   responsible: string | null;
   targetDate: Date | null;
-  createdBy: string;
+  // createdBy: string;
   createdAt: Date;
 };
 
@@ -87,34 +89,35 @@ const RunningNotes = () => {
 
   const [responsible, setResponsible] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showAddDatePicker, setShowAddDatePicker] = useState(false);
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
-  const [statusModalVisible, setStatusModalVisible] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingStatus, setEditingStatus] = useState<
-    "Open" | "In Progress" | "Closed"
-  >("Open");
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       if (!token || !projectId) return;
       try {
-        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
+        const res = await api.get(`/projects/${projectId}/project-employees`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(
           res.data.map((u: any) => ({
-            label: `${u.individualName} (${u.firmName})`,
+            label: `${u.name} (${u.company})`,
             value: u._id,
           }))
         );
+        console.log(res.data);
       } catch (err) {
         console.log(err);
       }
@@ -122,22 +125,129 @@ const RunningNotes = () => {
     fetchUsers();
   }, [token, projectId]);
 
-  const addNote = () => {
-    if (!noteText.trim()) return alert("Note text is required.");
-    const newNote: Note = {
-      id: Date.now().toString(),
-      text: noteText,
-      status,
-      responsible,
-      targetDate,
-      createdBy: user?.fullName || "Unknown",
-      createdAt: new Date(),
-    };
-    setNotes([newNote, ...notes]);
-    setNoteText("");
-    setStatus("Open");
-    setResponsible(null);
-    setTargetDate(null);
+  //Fetch Notes
+  const fetchNotes = async () => {
+    if (!token || !projectId) return;
+
+    try {
+      const res = await api.get(`/running-notes/project/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const formattedNotes = res.data.map((note: any) => ({
+        id: note._id,
+        text: note.text,
+        status: note.status,
+        responsible: note.responsible?._id || null,
+        targetDate: note.targetDate ? new Date(note.targetDate) : null,
+        createdAt: new Date(note.createdAt),
+      }));
+      setNotes(formattedNotes);
+      console.log(formattedNotes )
+    } catch (err) {
+      console.log("Error fetching notes:", err);
+    } finally {
+      setInitialLoading(false); // 👈 only ends first load
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, [token, projectId]);
+
+  //refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchNotes();
+    setRefreshing(false);
+  };
+
+  //Adding note to the backend
+  const addNote = async () => {
+    if (!noteText.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await api.post(
+        "/running-notes",
+        { projectId, text: noteText, status, responsible, targetDate },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const newNote: Note = {
+        id: res.data._id,
+        text: res.data.text,
+        status: res.data.status,
+        responsible: res.data.responsible?._id || null,
+        targetDate: res.data.targetDate ? new Date(res.data.targetDate) : null,
+        createdAt: new Date(res.data.createdAt),
+      };
+
+      setNotes((prev) => [newNote, ...prev]);
+      setNoteText("");
+      setStatus("Open");
+      setResponsible(null);
+      setTargetDate(null);
+    } catch (err) {
+      console.log("Error adding note:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  //Edit a note
+  const saveChanges = async () => {
+    if (!editingNote) return;
+    try {
+      const res = await api.put(
+        `/running-notes/${editingNote.id}`,
+        {
+          text: editingNote.text,
+          status: editingNote.status,
+          responsible: editingNote.responsible,
+          targetDate: editingNote.targetDate,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === editingNote.id
+            ? {
+                ...n,
+                text: res.data.text,
+                status: res.data.status,
+                responsible: editingNote.responsible, // Use local state, not API response
+                targetDate: res.data.targetDate
+                  ? new Date(res.data.targetDate)
+                  : null,
+                createdAt: new Date(res.data.createdAt),
+              }
+            : n
+        )
+      );
+
+      setEditModalVisible(false);
+      setEditingNote(null);
+    } catch (err) {
+      console.log("Error updating note:", err);
+    }
+  };
+
+  //Delete a Note
+  const deleteNote = async () => {
+    if (!noteToDelete) return;
+    try {
+      await api.delete(`/running-notes/${noteToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setNotes((prev) => prev.filter((n) => n.id !== noteToDelete.id));
+      setDeleteModalVisible(false);
+      setNoteToDelete(null);
+    } catch (err) {
+      console.log("Error deleting note:", err);
+    }
   };
 
   const COL = {
@@ -190,6 +300,10 @@ const RunningNotes = () => {
       <Ionicons name="trash-outline" size={20} color="#fff" />
     </View>
   );
+
+  const isAddDisabled = !noteText.trim() || isSubmitting;
+
+  const isEditDisabled = !editingNote?.text?.trim();
 
   // Note row
   const renderNote = ({ item }: { item: Note }) => (
@@ -311,7 +425,7 @@ const RunningNotes = () => {
             <TouchableOpacity
               className="border border-gray-200 rounded-xl flex-1 justify-center px-3"
               style={{ height: 34 }}
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => setShowAddDatePicker(true)}
             >
               <Text className="text-sm">
                 {targetDate ? targetDate.toDateString() : "Select target date"}
@@ -319,13 +433,13 @@ const RunningNotes = () => {
             </TouchableOpacity>
           </View>
 
-          {showDatePicker && (
+          {showAddDatePicker && (
             <DateTimePicker
               value={targetDate || new Date()}
               mode="date"
               display="default"
               onChange={(event, date) => {
-                setShowDatePicker(false);
+                setShowAddDatePicker(false);
                 if (date) setTargetDate(date);
               }}
             />
@@ -362,10 +476,24 @@ const RunningNotes = () => {
             {/* Add Note Button */}
             <TouchableOpacity
               className="bg-indigo-600 rounded-lg items-center justify-center"
-              style={{ height: 34, width: 90 }}
+              style={{
+                height: 34,
+                width: 90,
+                backgroundColor: isAddDisabled ? "#A5B4FC" : "#4F46E5", // lighter when disabled
+              }}
               onPress={addNote}
+              disabled={isAddDisabled}
             >
-              <Text className="text-white font-semibold text-xs">Add</Text>
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text
+                  className="font-semibold text-xs"
+                  style={{ color: isAddDisabled ? "#E0E7FF" : "#FFFFFF" }}
+                >
+                  Add
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -376,20 +504,52 @@ const RunningNotes = () => {
         <TableColumnHeader />
       </View>
 
-      <ScrollView>
-        <View>
-          {Object.entries(groupedNotes).map(([date, notes]) => (
-            <View key={date}>
-              <DateHeader date={date} />
-
-              {notes.map((note) => (
-                <View key={note.id}>{renderNote({ item: note })}</View>
-              ))}
-            </View>
-          ))}
+      {/* CONTENT AREA */}
+      {initialLoading ? (
+        <View className="flex-1 justify-center items-center bg-white py-20">
+          <ActivityIndicator size="large" color="#4F46E5" />
+          <Text className="mt-3 text-gray-500 text-sm">
+            Loading running notes...
+          </Text>
         </View>
-      </ScrollView>
-
+      ) : (
+        <ScrollView
+          className="bg-white"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#4F46E5"]} // Android spinner color
+              tintColor="#4F46E5" // iOS spinner color
+            />
+          }
+        >
+          <View>
+            {notes.length === 0 ? (
+              <View className="flex-1 justify-center items-center pt-10 py-20">
+                <Ionicons
+                  name="document-text-outline"
+                  size={50}
+                  color="#9CA3AF"
+                />
+                <Text className="text-gray-400 mt-4 text-center text-base">
+                  No running notes yet.
+                  {"\n"}Add a note to get started.
+                </Text>
+              </View>
+            ) : (
+              Object.entries(groupedNotes).map(([date, notes]) => (
+                <View key={date}>
+                  <DateHeader date={date} />
+                  {notes.map((note) => (
+                    <View key={note.id}>{renderNote({ item: note })}</View>
+                  ))}
+                </View>
+              ))
+            )}
+          </View>
+        </ScrollView>
+      )}
       <Modal visible={deleteModalVisible} transparent animationType="fade">
         <View className="flex-1 bg-black/40 justify-center items-center px-6">
           <View className="bg-white rounded-2xl w-full p-4">
@@ -415,15 +575,7 @@ const RunningNotes = () => {
 
               <TouchableOpacity
                 className="px-4 py-2 rounded-lg bg-red-600"
-                onPress={() => {
-                  if (noteToDelete) {
-                    setNotes((prev) =>
-                      prev.filter((n) => n.id !== noteToDelete.id)
-                    );
-                  }
-                  setDeleteModalVisible(false);
-                  setNoteToDelete(null);
-                }}
+                onPress={deleteNote}
               >
                 <Text className="text-white text-sm font-semibold">Delete</Text>
               </TouchableOpacity>
@@ -535,7 +687,7 @@ const RunningNotes = () => {
             {/* Target Date */}
             <TouchableOpacity
               className="flex-row items-center gap-2 border border-gray-200 rounded-2xl px-3 py-2.5 mb-4 bg-slate-50"
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => setShowEditDatePicker(true)}
             >
               <Ionicons name="calendar-outline" size={16} color="#6B7280" />
               <Text className="text-sm text-gray-700">
@@ -545,13 +697,13 @@ const RunningNotes = () => {
               </Text>
             </TouchableOpacity>
 
-            {showDatePicker && (
+            {showEditDatePicker && (
               <DateTimePicker
                 value={editingNote?.targetDate || new Date()}
                 mode="date"
                 display="default"
                 onChange={(event, date) => {
-                  setShowDatePicker(false);
+                  setShowEditDatePicker(false);
                   if (date) {
                     setEditingNote(
                       (prev) => prev && { ...prev, targetDate: date }
@@ -574,20 +726,21 @@ const RunningNotes = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="px-5 py-2 rounded-xl bg-indigo-600"
-                disabled={!editingNote?.text.trim()}
-                onPress={() => {
-                  if (!editingNote) return;
-
-                  setNotes((prev) =>
-                    prev.map((n) => (n.id === editingNote.id ? editingNote : n))
-                  );
-
-                  setEditModalVisible(false);
-                  setEditingNote(null);
+                className="px-5 py-2 rounded-xl "
+                style={{
+                  backgroundColor: isEditDisabled ? "#A5B4FC" : "#4F46E5", // light vs active indigo
                 }}
+                disabled={isEditDisabled}
+                onPress={saveChanges}
               >
-                <Text className="text-white font-semibold">Save Changes</Text>
+                <Text
+                  className="text-white font-semibold"
+                  style={{
+                    color: isEditDisabled ? "#E0E7FF" : "#FFFFFF",
+                  }}
+                >
+                  Save Changes
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
