@@ -14,6 +14,7 @@ import {
   Modal,
   RefreshControl,
   ActivityIndicator,
+  SectionList,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
@@ -282,6 +283,12 @@ const RunningNotes = () => {
     return acc;
   }, {});
 
+  // Prepare sections from groupedNotes
+  const noteSections = Object.entries(groupedNotes).map(([date, notes]) => ({
+    title: date,
+    data: notes,
+  }));
+
   const DateHeader = ({ date }: { date: string }) => (
     <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
       <Text className="font-semibold text-xs text-indigo-800">{date}</Text>
@@ -517,44 +524,36 @@ const RunningNotes = () => {
             Loading running notes...
           </Text>
         </View>
+      ) : notes.length === 0 ? (
+        <View className="flex-1 justify-center items-center pt-10 py-20">
+          <Ionicons name="document-text-outline" size={50} color="#9CA3AF" />
+          <Text className="text-gray-400 mt-4 text-center text-base">
+            No running notes yet.{"\n"}Add a note to get started.
+          </Text>
+        </View>
       ) : (
-        <ScrollView
-          className="bg-white"
+        <SectionList
+          sections={noteSections}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => renderNote({ item })}
+          renderSectionHeader={({ section: { title } }) => (
+            <DateHeader date={title} />
+          )}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#4F46E5"]} // Android spinner color
-              tintColor="#4F46E5" // iOS spinner color
+              colors={["#4F46E5"]}
+              tintColor="#4F46E5"
             />
           }
-        >
-          <View>
-            {notes.length === 0 ? (
-              <View className="flex-1 justify-center items-center pt-10 py-20">
-                <Ionicons
-                  name="document-text-outline"
-                  size={50}
-                  color="#9CA3AF"
-                />
-                <Text className="text-gray-400 mt-4 text-center text-base">
-                  No running notes yet.
-                  {"\n"}Add a note to get started.
-                </Text>
-              </View>
-            ) : (
-              Object.entries(groupedNotes).map(([date, notes]) => (
-                <View key={date}>
-                  <DateHeader date={date} />
-                  {notes.map((note) => (
-                    <View key={note.id}>{renderNote({ item: note })}</View>
-                  ))}
-                </View>
-              ))
-            )}
-          </View>
-        </ScrollView>
+          stickySectionHeadersEnabled
+          contentContainerStyle={{
+            paddingBottom: 40, // 👈 IMPORTANT
+          }}
+        />
       )}
+
       <Modal visible={deleteModalVisible} transparent animationType="fade">
         <View className="flex-1 bg-black/40 justify-center items-center px-6">
           <View className="bg-white rounded-2xl w-full p-4">
