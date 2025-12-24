@@ -53,7 +53,7 @@ const statusOptions = [
     label: "In Progress",
     color: "#F59E0B", // amber-500
     bg: "bg-amber-500",
-    border: "border-amber-500",
+    border: "#F59E0B",
   },
   {
     value: "Closed",
@@ -630,7 +630,7 @@ const RunningNotes = () => {
                         (prev) => prev && { ...prev, status: s.value }
                       )
                     }
-                    className={`flex-row items-center gap-2 px-3 py-1.5 rounded-full border ${
+                    className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
                       active
                         ? `${s.bg} ${s.border}`
                         : "border-gray-300 bg-white"
