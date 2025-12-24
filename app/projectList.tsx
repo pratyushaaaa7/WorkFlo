@@ -40,6 +40,7 @@ const ProjectList = () => {
         params: { company },
       });
       setProjects(res.data.projects);
+      // console.log (res.data.projects)
     } catch (err) {
       console.error("Failed to fetch projects", err);
     } finally {
@@ -164,7 +165,9 @@ const ProjectList = () => {
             params: {
               id: item._id,
               project: JSON.stringify(item),
+
             },
+            
           })
         }
         activeOpacity={0.7}
@@ -227,7 +230,8 @@ const ProjectList = () => {
             onPress={() =>
               router.push({
                 pathname: "/createProject",
-                params: { project: JSON.stringify(item) },
+                // params: { project: JSON.stringify(item) },
+                  params: { projectId: item._id },
               })
             }
           >

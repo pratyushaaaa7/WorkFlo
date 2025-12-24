@@ -24,57 +24,76 @@ const CreateProjectScreen = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
-  const { project } = useLocalSearchParams(); // <-- get project from params
-  const existingProject = project ? JSON.parse(project as string) : null;
-  const isEditing = !!existingProject;
+  const { projectId } = useLocalSearchParams(); // <-- get project from params
+  // console.log("hello", projectId);
+  // const existingProject = project ? JSON.parse(project as string) : null;
+  const isEditing = Boolean(projectId);
+
+  useEffect(() => {
+    if (!projectId || !token) return;
+
+    const fetchProject = async () => {
+      try {
+        const res = await api.get(`/projects/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const p = res.data.project;
+
+        // 🔹 Prefill states
+        setProjectName(p.projectName || "");
+        setProjectCode(p.projectCode || "");
+        setProjectLocation(p.location || "");
+        setClientName(p.clientName || "");
+        setSiteArea(p.siteArea || "");
+        setDesignedArea(p.designedArea || "");
+        setFileNumber(p.fileNumber || "");
+        setWebName(p.webName || "");
+        setCompanyName(p.company || null);
+        setProjectTypology(p.typology || null);
+        setSelectedScopes(p.scopes || []);
+        setStatus(p.status || "active");
+
+        setSelectedLeaders(p.teamLeaders?.map((u: any) => u._id) || []);
+        setSelectedMembers(p.teamMembers?.map((u: any) => u._id) || []);
+        setStartDate(p.startDate ? new Date(p.startDate) : null);
+      } catch (err) {
+        console.error("Failed to fetch project:", err);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Unable to load project details",
+          position: "bottom",
+        });
+      }
+    };
+
+    fetchProject();
+  }, [projectId, token]);
 
   // States with prefill if editing
-  const [projectName, setProjectName] = useState(
-    existingProject?.projectName || ""
-  );
-  const [projectCode, setProjectCode] = useState(
-    existingProject?.projectCode || ""
-  );
-  const [projectLocation, setProjectLocation] = useState(
-    existingProject?.location || ""
-  );
+  const [projectName, setProjectName] = useState("");
+  const [projectCode, setProjectCode] = useState("");
+  const [projectLocation, setProjectLocation] = useState("");
   // const [projectArea, setProjectArea] = useState(existingProject?.area || "");
 
-  const [clientName, setClientName] = useState(
-    existingProject?.clientName || ""
-  );
+  const [clientName, setClientName] = useState("");
 
-  const [siteArea, setSiteArea] = useState(existingProject?.siteArea || "");
-
+  const [siteArea, setSiteArea] = useState("");
   // 🔹 New states
-  const [fileNumber, setFileNumber] = useState(
-    existingProject?.fileNumber || ""
-  );
-  const [webName, setWebName] = useState(existingProject?.webName || "");
+  const [fileNumber, setFileNumber] = useState("");
+  const [webName, setWebName] = useState("");
+  const [designedArea, setDesignedArea] = useState("");
 
-  const [designedArea, setDesignedArea] = useState(
-    existingProject?.designedArea || ""
-  );
+  const [selectedLeaders, setSelectedLeaders] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [projectTypology, setProjectTypology] = useState<string | null>(null);
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
 
-  const [selectedLeaders, setSelectedLeaders] = useState(
-    existingProject?.teamLeaders?.map((u: any) => u._id || u) || []
-  );
-
-  const [selectedMembers, setSelectedMembers] = useState(
-    existingProject?.teamMembers?.map((u: any) => u._id || u) || []
-  );
-  const [companyName, setCompanyName] = useState(
-    existingProject?.company || null
-  );
-  const [projectTypology, setProjectTypology] = useState(
-    existingProject?.typology || null
-  );
-  const [selectedScopes, setSelectedScopes] = useState(
-    existingProject?.scopes || []
-  );
-  const [startDate, setStartDate] = useState(
-    existingProject?.startDate ? new Date(existingProject.startDate) : null
-  );
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  // status state
+  const [status, setStatus] = useState("active");
 
   const companyOptions = [
     { label: "WP", value: "WP" },
@@ -95,9 +114,6 @@ const CreateProjectScreen = () => {
     { label: "Institutional", value: "Institutional" },
     { label: "Misc.", value: "Miscellaneous" },
   ];
-
-  // status state
-  const [status, setStatus] = useState(existingProject?.status || "active");
 
   const statusOptions = [
     { label: "Active", value: "active" },
@@ -224,14 +240,15 @@ const CreateProjectScreen = () => {
     try {
       if (isEditing) {
         //  UPDATE PROJECT
-        const res = await api.put(`/projects/${existingProject._id}`, payload, {
+        // ✅ UPDATE
+        await api.put(`/projects/${projectId}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         Toast.show({
           type: "success",
           text1: "Success",
-          text2: res.data.message || "Project updated successfully!",
+          text2:  "Project updated successfully!",
           position: "bottom",
         });
       } else {
