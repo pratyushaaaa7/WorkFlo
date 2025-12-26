@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import DateTimePicker from "@react-native-community/datetimepicker";
+// import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { statusOptions } from "../../utils/runningNotes";
 
 const AddNoteCard = ({ users, onAdd }: any) => {
@@ -80,17 +81,16 @@ const AddNoteCard = ({ users, onAdd }: any) => {
           </TouchableOpacity>
         </View>
 
-        {showAddDatePicker && (
-          <DateTimePicker
-            value={targetDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) => {
-              setShowAddDatePicker(false);
-              if (date) setTargetDate(date);
-            }}
-          />
-        )}
+        {/* Modal Date Picker */}
+        <DateTimePickerModal
+          isVisible={showAddDatePicker}
+          mode="date"
+          onConfirm={(date) => {
+            setTargetDate(date);
+            setShowAddDatePicker(false);
+          }}
+          onCancel={() => setShowAddDatePicker(false)}
+        />
 
         {/* Responsible + Add Button Row */}
         <View className="flex-row items-center gap-2">
