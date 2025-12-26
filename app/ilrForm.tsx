@@ -464,24 +464,27 @@ const ILRForm = () => {
             : new Date()
         }
         onConfirm={(date) => {
-          // Validate here instead of minimumDate
-          if (moment(date).isBefore(moment(), "day")) {
-            Toast.show({
-              type: "error",
-              text1: "Invalid Date",
-              text2: "Target date cannot be in the past",
-              position: "bottom",
-            });
-            return;
-          }
-
-          if (selectedIssueIndex !== null) {
-            const formattedDate = moment(date).format("YYYY-MM-DD");
-            updateIssue(selectedIssueIndex, "targetDate", formattedDate);
-          }
-
+          // ❗ Close picker FIRST
           setDatePickerVisible(false);
           setSelectedIssueIndex(null);
+
+          // Small delay ensures modal is gone
+          setTimeout(() => {
+            if (moment(date).isBefore(moment(), "day")) {
+              Toast.show({
+                type: "error",
+                text1: "Invalid Date",
+                text2: "Target date cannot be in the past",
+                position: "bottom",
+              });
+              return;
+            }
+
+            if (selectedIssueIndex !== null) {
+              const formattedDate = moment(date).format("YYYY-MM-DD");
+              updateIssue(selectedIssueIndex, "targetDate", formattedDate);
+            }
+          }, 150);
         }}
         onCancel={() => {
           setDatePickerVisible(false);
