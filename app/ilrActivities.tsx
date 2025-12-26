@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+// import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
@@ -160,8 +161,8 @@ const IlrActivities = () => {
 
   // const openDatePicker = () => setShowDatePicker(true);
 
-  const onDateChange = async (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+  const onDateChange = async (selectedDate?: Date) => {
+    // setShowDatePicker(false);
     if (!selectedDate) return;
 
     const updatedDate = selectedDate.toISOString();
@@ -301,7 +302,7 @@ const IlrActivities = () => {
 
       <ScrollView className="flex-1 px-3 py-3">
         {/* ILR Card */}
-        <View className="bg-white rounded-2xl p-4 shadow-md mb-2">
+        <View className="bg-white rounded-2xl p-2 shadow-md mb-2">
           <View className="flex-col">
             {/* Top row: ILR number + status toggle */}
             <View className="flex-row justify-between items-center mb-1">
@@ -379,45 +380,6 @@ const IlrActivities = () => {
                     </View>
                   </LinearGradient>
                 </TouchableOpacity>
-
-                {/* <TouchableOpacity
-                  onPress={toggleStatus}
-                  activeOpacity={0.9}
-                  className="w-20 h-8 rounded-full overflow-hidden"
-                >
-                  <LinearGradient
-                    colors={
-                      ilr.status === "Open"
-                        ? ["#FF4D4D", "#B91C1C"] // Open colors
-                        : ["#4B5563", "#D1D5DB"] // Closed colors'
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className="flex-1 h-full rounded-full relative"
-                  > */}
-                {/* Circle */}
-                {/* <View
-                      className="w-6 h-6 rounded-full bg-white shadow absolute top-1"
-                      style={{
-                        left: ilr.status === "Open" ? 1 : undefined,
-                        right: ilr.status === "Closed" ? 1 : undefined,
-                      }}
-                    /> */}
-
-                {/* Text */}
-                {/* <View
-                      className="absolute w-full h-full justify-center px-2"
-                      style={{
-                        alignItems:
-                          ilr.status === "Open" ? "flex-end" : "flex-start",
-                      }}
-                    >
-                      <Text className="text-white text-xs font-medium">
-                        {ilr.status}
-                      </Text>
-                    </View> */}
-                {/* </LinearGradient>
-                </TouchableOpacity> */}
               </View>
             </View>
 
@@ -427,22 +389,15 @@ const IlrActivities = () => {
             </Text>
           </View>
 
-          {/* Added by */}
-          <View className="mt-2 flex-row items-center gap-2">
-            <Ionicons name="person-outline" size={16} color="#4B5563" />
-            <Text className="text-gray-600 text-sm">
-              Added by <Text className="font-medium">{ilr.ilrCreatedBy}</Text>{" "}
-              on{" "}
-              {ilr.ilrCreatedAt
-                ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
-                : "N/A"}
-            </Text>
-          </View>
-
           {/* Remarks */}
-          <View className="mt-1 flex-row items-center gap-2">
-            <Ionicons name="document-text-outline" size={16} color="#4B5563" />
-            <Text className="text-gray-600 text-sm">
+          <View className="mt-1 flex-row gap-2">
+            <Ionicons
+              name="document-text-outline"
+              size={16}
+              color="#4B5563"
+              style={{ marginTop: 2 }}
+            />
+            <Text className="text-gray-600 text-sm flex-1 flex-wrap">
               Description:{" "}
               <Text
                 className={ilr.remarks ? "font-medium" : "italic text-gray-400"}
@@ -476,7 +431,30 @@ const IlrActivities = () => {
             </Text>
           </View>
 
-          {/* Edit Remark Button */}
+          {/* Divider */}
+          <View className="mt-3 border-t border-gray-200" />
+
+          {/* Added by (footer style) */}
+          <View className="mt-2 flex-row gap-2">
+            <Ionicons
+              name="person-outline"
+              size={14}
+              color="#9CA3AF"
+              style={{ marginTop: 1 }}
+            />
+            <Text className="text-gray-400 text-xs flex-1">
+              Added by{" "}
+              <Text className="font-medium text-gray-500">
+                {ilr.ilrCreatedBy}
+              </Text>{" "}
+              on{" "}
+              {ilr.ilrCreatedAt
+                ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
+                : "N/A"}
+            </Text>
+          </View>
+
+          {/* Edit description Button */}
           {/* <View className=" items-end"> */}
           {!showRemarkInput && (
             <TouchableOpacity
@@ -499,32 +477,14 @@ const IlrActivities = () => {
           {/* </View> */}
         </View>
 
-        {/* Action Buttons */}
-        <View className="flex-row justify-between ">
-          {/* <TouchableOpacity
-            className="flex-1 mx-1 rounded-xl shadow overflow-hidden"
-            onPress={openDatePicker}
-          >
-            <LinearGradient
-              colors={["#C084FC", "#7C3AED"]} // Purple gradient
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              className="py-3 rounded-xl"
-            >
-              <Text className="text-center text-white font-medium text-sm">
-                Change Date
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity> */}
-        </View>
-
         {/* Remark Input */}
         {showRemarkInput && (
           <View className="p-3 bg-white rounded-xl shadow mb-3">
             <TextInput
               value={newRemark}
               onChangeText={setNewRemark}
-              placeholder="Enter remark..."
+              placeholder="Edit Description"
+              multiline
               placeholderTextColor={"#999"}
               className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
             />
@@ -560,6 +520,7 @@ const IlrActivities = () => {
               value={newNote}
               onChangeText={setNewNote}
               placeholder="Add a note ..."
+              multiline
               placeholderTextColor="#9CA3AF"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-800"
             />
@@ -663,14 +624,25 @@ const IlrActivities = () => {
         </View>
       </ScrollView>
 
-      {showDatePicker && (
+      {/* {showDatePicker && (
         <DateTimePicker
           value={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
           mode="date"
           display={Platform.OS === "ios" ? "inline" : "default"}
           onChange={onDateChange}
         />
-      )}
+      )} */}
+
+      <DateTimePickerModal
+        isVisible={showDatePicker}
+        mode="date"
+        date={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
+        onConfirm={(date) => {
+          onDateChange(date); // pass date directly
+          setShowDatePicker(false);
+        }}
+        onCancel={() => setShowDatePicker(false)}
+      />
     </View>
   );
 };
