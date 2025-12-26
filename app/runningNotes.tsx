@@ -3,7 +3,14 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   FlatList,
   ScrollView,
@@ -285,10 +292,14 @@ const RunningNotes = () => {
   }, {});
 
   // Prepare sections from groupedNotes
-  const noteSections = Object.entries(groupedNotes).map(([date, notes]) => ({
-    title: date,
-    data: notes,
-  }));
+  const noteSections = useMemo(
+    () =>
+      Object.entries(groupedNotes).map(([date, notes]) => ({
+        title: date,
+        data: notes,
+      })),
+    [notes]
+  );
 
   const DateHeader = ({ date }: { date: string }) => (
     <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
@@ -296,15 +307,14 @@ const RunningNotes = () => {
     </View>
   );
 
+  const rightActionStyle = {
+    width: 160,
+    backgroundColor: "#dc2626",
+    justifyContent: "center",
+    alignItems: "center",
+  };
   const renderRightActions = () => (
-    <View
-      style={{
-        width: 160,
-        backgroundColor: "#dc2626",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <View style={rightActionStyle}>
       <Ionicons name="trash-outline" size={20} color="#fff" />
     </View>
   );
@@ -314,69 +324,73 @@ const RunningNotes = () => {
   const isEditDisabled = !editingNote?.text?.trim();
 
   // Note row
-  const renderNote = ({ item }: { item: Note }) => (
-    <Swipeable
-      ref={(ref) => {
-        if (ref) swipeableRefs.current.set(item.id, ref);
-      }}
-      renderRightActions={renderRightActions}
-      overshootRight={true}
-      rightThreshold={120} // must fully overshoot
-      onSwipeableWillOpen={() => {
-        // 🔥 close FIRST → avoids visual stop
-        swipeableRefs.current.get(item.id)?.close();
-
-        // 🔥 open modal immediately
-        setNoteToDelete(item);
-        setDeleteModalVisible(true);
-      }}
-      // onSwipeableOpen={() => {
-      //   setNoteToDelete(item);
-      //   setDeleteModalVisible(true);
-      //   setTimeout(() => swipeableRefs.current.get(item.id)?.close(), 100);
-      // }}
-    >
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          setEditingNote(item);
-          setEditModalVisible(true);
+  const renderNote = useCallback(
+    ({ item }: { item: Note }) => (
+      <Swipeable
+        ref={(ref) => {
+          if (ref) swipeableRefs.current.set(item.id, ref);
         }}
+        renderRightActions={renderRightActions}
+        overshootRight={true}
+        rightThreshold={120} // must fully overshoot
+        onSwipeableWillOpen={() => {
+          // 🔥 close FIRST → avoids visual stop
+          swipeableRefs.current.get(item.id)?.close();
+
+          // 🔥 open modal immediately
+          setNoteToDelete(item);
+          setDeleteModalVisible(true);
+        }}
+        // onSwipeableOpen={() => {
+        //   setNoteToDelete(item);
+        //   setDeleteModalVisible(true);
+        //   setTimeout(() => swipeableRefs.current.get(item.id)?.close(), 100);
+        // }}
       >
-        <View className="flex-row border-l border-slate-400 bg-white">
-          {/* Note */}
-          <View
-            className="border-r border-b border-gray-300 px-2 py-1"
-            style={{
-              width: COL.note,
-              backgroundColor: getNoteBgColor(item.status),
-            }}
-          >
-            <Text className="text-sm text-black">{item.text}</Text>
-          </View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            setEditingNote(item);
+            setEditModalVisible(true);
+          }}
+        >
+          <View className="flex-row border-l border-slate-400 bg-white">
+            {/* Note */}
+            <View
+              className="border-r border-b border-gray-300 px-2 py-1"
+              style={{
+                width: COL.note,
+                backgroundColor: getNoteBgColor(item.status),
+              }}
+            >
+              <Text className="text-sm text-black">{item.text}</Text>
+            </View>
 
-          {/* Responsible */}
-          <View
-            className="border-r border-b border-gray-300 px-1 py-1"
-            style={{ width: COL.responsible }}
-          >
-            <Text className="text-xs" numberOfLines={2}>
-              {users.find((u) => u.value === item.responsible)?.label || "N/A"}
-            </Text>
-          </View>
+            {/* Responsible */}
+            <View
+              className="border-r border-b border-gray-300 px-1 py-1"
+              style={{ width: COL.responsible }}
+            >
+              <Text className="text-xs" numberOfLines={2}>
+                {users.find((u) => u.value === item.responsible)?.label ||
+                  "N/A"}
+              </Text>
+            </View>
 
-          {/* Target Date */}
-          <View
-            className="border-r border-b border-gray-300 px-1 py-1"
-            style={{ width: COL.target }}
-          >
-            <Text className="text-xs">
-              {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-            </Text>
+            {/* Target Date */}
+            <View
+              className="border-r border-b border-gray-300 px-1 py-1"
+              style={{ width: COL.target }}
+            >
+              <Text className="text-xs">
+                {item.targetDate ? formatDate(item.targetDate) : "N/A"}
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    </Swipeable>
+        </TouchableOpacity>
+      </Swipeable>
+    ),
+    [users, swipeableRefs, COL]
   );
 
   return (
