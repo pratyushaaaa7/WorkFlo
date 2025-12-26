@@ -19,6 +19,7 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
 import { Swipeable } from "react-native-gesture-handler";
+import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
 
 const formatDate = (date: Date) => {
   const d = String(date.getDate()).padStart(2, "0");
@@ -90,7 +91,7 @@ const RunningNotes = () => {
 
   const [responsible, setResponsible] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
-  const [showAddDatePicker, setShowAddDatePicker] = useState(false);
+  // const [showAddDatePicker, setShowAddDatePicker] = useState(false);
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
 
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
@@ -308,7 +309,7 @@ const RunningNotes = () => {
     </View>
   );
 
-  const isAddDisabled = !noteText.trim() || isSubmitting;
+  // const isAddDisabled = !noteText.trim() || isSubmitting;
 
   const isEditDisabled = !editingNote?.text?.trim();
 
@@ -398,7 +399,7 @@ const RunningNotes = () => {
         </View>
       </LinearGradient>
 
-      <View className="p-2">
+      {/* <View className="p-2">
         <View className="bg-white px-2 py-2 rounded-2xl shadow-md">
           <Text className="font-semibold px-1 mb-1 text-base">
             Add New Note
@@ -458,7 +459,6 @@ const RunningNotes = () => {
           )}
 
           <View className="flex-row items-center gap-2">
-            {/* Responsible Dropdown */}
             <View style={{ flex: 1 }}>
               <Dropdown
                 style={{
@@ -485,7 +485,6 @@ const RunningNotes = () => {
               />
             </View>
 
-            {/* Add Note Button */}
             <TouchableOpacity
               className="bg-indigo-600 rounded-lg items-center justify-center"
               style={{
@@ -509,7 +508,41 @@ const RunningNotes = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </View> */}
+
+      <AddNoteCard
+        users={users}
+        onAdd={async ({ noteText, status, responsible, targetDate }) => {
+          if (!token || !projectId) return;
+
+          setIsSubmitting(true); // optional: maintain same loading state
+
+          try {
+            const res = await api.post(
+              "/running-notes",
+              { projectId, text: noteText, status, responsible, targetDate },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const newNote: Note = {
+              id: res.data._id,
+              text: res.data.text,
+              status: res.data.status,
+              responsible: res.data.responsible || null,
+              targetDate: res.data.targetDate
+                ? new Date(res.data.targetDate)
+                : null,
+              createdAt: new Date(res.data.createdAt),
+            };
+
+            setNotes((prev) => [newNote, ...prev]);
+          } catch (err) {
+            console.log("Error adding note:", err);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      />
 
       {/* Fixed Table Header */}
       <View style={{ backgroundColor: "#E5E7EB" }}>
