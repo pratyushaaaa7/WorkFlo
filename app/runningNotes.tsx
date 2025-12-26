@@ -179,7 +179,7 @@ const RunningNotes = () => {
         id: res.data._id,
         text: res.data.text,
         status: res.data.status,
-        responsible: res.data.responsible?._id || null,
+        responsible: res.data.responsible || null,
         targetDate: res.data.targetDate ? new Date(res.data.targetDate) : null,
         createdAt: new Date(res.data.createdAt),
       };
@@ -268,7 +268,7 @@ const RunningNotes = () => {
         <View
           key={label}
           className="border-r border-b border-gray-400 px-1 py-1"
-          style={{ width }}
+          style={{ width: width as number }}
         >
           <Text className="font-semibold text-sm text-slate-700">{label}</Text>
         </View>
@@ -627,7 +627,11 @@ const RunningNotes = () => {
                     key={s.value}
                     onPress={() =>
                       setEditingNote(
-                        (prev) => prev && { ...prev, status: s.value }
+                        (prev) =>
+                          prev && {
+                            ...prev,
+                            status: s.value as Note["status"],
+                          }
                       )
                     }
                     className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
