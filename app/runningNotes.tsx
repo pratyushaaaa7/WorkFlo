@@ -126,7 +126,7 @@ const RunningNotes = () => {
             value: u._id,
           }))
         );
-        console.log(res.data);
+        // console.log(res.data);
       } catch (err) {
         console.log(err);
       }
