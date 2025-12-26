@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -300,329 +301,337 @@ const IlrActivities = () => {
         </View>
       </LinearGradient>
 
-      <ScrollView className="flex-1 px-3 py-3">
-        {/* ILR Card */}
-        <View className="bg-white rounded-2xl p-2 shadow-md mb-2">
-          <View className="flex-col">
-            {/* Top row: ILR number + status toggle */}
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="font-semibold text-lg text-gray-900">
-                ILR ID: {ilr.ilrNumber}
-              </Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        // behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <ScrollView className="flex-1 px-3 py-3">
+          {/* ILR Card */}
+          <View className="bg-white rounded-2xl p-2 shadow-md mb-2">
+            <View className="flex-col">
+              {/* Top row: ILR number + status toggle */}
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="font-semibold text-lg text-gray-900">
+                  ILR ID: {ilr.ilrNumber}
+                </Text>
 
-              <View className="flex-row items-center gap-4 ">
-                {/* Delete Button */}
-                {auth?.user?.role === "admin" && (
+                <View className="flex-row items-center gap-4 ">
+                  {/* Delete Button */}
+                  {auth?.user?.role === "admin" && (
+                    <TouchableOpacity
+                      onPress={() => handleDelete(ilr._id)}
+                      className="ml-2 p-2 bg-black rounded-full"
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="white" />
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Toggle-style Status Badge with Gradient */}
                   <TouchableOpacity
-                    onPress={() => handleDelete(ilr._id)}
-                    className="ml-2 p-2 bg-black rounded-full"
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={18} color="white" />
-                  </TouchableOpacity>
-                )}
-
-                {/* Toggle-style Status Badge with Gradient */}
-                <TouchableOpacity
-                  onPress={toggleStatus}
-                  activeOpacity={0.9}
-                  style={{
-                    width: 80,
-                    height: 32,
-                    borderRadius: 16,
-                  }}
-                >
-                  <LinearGradient
-                    colors={
-                      ilr.status === "Open"
-                        ? ["#FF4D4D", "#B91C1C"]
-                        : ["#4B5563", "#D1D5DB"]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
+                    onPress={toggleStatus}
+                    activeOpacity={0.9}
                     style={{
-                      flex: 1,
+                      width: 80,
+                      height: 32,
                       borderRadius: 16,
-                      justifyContent: "center",
                     }}
                   >
-                    {/* Toggle Circle */}
-                    <View
+                    <LinearGradient
+                      colors={
+                        ilr.status === "Open"
+                          ? ["#FF4D4D", "#B91C1C"]
+                          : ["#4B5563", "#D1D5DB"]
+                      }
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
                       style={{
-                        position: "absolute",
-                        top: 4,
-                        left: ilr.status === "Open" ? 4 : undefined,
-                        right: ilr.status === "Closed" ? 4 : undefined,
-                        width: 24,
-                        height: 24,
-                        borderRadius: 12,
-                        backgroundColor: "#fff",
-                      }}
-                    />
-
-                    {/* Status Text */}
-                    <View
-                      style={{
-                        alignItems:
-                          ilr.status === "Open" ? "flex-end" : "flex-start",
-                        paddingHorizontal: 8,
+                        flex: 1,
+                        borderRadius: 16,
+                        justifyContent: "center",
                       }}
                     >
-                      <Text
+                      {/* Toggle Circle */}
+                      <View
                         style={{
-                          color: "#fff",
-                          fontSize: 12,
-                          fontWeight: "600",
+                          position: "absolute",
+                          top: 4,
+                          left: ilr.status === "Open" ? 4 : undefined,
+                          right: ilr.status === "Closed" ? 4 : undefined,
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          backgroundColor: "#fff",
+                        }}
+                      />
+
+                      {/* Status Text */}
+                      <View
+                        style={{
+                          alignItems:
+                            ilr.status === "Open" ? "flex-end" : "flex-start",
+                          paddingHorizontal: 8,
                         }}
                       >
-                        {ilr.status}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontSize: 12,
+                            fontWeight: "600",
+                          }}
+                        >
+                          {ilr.status}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
               </View>
+
+              {/* Description below so it never clashes */}
+              <Text className="text-gray-700 text-lg font-semibold">
+                {ilr.description}
+              </Text>
             </View>
 
-            {/* Description below so it never clashes */}
-            <Text className="text-gray-700 text-lg font-semibold">
-              {ilr.description}
-            </Text>
-          </View>
+            {/* Remarks */}
+            <View className="mt-1 flex-row gap-2">
+              <Ionicons
+                name="document-text-outline"
+                size={16}
+                color="#4B5563"
+                style={{ marginTop: 2 }}
+              />
+              <Text className="text-gray-600 text-sm flex-1 flex-wrap">
+                Description:{" "}
+                <Text
+                  className={
+                    ilr.remarks ? "font-medium" : "italic text-gray-400"
+                  }
+                >
+                  {ilr.remarks || "No Description"}
+                </Text>
+              </Text>
+            </View>
 
-          {/* Remarks */}
-          <View className="mt-1 flex-row gap-2">
-            <Ionicons
-              name="document-text-outline"
-              size={16}
-              color="#4B5563"
-              style={{ marginTop: 2 }}
-            />
-            <Text className="text-gray-600 text-sm flex-1 flex-wrap">
-              Description:{" "}
-              <Text
-                className={ilr.remarks ? "font-medium" : "italic text-gray-400"}
+            {/* Responsibility */}
+            <View className="mt-1 flex-row items-center gap-2">
+              <Ionicons name="people-outline" size={16} color="#4B5563" />
+              <Text className="text-gray-600 text-sm">
+                Responsibility:{" "}
+                <Text className="font-medium">
+                  {ilr.responsibility
+                    .map((u) => u.name) // ✅ use 'name' directly
+                    .join(", ")}
+                </Text>
+              </Text>
+            </View>
+
+            {/* Target Date */}
+            <View className="mt-1 flex-row items-center gap-2">
+              <Ionicons name="calendar-outline" size={16} color="#4B5563" />
+              <Text className="text-gray-600 text-sm">
+                Target Date:{" "}
+                <Text className="font-medium">
+                  {new Date(ilr.targetDate).toLocaleDateString()}
+                </Text>
+              </Text>
+            </View>
+
+            {/* Divider */}
+            <View className="mt-3 border-t border-gray-200" />
+
+            {/* Added by (footer style) */}
+            <View className="mt-2 flex-row gap-2">
+              <Ionicons
+                name="person-outline"
+                size={14}
+                color="#9CA3AF"
+                style={{ marginTop: 1 }}
+              />
+              <Text className="text-gray-400 text-xs flex-1">
+                Added by{" "}
+                <Text className="font-medium text-gray-500">
+                  {ilr.ilrCreatedBy}
+                </Text>{" "}
+                on{" "}
+                {ilr.ilrCreatedAt
+                  ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
+                  : "N/A"}
+              </Text>
+            </View>
+
+            {/* Edit description Button */}
+            {/* <View className=" items-end"> */}
+            {!showRemarkInput && (
+              <TouchableOpacity
+                className="flex-1 mx-1 mt-2 rounded-xl shadow overflow-hidden"
+                onPress={openRemarkModal}
               >
-                {ilr.remarks || "No Description"}
-              </Text>
-            </Text>
+                <LinearGradient
+                  colors={["#93C5FD", "#3B82F6"]} // Blue gradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <View className="py-2 rounded-xl">
+                    <Text className="text-center text-white font-medium text-sm">
+                      Edit Description
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+            {/* </View> */}
           </View>
 
-          {/* Responsibility */}
-          <View className="mt-1 flex-row items-center gap-2">
-            <Ionicons name="people-outline" size={16} color="#4B5563" />
-            <Text className="text-gray-600 text-sm">
-              Responsibility:{" "}
-              <Text className="font-medium">
-                {ilr.responsibility
-                  .map((u) => u.name) // ✅ use 'name' directly
-                  .join(", ")}
-              </Text>
-            </Text>
-          </View>
-
-          {/* Target Date */}
-          <View className="mt-1 flex-row items-center gap-2">
-            <Ionicons name="calendar-outline" size={16} color="#4B5563" />
-            <Text className="text-gray-600 text-sm">
-              Target Date:{" "}
-              <Text className="font-medium">
-                {new Date(ilr.targetDate).toLocaleDateString()}
-              </Text>
-            </Text>
-          </View>
-
-          {/* Divider */}
-          <View className="mt-3 border-t border-gray-200" />
-
-          {/* Added by (footer style) */}
-          <View className="mt-2 flex-row gap-2">
-            <Ionicons
-              name="person-outline"
-              size={14}
-              color="#9CA3AF"
-              style={{ marginTop: 1 }}
-            />
-            <Text className="text-gray-400 text-xs flex-1">
-              Added by{" "}
-              <Text className="font-medium text-gray-500">
-                {ilr.ilrCreatedBy}
-              </Text>{" "}
-              on{" "}
-              {ilr.ilrCreatedAt
-                ? new Date(ilr.ilrCreatedAt).toLocaleDateString()
-                : "N/A"}
-            </Text>
-          </View>
-
-          {/* Edit description Button */}
-          {/* <View className=" items-end"> */}
-          {!showRemarkInput && (
-            <TouchableOpacity
-              className="flex-1 mx-1 mt-2 rounded-xl shadow overflow-hidden"
-              onPress={openRemarkModal}
-            >
-              <LinearGradient
-                colors={["#93C5FD", "#3B82F6"]} // Blue gradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+          {/* Remark Input */}
+          {showRemarkInput && (
+            <View className="p-3 bg-white rounded-xl shadow mb-3">
+              <TextInput
+                value={newRemark}
+                onChangeText={setNewRemark}
+                placeholder="Edit Description"
+                multiline
+                placeholderTextColor={"#999"}
+                className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
+              />
+              <TouchableOpacity
+                className="rounded-lg shadow-md overflow-hidden"
+                onPress={saveRemark}
               >
-                <View className="py-2 rounded-xl">
-                  <Text className="text-center text-white font-medium text-sm">
-                    Edit Description
-                  </Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={["#93C5FD", "#3B82F6"]} // Blue gradient (matches Edit Remark)
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <View className="py-2 rounded-lg">
+                    <Text className="text-center text-white font-medium">
+                      Save
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           )}
-          {/* </View> */}
-        </View>
 
-        {/* Remark Input */}
-        {showRemarkInput && (
-          <View className="p-3 bg-white rounded-xl shadow mb-3">
-            <TextInput
-              value={newRemark}
-              onChangeText={setNewRemark}
-              placeholder="Edit Description"
-              multiline
-              placeholderTextColor={"#999"}
-              className="border border-gray-300 rounded-lg px-3 py-2 mb-2"
-            />
-            <TouchableOpacity
-              className="rounded-lg shadow-md overflow-hidden"
-              onPress={saveRemark}
-            >
-              <LinearGradient
-                colors={["#93C5FD", "#3B82F6"]} // Blue gradient (matches Edit Remark)
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <View className="py-2 rounded-lg">
-                  <Text className="text-center text-white font-medium">
-                    Save
-                  </Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )}
+          {/* Notes Section */}
 
-        {/* Notes Section */}
-
-        <View className="bg-white rounded-2xl p-4 shadow-md mb-3">
-          {/* <Text className="font-semibold text-gray-800 text-lg mb-4">
+          <View className="bg-white rounded-2xl p-4 shadow-md mb-3">
+            {/* <Text className="font-semibold text-gray-800 text-lg mb-4">
             Notes & Change Date
           </Text> */}
 
-          {/* Text Input Row */}
-          <View className="mb-3">
-            <TextInput
-              value={newNote}
-              onChangeText={setNewNote}
-              placeholder="Add a note ..."
-              multiline
-              placeholderTextColor="#9CA3AF"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-800"
-            />
+            {/* Text Input Row */}
+            <View className="mb-3">
+              <TextInput
+                value={newNote}
+                onChangeText={setNewNote}
+                placeholder="Add a note ..."
+                multiline
+                placeholderTextColor="#9CA3AF"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-gray-800"
+              />
+            </View>
+
+            {/* Buttons Row */}
+            <View className="flex-row justify-between gap-3">
+              {/* Add Note Button */}
+              <TouchableOpacity
+                className={`flex-1 rounded-lg shadow-md overflow-hidden ${
+                  newNote.trim() ? "" : "opacity-50"
+                }`}
+                disabled={!newNote.trim()}
+                onPress={addNote}
+              >
+                <LinearGradient
+                  colors={["#34D399", "#059669"]} // Green gradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <View className="w-full py-2 rounded-lg items-center">
+                    <Text className="text-white font-medium">Add Note</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Change Date Button */}
+              <TouchableOpacity
+                className={`flex-1 rounded-lg shadow-md overflow-hidden ${
+                  newNote.trim() ? "" : "opacity-50"
+                }`}
+                disabled={!newNote.trim()}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <LinearGradient
+                  colors={["#C084FC", "#7C3AED"]} // Purple gradient
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                >
+                  <View className="w-full py-2 rounded-lg items-center">
+                    <Text className="text-white font-medium">Change Date</Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Buttons Row */}
-          <View className="flex-row justify-between gap-3">
-            {/* Add Note Button */}
-            <TouchableOpacity
-              className={`flex-1 rounded-lg shadow-md overflow-hidden ${
-                newNote.trim() ? "" : "opacity-50"
-              }`}
-              disabled={!newNote.trim()}
-              onPress={addNote}
-            >
-              <LinearGradient
-                colors={["#34D399", "#059669"]} // Green gradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <View className="w-full py-2 rounded-lg items-center">
-                  <Text className="text-white font-medium">Add Note</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
+          {/* Activity Log */}
+          <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
+            <Text className="font-semibold text-gray-800 text-lg mb-4">
+              Activity Log
+            </Text>
 
-            {/* Change Date Button */}
-            <TouchableOpacity
-              className={`flex-1 rounded-lg shadow-md overflow-hidden ${
-                newNote.trim() ? "" : "opacity-50"
-              }`}
-              disabled={!newNote.trim()}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <LinearGradient
-                colors={["#C084FC", "#7C3AED"]} // Purple gradient
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 1 }}
-              >
-                <View className="w-full py-2 rounded-lg items-center">
-                  <Text className="text-white font-medium">Change Date</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
+            {activitiesLoading ? (
+              <ActivityIndicator size="large" color="#2563EB" />
+            ) : activities.length === 0 ? (
+              <Text className="text-gray-400 text-sm">No activities yet.</Text>
+            ) : (
+              <View>
+                {activities.map((act) => {
+                  // get bgColor from the mapping
+                  const bgColor =
+                    ACTIVITY_BG_COLORS[act.type] || DEFAULT_BG_COLOR;
 
-        {/* Activity Log */}
-        <View className="bg-white rounded-2xl p-4 shadow-md mb-6">
-          <Text className="font-semibold text-gray-800 text-lg mb-4">
-            Activity Log
-          </Text>
+                  return (
+                    <View
+                      key={act._id}
+                      className="rounded-xl p-3 mb-2 shadow-sm"
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      <Text className="text-gray-800 text-sm font-medium">
+                        {act.title}
+                      </Text>
 
-          {activitiesLoading ? (
-            <ActivityIndicator size="large" color="#2563EB" />
-          ) : activities.length === 0 ? (
-            <Text className="text-gray-400 text-sm">No activities yet.</Text>
-          ) : (
-            <View>
-              {activities.map((act) => {
-                // get bgColor from the mapping
-                const bgColor =
-                  ACTIVITY_BG_COLORS[act.type] || DEFAULT_BG_COLOR;
+                      {act.oldValue !== undefined &&
+                        act.newValue !== undefined && (
+                          <Text className="text-xs text-gray-600 mt-1">
+                            From:{" "}
+                            <Text className="font-normal">{act.oldValue}</Text>{" "}
+                            → To:{" "}
+                            <Text className="font-medium">{act.newValue}</Text>
+                          </Text>
+                        )}
 
-                return (
-                  <View
-                    key={act._id}
-                    className="rounded-xl p-3 mb-2 shadow-sm"
-                    style={{ backgroundColor: bgColor }}
-                  >
-                    <Text className="text-gray-800 text-sm font-medium">
-                      {act.title}
-                    </Text>
-
-                    {act.oldValue !== undefined &&
-                      act.newValue !== undefined && (
-                        <Text className="text-xs text-gray-600 mt-1">
-                          From:{" "}
-                          <Text className="font-normal">{act.oldValue}</Text> →
-                          To:{" "}
-                          <Text className="font-medium">{act.newValue}</Text>
+                      {/* 👇 For standalone notes or notes attached to changes */}
+                      {act.note && (
+                        <Text className="text-xs text-gray-700 italic mt-1">
+                          Note: {act.note}
                         </Text>
                       )}
 
-                    {/* 👇 For standalone notes or notes attached to changes */}
-                    {act.note && (
-                      <Text className="text-xs text-gray-700 italic mt-1">
-                        Note: {act.note}
+                      <Text className="text-xs text-gray-500 mt-1">
+                        By {act.createdBy} •{" "}
+                        {new Date(act.createdAt).toLocaleString()}
                       </Text>
-                    )}
-
-                    <Text className="text-xs text-gray-500 mt-1">
-                      By {act.createdBy} •{" "}
-                      {new Date(act.createdAt).toLocaleString()}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* {showDatePicker && (
         <DateTimePicker
