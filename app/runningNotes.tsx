@@ -22,6 +22,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   SectionList,
+  useWindowDimensions,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
@@ -88,6 +89,8 @@ const RunningNotes = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const user = auth?.user;
+
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteText, setNoteText] = useState("");
@@ -259,10 +262,22 @@ const RunningNotes = () => {
     }
   };
 
+  // const COL = {
+  //   note: 190 as const, // was 300
+  //   responsible: 100 as const, // was 180
+  //   target: 70 as const, // was 140
+  // };
+
+  const COL_RATIO = {
+    note: 0.62, // 55%
+    responsible: 0.23, // 25%
+    target: 0.15, // 20%
+  };
+
   const COL = {
-    note: 190 as const, // was 300
-    responsible: 100 as const, // was 180
-    target: 70 as const, // was 140
+    note: Math.floor(SCREEN_WIDTH * COL_RATIO.note),
+    responsible: Math.floor(SCREEN_WIDTH * COL_RATIO.responsible),
+    target: Math.floor(SCREEN_WIDTH * COL_RATIO.target),
   };
 
   // Table column headers
