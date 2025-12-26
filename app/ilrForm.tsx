@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import DateTimePicker from "@react-native-community/datetimepicker";
+// import DateTimePicker from "@react-native-community/datetimepicker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useEffect, useState, useContext } from "react";
 import {
@@ -346,6 +346,18 @@ const ILRForm = () => {
                 />
               </TouchableOpacity>
 
+              {/* Date Picker Modal */}
+              {/* <DateTimePickerModal
+                isVisible={datePickerVisible}
+                mode="date"
+                date={new Date()}
+                onConfirm={(date) => {
+                  setDatePickerVisible(false);
+                  handleDateSelect({ type: "set" }, date);
+                }}
+                onCancel={() => setDatePickerVisible(false)}
+              /> */}
+
               {/* Responsibility MultiSelect */}
               <MultiSelect
                 style={{
@@ -435,13 +447,36 @@ const ILRForm = () => {
       </KeyboardAwareScrollView>
 
       {/* Date Picker */}
-      {datePickerVisible && (
+      {/* {datePickerVisible && (
         <DateTimePicker
           mode="date"
           value={new Date()}
           onChange={handleDateSelect}
         />
-      )}
+      )} */}
+
+      <DateTimePickerModal
+        isVisible={datePickerVisible}
+        mode="date"
+        date={
+          selectedIssueIndex !== null && issues[selectedIssueIndex]?.targetDate
+            ? new Date(issues[selectedIssueIndex].targetDate)
+            : new Date()
+        }
+        minimumDate={new Date()}
+        onConfirm={(date) => {
+          if (selectedIssueIndex !== null) {
+            const formattedDate = moment(date).format("YYYY-MM-DD");
+            updateIssue(selectedIssueIndex, "targetDate", formattedDate);
+          }
+          setDatePickerVisible(false);
+          setSelectedIssueIndex(null);
+        }}
+        onCancel={() => {
+          setDatePickerVisible(false);
+          setSelectedIssueIndex(null);
+        }}
+      />
     </View>
   );
 };
