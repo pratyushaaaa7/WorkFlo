@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+// import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, {
@@ -28,6 +28,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { AuthContext } from "../context/AuthContext";
 import { Swipeable } from "react-native-gesture-handler";
 import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const formatDate = (date: Date) => {
   const d = String(date.getDate()).padStart(2, "0");
@@ -767,21 +768,16 @@ const RunningNotes = () => {
               </Text>
             </TouchableOpacity>
 
-            {showEditDatePicker && (
-              <DateTimePicker
-                value={editingNote?.targetDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, date) => {
-                  setShowEditDatePicker(false);
-                  if (date) {
-                    setEditingNote(
-                      (prev) => prev && { ...prev, targetDate: date }
-                    );
-                  }
-                }}
-              />
-            )}
+            <DateTimePickerModal
+              isVisible={showEditDatePicker}
+              mode="date"
+              date={editingNote?.targetDate || new Date()}
+              onConfirm={(date) => {
+                setShowEditDatePicker(false);
+                setEditingNote((prev) => prev && { ...prev, targetDate: date });
+              }}
+              onCancel={() => setShowEditDatePicker(false)}
+            />
 
             {/* ACTIONS */}
             <View className="flex-row justify-end gap-3 mt-2">
