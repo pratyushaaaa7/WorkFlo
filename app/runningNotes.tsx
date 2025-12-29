@@ -22,6 +22,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   SectionList,
+  Platform,
+  KeyboardAvoidingView,
   useWindowDimensions,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
@@ -175,11 +177,15 @@ const RunningNotes = () => {
   };
 
   //Adding note to the backend
-  const addNote = async () => {
-    if (!noteText.trim() || isSubmitting) return;
+  const handleAddNote = async ({
+    noteText,
+    status,
+    responsible,
+    targetDate,
+  }) => {
+    if (!token || !projectId) return;
 
     setIsSubmitting(true);
-
     try {
       const res = await api.post(
         "/running-notes",
@@ -197,10 +203,6 @@ const RunningNotes = () => {
       };
 
       setNotes((prev) => [newNote, ...prev]);
-      setNoteText("");
-      setStatus("Open");
-      setResponsible(null);
-      setTargetDate(null);
     } catch (err) {
       console.log("Error adding note:", err);
     } finally {
@@ -350,10 +352,10 @@ const RunningNotes = () => {
         overshootRight={true}
         rightThreshold={120} // must fully overshoot
         onSwipeableWillOpen={() => {
-          // 🔥 close FIRST → avoids visual stop
+          // close FIRST → avoids visual stop
           swipeableRefs.current.get(item.id)?.close();
 
-          // 🔥 open modal immediately
+          // open modal immediately
           setNoteToDelete(item);
           setDeleteModalVisible(true);
         }}
@@ -410,7 +412,10 @@ const RunningNotes = () => {
   );
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#F1F5F9" }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <LinearGradient colors={["#4F46E5", "#6366F1"]}>
         <View className="pt-16 pb-6 px-4 flex-row items-center">
           <TouchableOpacity
@@ -429,118 +434,7 @@ const RunningNotes = () => {
         </View>
       </LinearGradient>
 
-      {/* <View className="p-2">
-        <View className="bg-white px-2 py-2 rounded-2xl shadow-md">
-          <Text className="font-semibold px-1 mb-1 text-base">
-            Add New Note
-          </Text>
-
-          <TextInput
-            placeholder="Enter note..."
-            placeholderTextColor="#888"
-            value={noteText}
-            multiline
-            onChangeText={setNoteText}
-            className="border border-gray-200 rounded-xl p-2 mb-1 text-sm"
-          />
-
-          <View className="flex-row justify-between mb-1 gap-2">
-            <Dropdown
-              style={{
-                flex: 1,
-                borderWidth: 1,
-                borderColor: "#E5E7EB",
-                borderRadius: 12,
-                height: 34,
-                paddingHorizontal: 10,
-              }}
-              placeholderStyle={{ fontSize: 14, color: "#888" }}
-              selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-              containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
-              activeColor="#EEF2FF"
-              data={statusOptions}
-              labelField="label"
-              valueField="value"
-              placeholder="Select status"
-              value={status}
-              onChange={(item) => setStatus(item.value)}
-            />
-            <TouchableOpacity
-              className="border border-gray-200 rounded-xl flex-1 justify-center px-3"
-              style={{ height: 34 }}
-              onPress={() => setShowAddDatePicker(true)}
-            >
-              <Text className="text-sm">
-                {targetDate ? targetDate.toDateString() : "Select target date"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {showAddDatePicker && (
-            <DateTimePicker
-              value={targetDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                setShowAddDatePicker(false);
-                if (date) setTargetDate(date);
-              }}
-            />
-          )}
-
-          <View className="flex-row items-center gap-2">
-            <View style={{ flex: 1 }}>
-              <Dropdown
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  borderRadius: 12,
-                  height: 34,
-                  paddingHorizontal: 10,
-                }}
-                placeholderStyle={{ fontSize: 13, color: "#888" }}
-                selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-                containerStyle={{
-                  borderRadius: 14,
-                  backgroundColor: "#fff",
-                  marginBottom: 0,
-                }}
-                activeColor="#EEF2FF"
-                data={users}
-                labelField="label"
-                valueField="value"
-                placeholder="Responsible"
-                value={responsible}
-                onChange={(item) => setResponsible(item.value)}
-              />
-            </View>
-
-            <TouchableOpacity
-              className="bg-indigo-600 rounded-lg items-center justify-center"
-              style={{
-                height: 34,
-                width: 90,
-                backgroundColor: isAddDisabled ? "#A5B4FC" : "#4F46E5", // lighter when disabled
-              }}
-              onPress={addNote}
-              disabled={isAddDisabled}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text
-                  className="font-semibold text-xs"
-                  style={{ color: isAddDisabled ? "#E0E7FF" : "#FFFFFF" }}
-                >
-                  Add
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View> */}
-
-      <AddNoteCard
+      {/* <AddNoteCard
         users={users}
         onAdd={async ({ noteText, status, responsible, targetDate }) => {
           if (!token || !projectId) return;
@@ -572,50 +466,127 @@ const RunningNotes = () => {
             setIsSubmitting(false);
           }
         }}
-      />
+      /> */}
 
       {/* Fixed Table Header */}
-      <View style={{ backgroundColor: "#E5E7EB" }}>
+      {/* <View style={{ backgroundColor: "#E5E7EB" }}>
         <TableColumnHeader />
-      </View>
+      </View> */}
 
       {/* CONTENT AREA */}
-      {initialLoading ? (
-        <View className="flex-1 justify-center items-center bg-white py-20">
+      {/* {initialLoading ? (
+        //  FIRST LOAD LOADER
+        <View className="flex-1 justify-center items-center bg-[#F1F5F9] py-20">
           <ActivityIndicator size="large" color="#4F46E5" />
           <Text className="mt-3 text-gray-500 text-sm">
             Loading running notes...
           </Text>
         </View>
       ) : notes.length === 0 ? (
+        //  EMPTY STATE (after load)
         <View className="flex-1 justify-center items-center pt-10 py-20">
           <Ionicons name="document-text-outline" size={50} color="#9CA3AF" />
           <Text className="text-gray-400 mt-4 text-center text-base">
             No running notes yet.{"\n"}Add a note to get started.
           </Text>
         </View>
-      ) : (
-        <SectionList
-          sections={noteSections}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => renderNote({ item })}
-          renderSectionHeader={({ section: { title } }) => (
-            <DateHeader date={title} />
-          )}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={["#4F46E5"]}
-              tintColor="#4F46E5"
-            />
-          }
-          stickySectionHeadersEnabled
-          contentContainerStyle={{
-            paddingBottom: 40, // 👈 IMPORTANT
-          }}
-        />
-      )}
+      ) : ( */}
+      {/* // DATA STATE */}
+      <SectionList
+        style={{ flex: 1, backgroundColor: "#F1F5F9" }}
+        contentContainerStyle={{
+          backgroundColor: "#F1F5F9",
+          paddingBottom: Platform.OS === "android" ? 24 : 0,
+        }}
+        sections={noteSections}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => renderNote({ item })}
+        renderSectionHeader={({ section: { title } }) => (
+          <DateHeader date={title} />
+        )}
+        stickySectionHeadersEnabled
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#4F46E5"]}
+            tintColor="#4F46E5"
+          />
+        }
+        // contentContainerStyle={{ paddingBottom: 40 }}
+        ListHeaderComponent={
+          <>
+            {/* <AddNoteCard
+                users={users}
+                onAdd={async ({
+                  noteText,
+                  status,
+                  responsible,
+                  targetDate,
+                }) => {
+                  if (!token || !projectId) return;
+                  setIsSubmitting(true);
+                  try {
+                    const res = await api.post(
+                      "/running-notes",
+                      {
+                        projectId,
+                        text: noteText,
+                        status,
+                        responsible,
+                        targetDate,
+                      },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    const newNote: Note = {
+                      id: res.data._id,
+                      text: res.data.text,
+                      status: res.data.status,
+                      responsible: res.data.responsible || null,
+                      targetDate: res.data.targetDate
+                        ? new Date(res.data.targetDate)
+                        : null,
+                      createdAt: new Date(res.data.createdAt),
+                    };
+                    setNotes((prev) => [newNote, ...prev]);
+                  } catch (err) {
+                    console.log("Error adding note:", err);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+              /> */}
+            <AddNoteCard users={users} onAdd={handleAddNote} />
+            {/* Fixed Table Header */}
+            <View style={{ backgroundColor: "#E5E7EB" }}>
+              <TableColumnHeader />
+            </View>
+          </>
+        }
+        /* LOADING + EMPTY handled here */
+        ListEmptyComponent={
+          initialLoading ? (
+            <View className="flex-1 justify-center items-center py-20">
+              <ActivityIndicator size="large" color="#4F46E5" />
+              <Text className="mt-3 text-gray-500 text-sm">
+                Loading running notes...
+              </Text>
+            </View>
+          ) : (
+            <View className="flex-1 justify-center items-center py-20">
+              <Ionicons
+                name="document-text-outline"
+                size={50}
+                color="#9CA3AF"
+              />
+              <Text className="text-gray-400 mt-4 text-center text-base">
+                No running notes yet.{"\n"}Add a note to get started.
+              </Text>
+            </View>
+          )
+        }
+      />
+      {/* )} */}
 
       <Modal visible={deleteModalVisible} transparent animationType="fade">
         <View className="flex-1 bg-black/40 justify-center items-center px-6">
@@ -652,167 +623,180 @@ const RunningNotes = () => {
       </Modal>
 
       <Modal visible={editModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/40 justify-center items-center px-4">
-          {/* Modal Card */}
-          <View className="bg-white rounded-3xl w-full p-5 shadow-2xl">
-            {/* Header */}
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Edit Note
-            </Text>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "height" : undefined}
+        >
+          <View className="flex-1 bg-black/40 justify-center items-center px-4">
+            {/* Modal Card */}
+            <View className="bg-white rounded-3xl w-full max-h-[85%] shadow-2xl">
+              {/* 🔑 SINGLE SCROLLVIEW */}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ padding: 20, paddingBottom: 28 }}
+              >
+                {/* Header */}
+                <Text className="text-lg font-semibold text-gray-900 mb-4">
+                  Edit Note
+                </Text>
 
-            {/* NOTE SECTION */}
-            <Text className="text-xs font-semibold text-gray-500 mb-1">
-              NOTE
-            </Text>
+                {/* NOTE */}
+                <Text className="text-xs font-semibold text-gray-500 mb-1">
+                  NOTE
+                </Text>
 
-            <TextInput
-              value={editingNote?.text}
-              multiline
-              placeholder="Edit note..."
-              placeholderTextColor="#9CA3AF"
-              onChangeText={(text) =>
-                setEditingNote((prev) => prev && { ...prev, text })
-              }
-              className="border border-gray-200 rounded-2xl p-3 mb-4 text-sm bg-slate-50"
-            />
+                <TextInput
+                  value={editingNote?.text}
+                  multiline
+                  scrollEnabled={false}
+                  placeholder="Edit note..."
+                  placeholderTextColor="#9CA3AF"
+                  onChangeText={(text) =>
+                    setEditingNote((prev) => prev && { ...prev, text })
+                  }
+                  className="border border-gray-200 rounded-2xl p-3 mb-4 text-sm bg-slate-50"
+                />
 
-            {/* STATUS SECTION */}
-            <Text className="text-xs font-semibold text-gray-500 mb-2">
-              STATUS
-            </Text>
+                {/* STATUS */}
+                <Text className="text-xs font-semibold text-gray-500 mb-2">
+                  STATUS
+                </Text>
 
-            <View className="flex-row flex-wrap gap-2 mb-4">
-              {statusOptions.map((s) => {
-                const active = editingNote?.status === s.value;
+                <View className="flex-row flex-wrap gap-2 mb-4">
+                  {statusOptions.map((s) => {
+                    const active = editingNote?.status === s.value;
 
-                return (
-                  <TouchableOpacity
-                    key={s.value}
-                    onPress={() =>
+                    return (
+                      <TouchableOpacity
+                        key={s.value}
+                        onPress={() =>
+                          setEditingNote(
+                            (prev) =>
+                              prev && {
+                                ...prev,
+                                status: s.value as Note["status"],
+                              }
+                          )
+                        }
+                        className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
+                          active
+                            ? `${s.bg} ${s.border}`
+                            : "border-gray-300 bg-white"
+                        }`}
+                      >
+                        <View
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{
+                            backgroundColor: active ? "#fff" : s.color,
+                          }}
+                        />
+
+                        <Text
+                          className={`text-xs font-medium ${
+                            active ? "text-white" : "text-gray-700"
+                          }`}
+                        >
+                          {s.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* DETAILS */}
+                <Text className="text-xs font-semibold text-gray-500 mb-2">
+                  DETAILS
+                </Text>
+
+                {/* Responsible */}
+                <View className="mb-3">
+                  <Dropdown
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "#E5E7EB",
+                      borderRadius: 14,
+                      height: 38,
+                      paddingHorizontal: 12,
+                      backgroundColor: "#F8FAFC",
+                    }}
+                    placeholder="Select responsible"
+                    placeholderStyle={{ fontSize: 13, color: "#9CA3AF" }}
+                    selectedTextStyle={{ fontSize: 13, color: "#111827" }}
+                    data={users}
+                    labelField="label"
+                    valueField="value"
+                    value={editingNote?.responsible}
+                    onChange={(item) =>
                       setEditingNote(
-                        (prev) =>
-                          prev && {
-                            ...prev,
-                            status: s.value as Note["status"],
-                          }
+                        (prev) => prev && { ...prev, responsible: item.value }
                       )
                     }
-                    className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
-                      active
-                        ? `${s.bg} ${s.border}`
-                        : "border-gray-300 bg-white"
-                    }`}
-                  >
-                    {/* status dot */}
-                    <View
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{
-                        backgroundColor: active ? "#fff" : s.color,
-                      }}
-                    />
+                  />
+                </View>
 
-                    {/* label */}
+                {/* Target Date */}
+                <TouchableOpacity
+                  className="flex-row items-center gap-2 border border-gray-200 rounded-2xl px-3 py-2.5 mb-4 bg-slate-50"
+                  onPress={() => setShowEditDatePicker(true)}
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+                  <Text className="text-sm text-gray-700">
+                    {editingNote?.targetDate
+                      ? editingNote.targetDate.toDateString()
+                      : "Select target date"}
+                  </Text>
+                </TouchableOpacity>
+
+                <DateTimePickerModal
+                  isVisible={showEditDatePicker}
+                  mode="date"
+                  date={editingNote?.targetDate || new Date()}
+                  onConfirm={(date) => {
+                    setShowEditDatePicker(false);
+                    setEditingNote(
+                      (prev) => prev && { ...prev, targetDate: date }
+                    );
+                  }}
+                  onCancel={() => setShowEditDatePicker(false)}
+                />
+
+                {/* ACTIONS — SCROLLABLE */}
+                <View className="flex-row justify-end gap-3 mt-2">
+                  <TouchableOpacity
+                    className="px-4 py-2 rounded-xl bg-slate-100"
+                    onPress={() => {
+                      setEditModalVisible(false);
+                      setEditingNote(null);
+                    }}
+                  >
+                    <Text className="text-slate-700 font-medium">Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="px-5 py-2 rounded-xl"
+                    style={{
+                      backgroundColor: isEditDisabled ? "#A5B4FC" : "#4F46E5",
+                    }}
+                    disabled={isEditDisabled}
+                    onPress={saveChanges}
+                  >
                     <Text
-                      className={`text-xs font-medium ${
-                        active ? "text-white" : "text-gray-700"
-                      }`}
+                      className="font-semibold"
+                      style={{
+                        color: isEditDisabled ? "#E0E7FF" : "#FFFFFF",
+                      }}
                     >
-                      {s.label}
+                      Save Changes
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* DETAILS SECTION */}
-            <Text className="text-xs font-semibold text-gray-500 mb-2">
-              DETAILS
-            </Text>
-
-            {/* Responsible */}
-            <View className="mb-3">
-              <Dropdown
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  borderRadius: 14,
-                  height: 38,
-                  paddingHorizontal: 12,
-                  backgroundColor: "#F8FAFC",
-                }}
-                placeholder="Select responsible"
-                placeholderStyle={{ fontSize: 13, color: "#9CA3AF" }}
-                selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-                data={users}
-                labelField="label"
-                valueField="value"
-                value={editingNote?.responsible}
-                onChange={(item) =>
-                  setEditingNote(
-                    (prev) => prev && { ...prev, responsible: item.value }
-                  )
-                }
-              />
-            </View>
-
-            {/* Target Date */}
-            <TouchableOpacity
-              className="flex-row items-center gap-2 border border-gray-200 rounded-2xl px-3 py-2.5 mb-4 bg-slate-50"
-              onPress={() => setShowEditDatePicker(true)}
-            >
-              <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-              <Text className="text-sm text-gray-700">
-                {editingNote?.targetDate
-                  ? editingNote.targetDate.toDateString()
-                  : "Select target date"}
-              </Text>
-            </TouchableOpacity>
-
-            <DateTimePickerModal
-              isVisible={showEditDatePicker}
-              mode="date"
-              date={editingNote?.targetDate || new Date()}
-              onConfirm={(date) => {
-                setShowEditDatePicker(false);
-                setEditingNote((prev) => prev && { ...prev, targetDate: date });
-              }}
-              onCancel={() => setShowEditDatePicker(false)}
-            />
-
-            {/* ACTIONS */}
-            <View className="flex-row justify-end gap-3 mt-2">
-              <TouchableOpacity
-                className="px-4 py-2 rounded-xl bg-slate-100"
-                onPress={() => {
-                  setEditModalVisible(false);
-                  setEditingNote(null);
-                }}
-              >
-                <Text className="text-slate-700 font-medium">Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="px-5 py-2 rounded-xl "
-                style={{
-                  backgroundColor: isEditDisabled ? "#A5B4FC" : "#4F46E5", // light vs active indigo
-                }}
-                disabled={isEditDisabled}
-                onPress={saveChanges}
-              >
-                <Text
-                  className="text-white font-semibold"
-                  style={{
-                    color: isEditDisabled ? "#E0E7FF" : "#FFFFFF",
-                  }}
-                >
-                  Save Changes
-                </Text>
-              </TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
