@@ -249,6 +249,7 @@ const CreateSupport = () => {
           </Text>
           <TextInput
             multiline
+            scrollEnabled={false} // ✅ KEY FIX
             textAlignVertical="top"
             placeholder="Write your description here..."
             placeholderTextColor="#999"
@@ -256,22 +257,8 @@ const CreateSupport = () => {
             autoCorrect={true}
             spellCheck={true}
             onChangeText={setDescription}
-            className="border border-gray-300 rounded-xl p-3 h-40 bg-gray-50 text-gray-900"
+            className="border border-gray-300 rounded-xl p-3  bg-gray-50 text-gray-900"
           />
-
-          {/* Additional Notes */}
-          {/* <Text className="text-gray-600 mb-2 mt-4">
-            Additional Notes (Optional)
-          </Text>
-          <TextInput
-            multiline
-            textAlignVertical="top"
-            placeholder="Any extra details that might help the team..."
-            placeholderTextColor="#999"
-            value={extraNotes}
-            onChangeText={setExtraNotes}
-            className="border border-gray-300 rounded-xl p-3 h-24 bg-gray-50 text-gray-900"
-          /> */}
 
           {/* Optional Image Attachment */}
           <Text className="text-gray-600 mb-2 mt-4">
