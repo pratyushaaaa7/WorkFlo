@@ -18,6 +18,7 @@ import Activity from "@/types/ILRActivity";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as FileSystem from "expo-file-system"; // for mobile download
 import * as Sharing from "expo-sharing";
+import { useILRFilterStore } from "@/store/ilrFilterStore";
 
 // import { exportILRsToExcel } from "../utils/ilrExcel";
 
@@ -51,8 +52,6 @@ const ILRs = () => {
   const [ilrs, setIlrs] = useState<ILR[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [filter, setFilter] = useState<"All" | "Open" | "Closed">("All"); // 👈 filter state
-
   useEffect(() => {
     const fetchILRs = async () => {
       if (!token || !projectId) return;
@@ -81,7 +80,8 @@ const ILRs = () => {
       setIsDownloadingExcel(true);
 
       const payload = {
-        ilrs: parsedILRs,
+        // ilrs: parsedILRs,
+        ilrs: ilrsToDownload, // 👈 CHANGED
         projectName,
         accountName: auth?.user?.fullName,
         company,
@@ -133,56 +133,25 @@ const ILRs = () => {
     }
   };
 
-  const renderCard = ({ item }: { item: ILR }) => {
-    const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
-
-    return (
-      <TouchableOpacity
-        className="bg-white rounded-xl px-4 py-3 mb-3 shadow-sm border border-gray-100"
-        onPress={() => {
-          const params = {
-            ilrId: item._id,
-            projectName,
-            description: item.description,
-            targetDate: item.targetDate,
-            remarks: item.remarks,
-            responsibility: JSON.stringify(item.responsibility),
-            status: item.status,
-            createdBy: item.createdBy?.fullName,
-            createdAt: item.createdAt,
-            ilrNumber: item.ilrNumber,
-          };
-          // console.log("ILR Card params:", params);
-          router.push({ pathname: `/ilrActivities`, params });
-        }}
-      >
-        {/* Row: Description + Status */}
-        <View className="flex-row justify-between items-start">
-          {/* Issue description */}
-          <Text
-            className="font-medium text-gray-900 text-base flex-1 mr-3"
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
-            {item.ilrNumber}. {item.description}{" "}
-            {/* <Text className="text-red-500">Delay: {item.delayDays} days</Text> */}
-          </Text>
-
-          {/* Status pill */}
-          <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-            <Text className="text-white text-xs font-semibold">
-              {item.status}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   // Inside your ILRs component
-  const [searchQuery, setSearchQuery] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  // const [filter, setFilter] = useState<"All" | "Open" | "Closed">("All"); // 👈 filter state
+  // const [searchQuery, setSearchQuery] = useState("");
+  // const [startDate, setStartDate] = useState<Date | null>(null);
+  // const [endDate, setEndDate] = useState<Date | null>(null);
+
+  const {
+    filter,
+    searchQuery,
+    startDate,
+    endDate,
+    setFilter,
+    setSearchQuery,
+    setStartDate,
+    setEndDate,
+    reset,
+  } = useILRFilterStore();
+
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
@@ -235,7 +204,8 @@ const ILRs = () => {
       setIsDownloadingPDF(true);
 
       const payload = {
-        ilrs: parsedILRs,
+        // ilrs: parsedILRs,
+        ilrs: ilrsToDownload, // 👈 CHANGED
         projectName,
         accountName: auth?.user?.fullName ?? "Unknown",
         company,
@@ -288,6 +258,108 @@ const ILRs = () => {
     }
   };
 
+  //selection
+  const [selectedILRs, setSelectedILRs] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+
+  const toggleSelection = (id: string) => {
+    setSelectedILRs((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      setSelectionMode(newSet.size > 0);
+      return newSet;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedILRs(new Set());
+    setSelectionMode(false);
+  };
+
+  const ilrsToDownload =
+    selectedILRs.size > 0
+      ? parsedILRs.filter((ilr) => selectedILRs.has(ilr._id))
+      : parsedILRs;
+
+  const renderCard = ({ item }: { item: ILR }) => {
+    const isSelected = selectedILRs.has(item._id);
+    const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
+
+    return (
+      <TouchableOpacity
+        onLongPress={() => toggleSelection(item._id)}
+        onPress={() => {
+          if (selectionMode) {
+            toggleSelection(item._id);
+          } else {
+            router.push({
+              pathname: `/ilrActivities`,
+              params: {
+                ilrId: item._id,
+                projectName,
+                description: item.description,
+                targetDate: item.targetDate,
+                remarks: item.remarks,
+                responsibility: JSON.stringify(item.responsibility),
+                status: item.status,
+                createdBy: item.createdBy?.fullName,
+                createdAt: item.createdAt,
+                ilrNumber: item.ilrNumber,
+              },
+            });
+          }
+        }}
+        activeOpacity={0.85}
+        className={`flex-row items-start rounded-2xl mb-3 border ${
+          isSelected
+            ? "bg-indigo-50 border-indigo-500"
+            : "bg-white border-gray-200"
+        }`}
+      >
+        {/* LEFT SELECTION COLUMN */}
+        {selectionMode && (
+          <View className="pl-3 pt-4">
+            <Ionicons
+              name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+              size={22}
+              color={isSelected ? "#4F46E5" : "#9CA3AF"}
+            />
+          </View>
+        )}
+
+        {/* MAIN CONTENT */}
+        <View className="flex-1 px-4 py-4">
+          {/* Top Row */}
+          <View className="flex-row justify-between items-start">
+            <Text
+              className="font-semibold text-gray-900 text-base flex-1 mr-3"
+              numberOfLines={2}
+            >
+              {item.ilrNumber}. {item.description}
+            </Text>
+
+            <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
+              <Text className="text-white text-xs font-semibold">
+                {item.status}
+              </Text>
+            </View>
+          </View>
+
+          {/* Optional Meta Row (future-ready) */}
+          {/* 
+        <Text className="text-xs text-gray-500 mt-2">
+          Created by {item.createdBy?.fullName}
+        </Text> 
+        */}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -316,6 +388,12 @@ const ILRs = () => {
               ILRs
             </Text>
           </TouchableOpacity>
+
+          {selectionMode && (
+            <Text className="text-white text-sm ml-2">
+              {selectedILRs.size} selected
+            </Text>
+          )}
 
           {/* Download Excel */}
           <TouchableOpacity
@@ -382,10 +460,8 @@ const ILRs = () => {
           {/* Reset Button */}
           <TouchableOpacity
             onPress={() => {
-              setFilter("All");
-              setStartDate(null);
-              setEndDate(null);
-              setSearchQuery("");
+              reset(); // resets ALL filters
+              clearSelection(); // if you have selection mode
             }}
             className="px-3 py-2 bg-blue-100 rounded-xl flex-row items-center shadow-sm"
           >
@@ -474,6 +550,7 @@ const ILRs = () => {
             data={filteredILRs}
             keyExtractor={(item) => item._id}
             renderItem={renderCard}
+            extraData={selectedILRs} // 👈 ADD THIS
           />
         )}
       </View>
@@ -486,11 +563,11 @@ const ILRs = () => {
           )
         }
         className="bg-indigo-600"
+        disabled={selectionMode}
         style={{
           position: "absolute",
           bottom: 44,
           right: 20,
-
           width: 56,
           height: 56,
           borderRadius: 28,
@@ -501,6 +578,7 @@ const ILRs = () => {
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.25,
           shadowRadius: 3,
+          opacity: selectionMode ? 0 : 1,
         }}
       >
         <Ionicons name="add" size={30} color="white" />

@@ -73,8 +73,6 @@ const ProjectStage: React.FC = () => {
     fetchStages();
   }, [projectId, token]);
 
-
-
   return (
     <View className="flex-1 bg-gray-100">
       <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
@@ -91,7 +89,12 @@ const ProjectStage: React.FC = () => {
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={{ padding: 12 }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: 12,
+          paddingBottom: 40, // 👈 extra bottom space
+        }}
+      >
         <TouchableOpacity
           onPress={() =>
             router.push({

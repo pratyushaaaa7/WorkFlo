@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, memo , useCallback} from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,7 +11,7 @@ import * as Haptics from "expo-haptics";
 import Modal from "react-native-modal";
 import api from "@/lib/api";
 import { AuthContext } from "@/context/AuthContext";
-import uuid from 'react-native-uuid';
+import uuid from "react-native-uuid";
 
 const uiId = uuid.v4().toString();
 
@@ -60,48 +60,57 @@ const Header = ({ title, onBack }: { title: string; onBack: () => void }) => (
 );
 
 // ------------------- Stage Item -------------------
-const StageItem = ({ item, number, toggleStage, drag, isActive }: any) => (
-  <ScaleDecorator>
-    <TouchableOpacity
-      onLongPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        drag();
-      }}
-      disabled={isActive}
-      delayLongPress={120} // 👈 Reduced long press duration
-      className={`flex-row items-center p-3 my-2 rounded-xl border ${
-        isActive ? "bg-purple-100" : "bg-white"
-      } border-gray-200 shadow-sm`}
-    >
-      <MaterialCommunityIcons
-        name="drag"
-        size={24}
-        color="#9CA3AF"
-        className="mr-3"
-      />
+const StageItem = memo(
+  ({ item, number, toggleStage, drag, isActive }: any) => {
+    return (
+      <ScaleDecorator>
+        <TouchableOpacity
+          onLongPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            drag();
+          }}
+          disabled={isActive}
+          delayLongPress={120}
+          className={`flex-row items-center p-3 my-2 rounded-xl border ${
+            isActive ? "bg-purple-100" : "bg-white"
+          } border-gray-200 shadow-sm`}
+        >
+          <MaterialCommunityIcons
+            name="drag"
+            size={24}
+            color="#9CA3AF"
+            className="mr-3"
+          />
 
-      <TouchableOpacity
-        onPress={() => {
-          Haptics.selectionAsync();
-          toggleStage(item.uiId);
-        }}
-      >
-        <MaterialCommunityIcons
-          name={item.selected ? "checkbox-marked" : "checkbox-blank-outline"}
-          size={24}
-          color={item.selected ? "#4F46E5" : "#9CA3AF"}
-          className="mr-3"
-        />
-      </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.selectionAsync();
+              toggleStage(item.uiId);
+            }}
+          >
+            <MaterialCommunityIcons
+              name={
+                item.selected ? "checkbox-marked" : "checkbox-blank-outline"
+              }
+              size={24}
+              color={item.selected ? "#4F46E5" : "#9CA3AF"}
+              className="mr-3"
+            />
+          </TouchableOpacity>
 
-      <View className="w-7 h-7 rounded-full bg-indigo-500 items-center justify-center mr-3">
-        <Text className="text-white font-semibold">{number ?? "-"}</Text>
-      </View>
+          <View className="w-7 h-7 rounded-full bg-indigo-500 items-center justify-center mr-3">
+            <Text className="text-white font-semibold">{number ?? "-"}</Text>
+          </View>
 
-      <Text className="text-base flex-1">{item.name}</Text>
-    </TouchableOpacity>
-  </ScaleDecorator>
+          <Text className="text-base flex-1">{item.name}</Text>
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
+  }
 );
+
+StageItem.displayName = "StageItem";
+
 
 // ------------------- Draggable Stage List -------------------
 const DraggableStageList = ({ stageList, setStageList, toggleStage }: any) => {
@@ -202,7 +211,7 @@ const AddStageModal = ({
         />
 
         {/* Buttons */}
-        <View className="flex-row justify-between">
+        <View className="flex-row pb-10 justify-between">
           <TouchableOpacity
             onPress={onClose}
             className="flex-1 mr-2 bg-gray-100 rounded-xl py-3 items-center justify-center"
@@ -262,7 +271,7 @@ export default function ManageStages() {
         // If DB already has saved stages → use them
         if (dbStages.length > 0) {
           const mapped = dbStages.map((stage: any) => ({
-             uiId: uuid.v4().toString(), // ← updated
+            uiId: uuid.v4().toString(), // ← updated
             _id: stage._id, // 🔐 protected
             name: stage.title,
             order: stage.order,
@@ -292,11 +301,12 @@ export default function ManageStages() {
     loadStages();
   }, [projectId, company, token]);
 
-  const toggleStage = (uiId: string) => {
-    setStageList((prev) =>
-      prev.map((s) => (s.uiId === uiId ? { ...s, selected: !s.selected } : s))
-    );
-  };
+const toggleStage = useCallback((uiId: string) => {
+  setStageList((prev) =>
+    prev.map((s) => (s.uiId === uiId ? { ...s, selected: !s.selected } : s))
+  );
+}, []);
+
 
   const addCustomStage = () => {
     if (!newStage.trim()) return;
@@ -338,7 +348,7 @@ export default function ManageStages() {
         }
       );
 
-      console.log("Stages saved:", response.data);
+      // console.log("Stages saved:", response.data);
 
       router.back(); // go back
     } catch (error) {
@@ -347,10 +357,10 @@ export default function ManageStages() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-100">
       <Header title="Manage Stages" onBack={() => router.back()} />
 
-      <View className="flex-1 p-4">
+      <View className="flex-1 px-4">
         <DraggableStageList
           stageList={stageList}
           setStageList={setStageList}
@@ -358,21 +368,23 @@ export default function ManageStages() {
         />
       </View>
 
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        className="m-4 bg-emerald-500 py-4 rounded-xl items-center"
-      >
-        <Text className="text-white font-semibold text-lg">
-          Add Custom Stage
-        </Text>
-      </TouchableOpacity>
+      <View className="bg-white rounded-t-2xl ">
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          className="m-4 bg-emerald-500 py-4 rounded-xl items-center"
+        >
+          <Text className="text-white font-semibold text-lg">
+            Add Custom Stage
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={saveStages}
-        className="mx-4 mb-4 bg-indigo-600 py-4 rounded-xl items-center"
-      >
-        <Text className="text-white font-semibold text-lg">Save Stages</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={saveStages}
+          className="mx-4 mb-16 bg-indigo-600 py-4 rounded-xl items-center"
+        >
+          <Text className="text-white font-semibold text-lg">Save Stages</Text>
+        </TouchableOpacity>
+      </View>
 
       <AddStageModal
         visible={modalVisible}
