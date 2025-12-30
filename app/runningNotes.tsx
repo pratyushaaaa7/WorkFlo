@@ -39,9 +39,11 @@ const handleDownloadRunningNotesExcel = async (
   projectId: string,
   projectName: string,
   company: string,
-  token: string
+  token: string,
+  setDownloadingExcel: (v: boolean) => void
 ) => {
   try {
+    setDownloadingExcel(true); // 👈 START LOADER
     const payload = {
       projectId,
       projectName, // send to backend
@@ -50,7 +52,7 @@ const handleDownloadRunningNotesExcel = async (
 
     const response = await api.post(
       `/running-notes/export`,
-      { projectId, projectName, company},
+      { projectId, projectName, company },
       { responseType: "blob", headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -92,6 +94,8 @@ const handleDownloadRunningNotesExcel = async (
   } catch (err) {
     console.error("Excel download error:", err);
     alert("Failed to download Running Notes");
+  } finally {
+    setDownloadingExcel(false); // 👈 STOP LOADER
   }
 };
 
@@ -167,6 +171,8 @@ const RunningNotes = () => {
 
   const [responsible, setResponsible] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
+
   // const [showAddDatePicker, setShowAddDatePicker] = useState(false);
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
 
@@ -495,17 +501,25 @@ const RunningNotes = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            disabled={downloadingExcel}
             onPress={() =>
               handleDownloadRunningNotesExcel(
                 projectId as string,
                 projectName as string,
                 company as string,
-                token as string
+                token as string,
+                setDownloadingExcel
               )
             }
-            className="p-2 rounded-full bg-white/20"
+            className={`p-2 rounded-full ${
+              downloadingExcel ? "bg-white/10" : "bg-white/20"
+            }`}
           >
-            <Ionicons name="download-outline" size={22} color="#fff" />
+            {downloadingExcel ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="download-outline" size={22} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
       </LinearGradient>
