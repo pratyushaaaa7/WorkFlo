@@ -329,6 +329,7 @@ const ILRForm = () => {
                 onChangeText={(text) => updateIssue(index, "description", text)}
                 className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base"
                 placeholderTextColor="#999"
+                multiline
               />
 
               <TouchableOpacity onPress={() => openDatePicker(index)}>
@@ -404,6 +405,7 @@ const ILRForm = () => {
                 onChangeText={(text) => updateIssue(index, "remarks", text)}
                 className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base"
                 placeholderTextColor="#999"
+                multiline
               />
             </View>
 
