@@ -174,7 +174,7 @@ export default function DrawerLayout() {
         }}
       />
 
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="masterUserDirectory"
         options={{
           drawerLabel: "Master User Directory",
@@ -187,7 +187,7 @@ export default function DrawerLayout() {
             />
           ),
         }}
-      />
+      /> */}
     </Drawer>
   );
 }

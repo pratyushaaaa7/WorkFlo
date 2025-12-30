@@ -8,9 +8,10 @@ import {
   TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { AuthContext } from "../../context/AuthContext"; // JWT context
-import api from "../../lib/api";
+import { AuthContext } from "../context/AuthContext"; // JWT context
+import api from "../lib/api";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function UserDirectoryScreen() {
   const auth = useContext(AuthContext);
@@ -47,8 +48,8 @@ export default function UserDirectoryScreen() {
         u.individualName?.toLowerCase().includes(q) ||
         u.userCode?.toString().toLowerCase().includes(q) ||
         u.firmName?.toLowerCase().includes(q) ||
-        u.expertiseList?.some((e:any) => e.toLowerCase().includes(q)) ||
-        u.designationList?.some((d:any) => d.toLowerCase().includes(q))
+        u.expertiseList?.some((e: any) => e.toLowerCase().includes(q)) ||
+        u.designationList?.some((d: any) => d.toLowerCase().includes(q))
       );
     });
   }, [searchQuery, users]);
@@ -103,38 +104,54 @@ export default function UserDirectoryScreen() {
   );
 
   return (
-    <View className="flex-1 bg-gray-50 p-4">
-      <View className="mb-4">
-        <View className="flex-row items-center bg-white rounded-xl px-4 py-2 shadow-sm">
-          <Ionicons name="search" size={20} color="#6B7280" />
-          <TextInput
-            placeholder="Search users..."
-            placeholderTextColor="#9CA3AF"
-            className="ml-2 flex-1 text-gray-900"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
+    <>
+      {/* Header */}
+      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
+          <TouchableOpacity
+            onPress={() => router.push("/(drawer)/centralUserDirectory")}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Text className="text-xl font-semibold text-white ml-4">
+              Central Directory
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </LinearGradient>
+      <View className="flex-1 bg-gray-50 p-4">
+        <View className="mb-4">
+          <View className="flex-row items-center bg-white rounded-xl px-4 py-2 shadow-sm">
+            <Ionicons name="search" size={20} color="#6B7280" />
+            <TextInput
+              placeholder="Search users..."
+              placeholderTextColor="#9CA3AF"
+              className="ml-2 flex-1 text-gray-900"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#4F46E5" className="mt-10" />
-      ) : (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item) => item._id}
-          renderItem={renderUser}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+        {loading ? (
+          <ActivityIndicator size="large" color="#4F46E5" className="mt-10" />
+        ) : (
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item) => item._id}
+            renderItem={renderUser}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
-      {/* Floating + Button */}
-      {/* <TouchableOpacity
+        {/* Floating + Button */}
+        {/* <TouchableOpacity
         className="bg-indigo-600"
         style={{
           position: "absolute",
@@ -154,6 +171,7 @@ export default function UserDirectoryScreen() {
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity> */}
-    </View>
+      </View>
+    </>
   );
 }

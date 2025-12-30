@@ -46,6 +46,7 @@ export default function CentralUserDirectory() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
       >
+        
         {tabs.map((tab, idx) => (
           <TouchableOpacity
             key={idx}
@@ -110,8 +111,71 @@ export default function CentralUserDirectory() {
             </View>
             <Entypo name="chevron-right" size={26} color="#6B7280" />
           </TouchableOpacity>
+
+          
         ))}
+
+         {/* 🔹 VIEW ALL USERS */}
+        {/* 🔥 VIEW ALL USERS (PRIMARY ACTION) */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.push("/masterUserDirectory")}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            padding: 22,
+            borderRadius: 24,
+            backgroundColor: "#0F172A", // slate-900
+            marginBottom: 28,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: 8,
+            elevation: 6,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#1E293B",
+              padding: 14,
+              borderRadius: 18,
+              marginRight: 16,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="account-multiple-outline"
+              size={30}
+              color="#E5E7EB"
+            />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "800",
+                color: "#FFFFFF",
+                marginBottom: 4,
+              }}
+            >
+              View All
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#CBD5E1",
+              }}
+            >
+              Browse complete central directory
+            </Text>
+          </View>
+
+          <Entypo name="chevron-right" size={26} color="#E5E7EB" />
+        </TouchableOpacity>
+
       </ScrollView>
+
+      
 
       {/* Floating Add Button */}
       <TouchableOpacity
