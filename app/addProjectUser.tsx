@@ -1,5 +1,11 @@
 // app/(drawer)/addProjectUsers.tsx
-import React, { useEffect, useState, useContext } from "react";
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -22,12 +28,20 @@ type DirectoryUser = {
   firmName: string;
   emailList?: string[];
   role?: string;
-  averageRating?: any;
+  averageRating?: number;
+  alreadyAdded?: boolean;
 };
+
+const roleOptions = [
+  { label: "Vendor", value: "Vendor" },
+  { label: "Consultant", value: "Consultant" },
+  { label: "Client", value: "Client" },
+];
+
+const ITEM_HEIGHT = 92;
 
 export default function AddProjectUsersPage() {
   const { projectId } = useLocalSearchParams();
-  console.log(projectId);
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const router = useRouter();
@@ -37,7 +51,15 @@ export default function AddProjectUsersPage() {
     { user: DirectoryUser; role: string }[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
+  /* ------------------ DEBOUNCE SEARCH ------------------ */
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 250);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  /* ------------------ FETCH USERS ------------------ */
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -49,28 +71,18 @@ export default function AddProjectUsersPage() {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
+
         const projectUserIds = (
           projectUsersRes.data.project?.projectUsers || []
         ).map((u: any) => u.directoryUser._id);
 
-        console.log(
-          "Project users response:",
-          projectUsersRes.data.projectUsers
-        );
-
-        // Attach flag
         const usersWithStatus = allUsersRes.data.map((u: DirectoryUser) => ({
           ...u,
           alreadyAdded: projectUserIds.includes(u._id),
         }));
 
         setUsers(usersWithStatus);
-      } catch (err) {
-        console.error("❌ Fetch users error:");
-        console.log("Message:", err.message);
-        // console.log("Config:", err.config?.url, err.config?.headers);
-        // console.log("Response:", err.response?.status, err.response?.data);
-
+      } catch {
         Toast.show({
           type: "error",
           text1: "Error",
@@ -83,26 +95,58 @@ export default function AddProjectUsersPage() {
     fetchUsers();
   }, []);
 
-  const toggleUserSelection = (user: DirectoryUser) => {
-    const exists = selectedUsers.find((u) => u.user._id === user._id);
-    if (exists) {
-      setSelectedUsers(selectedUsers.filter((u) => u.user._id !== user._id));
-    } else {
-      setSelectedUsers([
-        ...selectedUsers,
-        { user, role: user.role || "Member" },
-      ]);
-    }
-  };
+  /* ------------------ SELECTION MAP ------------------ */
+  const selectedUserMap = useMemo(() => {
+    const map = new Map<string, { user: DirectoryUser; role: string }>();
+    selectedUsers.forEach((u) => map.set(u.user._id, u));
+    return map;
+  }, [selectedUsers]);
 
-  const updateUserRole = (userId: string, newRole: string) => {
+  /* ------------------ FILTER USERS ------------------ */
+  const filteredUsers = useMemo(() => {
+    const q = debouncedQuery.toLowerCase();
+
+    return users.filter((u) => {
+      if (u.alreadyAdded) return false;
+
+      const name = (u.individualName || "").toLowerCase();
+      const firm = (u.firmName || "").toLowerCase();
+      const email = (u.emailList?.[0] || "").toLowerCase();
+
+      return name.includes(q) || firm.includes(q) || email.includes(q);
+    });
+  }, [users, debouncedQuery]);
+
+  /* ------------------ ACTIONS ------------------ */
+  const toggleUserSelection = useCallback(
+    (user: DirectoryUser) => {
+      const exists = selectedUserMap.has(user._id);
+
+      if (exists) {
+        setSelectedUsers((prev) =>
+          prev.filter((u) => u.user._id !== user._id)
+        );
+      } else {
+        setSelectedUsers((prev) => [
+          ...prev,
+          { user, role: user.role || "Member" },
+        ]);
+      }
+    },
+    [selectedUserMap]
+  );
+
+  const updateUserRole = useCallback((userId: string, newRole: string) => {
     setSelectedUsers((prev) =>
-      prev.map((u) => (u.user._id === userId ? { ...u, role: newRole } : u))
+      prev.map((u) =>
+        u.user._id === userId ? { ...u, role: newRole } : u
+      )
     );
-  };
+  }, []);
 
+  /* ------------------ SUBMIT ------------------ */
   const handleSubmit = async () => {
-    if (selectedUsers.length === 0) {
+    if (!selectedUsers.length) {
       return Toast.show({
         type: "error",
         text1: "Validation",
@@ -141,32 +185,116 @@ export default function AddProjectUsersPage() {
     }
   };
 
-  const roleOptions = [
-    { label: "Vendor", value: "Vendor" },
-    { label: "Consultant", value: "Consultant" },
+  /* ------------------ RENDER ITEM ------------------ */
+  const renderItem = useCallback(
+    ({ item }: { item: DirectoryUser }) => {
+      const selectedUser = selectedUserMap.get(item._id);
+      const isSelected = !!selectedUser;
 
-    { label: "Client", value: "Client" },
-  ];
+      return (
+        <TouchableOpacity
+          onPress={() => toggleUserSelection(item)}
+          className="bg-white px-4 py-3 mb-3 rounded-2xl"
+          activeOpacity={0.9}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-3">
+              <Text className="font-semibold text-gray-900 text-base" numberOfLines={1}>
+                {item.individualName || item.firmName}
+                {item.individualName && item.firmName && (
+                  <Text className="text-gray-500 font-normal text-sm">
+                    {" "}• {item.firmName}
+                  </Text>
+                )}
+              </Text>
 
-  const filteredUsers = users.filter((u) => {
-    if (u.alreadyAdded) return false; // 🚀 hide users already in project
+              <View className="flex-row items-center mt-1">
+                {item.averageRating && item.averageRating > 0 ? (
+                  <>
+                    {[...Array(5)].map((_, i) => {
+                      const filled = Math.floor(item.averageRating!);
+                      const half = item.averageRating! - filled >= 0.5;
 
-    const name = (u.individualName || u.firmName || "").toLowerCase();
-    const email = (u.emailList?.[0] || "").toLowerCase();
-    return (
-      name.includes(searchQuery.toLowerCase()) ||
-      email.includes(searchQuery.toLowerCase())
-    );
-  });
+                      return (
+                        <Ionicons
+                          key={i}
+                          size={16}
+                          color="#FACC15"
+                          name={
+                            i < filled
+                              ? "star"
+                              : i === filled && half
+                              ? "star-half"
+                              : "star-outline"
+                          }
+                        />
+                      );
+                    })}
+                    <Text className="ml-2 text-gray-700 text-sm font-semibold">
+                      {item.averageRating.toFixed(1)} / 5
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-gray-400 text-sm italic">
+                    No rating available
+                  </Text>
+                )}
+              </View>
+            </View>
 
+            {isSelected && (
+              <View className="w-32 mr-3">
+                <Dropdown
+                  style={{
+                    height: 36,
+                    borderColor: "#E2E8F0",
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    paddingHorizontal: 6,
+                  }}
+                  placeholderStyle={{ fontSize: 12, color: "#9CA3AF" }}
+                  selectedTextStyle={{ fontSize: 12, color: "#111827" }}
+                  containerStyle={{ borderRadius: 8, borderColor: "#E2E8F0" }}
+                  activeColor="#E0E7FF"
+                  itemTextStyle={{ fontSize: 12, color: "#374151" }}
+                  data={roleOptions}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Role"
+                  value={selectedUser?.role}
+                  onChange={(roleItem) =>
+                    updateUserRole(item._id, roleItem.value)
+                  }
+                />
+              </View>
+            )}
+
+            <Checkbox
+              status={isSelected ? "checked" : "unchecked"}
+              onPress={() => toggleUserSelection(item)}
+              color="#4F46E5"
+            />
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [selectedUserMap, toggleUserSelection, updateUserRole]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
+  /* ------------------ UI ------------------ */
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Header */}
       <View className="pt-16 px-4 pb-4 bg-white shadow-sm">
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center"
-        >
+        <Pressable onPress={() => router.back()} className="flex-row items-center">
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
           <Text className="ml-4 text-xl font-semibold text-[#1E293B]">
             Add contact to directory
@@ -174,135 +302,29 @@ export default function AddProjectUsersPage() {
         </Pressable>
       </View>
 
-      {/* Search Bar */}
       <View className="flex-row items-center bg-white mx-4 my-3 px-3 py-2 rounded-xl shadow-lg">
         <Ionicons name="search" size={18} color="#6B7280" />
         <TextInput
           className="flex-1 ml-2 text-gray-800"
           placeholder="Search users..."
-          placeholderTextColor={"#777"}
+          placeholderTextColor="#777"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
-      {/* User List */}
       <FlatList
         data={filteredUsers}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }}
-        renderItem={({ item }) => {
-          const isSelected = selectedUsers.some((u) => u.user._id === item._id);
-          const selectedUser = selectedUsers.find(
-            (u) => u.user._id === item._id
-          );
-
-          return (
-            <TouchableOpacity
-              onPress={() => toggleUserSelection(item)}
-              className="bg-white px-4 py-3 mb-3  rounded-2xl "
-              activeOpacity={0.9}
-            >
-              <View className="flex-row items-center justify-between">
-                {/* User Info */}
-                <View className="flex-1 pr-3">
-                  <Text className="font-semibold text-gray-900 text-base">
-                    {item.individualName || item.firmName}
-                  </Text>
-
-                  {/* Star Rating */}
-                  <View className="flex-row items-center mt-1">
-                    {item.averageRating && item.averageRating > 0 ? (
-                      <>
-                        {[...Array(5)].map((_, i) => {
-                          const filledStars = Math.floor(item.averageRating);
-                          const hasHalfStar =
-                            item.averageRating - filledStars >= 0.5;
-                          if (i < filledStars) {
-                            return (
-                              <Ionicons
-                                key={i}
-                                name="star"
-                                size={16}
-                                color="#FACC15"
-                              />
-                            );
-                          } else if (i === filledStars && hasHalfStar) {
-                            return (
-                              <Ionicons
-                                key={i}
-                                name="star-half"
-                                size={16}
-                                color="#FACC15"
-                              />
-                            );
-                          } else {
-                            return (
-                              <Ionicons
-                                key={i}
-                                name="star-outline"
-                                size={16}
-                                color="#FACC15"
-                              />
-                            );
-                          }
-                        })}
-                        <Text className="ml-2 text-gray-700 text-sm font-semibold">
-                          {item.averageRating.toFixed(1)} / 5
-                        </Text>
-                      </>
-                    ) : (
-                      <Text className="text-gray-400 text-sm italic">
-                        No rating available
-                      </Text>
-                    )}
-                  </View>
-                </View>
-
-                {/* Role Dropdown (only when selected) */}
-                {isSelected && (
-                  <View className="w-32 mr-3">
-                    <Dropdown
-                      style={{
-                        height: 36,
-                        borderColor: "#E2E8F0",
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        paddingHorizontal: 6,
-                      }}
-                      placeholderStyle={{ fontSize: 12, color: "#9CA3AF" }}
-                      selectedTextStyle={{ fontSize: 12, color: "#111827" }}
-                      containerStyle={{
-                        borderRadius: 8,
-                        borderColor: "#E2E8F0",
-                      }}
-                      activeColor="#E0E7FF"
-                      itemTextStyle={{ fontSize: 12, color: "#374151" }}
-                      data={roleOptions}
-                      labelField="label"
-                      valueField="value"
-                      placeholder="Role"
-                      value={selectedUser?.role}
-                      onChange={(roleItem) =>
-                        updateUserRole(item._id, roleItem.value)
-                      }
-                    />
-                  </View>
-                )}
-
-                {/* Checkbox */}
-                <Checkbox
-                  status={isSelected ? "checked" : "unchecked"}
-                  onPress={() => toggleUserSelection(item)}
-                  color="#4F46E5"
-                />
-              </View>
-            </TouchableOpacity>
-          );
-        }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+        initialNumToRender={12}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews
+        getItemLayout={getItemLayout}
+        renderItem={renderItem}
       />
 
-      {/* Save Button */}
       <View className="absolute bottom-0 left-0 right-0 p-2 bg-white shadow-lg">
         <TouchableOpacity
           onPress={handleSubmit}
