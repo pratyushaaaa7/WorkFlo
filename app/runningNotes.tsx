@@ -31,6 +31,69 @@ import { AuthContext } from "../context/AuthContext";
 import { Swipeable } from "react-native-gesture-handler";
 import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+
+//Download the excel of notes
+const handleDownloadRunningNotesExcel = async (
+  projectId: string,
+  projectName: string,
+  company: string,
+  token: string
+) => {
+  try {
+    const payload = {
+      projectId,
+      projectName, // send to backend
+      company, // send to backend
+    };
+
+    const response = await api.post(
+      `/running-notes/export`,
+      { projectId, projectName, company},
+      { responseType: "blob", headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const fileName = `RunningNotes_${projectName}.xlsx`;
+
+    if (Platform.OS === "web") {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } else {
+      const blobToBase64 = (blob: Blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () =>
+            resolve(reader.result?.toString().split(",")[1] || "");
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+      const base64data = await blobToBase64(response.data);
+      const fileUri = FileSystem.cacheDirectory + fileName;
+
+      await FileSystem.writeAsStringAsync(fileUri, base64data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await Sharing.shareAsync(fileUri, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share Running Notes",
+        UTI: "com.microsoft.excel.xlsx",
+      });
+    }
+  } catch (err) {
+    console.error("Excel download error:", err);
+    alert("Failed to download Running Notes");
+  }
+};
 
 const formatDate = (date: Date) => {
   const d = String(date.getDate()).padStart(2, "0");
@@ -157,7 +220,7 @@ const RunningNotes = () => {
         createdAt: new Date(note.createdAt),
       }));
       setNotes(formattedNotes);
-      console.log(formattedNotes);
+      // console.log(formattedNotes);
     } catch (err) {
       console.log("Error fetching notes:", err);
     } finally {
@@ -417,7 +480,7 @@ const RunningNotes = () => {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <LinearGradient colors={["#4F46E5", "#6366F1"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center">
+        <View className="pt-16 pb-6 px-4 flex-row justify-between  items-center">
           <TouchableOpacity
             onPress={() =>
               router.push(
@@ -430,6 +493,19 @@ const RunningNotes = () => {
             <Text className="text-white text-xl font-semibold ml-3">
               Running Notes
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              handleDownloadRunningNotesExcel(
+                projectId as string,
+                projectName as string,
+                company as string,
+                token as string
+              )
+            }
+            className="p-2 rounded-full bg-white/20"
+          >
+            <Ionicons name="download-outline" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </LinearGradient>
