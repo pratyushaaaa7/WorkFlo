@@ -40,6 +40,7 @@ type ILR = {
   status: "Open" | "Closed";
   createdBy: { _id: string; username: string; fullName: string }; // 👈 add this
   createdAt: string; // 👈 add this
+  updatedAt: string; // 👈 add this
   delayDays?: number; // 👈 add this
 };
 
@@ -155,16 +156,25 @@ const ILRs = () => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  const [reviewDate, setReviewDate] = useState<Date | null>(null);
+  const [showReviewPicker, setShowReviewPicker] = useState(false);
+
   const filteredILRs = ilrs.filter((ilr) => {
-    // 1️⃣ Filter by status
+    // 1 Filter by status
     if (filter !== "All" && ilr.status !== filter) return false;
 
-    // 2️⃣ Filter by date range
+    // 2 Review Date (UPDATED ON)
+    if (reviewDate) {
+      const updated = new Date(ilr.updatedAt);
+      if (updated.toDateString() !== reviewDate.toDateString()) return false;
+    }
+
+    // 3 Filter by date range
     const target = new Date(ilr.targetDate);
     if (startDate && target < startDate) return false;
     if (endDate && target > endDate) return false;
 
-    // 3️⃣ Filter by search query
+    // 4 Filter by search query
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const responsibilityMatch = ilr.responsibility.some((r) =>
@@ -461,6 +471,7 @@ const ILRs = () => {
           <TouchableOpacity
             onPress={() => {
               reset(); // resets ALL filters
+              setReviewDate(null);   
               clearSelection(); // if you have selection mode
             }}
             className="px-3 py-2 bg-blue-100 rounded-xl flex-row items-center shadow-sm"
@@ -494,6 +505,29 @@ const ILRs = () => {
             <Ionicons name="calendar-outline" size={20} color="#4B5563" />
           </TouchableOpacity>
         </View>
+
+        {/* Review Date Picker */}
+        <TouchableOpacity
+          className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-300 flex-row items-center justify-between"
+          onPress={() => setShowReviewPicker(true)}
+        >
+          <Text className="text-gray-600">
+            {reviewDate
+              ? `Review on: ${reviewDate.toLocaleDateString()}`
+              : "Filter by Review Date"}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color="#4B5563" />
+        </TouchableOpacity>
+
+        <DateTimePickerModal
+          isVisible={showReviewPicker}
+          mode="date"
+          onConfirm={(date) => {
+            setReviewDate(date);
+            setShowReviewPicker(false);
+          }}
+          onCancel={() => setShowReviewPicker(false)}
+        />
 
         {/* Search Bar */}
         <View className="bg-white rounded-xl shadow-sm border border-gray-300 flex-row items-center px-3 ">
