@@ -524,7 +524,7 @@ const RunningNotes = () => {
         </View>
       </LinearGradient>
 
-      {/* <AddNoteCard
+      {/* <AddNoteCard/
         users={users}
         onAdd={async ({ noteText, status, responsible, targetDate }) => {
           if (!token || !projectId) return;
