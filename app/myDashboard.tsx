@@ -37,6 +37,8 @@ const Dashboard = () => {
   const [myProjects, setMyProjects] = useState<any[]>([]);
   const [myILRs, setMyILRs] = useState<any[]>([]);
   const [myMeetings, setMyMeetings] = useState<any[]>([]);
+  const [myRunningNotes, setMyRunningNotes] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   // --- Fetch user info ---
@@ -78,11 +80,12 @@ const Dashboard = () => {
         });
 
         const data = res.data;
-
+        console.log(data);
         if (data.success) {
           setMyProjects(data.myProjects || []);
           setMyILRs(data.myILRs || []);
           setMyMeetings(data.myMeetings || []);
+          setMyRunningNotes(data.myRunningNotes || []);
         } else {
           Toast.show({
             type: "error",
@@ -168,6 +171,34 @@ const Dashboard = () => {
     </Pressable>
   );
 
+  const renderRunningNote = (item: any) => (
+    <Pressable
+      key={item._id}
+      // onPress={() =>
+      //   router.push({
+      //     pathname: "/runningNoteDetail",
+      //     params: {
+      //       noteId: item._id,
+      //       text: item.text,
+      //       status: item.status,
+      //       targetDate: item.targetDate,
+      //       projectName: item.projectName || item.project?.name,
+      //       responsibleName: item.responsibleName || "",
+      //     },
+      //   })
+      // }
+      className="bg-white p-4 rounded-xl shadow mb-3"
+    >
+      <Text className="font-semibold text-gray-800">
+        {item.projectName || "No Project"}
+      </Text>
+      <Text className="text-gray-600">{item.text}</Text>
+      <Text className="text-sm text-gray-500 mt-1">
+        Status: {item.status} | Responsible: {item.responsibleName}
+      </Text>
+    </Pressable>
+  );
+
   return (
     <View className="flex-1 bg-gray-50 ">
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
@@ -204,6 +235,18 @@ const Dashboard = () => {
           {/* Meetings */}
           <Text className="text-lg font-semibold mb-2 mt-4">My Meetings</Text>
           {myMeetings.map(renderMeeting)}
+
+          {/* Running Notes */}
+          <Text className="text-lg font-semibold mb-2 mt-4">
+            My Running Notes
+          </Text>
+          {myRunningNotes.length > 0 ? (
+            myRunningNotes.map(renderRunningNote)
+          ) : (
+            <Text className="text-gray-500 mb-3">
+              No running notes assigned.
+            </Text>
+          )}
         </ScrollView>
       )}
     </View>

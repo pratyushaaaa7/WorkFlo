@@ -305,7 +305,7 @@ const CompanyProjectSelectionScreen = () => {
           <Text className="text-white font-bold text-base">Enter</Text>
         </TouchableOpacity>
 
-        {/* <TouchableOpacity
+        <TouchableOpacity
           className="mt-8 shadow-lg rounded-3xl border border-indigo-700 overflow-hidden"
           activeOpacity={0.8}
           style={{ borderColor: "#4338ca", height: 100 }}
@@ -349,7 +349,7 @@ const CompanyProjectSelectionScreen = () => {
               </Text>
             </View>
           </View>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
