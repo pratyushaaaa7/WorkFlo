@@ -53,6 +53,33 @@ const DPRs = () => {
     }
   };
 
+  // const handleDeleteDPR = async (dprId: string) => {
+  //   Alert.alert("Delete DPR", "Are you sure you want to delete this DPR?", [
+  //     { text: "Cancel", style: "cancel" },
+  //     {
+  //       text: "Delete",
+  //       style: "destructive",
+  //       onPress: async () => {
+  //         try {
+  //           await api.delete(`/dpr/${dprId}`, {
+  //             headers: {
+  //               Authorization: `Bearer ${token}`,
+  //             },
+  //           });
+
+  //           Alert.alert("Success", "DPR deleted successfully");
+
+  //           // Refresh list
+  //           fetchDPRs();
+  //         } catch (error) {
+  //           console.error("Delete DPR failed:", error);
+  //           Alert.alert("Error", "Failed to delete DPR");
+  //         }
+  //       },
+  //     },
+  //   ]);
+  // };
+
   // ✅ Upload a new DPR
   // const handleUploadDPR = async () => {
   //   try {
@@ -95,6 +122,7 @@ const DPRs = () => {
   // };
 
   // ✅ Open PDF in browser
+
   const openPDF = (url: any) => {
     Linking.openURL(url).catch(() =>
       Alert.alert("Error", "Unable to open PDF link")
