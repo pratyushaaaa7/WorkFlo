@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext , useRef} from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import Toast from "react-native-toast-message";
+import { useScrollStore } from "@/store/meetingScrollStore";
 
 const capitalizeFirst = (str: string) => {
   if (!str) return "";
@@ -142,6 +143,27 @@ const MinutesDetail = () => {
 
     setIsEditAllowed(diffMs <= THIRTY_MIN);
   }, [meeting]);
+
+  const setMinutesScrollY = useScrollStore((s) => s.setMinutesScrollY);
+
+  const minutesScrollY = useScrollStore(
+  (s) => s.minutesScrollY
+);
+
+const scrollRef = useRef<ScrollView>(null);
+
+
+useEffect(() => {
+  if (!meeting) return;
+
+  requestAnimationFrame(() => {
+    scrollRef.current?.scrollTo({
+      y: minutesScrollY,
+      animated: false,
+    });
+  });
+}, [meeting]);
+
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -280,10 +302,18 @@ const MinutesDetail = () => {
             )}
           </TouchableOpacity>
         </View>
+        
       </LinearGradient>
 
       {/* Content */}
-      <ScrollView className="p-2  ">
+      <ScrollView
+        className="p-2  "
+        ref={scrollRef}
+        onScroll={(e) => {
+          setMinutesScrollY(e.nativeEvent.contentOffset.y);
+        }}
+        scrollEventThrottle={16}
+      >
         {/* Date & Time */}
         <View className="bg-white rounded-2xl p-5 mb-3 shadow-md border border-gray-100">
           {/* Date & Time Row */}
