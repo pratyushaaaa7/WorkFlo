@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext , useRef} from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   View,
   Text,
@@ -144,26 +144,24 @@ const MinutesDetail = () => {
     setIsEditAllowed(diffMs <= THIRTY_MIN);
   }, [meeting]);
 
-  const setMinutesScrollY = useScrollStore((s) => s.setMinutesScrollY);
+  const setScrollForMeeting = useScrollStore((s) => s.setScrollForMeeting);
+  const getScrollForMeeting = useScrollStore((s) => s.getScrollForMeeting);
 
-  const minutesScrollY = useScrollStore(
-  (s) => s.minutesScrollY
-);
+  // Get scroll for current meeting
+  const minutesScrollY = getScrollForMeeting(meetingId as string);
 
-const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
+  useEffect(() => {
+    if (!meeting) return;
 
-useEffect(() => {
-  if (!meeting) return;
-
-  requestAnimationFrame(() => {
-    scrollRef.current?.scrollTo({
-      y: minutesScrollY,
-      animated: false,
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        y: minutesScrollY,
+        animated: false,
+      });
     });
-  });
-}, [meeting]);
-
+  }, [meeting]);
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -302,7 +300,6 @@ useEffect(() => {
             )}
           </TouchableOpacity>
         </View>
-        
       </LinearGradient>
 
       {/* Content */}
@@ -310,7 +307,10 @@ useEffect(() => {
         className="p-2  "
         ref={scrollRef}
         onScroll={(e) => {
-          setMinutesScrollY(e.nativeEvent.contentOffset.y);
+          setScrollForMeeting(
+            meetingId as string,
+            e.nativeEvent.contentOffset.y
+          );
         }}
         scrollEventThrottle={16}
       >
