@@ -6,7 +6,9 @@ import {
   ScrollView,
   // Modal,
   TextInput,
+  KeyboardAvoidingView,
   Pressable,
+  Platform,
   Alert,
   ActivityIndicator,
 } from "react-native";
@@ -570,6 +572,7 @@ const MinuteDetail = () => {
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={{ justifyContent: "flex-end", margin: 0 }}
+        //  propagateSwipe={true} // important to allow scroll inside modal
       >
         {/* <Pressable
           style={{
@@ -579,160 +582,166 @@ const MinuteDetail = () => {
           }}
           onPress={() => !saving && setModalVisible(false)}
         > */}
-        <View
-          style={{
-            backgroundColor: "#fff",
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            paddingHorizontal: 20,
-            paddingTop: 20,
-            paddingBottom: 30,
-            shadowColor: "#000",
-            shadowOpacity: 0.15,
-            shadowRadius: 10,
-            elevation: 10,
-            minHeight: 300,
-          }}
-          // onStartShouldSetResponrder={() => true}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0} // adjust as needed
         >
-          {/* Modal Header */}
-          <View className="items-center mb-5">
-            <View className="w-14 h-1.5 bg-gray-300 rounded-full mb-4" />
-            <Text className="text-lg font-semibold text-gray-800">
-              Update Status
-            </Text>
-            <Text className="text-sm text-gray-500 mt-1">
-              Change current status or add an update note.
-            </Text>
-          </View>
-
-          {/* Status Options */}
-          {/* Status Options (2x2 grid) */}
-          <View className="flex-wrap flex-row justify-between mb-5">
-            {STATUS_OPTIONS.map((s, index) => {
-              const active = selectedStatus === s;
-
-              const bg =
-                s === "open"
-                  ? "bg-red-50"
-                  : s === "closed"
-                  ? "bg-green-50"
-                  : s === "forwarded"
-                  ? "bg-yellow-50"
-                  : "bg-emerald-50";
-
-              const textColor =
-                s === "open"
-                  ? "text-red-600"
-                  : s === "closed"
-                  ? "text-green-600"
-                  : s === "forwarded"
-                  ? "text-yellow-600"
-                  : "text-emerald-700";
-
-              const activeBg =
-                s === "open"
-                  ? "bg-red-500"
-                  : s === "closed"
-                  ? "bg-green-500"
-                  : s === "forwarded"
-                  ? "bg-yellow-500"
-                  : "bg-emerald-500";
-
-              const borderColor =
-                s === "open"
-                  ? "#FCA5A5" // red-300
-                  : s === "closed"
-                  ? "#86EFAC" // green-300
-                  : s === "forwarded"
-                  ? "#FDE047" // yellow-300
-                  : "#6EE7B7"; // emerald-300
-
-              return (
-                <TouchableOpacity
-                  key={s}
-                  onPress={() => setSelectedStatus(s as Status)}
-                  activeOpacity={0.9}
-                  className={`w-[48%] mb-3 px-4 py-4  rounded-xl items-center justify-center ${
-                    active ? activeBg : bg
-                  }`}
-                  style={{
-                    borderWidth: active ? 0 : 1,
-                    borderColor: active ? "transparent" : borderColor,
-                  }}
-                >
-                  <Text
-                    className={`font-semibold ${
-                      active ? "text-white" : textColor
-                    } text-base`}
-                  >
-                    {s === "forInfo" ? "For Info" : humanLabel(s)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Note Input */}
-          <Text className="text-sm text-gray-600 mb-2 font-medium">
-            Add a note (optional)
-          </Text>
-          <TextInput
-            value={noteText}
-            onChangeText={setNoteText}
-            placeholder="E.g. Marked resolved after team review..."
-            multiline
-            numberOfLines={3}
-            editable={!saving}
+          <View
             style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 12,
-              padding: 12,
-              textAlignVertical: "top",
-              backgroundColor: "#FAFAFA",
-              marginBottom: 16,
-              fontSize: 14,
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              paddingHorizontal: 20,
+              paddingTop: 20,
+              paddingBottom: 30,
+              shadowColor: "#000",
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+              elevation: 10,
+              minHeight: 300,
             }}
-          />
-
-          {/* Footer Buttons */}
-          <View className="flex-row justify-between mt-2">
-            <TouchableOpacity
-              onPress={() => {
-                if (!saving) {
-                  setModalVisible(false);
-                  setNoteText("");
-                }
-              }}
-              activeOpacity={0.8}
-              className="flex-1 mr-2 bg-gray-100 rounded-xl py-3 items-center justify-center"
-            >
-              <Text className="text-gray-700 font-semibold">Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleSaveStatus}
-              activeOpacity={0.8}
-              disabled={saving}
-              className={`flex-1 ml-2 rounded-xl py-3 items-center justify-center ${
-                saving ? "bg-gray-300" : ""
-              }`}
-              style={{
-                backgroundColor: saving ? "#D1D5DB" : "#4F46E5",
-                shadowColor: "#6366F1",
-                shadowOpacity: 0.3,
-                shadowRadius: 6,
-                elevation: 4,
-              }}
-            >
-              <Text className="text-white font-semibold">
-                {saving ? "Saving..." : "Save"}
+            // onStartShouldSetResponrder={() => true}
+          >
+            {/* Modal Header */}
+            <View className="items-center mb-5">
+              <View className="w-14 h-1.5 bg-gray-300 rounded-full mb-4" />
+              <Text className="text-lg font-semibold text-gray-800">
+                Update Status
               </Text>
-            </TouchableOpacity>
+              <Text className="text-sm text-gray-500 mt-1">
+                Change current status or add an update note.
+              </Text>
+            </View>
+
+            {/* Status Options */}
+            {/* Status Options (2x2 grid) */}
+            <View className="flex-wrap flex-row justify-between mb-5">
+              {STATUS_OPTIONS.map((s, index) => {
+                const active = selectedStatus === s;
+
+                const bg =
+                  s === "open"
+                    ? "bg-red-50"
+                    : s === "closed"
+                    ? "bg-green-50"
+                    : s === "forwarded"
+                    ? "bg-yellow-50"
+                    : "bg-emerald-50";
+
+                const textColor =
+                  s === "open"
+                    ? "text-red-600"
+                    : s === "closed"
+                    ? "text-green-600"
+                    : s === "forwarded"
+                    ? "text-yellow-600"
+                    : "text-emerald-700";
+
+                const activeBg =
+                  s === "open"
+                    ? "bg-red-500"
+                    : s === "closed"
+                    ? "bg-green-500"
+                    : s === "forwarded"
+                    ? "bg-yellow-500"
+                    : "bg-emerald-500";
+
+                const borderColor =
+                  s === "open"
+                    ? "#FCA5A5" // red-300
+                    : s === "closed"
+                    ? "#86EFAC" // green-300
+                    : s === "forwarded"
+                    ? "#FDE047" // yellow-300
+                    : "#6EE7B7"; // emerald-300
+
+                return (
+                  <TouchableOpacity
+                    key={s}
+                    onPress={() => setSelectedStatus(s as Status)}
+                    activeOpacity={0.9}
+                    className={`w-[48%] mb-3 px-4 py-4  rounded-xl items-center justify-center ${
+                      active ? activeBg : bg
+                    }`}
+                    style={{
+                      borderWidth: active ? 0 : 1,
+                      borderColor: active ? "transparent" : borderColor,
+                    }}
+                  >
+                    <Text
+                      className={`font-semibold ${
+                        active ? "text-white" : textColor
+                      } text-base`}
+                    >
+                      {s === "forInfo" ? "For Info" : humanLabel(s)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Note Input */}
+            <Text className="text-sm text-gray-600 mb-2 font-medium">
+              Add a note (optional)
+            </Text>
+            <TextInput
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder="E.g. Marked resolved after team review..."
+              multiline
+              placeholderTextColor={"#888"}
+              numberOfLines={3}
+              editable={!saving}
+              style={{
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                borderRadius: 12,
+                padding: 12,
+                textAlignVertical: "top",
+                backgroundColor: "#FAFAFA",
+                marginBottom: 16,
+                fontSize: 14,
+              }}
+            />
+
+            {/* Footer Buttons */}
+            <View className="flex-row justify-between mt-2">
+              <TouchableOpacity
+                onPress={() => {
+                  if (!saving) {
+                    setModalVisible(false);
+                    setNoteText("");
+                  }
+                }}
+                activeOpacity={0.8}
+                className="flex-1 mr-2 bg-gray-100 rounded-xl py-3 items-center justify-center"
+              >
+                <Text className="text-gray-700 font-semibold">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSaveStatus}
+                activeOpacity={0.8}
+                disabled={saving}
+                className={`flex-1 ml-2 rounded-xl py-3 items-center justify-center ${
+                  saving ? "bg-gray-300" : ""
+                }`}
+                style={{
+                  backgroundColor: saving ? "#D1D5DB" : "#4F46E5",
+                  shadowColor: "#6366F1",
+                  shadowOpacity: 0.3,
+                  shadowRadius: 6,
+                  elevation: 4,
+                }}
+              >
+                <Text className="text-white font-semibold">
+                  {saving ? "Saving..." : "Save"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        {/* </Pressable> */}
+          {/* </Pressable> */}
+        </KeyboardAvoidingView>
       </Modal>
 
       <Modal
