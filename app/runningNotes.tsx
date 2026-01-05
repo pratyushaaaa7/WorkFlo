@@ -358,7 +358,7 @@ const RunningNotes = () => {
       {[
         ["Note", COL.note],
         ["Responsible", COL.responsible],
-        ["T Date", COL.target],
+        ["Target", COL.target],
       ].map(([label, width]) => (
         <View
           key={label}
