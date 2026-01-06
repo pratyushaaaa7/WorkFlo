@@ -6,7 +6,7 @@ import { ActivityIndicator, View, Platform } from "react-native";
 import { AuthProvider, useAuth } from "../context/AuthContext"; // Adjust path accordingly
 import Toast from "react-native-toast-message";
 import { usePathname } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler"; 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   return (
@@ -16,47 +16,12 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
-
 function LayoutWithAuth() {
   const router = useRouter();
   const segments = useSegments() as string[];
   const pathname = usePathname();
   const { isAuthenticated, authLoading } = useAuth();
   const [iosRedirected, setIosRedirected] = useState(false);
-
-  //   useEffect(() => {
-  //   console.log("🔹 Current segments:", segments);
-  // }, [segments]);
-
-  // const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   console.log("🔁 RootLayout mounted → waiting for auth load");
-  //   setLoading(false);
-  // }, []);
-
-  // useEffect(() => {
-  //   // if (loading) return;
-  //   if (authLoading) return;
-
-  //   const current = segments.join("/");
-  //   // console.log("🧭 NAVIGATION CHECK:", {
-  //   //   currentSegment: current,
-  //   //   isAuthenticated,
-  //   // });
-
-  //   if (!isAuthenticated) {
-  //     if (current !== "login") {
-  //       console.log("➡️ Redirecting to /login (not authenticated)");
-  //       router.replace("/login");
-  //     }
-  //   } else {
-  //     if (current === "login" || current === "") {
-  //       console.log("➡️ Redirecting to /projects (authenticated)");
-  //       router.replace("/(drawer)/projects");
-  //     }
-  //   }
-  // }, [authLoading, isAuthenticated, segments]);
 
   // ANDROID → your original working code
   useEffect(() => {
@@ -80,59 +45,33 @@ function LayoutWithAuth() {
     }
   }, [authLoading, isAuthenticated, segments]);
 
-  // IOS → pathname-based logic
-  // useEffect(() => {
-  //   if (Platform.OS !== "ios") return;
-  //   if (authLoading || iosRedirected) return;
+  // iOS FIX — Run redirect ONLY when authLoading is finished
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
 
-  //   console.log("IOS redirect check →", { pathname, isAuthenticated });
+    // Wait until AuthContext finishes loading
+    if (authLoading) return;
 
-  //   // NOT AUTHENTICATED
-  //   if (!isAuthenticated) {
-  //     if (pathname !== "/login") {
-  //       console.log("➡️ IOS: Redirect → /login");
-  //       router.replace("/login");
-  //       setIosRedirected(true); // prevent future redirects
-  //     }
-  //     return;
-  //   }
+    console.log("iOS Redirect Check:", {
+      pathname,
+      isAuthenticated,
+    });
 
-  //   // AUTHENTICATED → redirect only if at root
-  //   if (isAuthenticated && pathname === "/") {
-  //     console.log("➡️ IOS: Redirect → /projects");
-  //     router.replace("/(drawer)/projects");
-  //     setIosRedirected(true); // prevent future redirects
-  //   }
-  // }, [authLoading, isAuthenticated, pathname, iosRedirected]);
-
-// iOS FIX — Run redirect ONLY when authLoading is finished
-useEffect(() => {
-  if (Platform.OS !== "ios") return;
-
-  // Wait until AuthContext finishes loading
-  if (authLoading) return;
-
-  console.log("iOS Redirect Check:", {
-    pathname,
-    isAuthenticated,
-  });
-
-  // 1️⃣ NOT AUTHENTICATED → Always go to /login
-  if (!isAuthenticated) {
-    if (pathname !== "/login") {
-      console.log("➡️ iOS Redirect to /login");
-      router.replace("/login");
+    // 1️⃣ NOT AUTHENTICATED → Always go to /login
+    if (!isAuthenticated) {
+      if (pathname !== "/login") {
+        console.log("➡️ iOS Redirect to /login");
+        router.replace("/login");
+      }
+      return;
     }
-    return;
-  }
 
-  // 2️⃣ AUTHENTICATED → Redirect ONLY if user is on the root "/"
-  if (isAuthenticated && pathname === "/") {
-    console.log("➡️ iOS Redirect to /projects");
-    router.replace("/(drawer)/projects");
-  }
-}, [authLoading, isAuthenticated, pathname]);
-
+    // 2️⃣ AUTHENTICATED → Redirect ONLY if user is on the root "/"
+    if (isAuthenticated && pathname === "/") {
+      console.log("➡️ iOS Redirect to /projects");
+      router.replace("/(drawer)/projects");
+    }
+  }, [authLoading, isAuthenticated, pathname]);
 
   // if (loading) {
   if (authLoading) {
@@ -149,6 +88,8 @@ useEffect(() => {
     </GestureHandlerRootView>
   );
 }
+
+
 
 //--------------------------
 
