@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import api from "../../lib/api";
-import { AuthContext } from "../../context/AuthContext";
+import api from "../lib/api";
+import { AuthContext } from "../context/AuthContext";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather";
 import DateTimePicker from "@react-native-community/datetimepicker";

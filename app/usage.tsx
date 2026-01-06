@@ -6,7 +6,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import api from "@/lib/api";
 

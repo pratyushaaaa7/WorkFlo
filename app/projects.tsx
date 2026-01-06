@@ -8,8 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { AuthContext } from "../../context/AuthContext";
-import api from "../../lib/api";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import { LinearGradient } from "expo-linear-gradient";

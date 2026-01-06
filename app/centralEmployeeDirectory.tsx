@@ -15,8 +15,8 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import { AuthContext } from "../../context/AuthContext"; // adjust path if needed
-import api from "../../lib/api"; // axios instance with baseURL
+import { AuthContext } from "../context/AuthContext"; // adjust path if needed
+import api from "../lib/api"; // axios instance with baseURL
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router"; // if you are using expo-router
 import { Ionicons } from "@expo/vector-icons";
