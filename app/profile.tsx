@@ -1,12 +1,12 @@
-import { View, Text, Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
-import { useAuth } from "../context/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
-import Toast from "react-native-toast-message";
 import { jwtDecode } from "jwt-decode";
+import Toast from "react-native-toast-message";
+import { useAuth } from "../context/AuthContext";
 
 type TokenPayload = {
   userId: string;
@@ -107,10 +107,8 @@ const ProfileScreen = () => {
           <Text className="text-white text-lg font-bold">Logout</Text>
         </Pressable>
       </View>
-
-
     </View>
   );
-}
+};
 
-export default  ProfileScreen
+export default ProfileScreen;

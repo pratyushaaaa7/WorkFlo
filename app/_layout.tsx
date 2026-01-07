@@ -186,7 +186,7 @@ function AppLayout() {
     const currentRouteName = props.state?.routes[props.state.index]?.name;
 
     return (
-      <View className="flex-1 bg-[#1A1A1A]">
+      <View className="flex-1 bg-white dark:bg-[#1A1A1A]">
         {/* Header: Brand / Close */}
         <View className="pt-12 px-6 pb-6 flex-row justify-between items-center">
           <View className="flex-row items-center">
@@ -194,7 +194,7 @@ function AppLayout() {
             <View className="w-8 h-8 rounded-lg bg-indigo-500 items-center justify-center mr-3">
               <Text className="text-white font-bold text-lg">T</Text>
             </View>
-            <Text className="text-white text-2xl font-bold tracking-tight">
+            <Text className="text-gray-900 dark:text-white text-2xl font-bold tracking-tight">
               Thuhroh
             </Text>
           </View>
@@ -213,17 +213,24 @@ function AppLayout() {
               <TouchableOpacity
                 key={item.name}
                 className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl ${
-                  isActive ? "bg-[#252525]" : "transparent"
+                  isActive ? "bg-indigo-50 dark:bg-[#252525]" : "transparent"
                 }`}
                 onPress={() => router.push(`/${item.name}`)}
               >
                 <View className="flex-row items-center">
                   <View className={isActive ? "opacity-100" : "opacity-60"}>
-                    {item.icon({ color: activeColor, size: 22 })}
+                    {item.icon({
+                      color: isActive
+                        ? "#6366F1" // Indigo-500
+                        : "#6B7280", // Gray-500 (Light Mode) / Will need adjustment via class if possible, but Icon functional comp makes it tricky.
+                      size: 22,
+                    })}
                   </View>
                   <Text
                     className={`ml-4 text-base font-medium ${
-                      isActive ? "text-white" : "text-[#9CA3AF]"
+                      isActive
+                        ? "text-indigo-600 dark:text-white"
+                        : "text-gray-600 dark:text-[#9CA3AF]"
                     }`}
                   >
                     {item.label}
@@ -241,20 +248,20 @@ function AppLayout() {
         </View>
 
         {/* Bottom: User Profile */}
-        <View className="p-4 border-t border-gray-800 bg-[#1A1A1A] flex-row items-center justify-between">
+        <View className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1A1A] flex-row items-center justify-between">
           <TouchableOpacity
             className="flex-row items-center flex-1"
             onPress={() => router.push("/profile")}
           >
-            <View className="w-12 h-12 rounded-full bg-indigo-600 items-center justify-center border-2 border-[#252525]">
-              <Text className="text-white font-bold text-lg">
+            <View className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-600 items-center justify-center border-2 border-indigo-200 dark:border-[#252525]">
+              <Text className="text-indigo-600 dark:text-white font-bold text-lg">
                 {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
               </Text>
             </View>
 
             <View className="ml-3 flex-1">
               <Text
-                className="text-white font-semibold text-base"
+                className="text-gray-900 dark:text-white font-semibold text-base"
                 numberOfLines={1}
               >
                 {user?.username || "Guest User"}
