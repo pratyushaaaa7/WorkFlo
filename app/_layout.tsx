@@ -1,4 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Home01Icon , ArrowRight01Icon} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   Redirect,
@@ -50,7 +52,7 @@ function AppLayout() {
         name: "projects",
         label: "Projects",
         icon: ({ color, size }: any) => (
-          <Ionicons name="briefcase-outline" size={size} color={color} />
+          <HugeiconsIcon icon={Home01Icon} size={size} color={color} />
         ),
       },
       {
@@ -270,6 +272,7 @@ function AppLayout() {
                 {user?.role || "Viewer"}
               </Text>
             </View>
+            <HugeiconsIcon icon={ArrowRight01Icon}  size={20} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
       </View>
