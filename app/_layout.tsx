@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Home01Icon , ArrowRight01Icon} from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon, Home01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -209,38 +209,40 @@ function AppLayout() {
         <View className="flex-1 px-3 py-2">
           {drawerItems.map((item) => {
             const isActive = currentRouteName === item.name;
-            const activeColor = isActive ? "#818cf8" : "#9CA3AF";
+            const activeColor = isActive ? "#000000" : "#454545";
 
             return (
               <TouchableOpacity
                 key={item.name}
-                className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl ${
-                  isActive ? "bg-indigo-50 dark:bg-[#252525]" : "transparent"
+                className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl  ${
+                  isActive ? "bg-[#e5e5e5]  dark:bg-[#252525]" : "transparent"
                 }`}
+                //                 style={{
+                //   backgroundColor: isActive ? "#e5e5e5" : "transparent",
+                // }}
                 onPress={() => router.push(`/${item.name}`)}
               >
                 <View className="flex-row items-center">
-                  <View className={isActive ? "opacity-100" : "opacity-60"}>
+                  <View>
                     {item.icon({
                       color: isActive
-                        ? "#6366F1" // Indigo-500
-                        : "#6B7280", // Gray-500 (Light Mode) / Will need adjustment via class if possible, but Icon functional comp makes it tricky.
-                      size: 22,
-                    })}
+                        ? "#000000" // Indigo-500
+                        : "#454545",
+                      size: 24                    })}
                   </View>
                   <Text
                     className={`ml-4 text-base font-medium ${
                       isActive
-                        ? "text-indigo-600 dark:text-white"
-                        : "text-gray-600 dark:text-[#9CA3AF]"
+                        ? "text-black dark:text-white"
+                        : "text-[#454545] dark:text-[#9CA3AF]"
                     }`}
                   >
                     {item.label}
                   </Text>
                 </View>
 
-                <Ionicons
-                  name="chevron-forward"
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
                   size={18}
                   color={activeColor}
                 />
@@ -272,7 +274,7 @@ function AppLayout() {
                 {user?.role || "Viewer"}
               </Text>
             </View>
-            <HugeiconsIcon icon={ArrowRight01Icon}  size={20} color="#9CA3AF" />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#454545" />
           </TouchableOpacity>
         </View>
       </View>
