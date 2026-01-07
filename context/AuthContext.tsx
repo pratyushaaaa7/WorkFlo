@@ -1,14 +1,21 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 // import { router } from "expo-router";
 
 type User = {
-  id: string;
+  id?: string;
   _id: string;
   username: string;
   role: string;
   fullName: string;
+  employeeCode?: number;
 };
 
 type AuthContextType = {
@@ -85,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await AsyncStorage.setItem("token", newToken);
       await AsyncStorage.setItem("user", JSON.stringify(newUser));
 
-      // console.log("💾 Saved token & user to AsyncStorage");
+      console.log("💾 Saved token & user to AsyncStorage", newUser);
 
       setToken(newToken);
       setUser(newUser);
@@ -95,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-   // LOGOUT – FIXED WITH useCallback()
+  // LOGOUT – FIXED WITH useCallback()
   const logout = useCallback(async () => {
     await AsyncStorage.removeItem("token");
     await AsyncStorage.removeItem("user");

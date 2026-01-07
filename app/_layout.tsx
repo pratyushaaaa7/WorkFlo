@@ -1,6 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Slot, usePathname, useRouter, useSegments } from "expo-router";
+import {
+  Redirect,
+  Slot,
+  usePathname,
+  useRouter,
+  useSegments,
+} from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useMemo } from "react";
 import {
@@ -25,22 +31,21 @@ export default function RootLayout() {
 }
 
 function AppLayout() {
-  // 1. Hooks (must be at top level)
   const router = useRouter();
   const segments = useSegments();
   const pathname = usePathname();
-  const { isAuthenticated, authLoading, user } = useAuth();
+  const { isAuthenticated, authLoading, user, logout } = useAuth();
 
   // Memoize drawer items (safe to calculate even if not used)
   const drawerItems = useMemo(() => {
     const items = [
-      {
-        name: "profile",
-        label: "Profile",
-        icon: ({ color, size }: any) => (
-          <Ionicons name="person-circle-outline" size={size} color={color} />
-        ),
-      },
+      // {
+      //   name: "profile",
+      //   label: "Profile",
+      //   icon: ({ color, size }: any) => (
+      //     <Ionicons name="person-circle-outline" size={size} color={color} />
+      //   ),
+      // },
       {
         name: "projects",
         label: "Projects",
@@ -103,26 +108,77 @@ function AppLayout() {
     return items;
   }, [user?.role]);
 
-  // Redirect if not authenticated
+  // ------------------ AUTH GUARD ------------------
+
+  // Redirect unauthenticated users to login
   useEffect(() => {
-    // Check if user is already in (auth) group to avoid loop
+    if (authLoading) return;
+
     const inAuthGroup = segments[0] === "(auth)";
 
-    if (!authLoading && !isAuthenticated && !inAuthGroup) {
-      router.replace("/(auth)/login");
+    if (!isAuthenticated && !inAuthGroup) {
+      // Just let the render return <Redirect /> or Slot, but we can also imperatively push if needed.
+      // However, relying on the return below is safer to avoid JUMP_TO errors.
     }
-  }, [isAuthenticated, authLoading, segments]);
+  }, [authLoading, isAuthenticated, segments]);
 
-  // Redirect to default page after login
+  // Redirect authenticated users away from auth screens
   useEffect(() => {
-    if (
-      !authLoading &&
-      isAuthenticated &&
-      (pathname === "/" || pathname === "/(auth)/login")
-    ) {
+    if (authLoading) return;
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (isAuthenticated && inAuthGroup) {
       router.replace("/projects");
     }
-  }, [isAuthenticated, authLoading, pathname]);
+  }, [authLoading, isAuthenticated, segments]);
+
+  // ------------------ LOADER ------------------
+  if (authLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // ------------------ AUTH PAGES ------------------
+  if (!isAuthenticated) {
+    // If we are not in the (auth) group, we should redirect to login
+    // We check segments to avoid infinite redirect loops if we are already there
+    const inAuthGroup = segments[0] === "(auth)";
+    if (!inAuthGroup) {
+      return <Redirect href="/(auth)/login" />;
+    }
+
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Slot />
+      </GestureHandlerRootView>
+    );
+  }
+
+  // Safeguard: If authenticated but somehow strict checking needed
+  // But let's keep the user object check
+  if (!user) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // ------------------ SAFEGUARD FOR ROUTING ------------------
+  // If we are authenticated but the URL is still pointing to an auth screen,
+  // we render the Slot (keeping the Login screen visible) until the router redirects.
+  // This prevents the Drawer from detecting an invalid route ("JUMP_TO" error)
+  // and avoids a jarring "Loading" spinner flash.
+  if (isAuthenticated && segments[0] === "(auth)") {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Slot />
+      </GestureHandlerRootView>
+    );
+  }
 
   // Extract CustomDrawerContent as a proper component or render prop
   const CustomDrawerContent = (props: any) => {
@@ -185,9 +241,9 @@ function AppLayout() {
         </View>
 
         {/* Bottom: User Profile */}
-        <View className="p-4 border-t border-gray-800 bg-[#1A1A1A]">
+        <View className="p-4 border-t border-gray-800 bg-[#1A1A1A] flex-row items-center justify-between">
           <TouchableOpacity
-            className="flex-row items-center"
+            className="flex-row items-center flex-1"
             onPress={() => router.push("/profile")}
           >
             <View className="w-12 h-12 rounded-full bg-indigo-600 items-center justify-center border-2 border-[#252525]">
@@ -197,22 +253,16 @@ function AppLayout() {
             </View>
 
             <View className="ml-3 flex-1">
-              <Text className="text-white font-semibold text-base">
+              <Text
+                className="text-white font-semibold text-base"
+                numberOfLines={1}
+              >
                 {user?.username || "Guest User"}
               </Text>
               <Text className="text-gray-500 text-xs">
                 {user?.role || "Viewer"}
               </Text>
             </View>
-
-            <TouchableOpacity
-              className="p-2 bg-[#252525] rounded-full"
-              onPress={() => {
-                router.replace("/(auth)/login");
-              }}
-            >
-              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            </TouchableOpacity>
           </TouchableOpacity>
         </View>
       </View>
@@ -246,9 +296,9 @@ function AppLayout() {
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         backBehavior="history"
         screenOptions={({ route }) => {
-          const isMainDrawerRoute = drawerItems.some(
-            (item) => item.name === route.name
-          );
+          const isMainDrawerRoute =
+            drawerItems.some((item) => item.name === route.name) ||
+            route.name === "profile";
 
           const commonOptions = {
             swipeEnabled: true,
@@ -256,15 +306,21 @@ function AppLayout() {
             drawerType: "slide" as const,
             overlayColor: "transparent",
             drawerStyle: {
-              width: "80%",
-              // iOS Shadow
+              width: "80%" as any,
               shadowColor: "#000",
               shadowOffset: { width: 5, height: 0 },
               shadowOpacity: 0.3,
               shadowRadius: 10,
-              // Android Shadow
               elevation: 20,
               backgroundColor: "#1A1A1A",
+            },
+            sceneContainerStyle: {
+              backgroundColor: "#ffffff",
+              shadowColor: "#000",
+              shadowOffset: { width: -5, height: 0 },
+              shadowOpacity: 0.3,
+              shadowRadius: 10,
+              elevation: 20,
             },
           };
 

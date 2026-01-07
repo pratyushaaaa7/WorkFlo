@@ -5,16 +5,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    Image,
-    Keyboard,
-    Platform,
-    Pressable,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Image,
+  Keyboard,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
@@ -52,8 +52,8 @@ export default function LoginScreen() {
         text2: "Welcome back!",
         position: "bottom",
       });
-       // 🔥 FIX: Redirect immediately (iOS needs this)
-    router.replace("/projects");
+      // 🔥 FIX: Redirect handled by RootLayout (Wait for auth state to update)
+      // router.replace("/projects");
     } catch (err: any) {
       console.log(err.response?.data);
 
