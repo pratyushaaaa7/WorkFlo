@@ -43,6 +43,10 @@ export default function LoginScreen() {
     try {
       const response = await api.post("/auth/login", { username, password });
       console.log("Login response:", response.data); // 👈 see exactly what backend returns
+      // console.log(
+      //   "User object from API:",
+      //   JSON.stringify(response.data.user, null, 2)
+      // ); // 🔍 Detailed user inspection
       const { token, user } = response.data;
       await login(token, user);
 

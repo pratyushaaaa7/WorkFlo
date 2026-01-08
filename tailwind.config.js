@@ -13,6 +13,8 @@ module.exports = {
         dmMedium: ["DMSans_500Medium"],
         dmSemiBold: ["DMSans_600SemiBold"],
         dmBold: ["DMSans_700Bold"],
+        poppins: ["Poppins_400Regular"],
+        poppinsMedium: ["Poppins_500Medium"],
       },
     },
   },

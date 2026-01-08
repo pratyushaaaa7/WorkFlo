@@ -1,6 +1,13 @@
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+} from "@expo-google-fonts/dm-sans";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ArrowRight01Icon, Home01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   Redirect,
@@ -11,7 +18,6 @@ import {
 } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useMemo } from "react";
-import { useFonts } from "expo-font";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -23,13 +29,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from "@expo-google-fonts/dm-sans";
 
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+} from "@expo-google-fonts/poppins";
 
 export default function RootLayout() {
   return (
@@ -47,23 +51,27 @@ function AppLayout() {
   const { isAuthenticated, authLoading, user, logout } = useAuth();
 
   const [fontsLoaded] = useFonts({
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-});
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_600SemiBold,
+    DMSans_700Bold,
+    Poppins_400Regular,
+    Poppins_500Medium,
+  });
 
+  // 🔍 Debug: Check what user data is available
+  // console.log("🔍 User in AppLayout:", JSON.stringify(user, null, 2));
 
   // Memoize drawer items (safe to calculate even if not used)
   const drawerItems = useMemo(() => {
     const items = [
-      // {
-      //   name: "profile",
-      //   label: "Profile",
-      //   icon: ({ color, size }: any) => (
-      //     <Ionicons name="person-circle-outline" size={size} color={color} />
-      //   ),
-      // },
+      {
+        name: "dashboard",
+        label: "Dashbpoard",
+        icon: ({ color, size }: any) => (
+          <Ionicons name="person-circle-outline" size={size} color={color} />
+        ),
+      },
       {
         name: "projects",
         label: "Projects",
@@ -225,13 +233,13 @@ function AppLayout() {
         <View className="flex-1 px-3 py-2">
           {drawerItems.map((item) => {
             const isActive = currentRouteName === item.name;
-            const activeColor = isActive ? "#000000" : "#454545";
+            const activeColor = isActive ? "#454545" : "#454545";
 
             return (
               <TouchableOpacity
                 key={item.name}
                 className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl  ${
-                  isActive ? "bg-[#e5e5e5]  dark:bg-[#252525]" : "transparent"
+                  isActive ? "bg-indigo-50  dark:bg-[#252525]" : "transparent"
                 }`}
                 onPress={() => router.push(`/${item.name}`)}
               >
@@ -239,17 +247,16 @@ function AppLayout() {
                   <View>
                     {item.icon({
                       color: isActive
-                        ? "#000000" // Indigo-500
+                        ? "#6366F1" // Indigo-500
                         : "#454545",
                       size: 24,
                     })}
-
                   </View>
                   <Text
-                    className={`ml-4 text-base font- ${
+                    className={`ml-4 text-base  ${
                       isActive
-                        ? "text-black dark:text-white"
-                        : "text-[#454545] dark:text-[#9CA3AF]"
+                        ? "text-indigo-600 dark:text-white font-poppinsMedium"
+                        : "text-[#454545] dark:text-[#9CA3AF] font-poppins"
                     }`}
                   >
                     {item.label}
@@ -258,7 +265,7 @@ function AppLayout() {
 
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
-                  size={18}
+                  size={24}
                   color={activeColor}
                 />
               </TouchableOpacity>
@@ -283,13 +290,13 @@ function AppLayout() {
                 className="text-gray-900 dark:text-white font-semibold text-base"
                 numberOfLines={1}
               >
-                {user?.username || "Guest User"}
+                {user?.fullName || "Guest User"}
               </Text>
               <Text className="text-gray-500 text-xs">
-                {user?.role || "Viewer"}
+                {user?.designation || "Viewer"}
               </Text>
             </View>
-            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#454545" />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={24} color="#454545" />
           </TouchableOpacity>
         </View>
       </View>
