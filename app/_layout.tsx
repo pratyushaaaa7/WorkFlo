@@ -274,7 +274,7 @@ function AppLayout() {
                   <Text
                     className={`ml-4 text-base  ${
                       isActive
-                        ? "text-indigo-600 dark:text-indigo-600 font-poppinsMedium"
+                        ? "text-indigo-600 dark:text-[#5B4CCC] font-poppinsMedium"
                         : "text-[#454545] dark:text-[#919191] font-poppins"
                     }`}
                   >
