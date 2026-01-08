@@ -11,6 +11,7 @@ import {
 } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useMemo } from "react";
+import { useFonts } from "expo-font";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -22,6 +23,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+} from "@expo-google-fonts/dm-sans";
+
 
 export default function RootLayout() {
   return (
@@ -37,6 +45,14 @@ function AppLayout() {
   const segments = useSegments();
   const pathname = usePathname();
   const { isAuthenticated, authLoading, user, logout } = useAuth();
+
+  const [fontsLoaded] = useFonts({
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+});
+
 
   // Memoize drawer items (safe to calculate even if not used)
   const drawerItems = useMemo(() => {
@@ -217,9 +233,6 @@ function AppLayout() {
                 className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl  ${
                   isActive ? "bg-[#e5e5e5]  dark:bg-[#252525]" : "transparent"
                 }`}
-                //                 style={{
-                //   backgroundColor: isActive ? "#e5e5e5" : "transparent",
-                // }}
                 onPress={() => router.push(`/${item.name}`)}
               >
                 <View className="flex-row items-center">
@@ -228,10 +241,12 @@ function AppLayout() {
                       color: isActive
                         ? "#000000" // Indigo-500
                         : "#454545",
-                      size: 24                    })}
+                      size: 24,
+                    })}
+
                   </View>
                   <Text
-                    className={`ml-4 text-base font-medium ${
+                    className={`ml-4 text-base font- ${
                       isActive
                         ? "text-black dark:text-white"
                         : "text-[#454545] dark:text-[#9CA3AF]"
@@ -314,7 +329,7 @@ function AppLayout() {
 
           const commonOptions = {
             swipeEnabled: true,
-            swipeEdgeWidth: 100,
+            swipeEdgeWidth: 180,
             drawerType: "slide" as const,
             overlayColor: "transparent",
             drawerStyle: {

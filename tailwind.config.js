@@ -6,7 +6,17 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   presets: [require("nativewind/preset")],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        dm: ["DMSans_400Regular"],
+        dmMedium: ["DMSans_500Medium"],
+        dmSemiBold: ["DMSans_600SemiBold"],
+        dmBold: ["DMSans_700Bold"],
+      },
+    },
+  },
+
   darkMode: "class",
   plugins: [],
 };
