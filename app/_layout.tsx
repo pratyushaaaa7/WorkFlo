@@ -5,7 +5,17 @@ import {
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { ArrowRight01Icon, Home01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowRight01Icon,
+  Home01Icon,
+  File02Icon,
+  AlertCircleIcon,
+  ProfileIcon,
+  UserGroup03Icon,
+  UserMultiple02Icon,
+  ArchiveArrowDownIcon,
+  Cancel01Icon
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,6 +35,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { AuthProvider, useAuth } from "../context/AuthContext";
@@ -59,6 +70,9 @@ function AppLayout() {
     Poppins_500Medium,
   });
 
+  const colorScheme = useColorScheme(); // returns "dark" or "light"
+  const isDarkMode = colorScheme === "dark";
+
   // 🔍 Debug: Check what user data is available
   // console.log("🔍 User in AppLayout:", JSON.stringify(user, null, 2));
 
@@ -67,48 +81,44 @@ function AppLayout() {
     const items = [
       {
         name: "dashboard",
-        label: "Dashbpoard",
+        label: "Dashboard",
         icon: ({ color, size }: any) => (
-          <Ionicons name="person-circle-outline" size={size} color={color} />
+          <HugeiconsIcon icon={Home01Icon} size={size} color={color} />
         ),
       },
       {
         name: "projects",
         label: "Projects",
         icon: ({ color, size }: any) => (
-          <HugeiconsIcon icon={Home01Icon} size={size} color={color} />
-        ),
-      },
-      {
-        name: "appSupport",
-        label: "App Support",
-        icon: ({ color, size }: any) => (
-          <Ionicons name="construct-outline" size={size} color={color} />
+          <HugeiconsIcon icon={File02Icon} size={size} color={color} />
         ),
       },
       {
         name: "masterProjectList",
         label: "Project List",
         icon: ({ color, size }: any) => (
-          <Ionicons name="list-outline" size={size} color={color} />
-        ),
-      },
-      {
-        name: "centralUserDirectory",
-        label: "Central Directory",
-        icon: ({ color, size }: any) => (
-          <Ionicons name="people-outline" size={size} color={color} />
+          <HugeiconsIcon icon={ProfileIcon} size={size} color={color} />
         ),
       },
       {
         name: "centralEmployeeDirectory",
         label: "Employee Directory",
         icon: ({ color, size }: any) => (
-          <MaterialCommunityIcons
-            name="account-tie-outline"
-            size={size}
-            color={color}
-          />
+          <HugeiconsIcon icon={UserMultiple02Icon} size={size} color={color} />
+        ),
+      },
+      {
+        name: "centralUserDirectory",
+        label: "Central Directory",
+        icon: ({ color, size }: any) => (
+          <HugeiconsIcon icon={UserGroup03Icon} size={size} color={color} />
+        ),
+      },
+      {
+        name: "appSupport",
+        label: "App Support",
+        icon: ({ color, size }: any) => (
+          <HugeiconsIcon icon={AlertCircleIcon} size={size} color={color} />
         ),
       },
     ];
@@ -119,7 +129,11 @@ function AppLayout() {
           name: "usage",
           label: "Usage",
           icon: ({ color, size }: any) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
+            <HugeiconsIcon
+              icon={ArchiveArrowDownIcon}
+              size={size}
+              color={color}
+            />
           ),
         },
         {
@@ -212,7 +226,7 @@ function AppLayout() {
     const currentRouteName = props.state?.routes[props.state.index]?.name;
 
     return (
-      <View className="flex-1 bg-white dark:bg-[#1A1A1A]">
+      <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
         {/* Header: Brand / Close */}
         <View className="pt-12 px-6 pb-6 flex-row justify-between items-center">
           <View className="flex-row items-center">
@@ -225,7 +239,7 @@ function AppLayout() {
             </Text>
           </View>
           <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
-            <Ionicons name="close" size={24} color="#9CA3AF" />
+            <HugeiconsIcon icon={Cancel01Icon} size={24}  color={isDarkMode ? "#919191" : "#454545"}/>
           </TouchableOpacity>
         </View>
 
@@ -233,13 +247,16 @@ function AppLayout() {
         <View className="flex-1 px-3 py-2">
           {drawerItems.map((item) => {
             const isActive = currentRouteName === item.name;
-            const activeColor = isActive ? "#454545" : "#454545";
+            // Determine arrow color
+            const arrowColor = isDarkMode
+              ? "#919191" // gray for dark mode
+              : "#454545"; // default for light mode
 
             return (
               <TouchableOpacity
                 key={item.name}
                 className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl  ${
-                  isActive ? "bg-indigo-50  dark:bg-[#252525]" : "transparent"
+                  isActive ? "bg-indigo-50  dark:bg-[#27215880]" : "transparent"
                 }`}
                 onPress={() => router.push(`/${item.name}`)}
               >
@@ -247,16 +264,18 @@ function AppLayout() {
                   <View>
                     {item.icon({
                       color: isActive
-                        ? "#6366F1" // Indigo-500
-                        : "#454545",
+                        ? "#4F46E5" // Indigo-600 when active
+                        : isDarkMode
+                        ? "#919191" // Gray for dark mode when inactive
+                        : "#454545", // Default gray for light mode when inactive
                       size: 24,
                     })}
                   </View>
                   <Text
                     className={`ml-4 text-base  ${
                       isActive
-                        ? "text-indigo-600 dark:text-white font-poppinsMedium"
-                        : "text-[#454545] dark:text-[#9CA3AF] font-poppins"
+                        ? "text-indigo-600 dark:text-indigo-600 font-poppinsMedium"
+                        : "text-[#454545] dark:text-[#919191] font-poppins"
                     }`}
                   >
                     {item.label}
@@ -266,7 +285,7 @@ function AppLayout() {
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
                   size={24}
-                  color={activeColor}
+                  color={arrowColor}
                 />
               </TouchableOpacity>
             );
@@ -296,7 +315,11 @@ function AppLayout() {
                 {user?.designation || "Viewer"}
               </Text>
             </View>
-            <HugeiconsIcon icon={ArrowRight01Icon} size={24} color="#454545" />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              size={24}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
           </TouchableOpacity>
         </View>
       </View>
