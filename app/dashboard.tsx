@@ -1,18 +1,18 @@
 import {
   AlertCircleIcon,
+  Calendar03Icon,
   Calendar04Icon,
-  Time04Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
-  ClockIcon,
-  FilterIcon,
-  File02Icon,
-  Menu01Icon,
-  Calendar03Icon,
   CheckmarkSquare02Icon,
+  ClockIcon,
+  File02Icon,
+  FilterIcon,
+  FilterVerticalIcon,
+  Menu01Icon,
   Notification03Icon,
   Search01Icon,
-  FilterVerticalIcon,
+  Time04Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
@@ -25,6 +25,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import GlassNav from "../components/GlassNav";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
@@ -148,57 +149,69 @@ const Dashboard = () => {
       </View>
 
       {/* Navigation Tabs */}
-      <View className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-gray-800">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-5"
+      <View className="bg-white dark:bg-[#1A1A1A] border-b border-gray-100 dark:border-[#252525]">
+        <GlassNav
+          activeTabIndex={tabs.indexOf(activeTab)}
+          totalTabs={tabs.length}
+          activeTabName={activeTab}
         >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className="mr-6 py-3"
-            >
-              <View className="items-center">
-                
-                <HugeiconsIcon
-                  icon={
-                    tab === "Overview"
-                      ? Time04Icon
-                      : tab === "Projects"
-                      ? File02Icon
-                      : tab === "Tasks"
-                      ? CheckmarkSquare02Icon
-                      : tab === "Calendar"
-                      ? Calendar04Icon
-                      : FilterVerticalIcon
-                  }
-                  size={20}
-                  color={
-                    activeTab === tab
-                      ? "#6366F1"
-                      : isDarkMode
-                      ? "#919191"
-                      : "#9CA3AF"
-                  }
-                />
-                <Text
-                  className={`mt-1 text-sm font-poppins ${
-                    activeTab === tab
-                      ? "text-indigo-600 dark:text-[#5B4CCC] font-poppinsMedium"
-                      : "text-[#9CA3AF] dark:text-[#919191]"
-                  }`}
+          <View className="flex-1 flex-row items-center justify-between gap-1">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              const themeColor =
+                tab === "Overview"
+                  ? "#9333EA"
+                  : tab === "Projects"
+                  ? "#EA580C"
+                  : tab === "Tasks"
+                  ? "#DB2777"
+                  : tab === "Calendar"
+                  ? "#2563EB"
+                  : "#6366F1";
+
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setActiveTab(tab)}
+                  className="flex-1 py-2 px-1 items-center justify-center"
                 >
-                  {tab}
-                </Text>
-                {activeTab === tab && (
-                  <View className="absolute -bottom-3 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-[#5B4CCC]" />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                  <View className="flex-row items-center gap-1.5">
+                    <HugeiconsIcon
+                      icon={
+                        tab === "Overview"
+                          ? Time04Icon
+                          : tab === "Projects"
+                          ? File02Icon
+                          : tab === "Tasks"
+                          ? CheckmarkSquare02Icon
+                          : tab === "Calendar"
+                          ? Calendar04Icon
+                          : FilterVerticalIcon
+                      }
+                      size={18}
+                      color={
+                        isActive
+                          ? themeColor
+                          : isDarkMode
+                          ? "#919191"
+                          : "#6B7280"
+                      }
+                    />
+
+                    <Text
+                      className={`text-xs font-semibold ${
+                        isActive ? "" : "text-gray-500 dark:text-[#919191]"
+                      }`}
+                      style={isActive ? { color: themeColor } : {}}
+                    >
+                      {tab}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </GlassNav>
       </View>
 
       {/* Main Content */}

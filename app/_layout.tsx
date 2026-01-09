@@ -359,7 +359,7 @@ function AppLayout() {
 
           const commonOptions = {
             swipeEnabled: true,
-            swipeEdgeWidth: 180,
+            swipeEdgeWidth: 70,
             drawerType: "slide" as const,
             overlayColor: "transparent",
             drawerStyle: {
