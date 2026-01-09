@@ -4,17 +4,17 @@ import {
   DMSans_600SemiBold,
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import {
-  ArrowRight01Icon,
-  Home01Icon,
-  File02Icon,
   AlertCircleIcon,
+  ArchiveArrowDownIcon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  File02Icon,
+  Home01Icon,
   ProfileIcon,
   UserGroup03Icon,
   UserMultiple02Icon,
-  ArchiveArrowDownIcon,
-  Cancel01Icon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFonts } from "expo-font";
@@ -33,9 +33,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
-import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { AuthProvider, useAuth } from "../context/AuthContext";
@@ -239,7 +239,11 @@ function AppLayout() {
             </Text>
           </View>
           <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
-            <HugeiconsIcon icon={Cancel01Icon} size={24}  color={isDarkMode ? "#919191" : "#454545"}/>
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              size={24}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
           </TouchableOpacity>
         </View>
 
@@ -405,7 +409,10 @@ function AppLayout() {
           <Drawer.Screen
             key={item.name}
             name={item.name}
-            options={{ headerShown: true, title: item.label }}
+            options={{
+              headerShown: item.name === "dashboard" ? false : true,
+              title: item.label,
+            }}
           />
         ))}
         {/* 'otherPage' removed as it caused a warning. 

@@ -15,7 +15,6 @@ import {
   Time04Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -27,12 +26,15 @@ import {
 } from "react-native";
 import GlassNav from "../components/GlassNav";
 import { useAuth } from "../context/AuthContext";
+import { useRouter, useNavigation } from "expo-router";
 
 const Dashboard = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const { user } = useAuth();
+
+  const navigation = useNavigation();
 
   const [activeTab, setActiveTab] = useState("Overview");
 
@@ -91,13 +93,17 @@ const Dashboard = () => {
       <View className="pt-12 px-5 pb-4 bg-white dark:bg-[#1A1A1A]">
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
-            <TouchableOpacity className="mr-3">
+            <TouchableOpacity
+              className="mr-3"
+              onPress={() => (navigation as any).openDrawer()} // ⬅️ This opens the sidebar
+            >
               <HugeiconsIcon
                 icon={Menu01Icon}
                 size={24}
                 color={isDarkMode ? "#919191" : "#454545"}
               />
             </TouchableOpacity>
+
             <View className="flex-row items-center">
               <View className="w-8 h-8 rounded-lg bg-indigo-500 items-center justify-center mr-2">
                 <Text className="text-white font-bold text-lg">T</Text>
