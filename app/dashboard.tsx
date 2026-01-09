@@ -9,10 +9,11 @@ import {
   File02Icon,
   FilterIcon,
   FilterVerticalIcon,
-  Menu01Icon,
-  Notification03Icon,
+  Menu02Icon,
+  Notification01Icon,
   Search01Icon,
   Time04Icon,
+  FilterHorizontalIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useState } from "react";
@@ -90,15 +91,14 @@ const Dashboard = () => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Header */}
-      <View className="pt-12 px-5 pb-4 bg-white dark:bg-[#1A1A1A]">
-        <View className="flex-row items-center justify-between mb-4">
+      <View className="pt-14 px-3  bg-white dark:bg-black">
+        <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <TouchableOpacity
               className="mr-3"
               onPress={() => (navigation as any).openDrawer()} // ⬅️ This opens the sidebar
             >
-              <HugeiconsIcon
-                icon={Menu01Icon}
+              <HugeiconsIcon icon={Menu02Icon}
                 size={24}
                 color={isDarkMode ? "#919191" : "#454545"}
               />
@@ -117,9 +117,9 @@ const Dashboard = () => {
           <View className="flex-row items-center gap-3">
             <TouchableOpacity>
               <HugeiconsIcon
-                icon={Notification03Icon}
+                icon={Notification01Icon}
                 size={24}
-                color={isDarkMode ? "#919191" : "#454545"}
+                color={isDarkMode ? "#D2D2D2" : "#454545"}
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push("/profile")}>
@@ -133,22 +133,23 @@ const Dashboard = () => {
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-[#F6F8FA] dark:bg-[#252525] rounded-xl px-4 py-3">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={20}
-            color={isDarkMode ? "#919191" : "#9CA3AF"}
-          />
-          <TextInput
-            placeholder="Search"
-            placeholderTextColor={isDarkMode ? "#919191" : "#9CA3AF"}
-            className="flex-1 ml-2 text-gray-900 dark:text-white text-base"
-          />
-          <TouchableOpacity>
+        <View className="flex-row items-center  pt-3">
+          {/* Search Bar */}
+          <View className="flex-1 flex-row items-center px-4 py-1 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+            <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
+            <TextInput
+              placeholder="Search"
+              placeholderTextColor="#606060"
+              className="flex-1 ml-3 font-dm text-[#606060]"
+            />
+          </View>
+
+          {/* Filter Button */}
+          <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
             <HugeiconsIcon
-              icon={FilterIcon}
-              size={20}
-              color={isDarkMode ? "#919191" : "#454545"}
+              icon={FilterHorizontalIcon}
+              size={24}
+              color="#606060"
             />
           </TouchableOpacity>
         </View>

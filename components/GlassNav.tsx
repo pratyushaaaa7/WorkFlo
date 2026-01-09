@@ -156,7 +156,7 @@ export default function GlassNav({
 
 const styles = StyleSheet.create({
   container: {
-    height: 72,
+    height: 60,
     overflow: "hidden",
   },
   content: {
