@@ -19,15 +19,15 @@ interface GlassNavProps {
 const getTabColor = (tabName: string) => {
   switch (tabName) {
     case "Overview":
-      return "#9333EA"; // Purple-600
+      return "#9333EA";
     case "Projects":
-      return "#EA580C"; // Orange-600
+      return "#EA580C";
     case "Tasks":
-      return "#DB2777"; // Pink-600
+      return "#DB2777";
     case "Calendar":
-      return "#2563EB"; // Blue-600
+      return "#2563EB";
     default:
-      return "#4F46E5"; // Indigo-600
+      return "#4F46E5";
   }
 };
 
@@ -46,6 +46,10 @@ export default function GlassNav({
 
   const activeColor = getTabColor(activeTabName);
 
+  // 🔥 MOUNTAIN CONFIG (BALANCED)
+  const mountainWidth = tabWidth * 4.2; // ⬅️ reduced width
+  const mountainHeight = 38; // ⬅️ lower height
+
   useEffect(() => {
     if (tabWidth > 0) {
       Animated.spring(slideAnim, {
@@ -63,44 +67,50 @@ export default function GlassNav({
 
   return (
     <View style={styles.container} onLayout={onLayout}>
-      {/* LAYER 0: Background Tint */}
+      {/* Background tint */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
             backgroundColor: isDarkMode
-              ? "rgba(25, 25, 25, 0.4)"
-              : "rgba(255, 255, 255, 0.6)",
+              ? "rgba(25,25,25,0.4)"
+              : "rgba(255,255,255,0.6)",
           },
         ]}
       />
 
-      {/* LAYER 1: Mountain Glow (SVG) */}
+      {/* Mountain glow */}
       <View style={StyleSheet.absoluteFill}>
         {tabWidth > 0 && (
           <Animated.View
             style={{
               position: "absolute",
               bottom: 0,
-              width: tabWidth * 3,
-              height: 40,
-              // Center the mountain on the active tab
-              // Offset = slideAnim (current tab start) - tabWidth (to start from prev tab) + 12 (padding)
+              width: mountainWidth,
+              height: mountainHeight,
+              opacity: 0.55,
               transform: [
-                { translateX: Animated.subtract(slideAnim, tabWidth - 12) },
+                {
+                  translateX: Animated.add(
+                    slideAnim,
+                    -(mountainWidth / 2) + tabWidth / 2 + 12
+                  ),
+                },
               ],
-              opacity: 0.6,
             }}
           >
-            <Svg height="40" width={tabWidth * 3}>
+            <Svg width={mountainWidth} height={mountainHeight}>
               <Defs>
                 <LinearGradient id="grad" x1="0%" y1="100%" x2="0%" y2="0%">
                   <Stop offset="0%" stopColor={activeColor} stopOpacity="1" />
                   <Stop offset="100%" stopColor={activeColor} stopOpacity="0" />
                 </LinearGradient>
               </Defs>
+
               <Path
-                d={`M 0,40 Q ${tabWidth * 1.5},0 ${tabWidth * 3},40 Z`}
+                d={`M 0,${mountainHeight}
+                    Q ${mountainWidth / 2},${-mountainHeight * 0.25}
+                    ${mountainWidth},${mountainHeight} Z`}
                 fill="url(#grad)"
               />
             </Svg>
@@ -108,32 +118,32 @@ export default function GlassNav({
         )}
       </View>
 
-      {/* LAYER 2: Blur (Frosting) */}
+      {/* Blur */}
       <BlurView
         style={StyleSheet.absoluteFill}
         blurType={isDarkMode ? "dark" : "light"}
-        blurAmount={20} // Adjusted for better mountain clarity
+        blurAmount={20}
         reducedTransparencyFallbackColor="white"
       />
 
-      {/* LAYER 3: Active Pill Indicator (Placed after blur for sharpness) */}
+      {/* Active pill */}
       <View style={StyleSheet.absoluteFill}>
         {tabWidth > 0 && (
           <Animated.View
             style={{
               position: "absolute",
               bottom: 0,
-              width: tabWidth - 24, // Narrower than the tab for pill look
+              width: tabWidth - 24,
               height: 3,
               backgroundColor: activeColor,
               borderRadius: 3,
-              transform: [{ translateX: Animated.add(slideAnim, 24) }], // 12 padding + 12 margin
+              transform: [{ translateX: Animated.add(slideAnim, 24) }],
             }}
           />
         )}
       </View>
 
-      {/* LAYER 4: Content */}
+      {/* Content */}
       <View style={styles.content}>{children}</View>
     </View>
   );
