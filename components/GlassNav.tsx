@@ -7,6 +7,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 interface GlassNavProps {
   children: React.ReactNode;
@@ -68,38 +69,54 @@ export default function GlassNav({
           StyleSheet.absoluteFill,
           {
             backgroundColor: isDarkMode
-              ? "rgba(25, 25, 25, 0.5)"
-              : "rgba(255, 255, 255, 0.7)",
+              ? "rgba(25, 25, 25, 0.4)"
+              : "rgba(255, 255, 255, 0.6)",
           },
         ]}
       />
 
-      {/* LAYER 1: The Glow (Highlight) */}
+      {/* LAYER 1: Mountain Glow (SVG) */}
       <View style={StyleSheet.absoluteFill}>
         {tabWidth > 0 && (
           <Animated.View
-            style={[
-              styles.highlight,
-              {
-                width: tabWidth - 8,
-                backgroundColor: activeColor,
-                transform: [{ translateX: Animated.add(slideAnim, 16) }],
-                opacity: 0.45, // Lower opacity for a softer glow
-              },
-            ]}
-          />
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: tabWidth * 3,
+              height: 40,
+              // Center the mountain on the active tab
+              // Offset = slideAnim (current tab start) - tabWidth (to start from prev tab) + 12 (padding)
+              transform: [
+                { translateX: Animated.subtract(slideAnim, tabWidth - 12) },
+              ],
+              opacity: 0.6,
+            }}
+          >
+            <Svg height="40" width={tabWidth * 3}>
+              <Defs>
+                <LinearGradient id="grad" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <Stop offset="0%" stopColor={activeColor} stopOpacity="1" />
+                  <Stop offset="100%" stopColor={activeColor} stopOpacity="0" />
+                </LinearGradient>
+              </Defs>
+              <Path
+                d={`M 0,40 Q ${tabWidth * 1.5},0 ${tabWidth * 3},40 Z`}
+                fill="url(#grad)"
+              />
+            </Svg>
+          </Animated.View>
         )}
       </View>
 
-      {/* LAYER 2: Blur (Frosting everything behind it) */}
+      {/* LAYER 2: Blur (Frosting) */}
       <BlurView
         style={StyleSheet.absoluteFill}
         blurType={isDarkMode ? "dark" : "light"}
-        blurAmount={30} // High blur for a very diffuse frosted look
+        blurAmount={20} // Adjusted for better mountain clarity
         reducedTransparencyFallbackColor="white"
       />
 
-      {/* LAYER 3: Content (Icons & Text - Non-blurred) */}
+      {/* LAYER 3: Content */}
       <View style={styles.content}>{children}</View>
     </View>
   );
@@ -107,20 +124,14 @@ export default function GlassNav({
 
 const styles = StyleSheet.create({
   container: {
-    height: 68, // slightly more height for spaciousness
+    height: 72,
     overflow: "hidden",
-    borderRadius: 0, // Keep it flat as part of the header
-  },
-  highlight: {
-    position: "absolute",
-    top: 6,
-    bottom: 6,
-    borderRadius: 20, // More rounded for a soft pill shape
   },
   content: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
+    paddingTop: 8,
   },
 });
