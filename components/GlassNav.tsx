@@ -23,7 +23,7 @@ const getTabColor = (tabName: string) => {
     case "Projects":
       return "#EA580C";
     case "Tasks":
-      return "#DB2777";
+      return "#E841B8";
     case "Calendar":
       return "#2563EB";
     default:
@@ -46,9 +46,9 @@ export default function GlassNav({
 
   const activeColor = getTabColor(activeTabName);
 
-  // 🔥 MOUNTAIN CONFIG (BALANCED)
-  const mountainWidth = tabWidth * 4.2; // ⬅️ reduced width
-  const mountainHeight = 38; // ⬅️ lower height
+  // 🔥 MOUNTAIN CONFIG — ONLY horizontal width increased
+  const mountainWidth = tabWidth * 6; // ⬅️ increased from 4.2 to 6
+  const mountainHeight = 38; // ⬅️ keep height same
 
   useEffect(() => {
     if (tabWidth > 0) {
@@ -88,7 +88,7 @@ export default function GlassNav({
               bottom: 0,
               width: mountainWidth,
               height: mountainHeight,
-              opacity: 0.55,
+              opacity: 0.25,
               transform: [
                 {
                   translateX: Animated.add(
@@ -109,8 +109,13 @@ export default function GlassNav({
 
               <Path
                 d={`M 0,${mountainHeight}
-                    Q ${mountainWidth / 2},${-mountainHeight * 0.25}
-                    ${mountainWidth},${mountainHeight} Z`}
+      C ${mountainWidth * 0.35},${mountainHeight}
+        ${mountainWidth * 0.45},${-mountainHeight * 0.75}
+        ${mountainWidth / 2},${-mountainHeight}
+      C ${mountainWidth * 0.55},${-mountainHeight * 0.75}
+        ${mountainWidth * 0.65},${mountainHeight}
+        ${mountainWidth},${mountainHeight}
+      Z`}
                 fill="url(#grad)"
               />
             </Svg>
@@ -122,7 +127,7 @@ export default function GlassNav({
       <BlurView
         style={StyleSheet.absoluteFill}
         blurType={isDarkMode ? "dark" : "light"}
-        blurAmount={20}
+        blurAmount={15}
         reducedTransparencyFallbackColor="white"
       />
 
