@@ -116,7 +116,24 @@ export default function GlassNav({
         reducedTransparencyFallbackColor="white"
       />
 
-      {/* LAYER 3: Content */}
+      {/* LAYER 3: Active Pill Indicator (Placed after blur for sharpness) */}
+      <View style={StyleSheet.absoluteFill}>
+        {tabWidth > 0 && (
+          <Animated.View
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: tabWidth - 24, // Narrower than the tab for pill look
+              height: 3,
+              backgroundColor: activeColor,
+              borderRadius: 3,
+              transform: [{ translateX: Animated.add(slideAnim, 24) }], // 12 padding + 12 margin
+            }}
+          />
+        )}
+      </View>
+
+      {/* LAYER 4: Content */}
       <View style={styles.content}>{children}</View>
     </View>
   );

@@ -173,9 +173,9 @@ const Dashboard = () => {
                 <TouchableOpacity
                   key={tab}
                   onPress={() => setActiveTab(tab)}
-                  className="flex-1 py-2 px-1 items-center justify-center"
+                  className="flex-1 py-1 px-1 items-center justify-center"
                 >
-                  <View className="flex-row items-center gap-1.5">
+                  <View className="items-center justify-center">
                     <HugeiconsIcon
                       icon={
                         tab === "Overview"
@@ -188,7 +188,7 @@ const Dashboard = () => {
                           ? Calendar04Icon
                           : FilterVerticalIcon
                       }
-                      size={18}
+                      size={22}
                       color={
                         isActive
                           ? themeColor
@@ -199,7 +199,7 @@ const Dashboard = () => {
                     />
 
                     <Text
-                      className={`text-xs font-semibold ${
+                      className={`text-[10px] sm:text-xs font-semibold mt-1 ${
                         isActive ? "" : "text-gray-500 dark:text-[#919191]"
                       }`}
                       style={isActive ? { color: themeColor } : {}}
