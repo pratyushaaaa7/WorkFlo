@@ -160,13 +160,13 @@ const Dashboard = () => {
               const isActive = activeTab === tab;
               const themeColor =
                 tab === "Overview"
-                  ? "#9333EA"
+                  ? "#5B4CCC"
                   : tab === "Projects"
-                  ? "#EA580C"
+                  ? "#FF8A47"
                   : tab === "Tasks"
-                  ? "#DB2777"
+                  ? "#E841B8"
                   : tab === "Calendar"
-                  ? "#2563EB"
+                  ? "#335EB3"
                   : "#6366F1";
 
               return (

@@ -19,13 +19,13 @@ interface GlassNavProps {
 const getTabColor = (tabName: string) => {
   switch (tabName) {
     case "Overview":
-      return "#9333EA";
+      return "#5B4CCC";
     case "Projects":
-      return "#EA580C";
+      return "#FF8A47";
     case "Tasks":
       return "#E841B8";
     case "Calendar":
-      return "#2563EB";
+      return "#335EB3";
     default:
       return "#4F46E5";
   }
@@ -88,7 +88,7 @@ export default function GlassNav({
               bottom: 0,
               width: mountainWidth,
               height: mountainHeight,
-              opacity: 0.25,
+              opacity: 0.2,
               transform: [
                 {
                   translateX: Animated.add(
