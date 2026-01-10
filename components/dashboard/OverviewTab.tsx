@@ -59,7 +59,7 @@ const OverviewTab = () => {
   ];
 
   return (
-    <View className="px-5 py-5">
+    <View className=" py-5 dark:bg-black">
       {/* Project Summary */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-4">
