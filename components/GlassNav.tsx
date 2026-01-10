@@ -25,7 +25,7 @@ interface GlassNavProps {
 const getTabColor = (tabName: string) => {
   switch (tabName) {
     case "Overview":
-      return "#5B4CCC";
+      return "#566FEC";
     case "Projects":
       return "#FF8A47";
     case "Tasks":

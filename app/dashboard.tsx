@@ -10,6 +10,7 @@ import {
   File02Icon,
   FilterHorizontalIcon,
   FilterVerticalIcon,
+  Note03Icon,
   Menu02Icon,
   Notification01Icon,
   Search01Icon,
@@ -176,7 +177,7 @@ const Dashboard = () => {
                 const isActive = activeTab === tab;
                 const themeColor =
                   tab === "Overview"
-                    ? "#5B4CCC"
+                    ? "#566FEC"
                     : tab === "Projects"
                     ? "#FF8A47"
                     : tab === "Tasks"
@@ -204,7 +205,7 @@ const Dashboard = () => {
                             ? CheckmarkSquare02Icon
                             : tab === "Calendar"
                             ? Calendar04Icon
-                            : FilterVerticalIcon
+                            : Note03Icon
                         }
                         size={22}
                         color={
