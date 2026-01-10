@@ -12,6 +12,7 @@ import {
   Menu02Icon,
   Notification01Icon,
   Search01Icon,
+  Clock01Icon,
   Time04Icon,
   FilterHorizontalIcon,
 } from "@hugeicons/core-free-icons";
@@ -98,7 +99,8 @@ const Dashboard = () => {
               className="mr-3"
               onPress={() => (navigation as any).openDrawer()} // ⬅️ This opens the sidebar
             >
-              <HugeiconsIcon icon={Menu02Icon}
+              <HugeiconsIcon
+                icon={Menu02Icon}
                 size={24}
                 color={isDarkMode ? "#919191" : "#454545"}
               />
@@ -186,7 +188,7 @@ const Dashboard = () => {
                     <HugeiconsIcon
                       icon={
                         tab === "Overview"
-                          ? Time04Icon
+                          ? Clock01Icon
                           : tab === "Projects"
                           ? File02Icon
                           : tab === "Tasks"

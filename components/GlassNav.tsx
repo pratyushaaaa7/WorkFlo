@@ -1,4 +1,5 @@
 import { BlurView } from "@react-native-community/blur";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -7,7 +8,12 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
+import Svg, {
+  Defs,
+  Path,
+  Stop,
+  LinearGradient as SvgLinearGradient,
+} from "react-native-svg";
 
 interface GlassNavProps {
   children: React.ReactNode;
@@ -79,6 +85,22 @@ export default function GlassNav({
         ]}
       />
 
+      {/* Mixing Gradient (Removes visual stress) */}
+      <LinearGradient
+        colors={[
+          isDarkMode ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)",
+          "transparent",
+        ]}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 15,
+          zIndex: 1,
+        }}
+      />
+
       {/* Mountain glow */}
       <View style={StyleSheet.absoluteFill}>
         {tabWidth > 0 && (
@@ -101,10 +123,10 @@ export default function GlassNav({
           >
             <Svg width={mountainWidth} height={mountainHeight}>
               <Defs>
-                <LinearGradient id="grad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <SvgLinearGradient id="grad" x1="0%" y1="100%" x2="0%" y2="0%">
                   <Stop offset="0%" stopColor={activeColor} stopOpacity="1" />
                   <Stop offset="100%" stopColor={activeColor} stopOpacity="0" />
-                </LinearGradient>
+                </SvgLinearGradient>
               </Defs>
 
               <Path
