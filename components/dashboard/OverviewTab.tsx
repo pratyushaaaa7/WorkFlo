@@ -8,6 +8,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import OverviewCalendar from "./OverviewCalendar";
 
 const OverviewTab = () => {
   const projectStats = [
@@ -142,6 +143,9 @@ const OverviewTab = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Calendar Section */}
+      <OverviewCalendar />
     </View>
   );
 };
