@@ -52,9 +52,9 @@ export default function GlassNav({
 
   const activeColor = getTabColor(activeTabName);
 
-  // 🔥 MOUNTAIN CONFIG — ONLY horizontal width increased
-  const mountainWidth = tabWidth * 6; // ⬅️ increased from 4.2 to 6
-  const mountainHeight = 38; // ⬅️ keep height same
+  // MOUNTAIN CONFIG
+  const mountainWidth = tabWidth * 6;
+  const mountainHeight = 38;
 
   useEffect(() => {
     if (tabWidth > 0) {
@@ -68,41 +68,37 @@ export default function GlassNav({
   }, [activeTabIndex, tabWidth]);
 
   const onLayout = (event: LayoutChangeEvent) => {
-    setContainerWidth(event.nativeEvent.layout.width);
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && width !== containerWidth) {
+      setContainerWidth(width);
+    }
   };
 
   return (
-    <View style={styles.container} onLayout={onLayout}>
-      {/* Background tint */}
+    <View
+      style={styles.container}
+      onLayout={onLayout}
+      pointerEvents="box-none" // ⬅️ Critical: allow children to receive events
+    >
+      {/* 1. Background tint (lowest layer) */}
       <View
+        pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
           {
             backgroundColor: isDarkMode
               ? "rgba(25,25,25,0.4)"
               : "rgba(255,255,255,0.6)",
+            zIndex: -5,
           },
         ]}
       />
 
-      {/* Mixing Gradient (Removes visual stress) */}
-      <LinearGradient
-        colors={[
-          isDarkMode ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)",
-          "transparent",
-        ]}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 15,
-          zIndex: 1,
-        }}
-      />
-
-      {/* Mountain glow */}
-      <View style={StyleSheet.absoluteFill}>
+      {/* 2. Mountain glow */}
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { zIndex: -4 }]}
+      >
         {tabWidth > 0 && (
           <Animated.View
             style={{
@@ -128,7 +124,6 @@ export default function GlassNav({
                   <Stop offset="100%" stopColor={activeColor} stopOpacity="0" />
                 </SvgLinearGradient>
               </Defs>
-
               <Path
                 d={`M 0,${mountainHeight}
       C ${mountainWidth * 0.35},${mountainHeight}
@@ -145,16 +140,20 @@ export default function GlassNav({
         )}
       </View>
 
-      {/* Blur */}
+      {/* 3. Blur */}
       <BlurView
-        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { zIndex: -3 }]}
         blurType={isDarkMode ? "dark" : "light"}
         blurAmount={15}
         reducedTransparencyFallbackColor="white"
       />
 
-      {/* Active pill */}
-      <View style={StyleSheet.absoluteFill}>
+      {/* 4. Active pill */}
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { zIndex: -2 }]}
+      >
         {tabWidth > 0 && (
           <Animated.View
             style={{
@@ -170,8 +169,33 @@ export default function GlassNav({
         )}
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>{children}</View>
+      {/* 5. Mixing Gradient (Feathered Edge) */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[
+          isDarkMode ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)",
+          isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
+          isDarkMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)",
+          "transparent",
+        ]}
+        locations={[0, 0.3, 0.6, 1]}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 35,
+          zIndex: -1, // Behind children
+        }}
+      />
+
+      {/* 6. CONTENT (Top layer) */}
+      <View
+        style={[styles.content, { zIndex: 10 }]}
+        pointerEvents="box-none" // ⬅️ Allow children like TouchableOpacity to work
+      >
+        {children}
+      </View>
     </View>
   );
 }
