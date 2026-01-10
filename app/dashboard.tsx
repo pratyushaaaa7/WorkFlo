@@ -204,7 +204,7 @@ const Dashboard = () => {
                       />
 
                       <Text
-                        className={`text-[10px] sm:text-xs font-semibold mt-1 ${
+                        className={`text-[10px] sm:text-xs  font-poppinsMedium mt-1 ${
                           isActive ? "" : "text-gray-500 dark:text-[#919191]"
                         }`}
                         style={isActive ? { color: themeColor } : {}}

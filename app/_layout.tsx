@@ -268,7 +268,7 @@ function AppLayout() {
                   <View>
                     {item.icon({
                       color: isActive
-                        ? "#4F46E5" // Indigo-600 when active
+                        ? "#5B4CCC" // Indigo-600 when active
                         : isDarkMode
                         ? "#919191" // Gray for dark mode when inactive
                         : "#454545", // Default gray for light mode when inactive
