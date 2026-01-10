@@ -140,9 +140,9 @@ const Dashboard = () => {
         scrollEventThrottle={16}
       >
         {/* 2. SEARCH BAR (Scrolls with content) */}
-        <View className="px-3 pt-3 pb-4 bg-white dark:bg-black">
+        <View className="px-3 pt-3  bg-white dark:bg-black">
           <View className="flex-row items-center">
-            <View className="flex-1 flex-row items-center px-4 py-1.5 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+            <View className="flex-1 flex-row items-center px-4 py-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
               <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
               <TextInput
                 placeholder="Search"
