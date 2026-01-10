@@ -33,7 +33,7 @@ const getTabColor = (tabName: string) => {
     case "Calendar":
       return "#335EB3";
     default:
-      return "#4F46E5";
+      return "#FFC366";
   }
 };
 
@@ -184,7 +184,7 @@ export default function GlassNav({
           top: 0,
           left: 0,
           right: 0,
-          height: 35,
+          height: 30,
           zIndex: -1, // Behind children
         }}
       />

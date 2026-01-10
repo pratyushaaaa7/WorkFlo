@@ -90,7 +90,7 @@ const Dashboard = () => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* 1. FIXED TOP HEADER (App Name & Profile) */}
-      <View className="pt-14 px-3 pb-3 bg-white dark:bg-black z-50 border-b border-gray-50 dark:border-gray-900">
+      <View className="pt-14 px-3 pb-3 bg-white dark:bg-black z-50  ">
         <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <TouchableOpacity
@@ -184,7 +184,7 @@ const Dashboard = () => {
                     ? "#E841B8"
                     : tab === "Calendar"
                     ? "#335EB3"
-                    : "#6366F1";
+                    : "#FFC366";
 
                 return (
                   <TouchableOpacity
