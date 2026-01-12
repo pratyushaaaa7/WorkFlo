@@ -1,19 +1,10 @@
-import {
-  ArrowDown01Icon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { addMonths, format, parseISO, subMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
 import React, { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 const OverviewCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -26,26 +17,27 @@ const OverviewCalendar = () => {
 
   const visibleMonthDate = parseISO(currentMonth);
 
-  /** Task counts */
+  /** Task counts (mapped by day of month) */
   const taskCounts: Record<string, number> = {
-    "2026-01-29": 2,
-    "2026-01-30": 7,
-    "2026-01-03": 4,
-    "2026-01-05": 5,
-    "2026-01-08": 9,
-    "2026-01-13": 3,
-    "2026-01-15": 1,
-    "2026-01-17": 8,
-    "2026-01-21": 1,
-    "2026-01-23": 6,
-    "2026-01-28": 10,
+    "29": 2,
+    "30": 7,
+    "03": 4,
+    "05": 5,
+    "08": 9,
+    "13": 3,
+    "15": 1,
+    "17": 8,
+    "21": 1,
+    "23": 6,
+    "28": 10,
   };
 
   /** 🔹 Custom Day Card */
   const DayCard = ({ date, state }: any) => {
     const isSelected = date.dateString === selectedDate;
     const isDisabled = state === "disabled";
-    const taskCount = taskCounts[date.dateString];
+    const dayKey = date.day < 10 ? `0${date.day}` : `${date.day}`;
+    const taskCount = taskCounts[dayKey];
 
     return (
       <TouchableOpacity
@@ -53,38 +45,71 @@ const OverviewCalendar = () => {
         onPress={() => !isDisabled && setSelectedDate(date.dateString)}
         style={{
           flex: 1,
-          aspectRatio: 1,
+          aspectRatio: 0.8,
           margin: 4,
           borderRadius: 12,
-          backgroundColor: isSelected ? "#3b82f6" : "#1a1a1a",
+          borderWidth: 1,
+          borderColor: isSelected ? "#3b82f6" : "#252525",
+          backgroundColor: isSelected ? "#3b82f6" : "transparent",
           opacity: isDisabled ? 0.35 : 1,
-          justifyContent: "center",
-          alignItems: "center",
+          padding: 8,
+          justifyContent: "space-between",
         }}
       >
         <Text
           style={{
             color: "white",
-            fontSize: 16,
-            fontFamily: "Poppins-Medium",
+            fontSize: 18,
+            fontFamily: "Poppins-SemiBold",
+            textAlign: "center",
           }}
         >
           {date.day}
         </Text>
 
-        {taskCount && !isDisabled && (
+        {taskCount && !isDisabled ? (
           <Text
             style={{
-              marginTop: 2,
               fontSize: 10,
-              color: "#cbd5f5",
-              fontFamily: "Poppins-Regular",
+              color: isSelected ? "white" : "#919191",
+              fontFamily: "Poppins-Medium",
+              textAlign: "center",
             }}
           >
-            {taskCount} Tasks
+            {taskCount} {taskCount === 1 ? "Task" : "Tasks"}
           </Text>
+        ) : (
+          <View style={{ height: 12 }} />
         )}
       </TouchableOpacity>
+    );
+  };
+
+  /** 🔹 Custom Day Header */
+  const renderDayHeader = (day: string) => {
+    return (
+      <View
+        style={{
+          backgroundColor: "#151515",
+          paddingVertical: 6,
+          paddingHorizontal: 12,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: "#252525",
+          minWidth: 45,
+          alignItems: "center",
+        }}
+      >
+        <Text
+          style={{
+            color: "#919191",
+            fontSize: 12,
+            fontFamily: "Poppins-Medium",
+          }}
+        >
+          {day}
+        </Text>
+      </View>
     );
   };
 
@@ -93,43 +118,19 @@ const OverviewCalendar = () => {
       {/* Header */}
       <View className="flex-row items-center justify-between mb-6">
         <View className="flex-row items-center">
-          <Text className="text-2xl font-poppinsBold text-white mr-3">
+          <Text className="text-2xl font-poppinsBold text-white mr-4">
             Calendar
           </Text>
 
           <TouchableOpacity
             onPress={() => setIsMonthPickerVisible(true)}
-            className="flex-row items-center bg-[#151515] px-2 py-1 rounded-lg"
+            className="flex-row items-center"
           >
-            <Text className="text-gray-400 font-poppinsMedium mr-1">
+            <Text className="text-gray-400 text-lg font-poppinsMedium mr-1">
               {format(visibleMonthDate, "MMM")}
             </Text>
-            <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#919191" />
+            <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="#919191" />
           </TouchableOpacity>
-
-          <View className="flex-row ml-4 gap-2">
-            <TouchableOpacity
-              onPress={() =>
-                setCurrentMonth(
-                  format(subMonths(visibleMonthDate, 1), "yyyy-MM-dd")
-                )
-              }
-              className="bg-[#151515] p-1.5 rounded-full"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color="#919191" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() =>
-                setCurrentMonth(
-                  format(addMonths(visibleMonthDate, 1), "yyyy-MM-dd")
-                )
-              }
-              className="bg-[#151515] p-1.5 rounded-full"
-            >
-              <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="#919191" />
-            </TouchableOpacity>
-          </View>
         </View>
 
         <Text className="text-[#3b82f6] text-sm font-poppinsMedium">
@@ -137,24 +138,52 @@ const OverviewCalendar = () => {
         </Text>
       </View>
 
-      {/* Calendar */}
-      <Calendar
-        current={currentMonth}
-        onMonthChange={(m) => setCurrentMonth(m.dateString)}
-        enableSwipeMonths
-        hideArrows
-        firstDay={1}
-        dayComponent={DayCard}
-        theme={{
-          calendarBackground: "transparent",
-          textSectionTitleColor: "#e5e7eb",
-          textDayHeaderFontFamily: "Poppins-Medium",
-          textDayHeaderFontSize: 12,
-          textDisabledColor: "#444",
-          monthTextColor: "#fff",
+      {/* Custom Day Headers */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-around",
+          marginBottom: 12,
         }}
-        style={{ backgroundColor: "transparent" }}
-      />
+      >
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(renderDayHeader)}
+      </View>
+
+      {/* Calendar */}
+      <Animated.View
+        key={currentMonth}
+        entering={FadeInDown.duration(600).springify()}
+        style={{ flex: 1 }}
+      >
+        <Calendar
+          current={currentMonth}
+          onMonthChange={(m) => setCurrentMonth(m.dateString)}
+          enableSwipeMonths
+          hideArrows
+          firstDay={1}
+          dayComponent={DayCard}
+          renderHeader={() => null} // Hide default Month/Arrow header
+          hideDayNames={true} // Hide default day names to use our custom boxed ones
+          theme={{
+            calendarBackground: "transparent",
+            textSectionTitleColor: "#e5e7eb",
+            textDayHeaderFontFamily: "Poppins-Medium",
+            textDayHeaderFontSize: 12, // Still set it just in case, but it's hidden
+            textDisabledColor: "#444",
+            monthTextColor: "#fff",
+            // @ts-ignore
+            "stylesheet.calendar.header": {
+              header: {
+                height: 0,
+                opacity: 0,
+                marginTop: 0,
+                marginBottom: 0,
+              },
+            },
+          }}
+          style={{ backgroundColor: "transparent" }}
+        />
+      </Animated.View>
 
       {/* Month Picker Modal (unchanged logic) */}
       <Modal visible={isMonthPickerVisible} transparent animationType="fade">
@@ -168,33 +197,44 @@ const OverviewCalendar = () => {
             </Text>
 
             <View className="flex-row flex-wrap justify-between gap-y-4">
-              {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map(
-                (month, index) => {
-                  const isCurrent = visibleMonthDate.getMonth() === index;
-                  return (
-                    <TouchableOpacity
-                      key={month}
-                      onPress={() => {
-                        const d = new Date(visibleMonthDate);
-                        d.setMonth(index);
-                        setCurrentMonth(format(d, "yyyy-MM-dd"));
-                        setIsMonthPickerVisible(false);
-                      }}
-                      className={`w-[30%] aspect-square rounded-2xl items-center justify-center ${
-                        isCurrent ? "bg-[#3b82f6]" : "bg-[#252525]"
+              {[
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+              ].map((month, index) => {
+                const isCurrent = visibleMonthDate.getMonth() === index;
+                return (
+                  <TouchableOpacity
+                    key={month}
+                    onPress={() => {
+                      const d = new Date(visibleMonthDate);
+                      d.setMonth(index);
+                      setCurrentMonth(format(d, "yyyy-MM-dd"));
+                      setIsMonthPickerVisible(false);
+                    }}
+                    className={`w-[30%] aspect-square rounded-2xl items-center justify-center ${
+                      isCurrent ? "bg-[#3b82f6]" : "bg-[#252525]"
+                    }`}
+                  >
+                    <Text
+                      className={`font-poppinsBold ${
+                        isCurrent ? "text-white" : "text-gray-400"
                       }`}
                     >
-                      <Text
-                        className={`font-poppinsBold ${
-                          isCurrent ? "text-white" : "text-gray-400"
-                        }`}
-                      >
-                        {month}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }
-              )}
+                      {month}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </Pressable>
