@@ -45,14 +45,14 @@ const OverviewCalendar = () => {
         style={{
           aspectRatio: 1,
           opacity: isDisabled ? 0.35 : 1,
-          borderColor: isSelected ? "#3b82f6" : "#252525",
-          backgroundColor: isSelected ? "#3b82f6" : "transparent",
-          margin: 1.5,
+          borderColor: isSelected ? "transparent" : "#2B2B2B",
+          backgroundColor: isSelected ? "#566FEC" : "#1A1A1A",
+          // margin: 1.5,
         }}
         className="flex-1 rounded-lg border p-1 justify-between items-center"
       >
         <Text
-          className={`text-white font-DM text-[13px] text-center ${
+          className={`text-white font-DM text-[13px] mb-2 text-center ${
             isSelected ? "font-bold" : "font-medium"
           }`}
         >
@@ -143,8 +143,8 @@ const OverviewCalendar = () => {
             // @ts-ignore
             "stylesheet.calendar.main": {
               week: {
-                marginTop: 1.5,
-                marginBottom: 1.5,
+                marginTop: 0.5,
+                marginBottom: 0.5,
                 flexDirection: "row",
                 justifyContent: "space-around",
               },
