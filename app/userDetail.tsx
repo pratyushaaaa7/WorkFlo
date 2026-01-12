@@ -1,24 +1,19 @@
-import React, { useState, useContext, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  ActivityIndicator,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  Ionicons,
-  MaterialIcons,
-  FontAwesome5,
-  Feather,
-} from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import moment from "moment";
-import api from "../lib/api";
 import { AuthContext } from "@/context/AuthContext";
+import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import moment from "moment";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import api from "../lib/api";
 
 const UserDetail = () => {
   const { token } = useContext(AuthContext) || {};
@@ -209,69 +204,60 @@ const UserDetail = () => {
             )}
           </View>
 
-          {/* Overall Rating */}
-          <View className="bg-white rounded-2xl shadow-lg p-5 mb-4">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-lg font-bold text-gray-800">
-                Overall Rating
-              </Text>
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                className="bg-indigo-500 px-4 py-2 rounded-xl"
-              >
-                <Text className="text-white text-sm font-semibold">
-                  Add Rating / Feedback
+          {/* Overall Rating Detailed Summary */}
+          <View className="bg-[#F1F5F9] rounded-[24px] p-6 mb-4">
+            <View className="flex-row items-center mb-6">
+              <View className="items-center justify-center pr-6 border-r border-gray-300 min-w-[100px]">
+                <Text className="text-5xl font-bold text-gray-900">
+                  {userData.averageRating
+                    ? userData.averageRating.toFixed(1)
+                    : "0.0"}
                 </Text>
-              </TouchableOpacity>
+                <Text className="text-gray-500 font-medium mt-1">Out of 5</Text>
+              </View>
+
+              <View className="flex-1 pl-6 gap-y-1.5">
+                {[5, 4, 3, 2, 1].map((starCount) => {
+                  const count = ratings.filter(
+                    (r: any) => r.stars === starCount
+                  ).length;
+                  const percentage =
+                    ratings.length > 0 ? (count / ratings.length) * 100 : 0;
+                  return (
+                    <View key={starCount} className="flex-row items-center h-4">
+                      <View className="flex-row w-[65px] justify-end mr-3">
+                        {[...Array(starCount)].map((_, i) => (
+                          <Ionicons
+                            key={i}
+                            name="star"
+                            size={10}
+                            color="#1F2937"
+                            className="ml-0.5"
+                          />
+                        ))}
+                      </View>
+                      <View className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <View
+                          className="h-full bg-gray-800 rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
 
-            <View className="flex-row items-center">
-              {userData.averageRating && userData.averageRating > 0 ? (
-                <>
-                  {[...Array(5)].map((_, i) => {
-                    const fill = Math.min(
-                      Math.max(userData.averageRating - i, 0),
-                      1
-                    );
-                    return (
-                      <View
-                        key={i}
-                        style={{
-                          width: 20,
-                          height: 20,
-                          marginRight: 3,
-                          overflow: "hidden",
-                        }}
-                      >
-                        {/* Outline star */}
-                        <Ionicons
-                          name="star-outline"
-                          size={20}
-                          color="#FACC15"
-                          style={{ position: "absolute" }}
-                        />
-                        {/* Filled star */}
-                        <View
-                          style={{
-                            width: `${fill * 100}%`,
-                            overflow: "hidden",
-                          }}
-                        >
-                          <Ionicons name="star" size={20} color="#FACC15" />
-                        </View>
-                      </View>
-                    );
-                  })}
-                  <Text className="ml-2 text-gray-700 text-base font-semibold">
-                    {userData.averageRating.toFixed(1)} / 5
-                  </Text>
-                </>
-              ) : (
-                <Text className="text-gray-400 text-base italic">
-                  No rating available
-                </Text>
-              )}
-            </View>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              className="bg-[#1C1C1C] flex-row items-center justify-center py-4 rounded-2xl"
+              activeOpacity={0.8}
+            >
+              <Feather name="edit-3" size={18} color="white" />
+              <Text className="text-white font-bold text-lg ml-3">
+                Write a review
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Activity Log */}
