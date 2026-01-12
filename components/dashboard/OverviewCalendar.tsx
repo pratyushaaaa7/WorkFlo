@@ -17,7 +17,6 @@ const OverviewCalendar = () => {
 
   const visibleMonthDate = parseISO(currentMonth);
 
-  /** Task counts (mapped by day of month) */
   const taskCounts: Record<string, number> = {
     "29": 2,
     "30": 7,
@@ -44,42 +43,33 @@ const OverviewCalendar = () => {
         activeOpacity={0.85}
         onPress={() => !isDisabled && setSelectedDate(date.dateString)}
         style={{
-          flex: 1,
-          aspectRatio: 0.8,
-          margin: 4,
-          borderRadius: 12,
-          borderWidth: 1,
+          aspectRatio: 1,
+          opacity: isDisabled ? 0.35 : 1,
           borderColor: isSelected ? "#3b82f6" : "#252525",
           backgroundColor: isSelected ? "#3b82f6" : "transparent",
-          opacity: isDisabled ? 0.35 : 1,
-          padding: 8,
-          justifyContent: "space-between",
+          margin: 1.5,
         }}
+        className="flex-1 rounded-lg border p-1 justify-between items-center"
       >
         <Text
-          style={{
-            color: "white",
-            fontSize: 18,
-            fontFamily: "Poppins-SemiBold",
-            textAlign: "center",
-          }}
+          className={`text-white font-DM text-[13px] text-center ${
+            isSelected ? "font-bold" : "font-medium"
+          }`}
         >
           {date.day}
         </Text>
 
         {taskCount && !isDisabled ? (
           <Text
-            style={{
-              fontSize: 10,
-              color: isSelected ? "white" : "#919191",
-              fontFamily: "Poppins-Medium",
-              textAlign: "center",
-            }}
+            numberOfLines={1}
+            className={`text-[8px] font-poppins text-center w-full ${
+              isSelected ? "text-white" : "text-[#919191]"
+            }`}
           >
             {taskCount} {taskCount === 1 ? "Task" : "Tasks"}
           </Text>
         ) : (
-          <View style={{ height: 12 }} />
+          <View className="h-[10px]" />
         )}
       </TouchableOpacity>
     );
@@ -88,33 +78,14 @@ const OverviewCalendar = () => {
   /** 🔹 Custom Day Header */
   const renderDayHeader = (day: string) => {
     return (
-      <View
-        style={{
-          backgroundColor: "#151515",
-          paddingVertical: 6,
-          paddingHorizontal: 12,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: "#252525",
-          minWidth: 45,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            color: "#919191",
-            fontSize: 12,
-            fontFamily: "Poppins-Medium",
-          }}
-        >
-          {day}
-        </Text>
+      <View className="bg-[#151515] px-3 py-1.5 rounded-lg border border-[#252525] min-w-[45px] items-center">
+        <Text className="text-[#919191] text-xs font-poppinsMedium">{day}</Text>
       </View>
     );
   };
 
   return (
-    <View className=" bg-[#0D0D0D] pt-4 pb-6">
+    <View className="bg-[#0D0D0D] pt-4 pb-6">
       {/* Header */}
       <View className="flex-row items-center justify-between mb-6">
         <View className="flex-row items-center">
@@ -139,13 +110,7 @@ const OverviewCalendar = () => {
       </View>
 
       {/* Custom Day Headers */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          marginBottom: 12,
-        }}
-      >
+      <View className="flex-row justify-around mb-3">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(renderDayHeader)}
       </View>
 
@@ -153,7 +118,7 @@ const OverviewCalendar = () => {
       <Animated.View
         key={currentMonth}
         entering={FadeInDown.duration(600).springify()}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <Calendar
           current={currentMonth}
@@ -162,13 +127,10 @@ const OverviewCalendar = () => {
           hideArrows
           firstDay={1}
           dayComponent={DayCard}
-          renderHeader={() => null} // Hide default Month/Arrow header
-          hideDayNames={true} // Hide default day names to use our custom boxed ones
+          renderHeader={() => null}
+          hideDayNames
           theme={{
             calendarBackground: "transparent",
-            textSectionTitleColor: "#e5e7eb",
-            textDayHeaderFontFamily: "Poppins-Medium",
-            textDayHeaderFontSize: 12, // Still set it just in case, but it's hidden
             textDisabledColor: "#444",
             monthTextColor: "#fff",
             // @ts-ignore
@@ -176,8 +138,15 @@ const OverviewCalendar = () => {
               header: {
                 height: 0,
                 opacity: 0,
-                marginTop: 0,
-                marginBottom: 0,
+              },
+            },
+            // @ts-ignore
+            "stylesheet.calendar.main": {
+              week: {
+                marginTop: 1.5,
+                marginBottom: 1.5,
+                flexDirection: "row",
+                justifyContent: "space-around",
               },
             },
           }}
@@ -185,11 +154,11 @@ const OverviewCalendar = () => {
         />
       </Animated.View>
 
-      {/* Month Picker Modal (unchanged logic) */}
+      {/* Month Picker Modal */}
       <Modal visible={isMonthPickerVisible} transparent animationType="fade">
         <Pressable
-          className="flex-1 bg-black/80 items-center justify-center p-6"
           onPress={() => setIsMonthPickerVisible(false)}
+          className="flex-1 bg-black/80 items-center justify-center p-6"
         >
           <View className="bg-[#151515] w-full rounded-3xl p-6 border border-[#252525]">
             <Text className="text-white text-xl font-poppinsBold mb-6 text-center">
