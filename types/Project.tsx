@@ -32,7 +32,7 @@ type Project = {
   assignedUsers?: { _id: string; username?: string; fullName?: string }[]; // legacy
   teamLeaders: { _id: string; username?: string; fullName?: string }[];
   teamMembers: { _id: string; username?: string; fullName?: string }[];
-
+  description: string;
   clientName?: string;
   siteArea?: string;
   designedArea?: string;

@@ -264,8 +264,8 @@ function AppLayout() {
                 }`}
                 onPress={() => router.push(`/${item.name}`)}
               >
-                <View className="flex-row items-center">
-                  <View>
+                <View className="flex-row items-center flex-1">
+                  <View style={{ flexShrink: 0 }}>
                     {item.icon({
                       color: isActive
                         ? "#5B4CCC" // Indigo-600 when active
@@ -276,11 +276,13 @@ function AppLayout() {
                     })}
                   </View>
                   <Text
-                    className={`ml-4 text-base  ${
+                    className={`ml-4 text-base ${
                       isActive
                         ? "text-indigo-600 dark:text-[#5B4CCC] font-poppinsMedium"
                         : "text-[#454545] dark:text-[#919191] font-poppins"
                     }`}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                   >
                     {item.label}
                   </Text>

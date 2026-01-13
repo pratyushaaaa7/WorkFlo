@@ -123,7 +123,8 @@ const Dashboard = () => {
         <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <TouchableOpacity
-              className="mr-3"
+            activeOpacity={1}
+              className="mr-3 flex-row gap-2 items-center"
               onPress={() => (navigation as any).openDrawer()}
             >
               <HugeiconsIcon
@@ -131,16 +132,16 @@ const Dashboard = () => {
                 size={24}
                 color={isDarkMode ? "#919191" : "#454545"}
               />
-            </TouchableOpacity>
 
-            <View className="flex-row items-center">
-              <View className="w-8 h-8 rounded-lg bg-indigo-500 items-center justify-center mr-2">
-                <Text className="text-white font-bold text-lg">T</Text>
+              <View className="flex-row items-center">
+                <View className="w-8 h-8 rounded-lg bg-indigo-500 items-center justify-center mr-2">
+                  <Text className="text-white font-bold text-lg">T</Text>
+                </View>
+                <Text className="text-gray-900 dark:text-white text-xl font-bold">
+                  Thuhroh
+                </Text>
               </View>
-              <Text className="text-gray-900 dark:text-white text-xl font-bold">
-                Thuhroh
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View className="flex-row items-center gap-3">

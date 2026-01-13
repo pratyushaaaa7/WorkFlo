@@ -109,8 +109,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
           {project.projectName}
         </Text>
         <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
-          {project.location || "No Location Specified"} •{" "}
-          {project.typology || "No Typology"}
+          {project.description || "No Description"} 
         </Text>
       </View>
 
@@ -137,9 +136,9 @@ const ProjectCard = ({ project }: { project: Project }) => {
         </View>
 
         {/* Deadline/Start Date */}
-        <View className="flex-row items-center opacity-60">
+        <View className="flex-row items-center ">
           <HugeiconsIcon icon={Calendar03Icon} size={14} color="#F87171" />
-          <Text className="text-red-400 text-[10px] font-poppinsMedium ml-1.5 mt-0.5">
+          <Text className="text-red-500 text-[10px] font-poppinsMedium ml-1.5 mt-0.5">
             {project.startDate
               ? new Date(project.startDate).toLocaleDateString()
               : "No Date"}
