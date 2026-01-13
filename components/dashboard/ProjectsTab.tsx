@@ -159,15 +159,15 @@ const ProjectsTab = () => {
   const token = auth?.token;
   const isDarkMode = useColorScheme() === "dark";
 
-  const subTabs = ["Wal+L", "WP", "WCorp"];
+  const subTabs = ["WALL", "WP", "WCORP"];
 
   const getCompanyValue = (tab: string) => {
     switch (tab) {
-      case "Wal+L":
+      case "WALL":
         return "WAL";
       case "WP":
         return "WP";
-      case "WCorp":
+      case "WCORP":
         return "WCorp";
       default:
         return tab;
@@ -213,7 +213,7 @@ const ProjectsTab = () => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-gray-100 dark:border-[#252525] px-2">
+      <View className="flex-row border-b border-gray-100 dark:border-[#252525]  ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
@@ -228,7 +228,7 @@ const ProjectsTab = () => {
               }
             >
               <Text
-                className={`text-sm tracking-wide font-poppinsMedium ${
+                className={`text-sm  font-poppinsMedium ${
                   isActive
                     ? "text-gray-900 dark:text-white"
                     : "text-gray-400 dark:text-[#606060]"

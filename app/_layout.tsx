@@ -44,6 +44,8 @@ import "../global.css";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 
 export default function RootLayout() {
@@ -68,6 +70,8 @@ function AppLayout() {
     DMSans_700Bold,
     Poppins_400Regular,
     Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
   });
 
   const colorScheme = useColorScheme(); // returns "dark" or "light"
