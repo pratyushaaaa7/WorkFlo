@@ -1,4 +1,5 @@
 import { BlurView } from "@react-native-community/blur";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -166,6 +167,26 @@ export default function GlassNav({
           />
         )}
       </View>
+
+      {/* 5. Mixing Gradient (Feathered Edge) */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[
+          isDarkMode ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)",
+          isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
+          isDarkMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)",
+          "transparent",
+        ]}
+        locations={[0, 0.3, 0.6, 1]}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 65,
+          zIndex: -1,
+        }}
+      />
     </View>
   );
 }
