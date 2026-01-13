@@ -95,7 +95,10 @@ const Dashboard = () => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* 1. FIXED TOP HEADER (App Name & Profile) */}
-      <View className="pt-14 px-3 pb-3 bg-white dark:bg-black z-50">
+      <View
+        className="pt-14 px-3 pb-3 bg-white dark:bg-black z-10"
+        style={{ zIndex: 10 }}
+      >
         <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <TouchableOpacity
@@ -169,54 +172,72 @@ const Dashboard = () => {
 
         {/* 3. NAVIGATION TABS (Sticky below Header) */}
         <View
+          collapsable={false}
           className="bg-white dark:bg-[#1A1A1A] border-b border-gray-100 dark:border-[#252525]"
-          style={{ zIndex: 100 }}
+          style={{ zIndex: 1000, elevation: 10, height: 60 }}
+          pointerEvents="box-none"
         >
-          <GlassNav
-            activeTabIndex={tabs.indexOf(activeTab)}
-            totalTabs={tabs.length}
-            activeTabName={activeTab}
+          {/* Layer 1: Visual Background (Absolute) */}
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+            pointerEvents="none"
           >
-            <View className="flex-1 flex-row items-center justify-between gap-1">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab;
-                const themeColor = getTabColor(tab);
+            <GlassNav
+              activeTabIndex={tabs.indexOf(activeTab)}
+              totalTabs={tabs.length}
+              activeTabName={activeTab}
+            />
+          </View>
 
-                return (
-                  <TouchableOpacity
-                    key={tab}
-                    onPress={() => setActiveTab(tab)}
-                    className="flex-1 py-1 px-1 items-center justify-center"
-                    hitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
-                    delayPressIn={0}
-                  >
-                    <View className="items-center justify-center">
-                      <HugeiconsIcon
-                        icon={getTabIcon(tab)}
-                        size={22}
-                        color={
-                          isActive
-                            ? themeColor
-                            : isDarkMode
-                            ? "#919191"
-                            : "#6B7280"
-                        }
-                      />
+          {/* Layer 2: Interactive Foreground */}
+          <View
+            className="flex-1 flex-row items-center justify-between gap-1"
+            style={{ paddingHorizontal: 12, paddingTop: 8 }}
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              const themeColor = getTabColor(tab);
 
-                      <Text
-                        className={`text-[10px] sm:text-xs  font-poppinsMedium mt-1 ${
-                          isActive ? "" : "text-gray-500 dark:text-[#919191]"
-                        }`}
-                        style={isActive ? { color: themeColor } : {}}
-                      >
-                        {tab}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </GlassNav>
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setActiveTab(tab)}
+                  className="flex-1 py-1 px-1 items-center justify-center"
+                  hitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
+                  delayPressIn={0}
+                >
+                  <View className="items-center justify-center">
+                    <HugeiconsIcon
+                      icon={getTabIcon(tab)}
+                      size={22}
+                      color={
+                        isActive
+                          ? themeColor
+                          : isDarkMode
+                          ? "#919191"
+                          : "#6B7280"
+                      }
+                    />
+
+                    <Text
+                      className={`text-[10px] sm:text-xs  font-poppinsMedium mt-1 ${
+                        isActive ? "" : "text-gray-500 dark:text-[#919191]"
+                      }`}
+                      style={isActive ? { color: themeColor } : {}}
+                    >
+                      {tab}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* 4. MAIN CONTENT */}

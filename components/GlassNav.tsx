@@ -16,7 +16,6 @@ import Svg, {
 } from "react-native-svg";
 
 interface GlassNavProps {
-  children: React.ReactNode;
   activeTabIndex: number;
   totalTabs: number;
   activeTabName: string;
@@ -38,7 +37,6 @@ const getTabColor = (tabName: string) => {
 };
 
 export default function GlassNav({
-  children,
   activeTabIndex,
   totalTabs,
   activeTabName,
@@ -78,7 +76,7 @@ export default function GlassNav({
     <View
       style={styles.container}
       onLayout={onLayout}
-      pointerEvents="box-none" // ⬅️ Critical: allow children to receive events
+      pointerEvents="none" // ⬅️ Critical: purely visual, ignore all touches
     >
       {/* 1. Background tint (lowest layer) */}
       <View
@@ -188,14 +186,6 @@ export default function GlassNav({
           zIndex: -1, // Behind children
         }}
       />
-
-      {/* 6. CONTENT (Top layer) */}
-      <View
-        style={[styles.content, { zIndex: 10 }]}
-        pointerEvents="box-none" // ⬅️ Allow children like TouchableOpacity to work
-      >
-        {children}
-      </View>
     </View>
   );
 }
@@ -203,7 +193,7 @@ export default function GlassNav({
 const styles = StyleSheet.create({
   container: {
     height: 60,
-    overflow: "hidden",
+    // overflow: "hidden", // ⬅️ Removed to allow hitSlop to work
   },
   content: {
     flex: 1,

@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
   Text,
   TouchableOpacity,
   useColorScheme,
@@ -155,6 +154,7 @@ const ProjectsTab = () => {
   const [activeSubTab, setActiveSubTab] = useState("Wal+L");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -185,6 +185,7 @@ const ProjectsTab = () => {
           params: { company: getCompanyValue(activeSubTab) },
         });
         setProjects(res.data.projects || []);
+        console.log(res.data.projects);
       } catch (err) {
         console.error("Failed to fetch projects for tab:", activeSubTab, err);
         setProjects([]);
@@ -195,6 +196,20 @@ const ProjectsTab = () => {
 
     fetchProjects();
   }, [token, activeSubTab]);
+
+  // Progressive Rendering Effect
+  useEffect(() => {
+    setVisibleCount(5);
+  }, [activeSubTab]);
+
+  useEffect(() => {
+    if (projects.length > 0 && visibleCount < projects.length) {
+      const timer = setTimeout(() => {
+        setVisibleCount((prev) => prev + 5);
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, [visibleCount, projects]);
 
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
@@ -246,30 +261,26 @@ const ProjectsTab = () => {
       </View>
 
       {/* Project List */}
-      <ScrollView
-        className="flex-1 px-5 pb-5"
-        showsVerticalScrollIndicator={false}
-      >
-        {loading ? (
-          <View className="py-20 items-center justify-center">
-            <ActivityIndicator size="large" color="#5B4CCC" />
-            <Text className="mt-4 text-gray-500 font-poppinsMedium">
-              Loading projects...
-            </Text>
-          </View>
-        ) : projects.length > 0 ? (
-          projects.map((project) => (
+      {loading ? (
+        <View className="flex-1 items-center justify-center py-20">
+          <ActivityIndicator size="large" color="#5B4CCC" />
+          <Text className="mt-4 text-gray-500 font-poppinsMedium">
+            Loading projects...
+          </Text>
+        </View>
+      ) : projects.length > 0 ? (
+        <View className="px-5 pb-20">
+          {projects.slice(0, visibleCount).map((project) => (
             <ProjectCard key={project._id} project={project} />
-          ))
-        ) : (
-          <View className="py-20 items-center justify-center">
-            <Text className="text-gray-400 font-poppinsMedium">
-              No projects found for {activeSubTab}
-            </Text>
-          </View>
-        )}
-        <View className="h-10" />
-      </ScrollView>
+          ))}
+        </View>
+      ) : (
+        <View className="flex-1 items-center justify-center pt-20">
+          <Text className="text-gray-400 font-poppinsMedium">
+            No projects found for {activeSubTab}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
