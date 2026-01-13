@@ -7,22 +7,12 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useState } from "react";
 import {
   LayoutAnimation,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
-  UIManager,
   useColorScheme,
   View,
 } from "react-native";
-
-// Enable LayoutAnimation for Android
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 // Mock data for tasks
 const TASKS_DATA = [

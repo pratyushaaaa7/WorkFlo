@@ -102,9 +102,10 @@ const OverviewCalendar = () => {
   };
 
   /** 🔹 Custom Day Header */
-  const renderDayHeader = (day: string) => {
+  const renderDayHeader = (day: string, index: number) => {
     return (
       <View
+        key={`${day}-${index}`}
         style={{
           backgroundColor: isDark ? "#151515" : "#F3F4F6",
           borderColor: isDark ? "#252525" : "#E5E7EB",
@@ -163,7 +164,9 @@ const OverviewCalendar = () => {
 
       {/* Custom Day Headers */}
       <View className="flex-row justify-around mb-3">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(renderDayHeader)}
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) =>
+          renderDayHeader(day, index)
+        )}
       </View>
 
       {/* Calendar */}
