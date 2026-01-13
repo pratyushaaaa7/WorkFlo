@@ -1,7 +1,7 @@
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { memo, useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Text,
@@ -13,197 +13,206 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { Project } from "../../types/Project";
 
-const ProjectCard = ({ project }: { project: Project }) => {
-  const isDarkMode = useColorScheme() === "dark";
-  const router = useRouter();
+const ProjectCard = memo(
+  ({ project }: { project: Project }) => {
+    const isDarkMode = useColorScheme() === "dark";
+    const router = useRouter();
 
-  // Avatar color palette
-  const avatarColors = [
-    {
-      bg: "bg-indigo-100 dark:bg-indigo-900/50",
-      text: "text-indigo-600 dark:text-indigo-300",
-    },
-    {
-      bg: "bg-emerald-100 dark:bg-emerald-900/50",
-      text: "text-emerald-600 dark:text-emerald-300",
-    },
-    {
-      bg: "bg-orange-100 dark:bg-orange-900/50",
-      text: "text-orange-600 dark:text-orange-300",
-    },
-    {
-      bg: "bg-pink-100 dark:bg-pink-900/50",
-      text: "text-pink-600 dark:text-pink-300",
-    },
-    {
-      bg: "bg-cyan-100 dark:bg-cyan-900/50",
-      text: "text-cyan-600 dark:text-cyan-300",
-    },
-    {
-      bg: "bg-amber-100 dark:bg-amber-900/50",
-      text: "text-amber-600 dark:text-amber-300",
-    },
-    {
-      bg: "bg-violet-100 dark:bg-violet-900/50",
-      text: "text-violet-600 dark:text-violet-300",
-    },
-    {
-      bg: "bg-rose-100 dark:bg-rose-900/50",
-      text: "text-rose-600 dark:text-rose-300",
-    },
-  ];
-
-  const getAvatarColor = (name: string, index: number) => {
-    // Generate a consistent color based on the name
-    const hash =
-      name?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) ||
-      index;
-    return avatarColors[hash % avatarColors.length];
-  };
-
-  const handlePress = () => {
-    router.push({
-      pathname: "/projectMain",
-      params: {
-        projectId: project._id,
-        company: project.company,
-        projectName: project.projectName,
+    // Avatar color palette
+    const avatarColors = [
+      {
+        bg: "bg-indigo-100 dark:bg-indigo-900/50",
+        text: "text-indigo-600 dark:text-indigo-300",
       },
-    });
-  };
+      {
+        bg: "bg-emerald-100 dark:bg-emerald-900/50",
+        text: "text-emerald-600 dark:text-emerald-300",
+      },
+      {
+        bg: "bg-orange-100 dark:bg-orange-900/50",
+        text: "text-orange-600 dark:text-orange-300",
+      },
+      {
+        bg: "bg-pink-100 dark:bg-pink-900/50",
+        text: "text-pink-600 dark:text-pink-300",
+      },
+      {
+        bg: "bg-cyan-100 dark:bg-cyan-900/50",
+        text: "text-cyan-600 dark:text-cyan-300",
+      },
+      {
+        bg: "bg-amber-100 dark:bg-amber-900/50",
+        text: "text-amber-600 dark:text-amber-300",
+      },
+      {
+        bg: "bg-violet-100 dark:bg-violet-900/50",
+        text: "text-violet-600 dark:text-violet-300",
+      },
+      {
+        bg: "bg-rose-100 dark:bg-rose-900/50",
+        text: "text-rose-600 dark:text-rose-300",
+      },
+    ];
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return {
-          bg: "bg-indigo-100 dark:bg-indigo-900/30",
-          text: "text-indigo-600 dark:text-[#8E87F1]",
-          border: "border-indigo-600 dark:border-[#5B4CCC]",
-          dot: "bg-indigo-600 dark:bg-[#5B4CCC]",
-        };
-      case "bd":
-        return {
-          bg: "bg-orange-50 dark:bg-orange-900/20",
-          text: "text-orange-500 dark:text-[#FFB380]",
-          border: "border-orange-500 dark:border-[#FFB380]",
-          dot: "bg-orange-500 dark:bg-[#FFB380]",
-        };
-      case "closed":
-        return {
-          bg: "bg-red-50 dark:bg-red-900/20",
-          text: "text-red-500 dark:text-[#F87171]",
-          border: "border-red-500 dark:border-[#F87171]",
-          dot: "bg-red-500 dark:bg-[#F87171]",
-        };
-      default:
-        return {
-          bg: "bg-gray-100 dark:bg-[#252525]",
-          text: "text-gray-500 dark:text-[#919191]",
-          border: "border-gray-400 dark:border-[#606060]",
-          dot: "bg-gray-400 dark:bg-[#606060]",
-        };
-    }
-  };
+    const getAvatarColor = (name: string, index: number) => {
+      // Generate a consistent color based on the name
+      const hash =
+        name?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) ||
+        index;
+      return avatarColors[hash % avatarColors.length];
+    };
 
-  const colors = getStatusColor(project.status || "");
-  const team = [
-    ...(project.teamLeaders || []),
-    ...(project.teamMembers || []),
-  ].slice(0, 4);
+    const handlePress = () => {
+      router.push({
+        pathname: "/projectMain",
+        params: {
+          projectId: project._id,
+          company: project.company,
+          projectName: project.projectName,
+        },
+      });
+    };
 
-  return (
-    <TouchableOpacity
-      onPress={handlePress}
-      activeOpacity={0.7}
-      className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 mb-4 border border-gray-100 dark:border-[#252525]"
-    >
-      {/* Header Row */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center gap-2">
-          <View
-            className={`${colors.bg} px-3 py-1.5 rounded-full flex-row items-center`}
-          >
+    const getStatusColor = (status: string) => {
+      switch (status?.toLowerCase()) {
+        case "active":
+          return {
+            bg: "bg-indigo-100 dark:bg-indigo-900/30",
+            text: "text-indigo-600 dark:text-[#8E87F1]",
+            border: "border-indigo-600 dark:border-[#5B4CCC]",
+            dot: "bg-indigo-600 dark:bg-[#5B4CCC]",
+          };
+        case "bd":
+          return {
+            bg: "bg-orange-50 dark:bg-orange-900/20",
+            text: "text-orange-500 dark:text-[#FFB380]",
+            border: "border-orange-500 dark:border-[#FFB380]",
+            dot: "bg-orange-500 dark:bg-[#FFB380]",
+          };
+        case "closed":
+          return {
+            bg: "bg-red-50 dark:bg-red-900/20",
+            text: "text-red-500 dark:text-[#F87171]",
+            border: "border-red-500 dark:border-[#F87171]",
+            dot: "bg-red-500 dark:bg-[#F87171]",
+          };
+        default:
+          return {
+            bg: "bg-gray-100 dark:bg-[#252525]",
+            text: "text-gray-500 dark:text-[#919191]",
+            border: "border-gray-400 dark:border-[#606060]",
+            dot: "bg-gray-400 dark:bg-[#606060]",
+          };
+      }
+    };
+
+    const colors = getStatusColor(project.status || "");
+    const team = [
+      ...(project.teamLeaders || []),
+      ...(project.teamMembers || []),
+    ].slice(0, 4);
+
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={0.7}
+        className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 mb-4 border border-gray-100 dark:border-[#252525]"
+      >
+        {/* Header Row */}
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center gap-2">
             <View
-              className={`w-4 h-4 rounded-full border-2 ${colors.border} items-center justify-center mr-1.5 overflow-hidden flex-row`}
+              className={`${colors.bg} px-3 py-1.5 rounded-full flex-row items-center`}
             >
-              {project.status?.toLowerCase() === "active" ? (
-                <>
-                  <View className={`flex-1 h-full ${colors.dot}`} />
-                  <View className="flex-1 h-full bg-transparent" />
-                </>
-              ) : (
-                <View className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-              )}
+              <View
+                className={`w-4 h-4 rounded-full border-2 ${colors.border} items-center justify-center mr-1.5 overflow-hidden flex-row`}
+              >
+                {project.status?.toLowerCase() === "active" ? (
+                  <>
+                    <View className={`flex-1 h-full ${colors.dot}`} />
+                    <View className="flex-1 h-full bg-transparent" />
+                  </>
+                ) : (
+                  <View className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                )}
+              </View>
+              <Text
+                className={`${colors.text} text-[10px] font-poppinsMedium capitalize`}
+              >
+                {project.status || "N/A"}
+              </Text>
             </View>
-            <Text
-              className={`${colors.text} text-[10px] font-poppinsMedium capitalize`}
-            >
-              {project.status || "N/A"}
-            </Text>
+            <View className="bg-gray-100 dark:bg-[#252525] px-3 py-1.5 rounded-full">
+              <Text className="text-gray-500 dark:text-[#919191] text-[10px] font-poppinsMedium">
+                File No:{" "}
+                {project.fileNumber || project.fileNumberNumeric || "—"}
+              </Text>
+            </View>
           </View>
-          <View className="bg-gray-100 dark:bg-[#252525] px-3 py-1.5 rounded-full">
-            <Text className="text-gray-500 dark:text-[#919191] text-[10px] font-poppinsMedium">
-              File No: {project.fileNumber || project.fileNumberNumeric || "—"}
+          <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
+            <Text className="text-indigo-500 dark:text-[#8E87F1] text-[10px] font-poppinsMedium">
+              {project.projectCode || "No Code"}
             </Text>
           </View>
         </View>
-        <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
-          <Text className="text-indigo-500 dark:text-[#8E87F1] text-[10px] font-poppinsMedium">
-            {project.projectCode || "No Code"}
+
+        {/* Content */}
+        <View className="mb-5">
+          <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mb-2">
+            {project.projectName}
+          </Text>
+          <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
+            {project.description || "No Description"}
           </Text>
         </View>
-      </View>
 
-      {/* Content */}
-      <View className="mb-5">
-        <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mb-2">
-          {project.projectName}
-        </Text>
-        <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
-          {project.description || "No Description"}
-        </Text>
-      </View>
-
-      {/* Footer Row */}
-      <View className="flex-row items-center justify-between">
-        {/* Avatar Stack */}
-        <View className="flex-row">
-          {team.length > 0 ? (
-            team.map((member, index) => {
-              const avatarColor = getAvatarColor(member.fullName || "", index);
-              return (
-                <View
-                  key={index}
-                  className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
-                >
-                  <Text
-                    className={`text-[10px] font-poppinsBold ${avatarColor.text}`}
+        {/* Footer Row */}
+        <View className="flex-row items-center justify-between">
+          {/* Avatar Stack */}
+          <View className="flex-row">
+            {team.length > 0 ? (
+              team.map((member, index) => {
+                const avatarColor = getAvatarColor(
+                  member.fullName || "",
+                  index
+                );
+                return (
+                  <View
+                    key={index}
+                    className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
                   >
-                    {member.fullName?.substring(0, 2).toUpperCase() || "??"}
-                  </Text>
-                </View>
-              );
-            })
-          ) : (
-            <Text className="text-gray-400 text-[10px] font-poppins">
-              No team assigned
-            </Text>
-          )}
-        </View>
+                    <Text
+                      className={`text-[10px] font-poppinsBold ${avatarColor.text}`}
+                    >
+                      {member.fullName?.substring(0, 2).toUpperCase() || "??"}
+                    </Text>
+                  </View>
+                );
+              })
+            ) : (
+              <Text className="text-gray-400 text-[10px] font-poppins">
+                No team assigned
+              </Text>
+            )}
+          </View>
 
-        {/* Deadline/Start Date */}
-        <View className="flex-row items-center ">
-          <HugeiconsIcon icon={Calendar03Icon} size={14} color="#F87171" />
-          <Text className="text-red-500 text-[10px] font-poppinsMedium ml-1.5 mt-0.5">
-            {project.startDate
-              ? new Date(project.startDate).toLocaleDateString()
-              : "No Date"}
-          </Text>
+          {/* Deadline/Start Date */}
+          <View className="flex-row items-center ">
+            <HugeiconsIcon icon={Calendar03Icon} size={14} color="#F87171" />
+            <Text className="text-red-500 text-[10px] font-poppinsMedium ml-1.5 mt-0.5">
+              {project.startDate
+                ? new Date(project.startDate).toLocaleDateString()
+                : "No Date"}
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+      </TouchableOpacity>
+    );
+  },
+  (prev, next) =>
+    prev.project._id === next.project._id &&
+    prev.project.status === next.project.status
+);
 
 const ProjectsTab = () => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
@@ -211,7 +220,6 @@ const ProjectsTab = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(5);
-
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const isDarkMode = useColorScheme() === "dark";
@@ -248,6 +256,12 @@ const ProjectsTab = () => {
     });
   }, [projects, activeStatusFilter]);
 
+  const handleStatusPress = (status: string) => {
+    if (status === activeStatusFilter) return;
+    setVisibleCount(5);
+    setActiveStatusFilter(status);
+  };
+
   const getCompanyValue = (tab: string) => {
     switch (tab) {
       case "WALL":
@@ -271,7 +285,6 @@ const ProjectsTab = () => {
           params: { company: getCompanyValue(activeSubTab) },
         });
         setProjects(res.data.projects || []);
-        console.log(res.data.projects);
       } catch (err) {
         console.error("Failed to fetch projects for tab:", activeSubTab, err);
         setProjects([]);
@@ -283,19 +296,19 @@ const ProjectsTab = () => {
     fetchProjects();
   }, [token, activeSubTab]);
 
-  // Progressive Rendering Effect
+  // Progressive Rendering Effect (Initial load and Tab Switch)
   useEffect(() => {
     setVisibleCount(5);
-  }, [activeSubTab, activeStatusFilter]);
+  }, [activeSubTab]);
 
   useEffect(() => {
-    if (projects.length > 0 && visibleCount < projects.length) {
+    if (filteredProjects.length > 0 && visibleCount < filteredProjects.length) {
       const timer = setTimeout(() => {
         setVisibleCount((prev) => prev + 5);
       }, 10);
       return () => clearTimeout(timer);
     }
-  }, [visibleCount, projects]);
+  }, [visibleCount, filteredProjects]);
 
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
@@ -345,7 +358,7 @@ const ProjectsTab = () => {
           return (
             <TouchableOpacity
               key={filter.key}
-              onPress={() => setActiveStatusFilter(filter.key)}
+              onPress={() => handleStatusPress(filter.key)}
               className={`px-2 py-2 rounded-full flex-row items-center gap-2 border ${
                 isActive ? "bg-white dark:bg-[#1A1A1A]" : "bg-transparent"
               }`}
