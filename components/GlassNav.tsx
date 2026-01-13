@@ -1,5 +1,4 @@
 import { BlurView } from "@react-native-community/blur";
-import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -16,6 +15,7 @@ import Svg, {
 } from "react-native-svg";
 
 interface GlassNavProps {
+  children: React.ReactNode;
   activeTabIndex: number;
   totalTabs: number;
   activeTabName: string;
@@ -104,7 +104,7 @@ export default function GlassNav({
               bottom: 0,
               width: mountainWidth,
               height: mountainHeight,
-              opacity: 0.2,
+              opacity: 0.25,
               transform: [
                 {
                   translateX: Animated.add(
@@ -166,26 +166,6 @@ export default function GlassNav({
           />
         )}
       </View>
-
-      {/* 5. Mixing Gradient (Feathered Edge) */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[
-          isDarkMode ? "rgba(0,0,0,1)" : "rgba(255,255,255,1)",
-          isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
-          isDarkMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)",
-          "transparent",
-        ]}
-        locations={[0, 0.3, 0.6, 1]}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 30,
-          zIndex: -1, // Behind children
-        }}
-      />
     </View>
   );
 }
@@ -193,7 +173,7 @@ export default function GlassNav({
 const styles = StyleSheet.create({
   container: {
     height: 60,
-    // overflow: "hidden", // ⬅️ Removed to allow hitSlop to work
+    overflow: "hidden",
   },
   content: {
     flex: 1,

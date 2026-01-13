@@ -11,8 +11,10 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Animated,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -37,7 +39,19 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
 
-  const [activeTab, setActiveTab] = useState("Overview");
+  // Refs for Scrolling and Animation
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Measurement State
+  const [searchHeight, setSearchHeight] = useState(70); // Default approx
+
+  const [activeTab, setActiveTabState] = useState("Overview");
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
 
   const tabs = ["Overview", "Projects", "Tasks", "Calendar", "Notes"];
 
@@ -92,12 +106,19 @@ const Dashboard = () => {
     }
   };
 
+  // Interpolation for Sticky Header
+  const translateY = scrollY.interpolate({
+    inputRange: [0, searchHeight],
+    outputRange: [searchHeight, 0],
+    extrapolateRight: "clamp",
+  });
+
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* 1. FIXED TOP HEADER (App Name & Profile) */}
       <View
         className="pt-14 px-3 pb-3 bg-white dark:bg-black z-10"
-        style={{ zIndex: 10 }}
+        style={{ zIndex: 20 }}
       >
         <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
@@ -141,108 +162,128 @@ const Dashboard = () => {
         </View>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        stickyHeaderIndices={[1]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        scrollEventThrottle={16}
-      >
-        {/* 2. SEARCH BAR (Scrolls with content) */}
-        <View className="px-3 pt-3 bg-white dark:bg-black">
-          <View className="flex-row items-center">
-            <View className="flex-1 flex-row items-center px-4 py-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
-              <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
-              <TextInput
-                placeholder="Search"
-                placeholderTextColor="#606060"
-                className="flex-1 ml-3 font-dm text-[#606060] py-1"
+      {/* 3. SCROLLABLE CONTENT */}
+      {/* Container View holds both the Absolute Navbar and the ScrollView */}
+      <View className="flex-1 relative">
+        {/* OVERLAY STICKY NAVBAR (Absolute Positioned relative to this container) */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            transform: [{ translateY }],
+            elevation: 0,
+            shadowOpacity: 0,
+            shadowRadius: 0,
+            shadowOffset: { width: 0, height: 0 },
+          }}
+        >
+          <View className="bg-white dark:bg-[#1A1A1A]" style={{ height: 60 }}>
+            {/* Visual Layer */}
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              pointerEvents="none"
+            >
+              <GlassNav
+                activeTabIndex={tabs.indexOf(activeTab)}
+                totalTabs={tabs.length}
+                activeTabName={activeTab}
               />
             </View>
 
-            <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
-              <HugeiconsIcon
-                icon={FilterHorizontalIcon}
-                size={24}
-                color="#606060"
-              />
-            </TouchableOpacity>
+            {/* Interactive Layer */}
+            <View
+              className="flex-1 flex-row items-center justify-between gap-1"
+              style={{ paddingHorizontal: 12, paddingTop: 8 }}
+            >
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab;
+                const themeColor = getTabColor(tab);
+                return (
+                  <Pressable
+                    key={tab}
+                    onPress={() => setActiveTab(tab)}
+                    className="flex-1 items-center justify-center py-4"
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <View className="items-center justify-center">
+                      <HugeiconsIcon
+                        icon={getTabIcon(tab)}
+                        size={22}
+                        color={
+                          isActive
+                            ? themeColor
+                            : isDarkMode
+                            ? "#919191"
+                            : "#6B7280"
+                        }
+                      />
+                      <Text
+                        className={`text-[10px] sm:text-xs font-poppinsMedium mt-1 ${
+                          isActive ? "" : "text-gray-500 dark:text-[#919191]"
+                        }`}
+                        style={isActive ? { color: themeColor } : {}}
+                      >
+                        {tab}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
-        {/* 3. NAVIGATION TABS (Sticky below Header) */}
-        <View
-          collapsable={false}
-          className="bg-white dark:bg-[#1A1A1A] border-b border-gray-100 dark:border-[#252525]"
-          style={{ zIndex: 1000, elevation: 10, height: 60 }}
-          pointerEvents="box-none"
+        <Animated.ScrollView
+          ref={scrollRef}
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
         >
-          {/* Layer 1: Visual Background (Absolute) */}
+          {/* Search Bar (Determines Height) */}
           <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-            pointerEvents="none"
+            onLayout={(e) => setSearchHeight(e.nativeEvent.layout.height)}
+            className="px-3 pt-3 bg-white dark:bg-black"
           >
-            <GlassNav
-              activeTabIndex={tabs.indexOf(activeTab)}
-              totalTabs={tabs.length}
-              activeTabName={activeTab}
-            />
+            <View className="flex-row items-center">
+              <View className="flex-1 flex-row items-center px-4 py-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+                <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
+                <TextInput
+                  placeholder="Search"
+                  placeholderTextColor="#606060"
+                  className="flex-1 ml-3 font-dm text-[#606060] py-1"
+                />
+              </View>
+              <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+                <HugeiconsIcon
+                  icon={FilterHorizontalIcon}
+                  size={24}
+                  color="#606060"
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Layer 2: Interactive Foreground */}
-          <View
-            className="flex-1 flex-row items-center justify-between gap-1"
-            style={{ paddingHorizontal: 12, paddingTop: 8 }}
-          >
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab;
-              const themeColor = getTabColor(tab);
+          {/* SPACER for Sticky Header (Since Navbar is absolute, we need empty space) */}
+          <View style={{ height: 60, backgroundColor: "transparent" }} />
 
-              return (
-                <TouchableOpacity
-                  key={tab}
-                  onPress={() => setActiveTab(tab)}
-                  className="flex-1 py-1 px-1 items-center justify-center"
-                  hitSlop={{ top: 20, bottom: 20, left: 10, right: 10 }}
-                  delayPressIn={0}
-                >
-                  <View className="items-center justify-center">
-                    <HugeiconsIcon
-                      icon={getTabIcon(tab)}
-                      size={22}
-                      color={
-                        isActive
-                          ? themeColor
-                          : isDarkMode
-                          ? "#919191"
-                          : "#6B7280"
-                      }
-                    />
-
-                    <Text
-                      className={`text-[10px] sm:text-xs  font-poppinsMedium mt-1 ${
-                        isActive ? "" : "text-gray-500 dark:text-[#919191]"
-                      }`}
-                      style={isActive ? { color: themeColor } : {}}
-                    >
-                      {tab}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* 4. MAIN CONTENT */}
-        {renderTabContent()}
-      </ScrollView>
+          {/* 4. MAIN CONTENT */}
+          {renderTabContent()}
+        </Animated.ScrollView>
+      </View>
     </View>
   );
 };
