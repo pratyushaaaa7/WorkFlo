@@ -1,7 +1,7 @@
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Text,
@@ -16,6 +16,50 @@ import { Project } from "../../types/Project";
 const ProjectCard = ({ project }: { project: Project }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
+
+  // Avatar color palette
+  const avatarColors = [
+    {
+      bg: "bg-indigo-100 dark:bg-indigo-900/50",
+      text: "text-indigo-600 dark:text-indigo-300",
+    },
+    {
+      bg: "bg-emerald-100 dark:bg-emerald-900/50",
+      text: "text-emerald-600 dark:text-emerald-300",
+    },
+    {
+      bg: "bg-orange-100 dark:bg-orange-900/50",
+      text: "text-orange-600 dark:text-orange-300",
+    },
+    {
+      bg: "bg-pink-100 dark:bg-pink-900/50",
+      text: "text-pink-600 dark:text-pink-300",
+    },
+    {
+      bg: "bg-cyan-100 dark:bg-cyan-900/50",
+      text: "text-cyan-600 dark:text-cyan-300",
+    },
+    {
+      bg: "bg-amber-100 dark:bg-amber-900/50",
+      text: "text-amber-600 dark:text-amber-300",
+    },
+    {
+      bg: "bg-violet-100 dark:bg-violet-900/50",
+      text: "text-violet-600 dark:text-violet-300",
+    },
+    {
+      bg: "bg-rose-100 dark:bg-rose-900/50",
+      text: "text-rose-600 dark:text-rose-300",
+    },
+  ];
+
+  const getAvatarColor = (name: string, index: number) => {
+    // Generate a consistent color based on the name
+    const hash =
+      name?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) ||
+      index;
+    return avatarColors[hash % avatarColors.length];
+  };
 
   const handlePress = () => {
     router.push({
@@ -80,9 +124,16 @@ const ProjectCard = ({ project }: { project: Project }) => {
             className={`${colors.bg} px-3 py-1.5 rounded-full flex-row items-center`}
           >
             <View
-              className={`w-4 h-4 rounded-full border-2 ${colors.border} items-center justify-center mr-1.5`}
+              className={`w-4 h-4 rounded-full border-2 ${colors.border} items-center justify-center mr-1.5 overflow-hidden flex-row`}
             >
-              <View className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+              {project.status?.toLowerCase() === "active" ? (
+                <>
+                  <View className={`flex-1 h-full ${colors.dot}`} />
+                  <View className="flex-1 h-full bg-transparent" />
+                </>
+              ) : (
+                <View className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+              )}
             </View>
             <Text
               className={`${colors.text} text-[10px] font-poppinsMedium capitalize`}
@@ -109,7 +160,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
           {project.projectName}
         </Text>
         <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
-          {project.description || "No Description"} 
+          {project.description || "No Description"}
         </Text>
       </View>
 
@@ -118,16 +169,21 @@ const ProjectCard = ({ project }: { project: Project }) => {
         {/* Avatar Stack */}
         <View className="flex-row">
           {team.length > 0 ? (
-            team.map((member, index) => (
-              <View
-                key={index}
-                className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1A1A1A] bg-indigo-100 dark:bg-indigo-900/50 items-center justify-center -mr-3"
-              >
-                <Text className="text-[10px] font-poppinsBold text-indigo-600 dark:text-indigo-300">
-                  {member.fullName?.substring(0, 2).toUpperCase() || "??"}
-                </Text>
-              </View>
-            ))
+            team.map((member, index) => {
+              const avatarColor = getAvatarColor(member.fullName || "", index);
+              return (
+                <View
+                  key={index}
+                  className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
+                >
+                  <Text
+                    className={`text-[10px] font-poppinsBold ${avatarColor.text}`}
+                  >
+                    {member.fullName?.substring(0, 2).toUpperCase() || "??"}
+                  </Text>
+                </View>
+              );
+            })
           ) : (
             <Text className="text-gray-400 text-[10px] font-poppins">
               No team assigned
@@ -150,7 +206,8 @@ const ProjectCard = ({ project }: { project: Project }) => {
 };
 
 const ProjectsTab = () => {
-  const [activeSubTab, setActiveSubTab] = useState("Wal+L");
+  const [activeSubTab, setActiveSubTab] = useState("WALL");
+  const [activeStatusFilter, setActiveStatusFilter] = useState("active");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(5);
@@ -160,6 +217,36 @@ const ProjectsTab = () => {
   const isDarkMode = useColorScheme() === "dark";
 
   const subTabs = ["WALL", "WP", "WCORP"];
+
+  // Status filter options with colors
+  const statusFilters = [
+    {
+      key: "active",
+      label: "Active",
+      color: "#6366F1",
+      borderColor: "#6366F1",
+    },
+    {
+      key: "closed",
+      label: "Closed",
+      color: "#22C55E",
+      borderColor: "#22C55E",
+    },
+    { key: "bd", label: "B.D", color: "#3B82F6", borderColor: "#3B82F6" },
+    {
+      key: "inactive",
+      label: "In-Active",
+      color: "#F59E0B",
+      borderColor: "#F59E0B",
+    },
+  ];
+
+  // Filter projects by status - Memoized for performance
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
+      return project.status?.toLowerCase() === activeStatusFilter;
+    });
+  }, [projects, activeStatusFilter]);
 
   const getCompanyValue = (tab: string) => {
     switch (tab) {
@@ -199,7 +286,7 @@ const ProjectsTab = () => {
   // Progressive Rendering Effect
   useEffect(() => {
     setVisibleCount(5);
-  }, [activeSubTab]);
+  }, [activeSubTab, activeStatusFilter]);
 
   useEffect(() => {
     if (projects.length > 0 && visibleCount < projects.length) {
@@ -242,21 +329,69 @@ const ProjectsTab = () => {
       </View>
 
       {/* List Header */}
-      <View className="px-5 py-6 flex-row items-center justify-between">
+      <View className="px-5 pt-5 pb-3">
         <Text className="text-2xl font-poppinsSemiBold text-gray-900 dark:text-white">
           Projects{" "}
           <Text className="text-gray-400 dark:text-[#606060] font-poppins">
-            ({projects.length})
+            ({filteredProjects.length})
           </Text>
         </Text>
-        <TouchableOpacity className="bg-indigo-500/10 dark:bg-[#1A1A1A] px-4 py-2 rounded-full border border-indigo-500/20 dark:border-[#27215880] flex-row items-center gap-2">
-          <View className="w-5 h-5 rounded-full border-2 border-indigo-500 items-center justify-center">
-            <View className="w-2 h-2 rounded-full bg-indigo-500" />
-          </View>
-          <Text className="text-indigo-600 dark:text-[#5B4CCC] text-xs font-poppinsMedium">
-            Active
-          </Text>
-        </TouchableOpacity>
+      </View>
+
+      {/* Status Filter Pills */}
+      <View className="flex-row px-5 pb-4 gap-2 flex-wrap">
+        {statusFilters.map((filter) => {
+          const isActive = activeStatusFilter === filter.key;
+          return (
+            <TouchableOpacity
+              key={filter.key}
+              onPress={() => setActiveStatusFilter(filter.key)}
+              className={`px-2 py-2 rounded-full flex-row items-center gap-2 border ${
+                isActive ? "bg-white dark:bg-[#1A1A1A]" : "bg-transparent"
+              }`}
+              style={{
+                borderColor: isActive
+                  ? filter.borderColor
+                  : isDarkMode
+                  ? "#252525"
+                  : "#E5E7EB",
+              }}
+            >
+              <View
+                className="w-4 h-4 rounded-full border-2 items-center justify-center overflow-hidden flex-row"
+                style={{ borderColor: filter.color }}
+              >
+                {isActive &&
+                  (filter.key === "active" ? (
+                    <>
+                      <View
+                        className="flex-1 h-full"
+                        style={{ backgroundColor: filter.color }}
+                      />
+                      <View className="flex-1 h-full bg-transparent" />
+                    </>
+                  ) : (
+                    <View
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: filter.color }}
+                    />
+                  ))}
+              </View>
+              <Text
+                className="text-xs font-poppinsMedium"
+                style={{
+                  color: isActive
+                    ? filter.color
+                    : isDarkMode
+                    ? "#919191"
+                    : "#6B7280",
+                }}
+              >
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Project List */}
@@ -267,16 +402,16 @@ const ProjectsTab = () => {
             Loading projects...
           </Text>
         </View>
-      ) : projects.length > 0 ? (
+      ) : filteredProjects.length > 0 ? (
         <View className="px-5 pb-20">
-          {projects.slice(0, visibleCount).map((project) => (
+          {filteredProjects.slice(0, visibleCount).map((project: Project) => (
             <ProjectCard key={project._id} project={project} />
           ))}
         </View>
       ) : (
         <View className="flex-1 items-center justify-center pt-20">
           <Text className="text-gray-400 font-poppinsMedium">
-            No projects found for {activeSubTab}
+            No {activeStatusFilter} projects found for {activeSubTab}
           </Text>
         </View>
       )}
