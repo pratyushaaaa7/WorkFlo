@@ -49,74 +49,6 @@ const NotesTab = () => {
     }, [fetchNotes])
   );
 
-  // const notes = [
-  //   {
-  //     id: "1",
-  //     title: "Generate 3D model renderings",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FEE4A1",
-  //   },
-  //   {
-  //     id: "2",
-  //     title: "Important Note",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FCC7E3",
-  //   },
-  //   {
-  //     id: "3",
-  //     title: "Important Note",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#B1F0F7",
-  //   },
-  //   {
-  //     id: "4",
-  //     title: "Generate 3D model renderings",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FFD6B9",
-  //   },
-  //   {
-  //     id: "5",
-  //     title: "Generate 3D model renderings",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FFD6B9",
-  //   },
-  //   {
-  //     id: "6",
-  //     title: "Important Note",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FCC7E3",
-  //   },
-  //   {
-  //     id: "7",
-  //     title: "Important Note",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#B1F0F7",
-  //   },
-  //   {
-  //     id: "8",
-  //     title: "Generate 3D model renderings",
-  //     content:
-  //       "Lorem ipsum dolor sit amet consectetur. Proin tincidunt nibh felis fames. Enim sapien ac euismod ornare enim. Varius sit eget venenatis mattis etiam commodo faucibus ac in. Sit aenean eget sagittis orci dignissim facilisis",
-  //     date: "15 Dec 2026",
-  //     color: "#FEE4A1",
-  //   },
-  // ];
-
-  // Logic to split notes into two columns for masonry effect
 
   const leftColumn = notes.filter((_, index) => index % 2 === 0);
   const rightColumn = notes.filter((_, index) => index % 2 !== 0);
@@ -146,12 +78,12 @@ const NotesTab = () => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }} className="bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* 🔹 EMPTY STATE */}
       {notes.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
+        <View className=" mt-20 items-center justify-center ">
           <Text
-            className={`mt-4 text-base font-poppinsMedium ${
+            className={`mt-4 text-base font-poppins ${
               isDark ? "text-[#BBBBBB]" : "text-[#454545]"
             }`}
           >
@@ -161,14 +93,14 @@ const NotesTab = () => {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push("/createMyNote")}
-            className="flex-row items-center mt-3"
+            className="flex-row items-center mt-3 justify-center"
           >
             <HugeiconsIcon
               icon={NoteAddIcon}
-              size={30}
+              size={20}
               color={isDark ? "#FFFFFF" : "#000000"}
             />
-            <Text className="ml-2 text-black dark:text-white font-poppinsSemiBold text-sm">
+            <Text className="ml-2 text-black dark:text-[#f5f5f5] text-lg font-poppinsMedium">
               Create Notes
             </Text>
           </TouchableOpacity>
