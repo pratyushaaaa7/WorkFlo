@@ -84,25 +84,25 @@ const ProjectCard = memo(
           };
         case "bd":
           return {
-            bg: "bg-blue-50 dark:bg-[#06163D]",
-            text: "text-blue-500 dark:text-[#3B82F6]",
-            border: "border-blue-500 dark:border-[#3B82F6]",
-            dot: "bg-blue-500 dark:bg-[#3B82F6]",
+            bg: "bg-[#B8D4FF] dark:bg-[#06163D]",
+            text: "text-[#0073CB] dark:text-[#0073CB]",
+            border: "border-[#0073CB] dark:border-[#0073CB]",
+            dot: "bg-[#0073CB] dark:bg-[#0073CB]",
           };
         case "closed":
           return {
-            bg: "bg-green-50 dark:bg-[#062B1F]",
-            text: "text-green-500 dark:text-[#F5F5F5]",
-            border: "border-green-500 dark:border-[#22C55E]",
-            dot: "bg-green-500 dark:bg-[#22C55E]",
+            bg: "bg-[#BFF2D0] dark:bg-[#062B1F]",
+            text: "text-[#1AA45B] dark:text-[#F5F5F5]",
+            border: "border-[#1AA45B] dark:border-[#1AA45B]",
+            dot: "bg-[#1AA45B] dark:bg-[#1AA45B]",
           };
         case "inactive":
         case "in-active":
           return {
-            bg: "bg-amber-50 dark:bg-[#422D0A]",
-            text: "text-amber-500 dark:text-[#F59E0B]",
-            border: "border-amber-500 dark:border-[#F59E0B]",
-            dot: "bg-amber-500 dark:bg-[#F59E0B]",
+            bg: "bg-[#FFEFCC] dark:bg-[#422D0A]",
+            text: "text-[#C98F26] dark:text-[#FFC366]",
+            border: "border-[#C98F26] dark:border-[#F59E0B]",
+            dot: "bg-[#C98F26] dark:bg-[#F59E0B]",
           };
         default:
           return {
@@ -124,7 +124,7 @@ const ProjectCard = memo(
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
-        className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 mb-4 border border-gray-100 dark:border-[#252525]"
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-3xl p-5 mb-4 border border-gray-100 dark:border-[#252525]"
       >
         {/* Header Row */}
         <View className="flex-row items-center justify-between mb-4">
@@ -150,8 +150,8 @@ const ProjectCard = memo(
                 {project.status || "N/A"}
               </Text>
             </View>
-            <View className="bg-gray-100 dark:bg-[#252525] px-3 py-1.5 rounded-full">
-              <Text className="text-gray-500 dark:text-[#919191] text-[10px] font-poppinsMedium">
+            <View className="bg-[#EBEFF2] dark:bg-[#252525] px-3 py-1.5 rounded-full">
+              <Text className="text-[#454545] dark:text-[#919191] text-[10px] font-poppinsMedium">
                 File No:{" "}
                 {project.fileNumber || project.fileNumberNumeric || "—"}
               </Text>
