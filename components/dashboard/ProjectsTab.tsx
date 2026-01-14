@@ -14,7 +14,7 @@ import api from "../../lib/api";
 import { Project } from "../../types/Project";
 
 const ProjectCard = memo(
-  ({ project }: { project: Project }) => {
+  function ProjectCard({ project }: { project: Project }) {
     const isDarkMode = useColorScheme() === "dark";
     const router = useRouter();
 
