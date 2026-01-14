@@ -58,7 +58,7 @@ const Dashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "Overview":
-        return <OverviewTab />;
+        return <OverviewTab setActiveTab={setActiveTab} />;
       case "Projects":
         return <ProjectsTab />;
       case "Tasks":
@@ -68,7 +68,7 @@ const Dashboard = () => {
       case "Notes":
         return <NotesTab />;
       default:
-        return <OverviewTab />;
+        return <OverviewTab setActiveTab={setActiveTab} />;
     }
   };
 
@@ -123,7 +123,7 @@ const Dashboard = () => {
         <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <TouchableOpacity
-            activeOpacity={1}
+              activeOpacity={1}
               className="mr-3 flex-row gap-2 items-center"
               onPress={() => (navigation as any).openDrawer()}
             >

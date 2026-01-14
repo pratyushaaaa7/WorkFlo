@@ -13,7 +13,11 @@ import {
 import { Calendar } from "react-native-calendars";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
-const OverviewCalendar = () => {
+const OverviewCalendar = ({
+  setActiveTab,
+}: {
+  setActiveTab: (tab: string) => void;
+}) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -157,9 +161,11 @@ const OverviewCalendar = () => {
           </TouchableOpacity>
         </View>
 
-        <Text className="text-[#566FEC] text-sm font-poppinsMedium">
-          View all
-        </Text>
+        <TouchableOpacity onPress={() => setActiveTab("Calendar")}>
+          <Text className="text-[#566FEC] text-sm font-poppinsMedium">
+            View all
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Custom Day Headers */}

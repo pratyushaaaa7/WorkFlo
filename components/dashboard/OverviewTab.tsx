@@ -10,7 +10,11 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import OverviewCalendar from "./OverviewCalendar";
 
-const OverviewTab = () => {
+const OverviewTab = ({
+  setActiveTab,
+}: {
+  setActiveTab: (tab: string) => void;
+}) => {
   const projectStats = [
     { label: "Active", count: 15, icon: ClockIcon, color: "#6366F1" },
     { label: "6.0", count: 15, icon: Cancel01Icon, color: "#EF4444" },
@@ -66,7 +70,7 @@ const OverviewTab = () => {
           <Text className="text-lg font-bold text-gray-900 dark:text-white">
             Project Summary
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab("Projects")}>
             <Text className="text-indigo-600 dark:text-[#5B4CCC] text-sm font-poppinsMedium">
               View all
             </Text>
@@ -103,7 +107,7 @@ const OverviewTab = () => {
           <Text className="text-lg font-bold text-gray-900 dark:text-white">
             Tasks
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab("Tasks")}>
             <Text className="text-indigo-600 dark:text-[#5B4CCC] text-sm font-poppinsMedium">
               View all
             </Text>
@@ -145,7 +149,7 @@ const OverviewTab = () => {
       </View>
 
       {/* Calendar Section */}
-      <OverviewCalendar />
+      <OverviewCalendar setActiveTab={setActiveTab} />
     </View>
   );
 };
