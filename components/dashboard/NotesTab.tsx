@@ -1,5 +1,4 @@
-import { Add01Icon } from "@hugeicons/core-free-icons";
-import { NoteAdd01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, NoteAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import React, { useContext, useCallback, useState } from "react";
@@ -23,32 +22,32 @@ const NotesTab = () => {
 
   const [loading, setLoading] = useState(false);
 
-const fetchNotes = useCallback(async () => {
-  try {
-    setLoading(true);
-    const response = await api.get("/notes", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const fetchNotes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/personal-notes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (!Array.isArray(response.data)) {
-      console.warn("Unexpected response from /notes:", response.data);
-      setNotes([]);
-      return;
+      if (!Array.isArray(response.data)) {
+        console.warn("Unexpected response from /notes:", response.data);
+        setNotes([]);
+        return;
+      }
+
+      const notesWithColor = response.data.map((note: any) => ({
+        ...note,
+        color: getRandomColor(),
+      }));
+
+      setNotes(notesWithColor);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      setNotes([]); // make sure notes is never undefined
+    } finally {
+      setLoading(false);
     }
-
-    const notesWithColor = response.data.map((note: any) => ({
-      ...note,
-      color: getRandomColor(),
-    }));
-
-    setNotes(notesWithColor);
-  } catch (error) {
-    console.error("Error fetching notes:", error);
-    setNotes([]); // make sure notes is never undefined
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -160,15 +159,9 @@ const fetchNotes = useCallback(async () => {
       {/* 🔹 EMPTY STATE */}
       {notes.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
-          <HugeiconsIcon
-            icon={NoteAdd01Icon}
-            size={48}
-            color={isDark ? "#A1A1A1" : "#7A7A7A"}
-          />
-
           <Text
             className={`mt-4 text-base font-poppinsMedium ${
-              isDark ? "text-gray-300" : "text-gray-600"
+              isDark ? "text-[BBBBBB]" : "text-[#454545]"
             }`}
           >
             You have no notes yet
@@ -179,8 +172,8 @@ const fetchNotes = useCallback(async () => {
             onPress={() => router.push("/createMyNote")}
             className="flex-row items-center mt-3"
           >
-            <HugeiconsIcon icon={Add01Icon} size={18} color="#566FEC" />
-            <Text className="ml-2 text-[#566FEC] font-poppinsSemiBold text-sm">
+            <HugeiconsIcon icon={NoteAddIcon} size={30} color="#000000" />
+            <Text className="ml-2 text-black font-poppinsSemiBold text-sm">
               Create Notes
             </Text>
           </TouchableOpacity>
