@@ -84,17 +84,25 @@ const ProjectCard = memo(
           };
         case "bd":
           return {
-            bg: "bg-orange-50 dark:bg-orange-900/20",
-            text: "text-orange-500 dark:text-[#FFB380]",
-            border: "border-orange-500 dark:border-[#FFB380]",
-            dot: "bg-orange-500 dark:bg-[#FFB380]",
+            bg: "bg-blue-50 dark:bg-[#06163D]",
+            text: "text-blue-500 dark:text-[#3B82F6]",
+            border: "border-blue-500 dark:border-[#3B82F6]",
+            dot: "bg-blue-500 dark:bg-[#3B82F6]",
           };
         case "closed":
           return {
-            bg: "bg-red-50 dark:bg-red-900/20",
-            text: "text-red-500 dark:text-[#F87171]",
-            border: "border-red-500 dark:border-[#F87171]",
-            dot: "bg-red-500 dark:bg-[#F87171]",
+            bg: "bg-green-50 dark:bg-[#062B1F]",
+            text: "text-green-500 dark:text-[#F5F5F5]",
+            border: "border-green-500 dark:border-[#22C55E]",
+            dot: "bg-green-500 dark:bg-[#22C55E]",
+          };
+        case "inactive":
+        case "in-active":
+          return {
+            bg: "bg-amber-50 dark:bg-[#422D0A]",
+            text: "text-amber-500 dark:text-[#F59E0B]",
+            border: "border-amber-500 dark:border-[#F59E0B]",
+            dot: "bg-amber-500 dark:bg-[#F59E0B]",
           };
         default:
           return {
@@ -151,7 +159,7 @@ const ProjectCard = memo(
           </View>
           <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
             <Text className="text-indigo-500 dark:text-[#8E87F1] text-[10px] font-poppinsMedium">
-              {project.projectCode || "No Code"}
+              {project.projectCode || "No Codee"}
             </Text>
           </View>
         </View>
@@ -198,8 +206,14 @@ const ProjectCard = memo(
 
           {/* Deadline/Start Date */}
           <View className="flex-row items-center ">
-            <HugeiconsIcon icon={Calendar03Icon} size={14} color="#F87171" />
-            <Text className="text-red-500 text-[10px] font-poppinsMedium ml-1.5 mt-0.5">
+            <HugeiconsIcon
+              icon={Calendar03Icon}
+              size={14}
+              color={colors.text}
+            />
+            <Text
+              className={`${colors.text} text-[10px] font-poppinsMedium ml-1.5 mt-0.5`}
+            >
               {project.startDate
                 ? new Date(project.startDate).toLocaleDateString()
                 : "No Date"}
