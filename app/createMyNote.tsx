@@ -14,6 +14,8 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Delete03Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 
 const CreateNote = () => {
   const router = useRouter();
@@ -66,60 +68,56 @@ const CreateNote = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <View className="flex-1 bg-white dark:bg-black">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-4 pt-10 pb-4 overflow-hidden">
-          <BlurView intensity={20} tint="dark" className="absolute inset-0" />
-          <View className="flex-row justify-between items-center">
+        <View className="px-4 pt-14 flex-row items-center justify-between overflow-hidden">
+          <View className="flex-row  items-center">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 items-center justify-center rounded-full bg-gray-900/50"
+              className="w-10 h-10  justify-center rounded-full"
             >
-              <Ionicons name="chevron-back" size={24} color="white" />
+              <Ionicons name="chevron-back" size={24} color="#D2D2D2" />
             </TouchableOpacity>
 
-            <Text className="text-white text-lg font-poppinsBold">
-              New Note
+            <Text className="text-white text-lg font-poppinsMedium">
+              {title || "Untitled Page"}
             </Text>
-
-            <TouchableOpacity
-              onPress={handleSave}
-              className="px-5 py-2 rounded-full bg-blue-600"
-            >
-              <Text className="text-white font-poppinsBold text-sm">Done</Text>
-            </TouchableOpacity>
+          </View>
+          <View className="flex-row  ">
+            <HugeiconsIcon icon={Delete03Icon} size={24} color="#D2D2D2" />
+            <HugeiconsIcon icon={Tick02Icon} size={24} color="#D2D2D2" />
           </View>
         </View>
 
         {/* Editor Area */}
         <ScrollView
-          className="flex-1 bg-black"
-          contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 20 }}
+          className="flex-1 bg-black pt-10 px-2"
+          // contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 20 }}
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
         >
           <TextInput
             placeholder="Page title"
-            placeholderTextColor="#4B5563"
+            placeholderTextColor="#BDBDBD"
             value={title}
             onChangeText={setTitle}
-            className="text-white text-4xl font-poppinsBold mb-6"
+            className="text-white text-2xl font-poppinsMedium "
             multiline
-            selectionColor="#3B82F6"
+            // selectionColor="#3B82F6"
           />
 
-          <View className="h-[1px] bg-gray-800 w-full mb-6 opacity-50" />
+          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-6 opacity-50" />
 
           <TextInput
-            placeholder="Start writing something amazing..."
+            // placeholder="Start writing something amazing..."
             placeholderTextColor="#4B5563"
             value={content}
             onChangeText={setContent}
-            className="text-white text-lg font-poppinsMedium flex-1 min-h-[400px]"
+            className="text-white text-lg font-poppins flex-1 min-h-[400px]"
             multiline
             textAlignVertical="top"
             style={{ lineHeight: 30 }}
@@ -127,7 +125,7 @@ const CreateNote = () => {
           />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
