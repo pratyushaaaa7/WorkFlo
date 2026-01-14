@@ -1,15 +1,9 @@
 import api from "@/lib/api";
-import { Add01Icon, NoteAddIcon } from "@hugeicons/core-free-icons";
+import { NoteAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useContext, useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from "react-native";
+import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 
 const NotesTab = () => {
@@ -152,16 +146,13 @@ const NotesTab = () => {
   );
 
   return (
-    <View
-      style={{ backgroundColor: isDark ? "#0D0D0D" : "#F8F9FA" }}
-      className="flex-1"
-    >
+    <View style={{ flex: 1 }}>
       {/* 🔹 EMPTY STATE */}
       {notes.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <Text
             className={`mt-4 text-base font-poppinsMedium ${
-              isDark ? "text-[BBBBBB]" : "text-[#454545]"
+              isDark ? "text-[#BBBBBB]" : "text-[#454545]"
             }`}
           >
             You have no notes yet
@@ -172,19 +163,19 @@ const NotesTab = () => {
             onPress={() => router.push("/createMyNote")}
             className="flex-row items-center mt-3"
           >
-            <HugeiconsIcon icon={NoteAddIcon} size={30} color="#000000" />
-            <Text className="ml-2 text-black font-poppinsSemiBold text-sm">
+            <HugeiconsIcon
+              icon={NoteAddIcon}
+              size={30}
+              color={isDark ? "#FFFFFF" : "#000000"}
+            />
+            <Text className="ml-2 text-black dark:text-white font-poppinsSemiBold text-sm">
               Create Notes
             </Text>
           </TouchableOpacity>
         </View>
       ) : (
         /* 🔹 NOTES LIST */
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100, paddingTop: 20 }}
-          className="px-4"
-        >
+        <View className="px-4 pt-5 pb-20">
           <View className="flex-row">
             <View className="flex-1 mr-2">
               {leftColumn.map((note) => (
@@ -198,19 +189,8 @@ const NotesTab = () => {
               ))}
             </View>
           </View>
-        </ScrollView>
+        </View>
       )}
-
-      {/* 🔹 FLOATING ACTION BUTTON */}
-      <View className="absolute bottom-10 right-6">
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => router.push("/createMyNote")}
-          className="w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center shadow-lg shadow-[#5B4CCC]"
-        >
-          <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };

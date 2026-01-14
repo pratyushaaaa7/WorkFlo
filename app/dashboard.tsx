@@ -1,4 +1,5 @@
 import {
+  Add01Icon,
   Calendar04Icon,
   CheckmarkSquare02Icon,
   Clock01Icon,
@@ -16,6 +17,7 @@ import {
   Animated,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -246,6 +248,7 @@ const Dashboard = () => {
         <Animated.ScrollView
           ref={scrollRef}
           className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="always"
           scrollEventThrottle={16}
@@ -282,11 +285,35 @@ const Dashboard = () => {
           <View style={{ height: 60, backgroundColor: "transparent" }} />
 
           {/* 4. MAIN CONTENT */}
-          {renderTabContent()}
+          <View className="flex-1">{renderTabContent()}</View>
         </Animated.ScrollView>
+
+        {/* 🔹 FLOATING ACTION BUTTON (ONLY FOR NOTES) */}
+        {activeTab === "Notes" && (
+          <View className="absolute bottom-10 right-6 z-50">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/createMyNote")}
+              style={styles.fab}
+              className="w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center"
+            >
+              <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fab: {
+    shadowColor: "#5B4CCC",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 20,
+  },
+});
 
 export default Dashboard;
