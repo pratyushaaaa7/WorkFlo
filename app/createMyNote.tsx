@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BlurView } from "expo-blur";
+import { Delete03Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -14,41 +14,53 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Delete03Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 
 const CreateNote = () => {
   const router = useRouter();
+  const { token } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  const hasChanges = title.trim().length > 0 || content.trim().length > 0;
 
   const handleSave = async () => {
-    if (!title && !content) {
-      Toast.show({
-        type: "error",
-        text1: "Empty Note",
-        text2: "Please add a title or content to save.",
-      });
+    if (!hasChanges) {
+      router.back();
       return;
     }
 
     try {
-      const newNote = {
-        id: Date.now().toString(),
-        title: title || "Untitled",
-        content: content,
-        date: new Date().toISOString(),
-      };
-
-      // Get existing notes
-      const existingNotesRaw = await AsyncStorage.getItem("notes");
-      const existingNotes = existingNotesRaw
-        ? JSON.parse(existingNotesRaw)
-        : [];
-
-      // Save updated list
-      const updatedNotes = [newNote, ...existingNotes];
-      await AsyncStorage.setItem("notes", JSON.stringify(updatedNotes));
+      setLoading(true);
+      await api.post(
+        "/personal-notes",
+        {
+          title: title || "Untitled",
+          content: content,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       Toast.show({
         type: "success",
@@ -56,7 +68,7 @@ const CreateNote = () => {
         text2: "Your note has been added to your collection.",
       });
 
-      router.back();
+      router.replace("/dashboard");
     } catch (error) {
       console.error("Error saving note:", error);
       Toast.show({
@@ -64,8 +76,18 @@ const CreateNote = () => {
         text1: "Save Failed",
         text2: "Something went wrong while saving your note.",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleDeleteOrCancel = () => {
+    // If there's no content, just go back. If there is, maybe show a confirm?
+    // For now, based on "other wise delete should show", clicking it should just go back without saving.
+    router.back();
+  };
+
+  const showTick = isKeyboardVisible || hasChanges;
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -74,46 +96,61 @@ const CreateNote = () => {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-4 pt-14 flex-row items-center justify-between overflow-hidden">
-          <View className="flex-row  items-center">
+        <View className="px-4 pt-14 flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10  justify-center rounded-full"
+              className="w-10 h-10 items-center justify-center rounded-full"
             >
               <Ionicons name="chevron-back" size={24} color="#D2D2D2" />
             </TouchableOpacity>
 
-            <Text className="text-white text-lg font-poppinsMedium">
+            <Text
+              numberOfLines={1}
+              className="text-white text-lg font-poppinsMedium flex-1 mr-4"
+            >
               {title || "Untitled Page"}
             </Text>
           </View>
-          <View className="flex-row  ">
-            <HugeiconsIcon icon={Delete03Icon} size={24} color="#D2D2D2" />
-            <HugeiconsIcon icon={Tick02Icon} size={24} color="#D2D2D2" />
+
+          <View className="flex-row items-center gap-4">
+            {showTick ? (
+              <TouchableOpacity onPress={handleSave} disabled={loading}>
+                <HugeiconsIcon icon={Tick02Icon} size={24} color="#D2D2D2" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleDeleteOrCancel}>
+                <HugeiconsIcon icon={Delete03Icon} size={24} color="#D2D2D2" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
         {/* Editor Area */}
         <ScrollView
-          className="flex-1 bg-black pt-10 px-2"
-          // contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 20 }}
+          className="flex-1 bg-black px-4"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: 30 }}
         >
           <TextInput
             placeholder="Page title"
-            placeholderTextColor="#BDBDBD"
+            placeholderTextColor="#606060"
             value={title}
             onChangeText={setTitle}
-            className="text-white text-2xl font-poppinsMedium "
+            className="text-white text-3xl font-poppinsBold mb-4"
             multiline
-            // selectionColor="#3B82F6"
+            style={{
+              textAlignVertical: "top",
+              minHeight: 50,
+              paddingTop: Platform.OS === "android" ? 0 : 0,
+            }}
           />
 
-          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-6 opacity-50" />
+          <View className="h-[1px] bg-[#262626] mb-6" />
 
           <TextInput
-            // placeholder="Start writing something amazing..."
+            placeholder="Start writing..."
             placeholderTextColor="#4B5563"
             value={content}
             onChangeText={setContent}
@@ -121,7 +158,6 @@ const CreateNote = () => {
             multiline
             textAlignVertical="top"
             style={{ lineHeight: 30 }}
-            selectionColor="#3B82F6"
           />
         </ScrollView>
       </KeyboardAvoidingView>
