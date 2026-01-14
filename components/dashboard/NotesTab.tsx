@@ -1,7 +1,8 @@
+import api from "@/lib/api";
 import { Add01Icon, NoteAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useRouter, useFocusEffect } from "expo-router";
-import React, { useContext, useCallback, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useContext, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -10,7 +11,6 @@ import {
   useColorScheme,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
-import api from "@/lib/api";
 
 const NotesTab = () => {
   const router = useRouter();
@@ -206,7 +206,7 @@ const NotesTab = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => router.push("/createMyNote")}
-          className="w-16 h-16 bg-[#566FEC] rounded-full items-center justify-center shadow-lg shadow-blue-500/50"
+          className="w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center shadow-lg shadow-[#5B4CCC]"
         >
           <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
         </TouchableOpacity>
