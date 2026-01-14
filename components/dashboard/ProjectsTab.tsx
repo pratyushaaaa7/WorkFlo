@@ -157,16 +157,16 @@ const ProjectCard = memo(
               </Text>
             </View>
           </View>
-          <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
+          {/* <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
             <Text className="text-indigo-500 dark:text-[#8E87F1] text-[10px] font-poppinsMedium">
               {project.projectCode || "No Codee"}
             </Text>
-          </View>
+          </View> */}
         </View>
 
         {/* Content */}
         <View className="mb-5">
-          <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mb-2">
+          <Text className="text-gray-900 dark:text-[#F5F5F5] text-lg font-poppinsSemiBold mb-2">
             {project.projectName}
           </Text>
           <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
@@ -209,10 +209,10 @@ const ProjectCard = memo(
             <HugeiconsIcon
               icon={Calendar03Icon}
               size={14}
-              color={colors.text}
+              color="#DF5B5B"
             />
             <Text
-              className={`${colors.text} text-[10px] font-poppinsMedium ml-1.5 mt-0.5`}
+              className={`text-[#DF5B5B] text-[10px] font-poppinsMedium ml-1.5 mt-0.5`}
             >
               {project.startDate
                 ? new Date(project.startDate).toLocaleDateString()
