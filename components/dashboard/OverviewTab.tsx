@@ -6,14 +6,19 @@ import {
   ClockIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { format, isToday } from "date-fns";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import OverviewCalendar from "./OverviewCalendar";
 
 const OverviewTab = ({
   setActiveTab,
+  loading,
+  responsibleItems,
 }: {
   setActiveTab: (tab: string) => void;
+  loading: boolean;
+  responsibleItems: any[];
 }) => {
   const projectStats = [
     { label: "Active", count: 15, icon: ClockIcon, color: "#6366F1" },
@@ -27,40 +32,23 @@ const OverviewTab = ({
     },
   ];
 
-  const tasks = [
-    {
-      id: 1,
-      title: "Prepare high-fidelity prototypes",
-      description:
-        "Present the prototypes to stakeholders for final approval before development.",
-      date: "31 Dec 2025",
-      dateColor: "#EF4444",
-    },
-    {
-      id: 2,
-      title: "Prepare high-fidelity prototypes",
-      description:
-        "Present the prototypes to stakeholders for final approval before development.",
-      date: "16 Jan 2026",
-      dateColor: "#10B981",
-    },
-    {
-      id: 3,
-      title: "Prepare high-fidelity prototypes",
-      description:
-        "Present the prototypes to stakeholders for final approval before development.",
-      date: "Today",
-      dateColor: "#6366F1",
-    },
-    {
-      id: 4,
-      title: "Prepare high-fidelity prototypes",
-      description:
-        "Present the prototypes to stakeholders for final approval before development.",
-      date: "For Info",
-      dateColor: "#6B7280",
-    },
-  ];
+  // Display only top 5 tasks in overview
+  const displayTasks = responsibleItems.slice(0, 5);
+
+  const getDateDisplay = (dateStr: string) => {
+    if (!dateStr) return { text: "No Date", color: "#6B7280" };
+    const date = new Date(dateStr);
+    if (isToday(date)) return { text: "Today", color: "#6366F1" };
+    return { text: format(date, "d MMM yyyy"), color: "#10B981" };
+  };
+
+  if (loading) {
+    return (
+      <View className="py-20 items-center justify-center">
+        <ActivityIndicator size="large" color="#5B4CCC" />
+      </View>
+    );
+  }
 
   return (
     <View className=" py-5 dark:bg-black">
@@ -114,38 +102,52 @@ const OverviewTab = ({
           </TouchableOpacity>
         </View>
 
-        {tasks.map((task) => (
-          <TouchableOpacity
-            key={task.id}
-            className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 flex-row"
-          >
-            <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
-              <View className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-[#5B4CCC]" />
-            </View>
+        {displayTasks.length > 0 ? (
+          displayTasks.map((task, idx) => {
+            const dateInfo = getDateDisplay(task.targetDate);
+            return (
+              <TouchableOpacity
+                key={idx}
+                className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 flex-row"
+              >
+                <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
+                  <View className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-[#5B4CCC]" />
+                </View>
 
-            <View className="flex-1">
-              <Text className="text-base font-poppinsMedium text-gray-900 dark:text-white mb-1">
-                {task.title}
-              </Text>
-              <Text className="text-sm text-gray-500 dark:text-[#919191] font-poppins mb-2">
-                {task.description}
-              </Text>
-              <View className="flex-row items-center">
-                <HugeiconsIcon
-                  icon={Calendar03Icon}
-                  size={14}
-                  color={task.dateColor}
-                />
-                <Text
-                  className="ml-1 text-xs font-poppinsMedium"
-                  style={{ color: task.dateColor }}
-                >
-                  {task.date}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+                <View className="flex-1">
+                  <Text className="text-base font-poppinsMedium text-gray-900 dark:text-white mb-1">
+                    {task.title}
+                  </Text>
+                  <Text className="text-sm text-gray-400 dark:text-[#919191] font-poppins mb-1">
+                    {task.projectName} ({task.projectCode})
+                  </Text>
+                  <View className="flex-row items-center">
+                    <HugeiconsIcon
+                      icon={Calendar03Icon}
+                      size={14}
+                      color={dateInfo.color}
+                    />
+                    <Text
+                      className="ml-1 text-xs font-poppinsMedium"
+                      style={{ color: dateInfo.color }}
+                    >
+                      {dateInfo.text}
+                    </Text>
+                    <View className="ml-3 bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 rounded-md">
+                      <Text className="text-[10px] text-indigo-600 dark:text-indigo-300 font-poppinsMedium">
+                        {task.type}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 items-center">
+            <Text className="text-gray-500 font-poppins">No tasks found</Text>
+          </View>
+        )}
       </View>
 
       {/* Calendar Section */}

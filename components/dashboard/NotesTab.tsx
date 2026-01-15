@@ -99,6 +99,7 @@ const NotesTab = () => {
       setSelectedNote(null);
       Toast.show({
         type: "success",
+        position: "bottom",
         text1: "Note Deleted",
         text2: "Your note has been removed.",
       });
@@ -106,6 +107,7 @@ const NotesTab = () => {
       console.error("Error deleting note:", error);
       Toast.show({
         type: "error",
+        position: "bottom",
         text1: "Delete Failed",
         text2: "Could not delete the note. Please try again.",
       });

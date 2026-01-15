@@ -12,7 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
@@ -26,6 +26,7 @@ import {
 } from "react-native";
 import GlassNav from "../components/GlassNav";
 import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 
 // Tab Components
 import CalendarTab from "../components/dashboard/CalendarTab";
@@ -50,6 +51,28 @@ const Dashboard = () => {
 
   const [activeTab, setActiveTabState] = useState("Overview");
 
+  // Dashboard Data State
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/dashboard/my-tasks");
+        if (res.data.success) {
+          setDashboardData(res.data);
+        }
+      } catch (error) {
+        console.error("Dashboard Fetch Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const setActiveTab = (tab: string) => {
     setActiveTabState(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -60,17 +83,36 @@ const Dashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "Overview":
-        return <OverviewTab setActiveTab={setActiveTab} />;
+        return (
+          <OverviewTab
+            setActiveTab={setActiveTab}
+            loading={loading}
+            responsibleItems={dashboardData?.myResponsibleItems || []}
+          />
+        );
       case "Projects":
         return <ProjectsTab />;
       case "Tasks":
-        return <TasksTab />;
+        return (
+          <TasksTab
+            loading={loading}
+            myILRs={dashboardData?.myILRs || []}
+            myMeetings={dashboardData?.myMeetings || []}
+            myRunningNotes={dashboardData?.myRunningNotes || []}
+          />
+        );
       case "Calendar":
         return <CalendarTab />;
       case "Notes":
         return <NotesTab />;
       default:
-        return <OverviewTab setActiveTab={setActiveTab} />;
+        return (
+          <OverviewTab
+            setActiveTab={setActiveTab}
+            loading={loading}
+            responsibleItems={dashboardData?.myResponsibleItems || []}
+          />
+        );
     }
   };
 

@@ -4,8 +4,10 @@ import {
   Calendar03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import React, { useState } from "react";
+import { format, isToday } from "date-fns";
+import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   LayoutAnimation,
   ScrollView,
   Text,
@@ -14,65 +16,12 @@ import {
   View,
 } from "react-native";
 
-// Mock data for tasks
-const TASKS_DATA = [
-  {
-    date: "Today Tasks",
-    groups: [
-      {
-        location: "Muthoot Hospital 1B, Dwarka",
-        count: 2,
-        tasks: [
-          {
-            id: 1,
-            title: "Prepare high-fidelity prototypes",
-            description:
-              "Present the prototypes to stakeholders for final approval before development.",
-            time: "Today",
-          },
-          {
-            id: 2,
-            title: "Prepare high-fidelity prototypes",
-            description:
-              "Present the prototypes to stakeholders for final approval before development.",
-            time: "Today",
-          },
-        ],
-      },
-      {
-        location: "Muthoot Hospital 1B, Dwarka",
-        count: 2,
-        tasks: [
-          {
-            id: 3,
-            title: "Prepare high-fidelity prototypes",
-            description:
-              "Present the prototypes to stakeholders for final approval before development.",
-            time: "Today",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    date: "6 Jan 2025",
-    groups: [
-      {
-        location: "Muthoot Hospital 1B, Dwarka",
-        count: 2,
-        tasks: [
-          {
-            id: 4,
-            title: "Prepare high-fidelity prototypes",
-            description:
-              "Present the prototypes to stakeholders for final approval before development.",
-            time: "6 Jan 2026",
-          },
-        ],
-      },
-    ],
-  },
-];
+interface TasksTabProps {
+  loading: boolean;
+  myILRs: any[];
+  myMeetings: any[];
+  myRunningNotes: any[];
+}
 
 const TaskItem = ({ task }: { task: any }) => {
   const isDarkMode = useColorScheme() === "dark";
@@ -91,9 +40,11 @@ const TaskItem = ({ task }: { task: any }) => {
         <Text className="text-gray-900 dark:text-white text-base font-poppinsSemiBold mb-1">
           {task.title}
         </Text>
-        <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5 mb-2">
-          {task.description}
-        </Text>
+        {task.description && (
+          <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5 mb-2">
+            {task.description}
+          </Text>
+        )}
         <View className="flex-row items-center opacity-70">
           <HugeiconsIcon icon={Calendar03Icon} size={14} color="#6366F1" />
           <Text className="text-indigo-600 dark:text-[#5B4CCC] text-[10px] font-poppinsMedium ml-1.5 pt-0.5">
@@ -130,7 +81,7 @@ const TaskGroup = ({ group }: { group: any }) => {
           </Text>
           <View className="bg-gray-200 dark:bg-[#252525] px-2 py-0.5 rounded-md">
             <Text className="text-gray-600 dark:text-[#919191] text-xs font-poppinsBold">
-              {group.count}
+              {group.tasks.length}
             </Text>
           </View>
         </View>
@@ -143,8 +94,8 @@ const TaskGroup = ({ group }: { group: any }) => {
 
       {isExpanded && (
         <View className="pl-4">
-          {group.tasks.map((task: any) => (
-            <TaskItem key={task.id} task={task} />
+          {group.tasks.map((task: any, idx: number) => (
+            <TaskItem key={idx} task={task} />
           ))}
         </View>
       )}
@@ -188,10 +139,98 @@ const TaskSection = ({ section }: { section: any }) => {
   );
 };
 
-const TasksTab = () => {
+const TasksTab = ({
+  loading,
+  myILRs,
+  myMeetings,
+  myRunningNotes,
+}: TasksTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("MOM Task");
   const isDarkMode = useColorScheme() === "dark";
   const subTabs = ["MOM Task", "Running Notes", "ILR Tasks"];
+
+  const transformedData = useMemo(() => {
+    let sourceData: any[] = [];
+    if (activeSubTab === "MOM Task") {
+      myMeetings.forEach((m) => {
+        m.minutes.forEach((min: any) => {
+          sourceData.push({
+            id: min._id,
+            title: min.issueSubject,
+            description: min.remarks,
+            date: min.targetDate,
+            location: m.projectId?.name || "No Project",
+          });
+        });
+      });
+    } else if (activeSubTab === "Running Notes") {
+      myRunningNotes.forEach((n) => {
+        sourceData.push({
+          id: n._id,
+          title: n.text,
+          description: "",
+          date: n.targetDate,
+          location: n.project?.name || "No Project",
+        });
+      });
+    } else if (activeSubTab === "ILR Tasks") {
+      myILRs.forEach((i) => {
+        sourceData.push({
+          id: i._id,
+          title: i.description,
+          description: i.remarks,
+          date: i.targetDate,
+          location: i.projectId?.name || "No Project",
+        });
+      });
+    }
+
+    // Group by Date
+    const dateGroups: { [key: string]: any } = {};
+
+    sourceData.forEach((task) => {
+      let dateKey = "No Date";
+      let timeStr = "No Date";
+      if (task.date) {
+        const d = new Date(task.date);
+        dateKey = isToday(d) ? "Today Tasks" : format(d, "d MMM yyyy");
+        timeStr = format(d, "d MMM yyyy");
+      }
+
+      if (!dateGroups[dateKey]) {
+        dateGroups[dateKey] = {
+          date: dateKey,
+          groupsMap: {},
+        };
+      }
+
+      if (!dateGroups[dateKey].groupsMap[task.location]) {
+        dateGroups[dateKey].groupsMap[task.location] = {
+          location: task.location,
+          tasks: [],
+        };
+      }
+
+      dateGroups[dateKey].groupsMap[task.location].tasks.push({
+        ...task,
+        time: timeStr,
+      });
+    });
+
+    // Convert map to array and sort
+    return Object.values(dateGroups).map((section: any) => ({
+      date: section.date,
+      groups: Object.values(section.groupsMap),
+    }));
+  }, [activeSubTab, myILRs, myMeetings, myRunningNotes]);
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center py-10">
+        <ActivityIndicator size="large" color="#5B4CCC" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
@@ -225,9 +264,15 @@ const TasksTab = () => {
       </View>
 
       <ScrollView className="flex-1 px-5 pt-6 pb-5">
-        {TASKS_DATA.map((section, idx) => (
-          <TaskSection key={idx} section={section} />
-        ))}
+        {transformedData.length > 0 ? (
+          transformedData.map((section, idx) => (
+            <TaskSection key={idx} section={section} />
+          ))
+        ) : (
+          <View className="items-center py-10">
+            <Text className="text-gray-500 font-poppins">No tasks found</Text>
+          </View>
+        )}
         <View className="h-20" />
       </ScrollView>
     </View>

@@ -129,6 +129,7 @@ const CreateNote = () => {
 
       Toast.show({
         type: "success",
+        position: "bottom",
         text1: noteId ? "Note Updated" : "Note Saved",
         text2: noteId
           ? "Your changes have been saved."
@@ -143,6 +144,7 @@ const CreateNote = () => {
       console.error("Error saving note:", error);
       Toast.show({
         type: "error",
+        position: "bottom",
         text1: "Save Failed",
         text2: "Something went wrong while saving your note.",
       });
