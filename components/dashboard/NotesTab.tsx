@@ -5,11 +5,11 @@ import {
   NoteAddIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Skeleton } from "@motify/skeleton";
 import { BlurView } from "@react-native-community/blur";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
 import { View as MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, { useCallback, useContext, useRef, useState } from "react";
 import {
   Modal,
