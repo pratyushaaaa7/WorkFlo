@@ -46,7 +46,7 @@ const NotesTab = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const [notes, setNotes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedNote, setSelectedNote] = useState<any | null>(null);
 
   // Store refs to measure NoteCards
@@ -220,8 +220,9 @@ const NotesTab = () => {
         </View>
       </Modal>
 
-      {/* 🔹 LOADING STATE (MOTI SKELETON) */}
+      {/* 🔹 CONTENT STATES */}
       {loading && notes.length === 0 ? (
+        /* 🔹 LOADING STATE (MOTI SKELETON) */
         <View className="px-4 pt-5 pb-20">
           <View className="flex-row">
             <View className="flex-1 mr-2">
@@ -237,7 +238,7 @@ const NotesTab = () => {
           </View>
         </View>
       ) : notes.length === 0 ? (
-        /* 🔹 EMPTY STATE */
+        /* 🔹 EMPTY STATE (Only if NOT loading or if strictly empty after fetch) */
         <MotiView
           from={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
