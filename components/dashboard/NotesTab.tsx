@@ -150,7 +150,6 @@ const NotesTab = () => {
         <View className="flex-1">
           <Pressable style={{ flex: 1 }} onPress={() => setSelectedNote(null)}>
             <BlurView
-
               blurType={isDark ? "dark" : "light"}
               blurAmount={2}
               reducedTransparencyFallbackColor={isDark ? "black" : "white"}
@@ -240,6 +239,17 @@ const NotesTab = () => {
                     noteRefs.current[note._id] = el;
                   }}
                   activeOpacity={0.9}
+                  onPress={() => {
+                    // Navigate to Edit Mode
+                    router.push({
+                      pathname: "/createMyNote",
+                      params: {
+                        noteId: note._id,
+                        title: note.title,
+                        content: note.content,
+                      },
+                    });
+                  }}
                   onLongPress={() => handleLongPress(note)}
                   delayLongPress={300}
                 >
@@ -256,6 +266,17 @@ const NotesTab = () => {
                     noteRefs.current[note._id] = el;
                   }}
                   activeOpacity={0.9}
+                  onPress={() => {
+                    // Navigate to Edit Mode
+                    router.push({
+                      pathname: "/createMyNote",
+                      params: {
+                        noteId: note._id,
+                        title: note.title,
+                        content: note.content,
+                      },
+                    });
+                  }}
                   onLongPress={() => handleLongPress(note)}
                   delayLongPress={300}
                 >

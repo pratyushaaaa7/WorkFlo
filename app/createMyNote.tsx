@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Delete03Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   BackHandler,
   Keyboard,
@@ -22,12 +22,33 @@ import api from "../lib/api";
 const CreateNote = () => {
   const router = useRouter();
   const { token } = useAuth();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const params = useLocalSearchParams();
+
+  // Note data from params (if editing)
+  const noteId = params.noteId as string;
+  const initialTitle = (params.title as string) || "";
+  const initialContent = (params.content as string) || "";
+
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
+
+  // Strict state initialization on focus
+  useFocusEffect(
+    useCallback(() => {
+      setTitle(initialTitle);
+      setContent(initialContent);
+
+      return () => {
+        // Clear state on blur to be defensive
+        setTitle("");
+        setContent("");
+      };
+    }, [noteId, initialTitle, initialContent])
+  );
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -45,9 +66,12 @@ const CreateNote = () => {
     };
   }, []);
 
-  const hasChanges = title.trim().length > 0 || content.trim().length > 0;
+  const hasChanges =
+    title.trim() !== initialTitle.trim() ||
+    content.trim() !== initialContent.trim() ||
+    (!noteId && (title.trim().length > 0 || content.trim().length > 0));
 
-  // Handle hardware back button
+  // Handle back button / gesture
   useEffect(() => {
     const backAction = () => {
       if (hasChanges) {
@@ -55,7 +79,7 @@ const CreateNote = () => {
       } else {
         router.back();
       }
-      return true; // Prevent default behavior
+      return true;
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -64,7 +88,7 @@ const CreateNote = () => {
     );
 
     return () => backHandler.remove();
-  }, [hasChanges, title, content]); // Dep on state for closure
+  }, [hasChanges, title, content, noteId, initialTitle, initialContent]);
 
   const handleSave = async () => {
     if (!hasChanges) {
@@ -74,23 +98,43 @@ const CreateNote = () => {
 
     try {
       setLoading(true);
-      await api.post(
-        "/personal-notes",
-        {
-          title: title.trim() || "Untitled",
-          content: content.trim(),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      if (noteId) {
+        // Update
+        await api.put(
+          `/personal-notes/${noteId}`,
+          {
+            title: title.trim() || "Untitled",
+            content: content.trim(),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      } else {
+        // Create
+        await api.post(
+          "/personal-notes",
+          {
+            title: title.trim() || "Untitled",
+            content: content.trim(),
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+      }
 
       Toast.show({
         type: "success",
-        text1: "Note Saved",
-        text2: "Your note has been added to your collection.",
+        text1: noteId ? "Note Updated" : "Note Saved",
+        text2: noteId
+          ? "Your changes have been saved."
+          : "Your note has been added to your collection.",
       });
 
+      // Clear local state explicitly before navigating
+      setTitle("");
+      setContent("");
       router.replace("/dashboard");
     } catch (error) {
       console.error("Error saving note:", error);
