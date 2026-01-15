@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -11,13 +12,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
-import { useColorScheme } from "react-native";
-
 
 const CreateNote = () => {
   const router = useRouter();
@@ -27,8 +27,7 @@ const CreateNote = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const colorScheme = useColorScheme();
-const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
-
+  const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -48,6 +47,25 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
 
   const hasChanges = title.trim().length > 0 || content.trim().length > 0;
 
+  // Handle hardware back button
+  useEffect(() => {
+    const backAction = () => {
+      if (hasChanges) {
+        handleSave();
+      } else {
+        router.back();
+      }
+      return true; // Prevent default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [hasChanges, title, content]); // Dep on state for closure
+
   const handleSave = async () => {
     if (!hasChanges) {
       router.back();
@@ -59,8 +77,8 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
       await api.post(
         "/personal-notes",
         {
-          title: title || "Untitled",
-          content: content,
+          title: title.trim() || "Untitled",
+          content: content.trim(),
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -87,9 +105,15 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
   };
 
   const handleDeleteOrCancel = () => {
-    // If there's no content, just go back. If there is, maybe show a confirm?
-    // For now, based on "other wise delete should show", clicking it should just go back without saving.
     router.back();
+  };
+
+  const handleBackPress = () => {
+    if (hasChanges) {
+      handleSave();
+    } else {
+      router.back();
+    }
   };
 
   const showTick = isKeyboardVisible || hasChanges;
@@ -104,16 +128,15 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
         <View className="px-4 pt-14 flex-row items-center justify-between">
           <View className="flex-row items-center flex-1">
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={handleBackPress}
               className="w-10 h-10 items-center justify-center rounded-full"
             >
               <Ionicons name="chevron-back" size={24} color={iconColor} />
-
             </TouchableOpacity>
 
             <Text
               numberOfLines={1}
-              className="text-white text-lg font-poppinsMedium flex-1 mr-4"
+              className="text-black dark:text-white text-lg font-poppinsMedium flex-1 mr-4"
             >
               {title || "Untitled Page"}
             </Text>
@@ -126,7 +149,11 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={handleDeleteOrCancel}>
-                <HugeiconsIcon icon={Delete03Icon} size={24} color={iconColor} />
+                <HugeiconsIcon
+                  icon={Delete03Icon}
+                  size={24}
+                  color={iconColor}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -156,7 +183,6 @@ const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
           <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-6" />
 
           <TextInput
-         
             value={content}
             onChangeText={setContent}
             className="text-black dark:text-white text-lg font-poppins flex-1 min-h-[400px]"
