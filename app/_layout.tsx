@@ -38,6 +38,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
+import { toastConfig } from "../components/CustomToast";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
 
@@ -52,7 +53,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AppLayout />
-      <Toast />
+      <Toast config={toastConfig} />
     </AuthProvider>
   );
 }
