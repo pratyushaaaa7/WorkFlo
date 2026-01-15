@@ -218,7 +218,7 @@ const CreateNote = () => {
             placeholderTextColor="#BDBDBD"
             value={title}
             onChangeText={setTitle}
-            className="text-black dark:text-white text-3xl font-poppinsMedium mb-4"
+            className="text-black dark:text-white text-3xl font-poppinsMedium "
             multiline
             style={{
               textAlignVertical: "top",
@@ -227,7 +227,7 @@ const CreateNote = () => {
             }}
           />
 
-          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-6" />
+          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-2" />
 
           <TextInput
             value={content}
