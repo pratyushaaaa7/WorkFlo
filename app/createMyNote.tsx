@@ -16,6 +16,8 @@ import {
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
+import { useColorScheme } from "react-native";
+
 
 const CreateNote = () => {
   const router = useRouter();
@@ -24,6 +26,9 @@ const CreateNote = () => {
   const [content, setContent] = useState("");
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const colorScheme = useColorScheme();
+const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
+
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -102,7 +107,8 @@ const CreateNote = () => {
               onPress={() => router.back()}
               className="w-10 h-10 items-center justify-center rounded-full"
             >
-              <Ionicons name="chevron-back" size={24} color="#D2D2D2" />
+              <Ionicons name="chevron-back" size={24} color={iconColor} />
+
             </TouchableOpacity>
 
             <Text
@@ -116,11 +122,11 @@ const CreateNote = () => {
           <View className="flex-row items-center gap-4">
             {showTick ? (
               <TouchableOpacity onPress={handleSave} disabled={loading}>
-                <HugeiconsIcon icon={Tick02Icon} size={24} color="#D2D2D2" />
+                <HugeiconsIcon icon={Tick02Icon} size={24} color={iconColor} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={handleDeleteOrCancel}>
-                <HugeiconsIcon icon={Delete03Icon} size={24} color="#D2D2D2" />
+                <HugeiconsIcon icon={Delete03Icon} size={24} color={iconColor} />
               </TouchableOpacity>
             )}
           </View>
@@ -128,17 +134,17 @@ const CreateNote = () => {
 
         {/* Editor Area */}
         <ScrollView
-          className="flex-1 bg-black px-4"
+          className="flex-1 dark:bg-black bg-white px-4"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 30 }}
         >
           <TextInput
-            placeholder="Page title"
-            placeholderTextColor="#606060"
+            placeholder="Page Title"
+            placeholderTextColor="#BDBDBD"
             value={title}
             onChangeText={setTitle}
-            className="text-white text-3xl font-poppinsBold mb-4"
+            className="text-black dark:text-white text-3xl font-poppinsMedium mb-4"
             multiline
             style={{
               textAlignVertical: "top",
@@ -147,14 +153,13 @@ const CreateNote = () => {
             }}
           />
 
-          <View className="h-[1px] bg-[#262626] mb-6" />
+          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-6" />
 
           <TextInput
-            placeholder="Start writing..."
-            placeholderTextColor="#4B5563"
+         
             value={content}
             onChangeText={setContent}
-            className="text-white text-lg font-poppins flex-1 min-h-[400px]"
+            className="text-black dark:text-white text-lg font-poppins flex-1 min-h-[400px]"
             multiline
             textAlignVertical="top"
             style={{ lineHeight: 30 }}
