@@ -5,9 +5,11 @@ import {
   NoteAddIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Skeleton } from "@motify/skeleton";
 import { BlurView } from "@react-native-community/blur";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
+import { View as MotiView } from "moti";
 import React, { useCallback, useContext, useRef, useState } from "react";
 import {
   Modal,
@@ -19,6 +21,23 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../../context/AuthContext";
+
+const NoteSkeleton = ({ isDark }: { isDark: boolean }) => {
+  const height = useRef(
+    Math.floor(Math.random() * (200 - 120 + 1)) + 120
+  ).current;
+
+  return (
+    <View className="mb-4">
+      <Skeleton
+        colorMode={isDark ? "dark" : "light"}
+        width="100%"
+        height={height}
+        radius={24}
+      />
+    </View>
+  );
+};
 
 const NotesTab = () => {
   const router = useRouter();
@@ -201,9 +220,29 @@ const NotesTab = () => {
         </View>
       </Modal>
 
-      {/* 🔹 EMPTY STATE */}
-      {notes.length === 0 ? (
-        <View className=" mt-20 items-center justify-center ">
+      {/* 🔹 LOADING STATE (MOTI SKELETON) */}
+      {loading && notes.length === 0 ? (
+        <View className="px-4 pt-5 pb-20">
+          <View className="flex-row">
+            <View className="flex-1 mr-2">
+              <NoteSkeleton isDark={isDark} />
+              <NoteSkeleton isDark={isDark} />
+              <NoteSkeleton isDark={isDark} />
+            </View>
+            <View className="flex-1 ml-2">
+              <NoteSkeleton isDark={isDark} />
+              <NoteSkeleton isDark={isDark} />
+              <NoteSkeleton isDark={isDark} />
+            </View>
+          </View>
+        </View>
+      ) : notes.length === 0 ? (
+        /* 🔹 EMPTY STATE */
+        <MotiView
+          from={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className=" mt-20 items-center justify-center "
+        >
           <Text
             className={`mt-4 text-base font-poppins ${
               isDark ? "text-[#BBBBBB]" : "text-[#454545]"
@@ -226,10 +265,15 @@ const NotesTab = () => {
               Create Notes
             </Text>
           </TouchableOpacity>
-        </View>
+        </MotiView>
       ) : (
         /* 🔹 NOTES LIST */
-        <View className="px-4 pt-5 pb-20">
+        <MotiView
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "timing", duration: 500 }}
+          className="px-4 pt-5 pb-20"
+        >
           <View className="flex-row">
             <View className="flex-1 mr-2">
               {leftColumn.map((note) => (
@@ -285,7 +329,7 @@ const NotesTab = () => {
               ))}
             </View>
           </View>
-        </View>
+        </MotiView>
       )}
     </View>
   );
