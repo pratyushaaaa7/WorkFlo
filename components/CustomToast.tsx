@@ -26,9 +26,9 @@ const ToastContainer = ({
   const isDarkMode = colorScheme === "dark";
 
   return (
-    <View className="px-5 w-full items-center">
+    <View className="px-3 w-full items-center">
       <View
-        className="flex-row items-center p-4 rounded-[24px] w-full max-w-[400px]"
+        className="flex-row items-center p-4 rounded-2xl w-full max-w-[400px]"
         style={{
           backgroundColor: backgroundColor,
           shadowColor: "#000",
@@ -39,7 +39,7 @@ const ToastContainer = ({
         }}
       >
         {/* White Icon Container */}
-        <View className="w-12 h-12 rounded-[14px] bg-white items-center justify-center mr-4 shadow-sm shadow-black/5">
+        <View className="w-12 h-12 rounded-xl bg-white items-center justify-center mr-2 ">
           <HugeiconsIcon icon={icon} size={24} color={iconColor} />
         </View>
 
@@ -60,7 +60,7 @@ const ToastContainer = ({
           onPress={() => Toast.hide()}
           className="w-8 h-8 items-center justify-center"
         >
-          <HugeiconsIcon icon={Cancel01Icon} size={20} color="#999999" />
+          <HugeiconsIcon icon={Cancel01Icon} size={20} color="#7F7F7F" />
         </TouchableOpacity>
       </View>
     </View>
@@ -70,9 +70,9 @@ const ToastContainer = ({
 export const toastConfig = {
   success: (props: BaseToastProps) => (
     <ToastContainer
-      backgroundColor="#D1FADA"
+      backgroundColor="#BFF2D0"
       icon={TickDouble02Icon}
-      iconColor="#10B981"
+      iconColor="#5BDF9E"
     >
       <>{props.text1}</>
       <>{props.text2}</>
@@ -81,9 +81,9 @@ export const toastConfig = {
 
   error: (props: BaseToastProps) => (
     <ToastContainer
-      backgroundColor="#FFD1D1"
+      backgroundColor="#FBBFBF"
       icon={UnavailableIcon}
-      iconColor="#EF4444"
+      iconColor="#DF5B5B"
     >
       <>{props.text1}</>
       <>{props.text2}</>
@@ -92,9 +92,9 @@ export const toastConfig = {
 
   info: (props: BaseToastProps) => (
     <ToastContainer
-      backgroundColor="#D1E4FF"
+      backgroundColor="#B8D4FF"
       icon={InformationCircleIcon}
-      iconColor="#3B82F6"
+      iconColor="#335EB3"
     >
       <>{props.text1}</>
       <>{props.text2}</>
@@ -103,9 +103,9 @@ export const toastConfig = {
 
   warning: (props: BaseToastProps) => (
     <ToastContainer
-      backgroundColor="#FFE5D1"
+      backgroundColor="#FFD1B8"
       icon={Alert01Icon}
-      iconColor="#F59E0B"
+      iconColor="#FF8A47"
     >
       <>{props.text1}</>
       <>{props.text2}</>
@@ -114,14 +114,14 @@ export const toastConfig = {
 
   neutral: (props: BaseToastProps) => (
     <ToastContainer
-      backgroundColor="#F3F4F6"
+      backgroundColor="#E5E5E5"
       icon={InformationCircleIcon}
-      iconColor="#6B7280"
+      iconColor="#7F7F7F"
     >
       <>{props.text1}</>
       <>{props.text2}</>
     </ToastContainer>
   ),
 
-  
+
 };
