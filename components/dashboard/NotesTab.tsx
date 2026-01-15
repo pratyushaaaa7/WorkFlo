@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import {
-  Delete02Icon,
+  Delete03Icon,
   MoreHorizontalIcon,
   NoteAddIcon,
 } from "@hugeicons/core-free-icons";
@@ -180,7 +180,7 @@ const NotesTab = () => {
               <TouchableOpacity
                 onPress={() => handleDeleteNote(selectedNote._id)}
                 activeOpacity={0.9}
-                className="mt-2 flex-row items-center justify-center bg-white dark:bg-[#0D0D0D] px-6 py-3 rounded-2xl shadow-sm border border-[#E0E5EB] dark:border-[#262626]"
+                className="mt-2 flex-row items-center justify-center bg-white dark:bg-[#0D0D0D] px-4 py-4 rounded-2xl  border border-[#E0E5EB] dark:border-[#262626]"
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 4 },
@@ -191,7 +191,7 @@ const NotesTab = () => {
                   width: "100%",
                 }}
               >
-                <HugeiconsIcon icon={Delete02Icon} size={22} color="#DF5B5B" />
+                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
                 <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
                   Delete
                 </Text>

@@ -26,7 +26,9 @@ const CreateNote = () => {
 
   // Note data from params (if editing)
   const noteId = params.noteId as string;
-  const initialTitle = (params.title as string) || "";
+  // If title is "Untitled", treat it as empty for UX (show placeholder)
+  const rawTitle = (params.title as string) || "";
+  const initialTitle = rawTitle === "Untitled" ? "" : rawTitle;
   const initialContent = (params.content as string) || "";
 
   const [title, setTitle] = useState(initialTitle);
@@ -103,7 +105,7 @@ const CreateNote = () => {
         await api.put(
           `/personal-notes/${noteId}`,
           {
-            title: title.trim() || "Untitled",
+            title: title.trim(),
             content: content.trim(),
           },
           {
@@ -112,10 +114,11 @@ const CreateNote = () => {
         );
       } else {
         // Create
+
         await api.post(
           "/personal-notes",
           {
-            title: title.trim() || "Untitled",
+            title: title.trim(),
             content: content.trim(),
           },
           {
@@ -233,6 +236,7 @@ const CreateNote = () => {
             multiline
             textAlignVertical="top"
             style={{ lineHeight: 30 }}
+            autoFocus={true}
           />
         </ScrollView>
       </KeyboardAvoidingView>
