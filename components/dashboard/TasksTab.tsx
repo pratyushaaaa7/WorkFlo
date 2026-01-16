@@ -2,6 +2,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   Calendar03Icon,
+  Progress03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
@@ -48,9 +49,10 @@ const TaskItem = ({ task }: { task: any }) => {
       <View className="flex-row items-center justify-between mb-1">
         <View className="flex-row items-start flex-1">
           <View className="mr-3 mt-1">
-            <View className={`w-3 h-3 rounded-full border border-[#5B4CCC]`} />
-            <View
-              className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-[#5B4CCC] opacity-50`}
+            <HugeiconsIcon
+              icon={Progress03Icon}
+              size={18}
+              color={isDarkMode ? "#5B4CCC" : "#5B4CCC"}
             />
           </View>
           <View className="flex-1">
@@ -153,10 +155,10 @@ const ProjectSection = ({ project }: { project: any }) => {
           <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mr-3">
             {project.projectName}
           </Text>
-          <View className="bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full">
+          <View className="bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-lg">
             <Text className="text-indigo-600 dark:text-indigo-300 text-[10px] font-poppinsBold">
               {project.tasks.length}{" "}
-              {project.tasks.length === 1 ? "Task" : "Tasks"}
+              {/* {project.tasks.length === 1 ? "Task" : "Tasks"} */}
             </Text>
           </View>
         </View>
