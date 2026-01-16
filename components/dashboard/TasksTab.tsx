@@ -60,12 +60,14 @@ const TaskItem = ({ task }: { task: any }) => {
             <Text className="text-sm font-poppinsMedium text-gray-900 dark:text-white mb-1">
               {task.title}
             </Text>
-            <Text
-              className="text-xs text-gray-500 dark:text-[#919191] font-poppins mb-2"
-              numberOfLines={2}
-            >
-              {task.description || "No description provided"}
-            </Text>
+            {!!task.description && (
+              <Text
+                className="text-xs text-gray-500 dark:text-[#919191] font-poppins mb-2"
+                numberOfLines={2}
+              >
+                {task.description}
+              </Text>
+            )}
 
             <View className="flex-row items-center">
               <HugeiconsIcon
@@ -151,7 +153,7 @@ const ProjectSection = ({ project }: { project: any }) => {
         className="flex-row items-center justify-between p-4 pt-6 border-t border-gray-100 dark:border-[#252525]"
       >
         <View className="flex-row items-center flex-1">
-          <View className="w-1 h-6 bg-[#0073CB] rounded-full mr-3"/>
+          <View className="w-1 h-6 bg-[#0073CB] rounded-full mr-3" />
           <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mr-3">
             {project.projectName}
           </Text>
@@ -201,7 +203,10 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
       .map((item) => ({
         id: item.id,
         title: item.title,
-        description: item.description || item.remarks || "",
+        description:
+          activeSubTab === "Running Notes"
+            ? ""
+            : item.description || item.remarks || "",
         date: item.targetDate,
         location: item.projectName || "No Project",
       }));
