@@ -90,7 +90,7 @@ const TaskItem = ({ task }: { task: any }) => {
 };
 
 const TaskGroup = ({ group }: { group: any }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isDarkMode = useColorScheme() === "dark";
 
   const toggleExpand = () => {
@@ -137,7 +137,7 @@ const TaskGroup = ({ group }: { group: any }) => {
 };
 
 const ProjectSection = ({ project }: { project: any }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isDarkMode = useColorScheme() === "dark";
 
   const toggleExpand = () => {
