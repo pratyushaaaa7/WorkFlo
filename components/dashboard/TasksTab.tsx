@@ -18,9 +18,7 @@ import {
 
 interface TasksTabProps {
   loading: boolean;
-  myILRs: any[];
-  myMeetings: any[];
-  myRunningNotes: any[];
+  responsibleItems: any[];
 }
 
 const TaskItem = ({ task }: { task: any }) => {
@@ -139,51 +137,31 @@ const TaskSection = ({ section }: { section: any }) => {
   );
 };
 
-const TasksTab = ({
-  loading,
-  myILRs,
-  myMeetings,
-  myRunningNotes,
-}: TasksTabProps) => {
+const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("MOM Task");
   const isDarkMode = useColorScheme() === "dark";
   const subTabs = ["MOM Task", "Running Notes", "ILR Tasks"];
 
   const transformedData = useMemo(() => {
-    let sourceData: any[] = [];
-    if (activeSubTab === "MOM Task") {
-      myMeetings.forEach((m) => {
-        m.minutes.forEach((min: any) => {
-          sourceData.push({
-            id: min._id,
-            title: min.issueSubject,
-            description: min.remarks,
-            date: min.targetDate,
-            location: m.projectId?.name || "No Project",
-          });
-        });
-      });
-    } else if (activeSubTab === "Running Notes") {
-      myRunningNotes.forEach((n) => {
-        sourceData.push({
-          id: n._id,
-          title: n.text,
-          description: "",
-          date: n.targetDate,
-          location: n.project?.name || "No Project",
-        });
-      });
-    } else if (activeSubTab === "ILR Tasks") {
-      myILRs.forEach((i) => {
-        sourceData.push({
-          id: i._id,
-          title: i.description,
-          description: i.remarks,
-          date: i.targetDate,
-          location: i.projectId?.name || "No Project",
-        });
-      });
-    }
+    // Map Sub-Tab names to Backend Types
+    const typeMap: { [key: string]: string } = {
+      "MOM Task": "Minute",
+      "Running Notes": "Running Note",
+      "ILR Tasks": "ILR",
+    };
+
+    const activeType = typeMap[activeSubTab];
+
+    // Filter and transform
+    const sourceData = responsibleItems
+      .filter((item) => item.type === activeType)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.remarks || "",
+        date: item.targetDate,
+        location: item.projectName || "No Project",
+      }));
 
     // Group by Date
     const dateGroups: { [key: string]: any } = {};
@@ -222,7 +200,7 @@ const TasksTab = ({
       date: section.date,
       groups: Object.values(section.groupsMap),
     }));
-  }, [activeSubTab, myILRs, myMeetings, myRunningNotes]);
+  }, [activeSubTab, responsibleItems]);
 
   if (loading) {
     return (

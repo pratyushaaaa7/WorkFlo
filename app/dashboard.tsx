@@ -100,9 +100,7 @@ const Dashboard = () => {
         return (
           <TasksTab
             loading={loading}
-            myILRs={dashboardData?.myILRs || []}
-            myMeetings={dashboardData?.myMeetings || []}
-            myRunningNotes={dashboardData?.myRunningNotes || []}
+            responsibleItems={dashboardData?.myResponsibleItems || []}
           />
         );
       case "Calendar":
