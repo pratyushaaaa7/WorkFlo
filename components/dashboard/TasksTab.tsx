@@ -4,7 +4,7 @@ import {
   Calendar03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { format } from "date-fns";
+import { format, isValid, startOfDay } from "date-fns";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,36 +21,68 @@ interface TasksTabProps {
   responsibleItems: any[];
 }
 
+const getDateStatus = (dateString: string | null) => {
+  if (!dateString || !isValid(new Date(dateString))) {
+    return { color: "#9CA3AF", text: "For Info" }; // Gray-400
+  }
+
+  const date = new Date(dateString);
+  const today = startOfDay(new Date());
+  const targetDate = startOfDay(date);
+
+  if (targetDate.getTime() === today.getTime()) {
+    return { color: "#a855f7", text: "Today" }; // Purple
+  } else if (targetDate < today) {
+    return { color: "#ef4444", text: format(date, "d MMM yyyy") }; // Red
+  } else {
+    return { color: "#22c55e", text: format(date, "d MMM yyyy") }; // Green
+  }
+};
+
 const TaskItem = ({ task }: { task: any }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const dateStatus = getDateStatus(task.date);
 
   return (
-    <View className="flex-row py-4 border-b border-gray-50 dark:border-[#252525]">
-      {/* Split Status Icon */}
-      <View className="w-5 h-5 rounded-full border-2 border-indigo-600 dark:border-[#5B4CCC] items-center justify-center mr-3 mt-1 overflow-hidden">
-        <View className="w-full h-full flex-row">
-          <View className="w-1/2 h-full bg-indigo-600 dark:bg-[#5B4CCC]" />
-          <View className="w-1/2 h-full bg-transparent" />
+    <TouchableOpacity className="bg-white dark:bg-[#1A1A1A] px-4 py-3 mb-2 ">
+      <View className="flex-row items-center justify-between mb-1">
+        <View className="flex-row items-start flex-1">
+          <View className="mr-3 mt-1">
+            <View className={`w-3 h-3 rounded-full border border-[#5B4CCC]`} />
+            <View
+              className={`absolute top-0.5 left-0.5 w-2 h-2 rounded-full bg-[#5B4CCC] opacity-50`}
+            />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-poppinsMedium text-gray-900 dark:text-white mb-1">
+              {task.title}
+            </Text>
+            <Text
+              className="text-xs text-gray-500 dark:text-[#919191] font-poppins mb-2"
+              numberOfLines={2}
+            >
+              {task.description || "No description provided"}
+            </Text>
+
+            <View className="flex-row items-center">
+              <HugeiconsIcon
+                icon={Calendar03Icon}
+                size={14}
+                color={dateStatus.color}
+              />
+              <Text
+                className="ml-1.5 text-xs font-poppinsMedium"
+                style={{ color: dateStatus.color }}
+              >
+                {dateStatus.text}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
 
-      <View className="flex-1">
-        <Text className="text-gray-900 dark:text-white text-base font-poppinsSemiBold mb-1">
-          {task.title}
-        </Text>
-        {task.description && (
-          <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5 mb-2">
-            {task.description}
-          </Text>
-        )}
-        <View className="flex-row items-center opacity-70">
-          <HugeiconsIcon icon={Calendar03Icon} size={14} color="#6366F1" />
-          <Text className="text-indigo-600 dark:text-[#5B4CCC] text-[10px] font-poppinsMedium ml-1.5 pt-0.5">
-            {task.time}
-          </Text>
-        </View>
-      </View>
-    </View>
+      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mt-2" />
+    </TouchableOpacity>
   );
 };
 
@@ -147,15 +179,15 @@ const ProjectSection = ({ project }: { project: any }) => {
 };
 
 const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
-  const [activeSubTab, setActiveSubTab] = useState("MOM Task");
+  const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
   const isDarkMode = useColorScheme() === "dark";
-  const subTabs = ["MOM Task", "Running Notes", "ILR Tasks"];
+  const subTabs = ["MOM Tasks", "Running Notes", "ILR Tasks"];
 
   const transformedData = useMemo(() => {
     // Map Sub-Tab names to Backend Types
     const typeMap: { [key: string]: string } = {
-      "MOM Tasks": "Minute",
-      "Running Notes": "Running Note",
+      "MOM Tasks": "MOM",
+      "Running Notes": "Running Notes",
       "ILR Tasks": "ILR",
     };
 
@@ -167,7 +199,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
       .map((item) => ({
         id: item.id,
         title: item.title,
-        description: item.remarks || "",
+        description: item.description || item.remarks || "",
         date: item.targetDate,
         location: item.projectName || "No Project",
       }));
