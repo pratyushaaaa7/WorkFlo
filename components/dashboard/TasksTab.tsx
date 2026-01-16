@@ -46,6 +46,7 @@ const TaskItem = ({ task }: { task: any }) => {
 
   return (
     <TouchableOpacity className=" px-4 py-1 pt-2 ">
+      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mb-4" />
       <View className="flex-row items-center justify-between mb-1">
         <View className="flex-row items-start flex-1">
           <View className="mr-3 mt-1">
@@ -82,8 +83,6 @@ const TaskItem = ({ task }: { task: any }) => {
           </View>
         </View>
       </View>
-
-      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mt-2" />
     </TouchableOpacity>
   );
 };
@@ -145,13 +144,14 @@ const ProjectSection = ({ project }: { project: any }) => {
   };
 
   return (
-    <View className="mb-4  overflow-hidden ">
+    <View className="mb-2  overflow-hidden ">
       <TouchableOpacity
         onPress={toggleExpand}
         activeOpacity={0.7}
-        className="flex-row items-center justify-between p-4  border-b border-gray-100 dark:border-[#252525]"
+        className="flex-row items-center justify-between p-4 pt-6 border-t border-gray-100 dark:border-[#252525]"
       >
         <View className="flex-row items-center flex-1">
+          <View className="w-1 h-6 bg-[#0073CB] rounded-full mr-3"/>
           <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mr-3">
             {project.projectName}
           </Text>
