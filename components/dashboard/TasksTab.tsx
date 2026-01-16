@@ -268,7 +268,9 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
               }
             >
               <Text
-                className={`text-sm tracking-wide font-poppinsMedium ${
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                className={`text-sm font-poppinsMedium ${
                   isActive
                     ? "text-gray-900 dark:text-white"
                     : "text-gray-400 dark:text-[#606060]"
