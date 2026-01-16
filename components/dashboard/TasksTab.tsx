@@ -45,7 +45,7 @@ const TaskItem = ({ task }: { task: any }) => {
   const dateStatus = getDateStatus(task.date);
 
   return (
-    <TouchableOpacity className="bg-white dark:bg-[#1A1A1A] px-4 py-3 mb-2 ">
+    <TouchableOpacity className=" px-4 py-1 pt-2 ">
       <View className="flex-row items-center justify-between mb-1">
         <View className="flex-row items-start flex-1">
           <View className="mr-3 mt-1">
@@ -145,18 +145,18 @@ const ProjectSection = ({ project }: { project: any }) => {
   };
 
   return (
-    <View className="mb-4 bg-white dark:bg-[#1A1A1A] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#252525]">
+    <View className="mb-4  overflow-hidden ">
       <TouchableOpacity
         onPress={toggleExpand}
         activeOpacity={0.7}
-        className="flex-row items-center justify-between p-4 px-6 border-b border-gray-100 dark:border-[#252525]"
+        className="flex-row items-center justify-between p-4  border-b border-gray-100 dark:border-[#252525]"
       >
         <View className="flex-row items-center flex-1">
           <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mr-3">
             {project.projectName}
           </Text>
-          <View className="bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-lg">
-            <Text className="text-indigo-600 dark:text-indigo-300 text-[10px] font-poppinsBold">
+          <View className="bg-[#E0E5EB] dark:bg-[#2F2F2F] px-2.5 py-1 rounded-lg">
+            <Text className="text-black dark:text-[#F5F5F5] text-[10px] font-poppinsBold">
               {project.tasks.length}{" "}
               {/* {project.tasks.length === 1 ? "Task" : "Tasks"} */}
             </Text>
@@ -170,7 +170,7 @@ const ProjectSection = ({ project }: { project: any }) => {
       </TouchableOpacity>
 
       {isExpanded && (
-        <View className="bg-[#FDFDFF] dark:bg-[#1A1A1A]/50">
+        <View className="">
           {project.tasks.map((task: any, idx: number) => (
             <TaskItem key={idx} task={task} />
           ))}
@@ -248,7 +248,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-gray-100 dark:border-[#252525] px-2">
+      <View className="flex-row border-b border-gray-100 dark:border-[#252525] ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
@@ -275,15 +275,20 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
           );
         })}
       </View>
+      {/* <Text className="dark:text-white  px-4 pt-3 font-poppinsMedium">
+        Tasks
+      </Text> */}
 
-      <ScrollView className="flex-1 px-5 pt-6 pb-5">
+      <ScrollView className="flex-1   pb-5">
         {transformedData.length > 0 ? (
           transformedData.map((project, idx) => (
             <ProjectSection key={idx} project={project} />
           ))
         ) : (
           <View className="items-center py-10">
-            <Text className="text-gray-500 font-poppins">No tasks found</Text>
+            <Text className="text-gray-500 font-poppins">
+              You have no Tasks :)
+            </Text>
           </View>
         )}
         <View className="h-20" />
