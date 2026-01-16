@@ -41,6 +41,7 @@ const Dashboard = () => {
   const isDarkMode = colorScheme === "dark";
   const { user } = useAuth();
   const navigation = useNavigation();
+  const { token } = useAuth();
 
   // Refs for Scrolling and Animation
   const scrollRef = useRef<ScrollView>(null);
@@ -59,10 +60,13 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/dashboard/my-tasks");
+        const res = await api.get("/dashboard/my-tasks", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.data.success) {
           setDashboardData(res.data);
         }
+        console.log(res.data);
       } catch (error) {
         console.error("Dashboard Fetch Error:", error);
       } finally {
