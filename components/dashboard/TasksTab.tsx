@@ -4,7 +4,7 @@ import {
   Calendar03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { format, isToday } from "date-fns";
+import { format } from "date-fns";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -101,7 +101,7 @@ const TaskGroup = ({ group }: { group: any }) => {
   );
 };
 
-const TaskSection = ({ section }: { section: any }) => {
+const ProjectSection = ({ project }: { project: any }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const isDarkMode = useColorScheme() === "dark";
 
@@ -111,25 +111,34 @@ const TaskSection = ({ section }: { section: any }) => {
   };
 
   return (
-    <View className="mb-6">
+    <View className="mb-4 bg-white dark:bg-[#1A1A1A] rounded-2xl overflow-hidden border border-gray-100 dark:border-[#252525]">
       <TouchableOpacity
         onPress={toggleExpand}
-        className="flex-row items-center justify-between py-2 mb-2"
+        activeOpacity={0.7}
+        className="flex-row items-center justify-between p-4 px-6 border-b border-gray-100 dark:border-[#252525]"
       >
-        <Text className="text-gray-900 dark:text-white text-xl font-poppinsBold">
-          {section.date}
-        </Text>
+        <View className="flex-row items-center flex-1">
+          <Text className="text-gray-900 dark:text-white text-lg font-poppinsSemiBold mr-3">
+            {project.projectName}
+          </Text>
+          <View className="bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full">
+            <Text className="text-indigo-600 dark:text-indigo-300 text-[10px] font-poppinsBold">
+              {project.tasks.length}{" "}
+              {project.tasks.length === 1 ? "Task" : "Tasks"}
+            </Text>
+          </View>
+        </View>
         <HugeiconsIcon
           icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
-          size={24}
+          size={20}
           color={isDarkMode ? "#919191" : "#6B7280"}
         />
       </TouchableOpacity>
 
       {isExpanded && (
-        <View>
-          {section.groups.map((group: any, idx: number) => (
-            <TaskGroup key={idx} group={group} />
+        <View className="bg-[#FDFDFF] dark:bg-[#1A1A1A]/50">
+          {project.tasks.map((task: any, idx: number) => (
+            <TaskItem key={idx} task={task} />
           ))}
         </View>
       )}
@@ -145,7 +154,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
   const transformedData = useMemo(() => {
     // Map Sub-Tab names to Backend Types
     const typeMap: { [key: string]: string } = {
-      "MOM Task": "Minute",
+      "MOM Tasks": "Minute",
       "Running Notes": "Running Note",
       "ILR Tasks": "ILR",
     };
@@ -163,43 +172,35 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
         location: item.projectName || "No Project",
       }));
 
-    // Group by Date
-    const dateGroups: { [key: string]: any } = {};
+    // Group by Project
+    const projectGroups: { [key: string]: any } = {};
 
     sourceData.forEach((task) => {
-      let dateKey = "No Date";
-      let timeStr = "No Date";
-      if (task.date) {
-        const d = new Date(task.date);
-        dateKey = isToday(d) ? "Today Tasks" : format(d, "d MMM yyyy");
-        timeStr = format(d, "d MMM yyyy");
-      }
+      const projKey = task.location; // location holds projectName
 
-      if (!dateGroups[dateKey]) {
-        dateGroups[dateKey] = {
-          date: dateKey,
-          groupsMap: {},
-        };
-      }
-
-      if (!dateGroups[dateKey].groupsMap[task.location]) {
-        dateGroups[dateKey].groupsMap[task.location] = {
-          location: task.location,
+      if (!projectGroups[projKey]) {
+        projectGroups[projKey] = {
+          projectName: projKey,
           tasks: [],
         };
       }
 
-      dateGroups[dateKey].groupsMap[task.location].tasks.push({
+      let timeStr = "No Date";
+      if (task.date) {
+        const d = new Date(task.date);
+        timeStr = format(d, "d MMM yyyy");
+      }
+
+      projectGroups[projKey].tasks.push({
         ...task,
         time: timeStr,
       });
     });
 
-    // Convert map to array and sort
-    return Object.values(dateGroups).map((section: any) => ({
-      date: section.date,
-      groups: Object.values(section.groupsMap),
-    }));
+    // Convert map to array and sort by Project Name
+    return Object.values(projectGroups).sort((a: any, b: any) =>
+      a.projectName.localeCompare(b.projectName)
+    );
   }, [activeSubTab, responsibleItems]);
 
   if (loading) {
@@ -243,8 +244,8 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
 
       <ScrollView className="flex-1 px-5 pt-6 pb-5">
         {transformedData.length > 0 ? (
-          transformedData.map((section, idx) => (
-            <TaskSection key={idx} section={section} />
+          transformedData.map((project, idx) => (
+            <ProjectSection key={idx} project={project} />
           ))
         ) : (
           <View className="items-center py-10">
