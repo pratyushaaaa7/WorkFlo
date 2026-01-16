@@ -57,7 +57,7 @@ const TaskItem = ({ task }: { task: any }) => {
             />
           </View>
           <View className="flex-1">
-            <Text className="text-sm font-poppinsMedium text-gray-900 dark:text-white mb-1">
+            <Text className="text-sm font-poppins text-gray-900 dark:text-white mb-1">
               {task.title}
             </Text>
             {!!task.description && (
@@ -69,7 +69,7 @@ const TaskItem = ({ task }: { task: any }) => {
               </Text>
             )}
 
-            <View className="flex-row items-center">
+            <View className="flex-row mt-1 items-center">
               <HugeiconsIcon
                 icon={Calendar03Icon}
                 size={14}
