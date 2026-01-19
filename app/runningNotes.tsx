@@ -40,7 +40,7 @@ const handleDownloadRunningNotesExcel = async (
   projectName: string,
   company: string,
   token: string,
-  setDownloadingExcel: (v: boolean) => void
+  setDownloadingExcel: (v: boolean) => void,
 ) => {
   try {
     setDownloadingExcel(true); // 👈 START LOADER
@@ -53,7 +53,7 @@ const handleDownloadRunningNotesExcel = async (
     const response = await api.post(
       `/running-notes/export`,
       { projectId, projectName, company },
-      { responseType: "blob", headers: { Authorization: `Bearer ${token}` } }
+      { responseType: "blob", headers: { Authorization: `Bearer ${token}` } },
     );
 
     const fileName = `RunningNotes_${projectName}.xlsx`;
@@ -166,12 +166,12 @@ const RunningNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteText, setNoteText] = useState("");
   const [status, setStatus] = useState<"Open" | "In Progress" | "Closed">(
-    "Open"
+    "Open",
   );
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
   const sectionListRef = useRef<SectionList>(null);
   const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(
-    null
+    null,
   );
 
   const [responsible, setResponsible] = useState<string | null>(null);
@@ -204,7 +204,7 @@ const RunningNotes = () => {
           res.data.map((u: any) => ({
             label: `${u.name} (${u.company})`,
             value: u._id,
-          }))
+          })),
         );
         // console.log(res.data);
       } catch (err) {
@@ -257,7 +257,7 @@ const RunningNotes = () => {
         title: date,
         data: notes,
       })),
-    [notes]
+    [notes],
   );
 
   // 🔹 SCROLL & HIGHLIGHT LOGIC
@@ -322,7 +322,7 @@ const RunningNotes = () => {
       const res = await api.post(
         "/running-notes",
         { projectId, text: noteText, status, responsible, targetDate },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const newNote: Note = {
@@ -354,7 +354,7 @@ const RunningNotes = () => {
           responsible: editingNote.responsible,
           targetDate: editingNote.targetDate,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setNotes((prev) =>
@@ -370,8 +370,8 @@ const RunningNotes = () => {
                   : null,
                 createdAt: new Date(res.data.createdAt),
               }
-            : n
-        )
+            : n,
+        ),
       );
 
       setEditModalVisible(false);
@@ -558,7 +558,7 @@ const RunningNotes = () => {
         </TouchableOpacity>
       </Swipeable>
     ),
-    [users, swipeableRefs, COL, highlightedNoteId]
+    [users, swipeableRefs, COL, highlightedNoteId],
   );
 
   return (
@@ -571,7 +571,7 @@ const RunningNotes = () => {
           <TouchableOpacity
             onPress={() =>
               router.push(
-                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`
+                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
               )
             }
             className="flex-row items-center"
@@ -589,7 +589,7 @@ const RunningNotes = () => {
                 projectName as string,
                 company as string,
                 token as string,
-                setDownloadingExcel
+                setDownloadingExcel,
               )
             }
             className={`p-2 rounded-full ${
@@ -848,7 +848,7 @@ const RunningNotes = () => {
                               prev && {
                                 ...prev,
                                 status: s.value as Note["status"],
-                              }
+                              },
                           )
                         }
                         className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
@@ -901,7 +901,7 @@ const RunningNotes = () => {
                     value={editingNote?.responsible}
                     onChange={(item) =>
                       setEditingNote(
-                        (prev) => prev && { ...prev, responsible: item.value }
+                        (prev) => prev && { ...prev, responsible: item.value },
                       )
                     }
                   />
@@ -927,7 +927,7 @@ const RunningNotes = () => {
                   onConfirm={(date) => {
                     setShowEditDatePicker(false);
                     setEditingNote(
-                      (prev) => prev && { ...prev, targetDate: date }
+                      (prev) => prev && { ...prev, targetDate: date },
                     );
                   }}
                   onCancel={() => setShowEditDatePicker(false)}
