@@ -162,7 +162,7 @@ const OverviewCalendar = ({
         </View>
 
         <TouchableOpacity onPress={() => setActiveTab("Calendar")}>
-          <Text className="text-[#566FEC] text-sm font-poppinsMedium">
+          <Text className="text-[#0073CB] text-sm font-poppinsMedium">
             View all
           </Text>
         </TouchableOpacity>

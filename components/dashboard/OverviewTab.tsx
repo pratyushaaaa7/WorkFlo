@@ -4,6 +4,7 @@ import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
   ClockIcon,
+  Progress03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isToday } from "date-fns";
@@ -53,7 +54,7 @@ const OverviewTab = ({
   }
 
   return (
-    <View className=" py-5 dark:bg-black">
+    <View className=" py-5 px-2 dark:bg-black">
       {/* Project Summary */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-4">
@@ -61,7 +62,7 @@ const OverviewTab = ({
             Project Summary
           </Text>
           <TouchableOpacity onPress={() => setActiveTab("Projects")}>
-            <Text className="text-indigo-600 dark:text-[#5B4CCC] text-sm font-poppinsMedium">
+            <Text className="text-[#0073CB] text-sm font-poppinsMedium">
               View all
             </Text>
           </TouchableOpacity>
@@ -98,7 +99,7 @@ const OverviewTab = ({
             Tasks
           </Text>
           <TouchableOpacity onPress={() => setActiveTab("Tasks")}>
-            <Text className="text-indigo-600 dark:text-[#5B4CCC] text-sm font-poppinsMedium">
+            <Text className="text-[#0073CB] text-sm font-poppinsMedium">
               View all
             </Text>
           </TouchableOpacity>
@@ -164,16 +165,22 @@ const OverviewTab = ({
                 onPress={handlePress}
                 className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 flex-row"
               >
-                <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
+                {/* <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
                   <View className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-[#5B4CCC]" />
-                </View>
+                </View> */}
+
+                <HugeiconsIcon
+                  icon={Progress03Icon}
+                  size={18}
+                  color={task.status === "open" ? "#5B4CCC" : "#5B4CCC"}
+                />
 
                 <View className="flex-1">
                   <Text className="text-base font-poppinsMedium text-gray-900 dark:text-white mb-1">
                     {task.title}
                   </Text>
                   <Text className="text-sm text-gray-400 dark:text-[#919191] font-poppins mb-1">
-                    {task.projectName} 
+                    {task.projectName}
                   </Text>
                   <View className="flex-row items-center">
                     <HugeiconsIcon
