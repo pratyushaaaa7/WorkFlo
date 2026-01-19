@@ -52,8 +52,10 @@ export default function GlassNav({
   const activeColor = getTabColor(activeTabName);
 
   // MOUNTAIN CONFIG
-  const mountainWidth = tabWidth * 6;
+  const mountainWidth = tabWidth * 10;
   const mountainHeight = 38;
+  const center = mountainWidth / 2;
+  const baseOffset = tabWidth * 3.2;
 
   useEffect(() => {
     if (tabWidth > 0) {
@@ -105,7 +107,7 @@ export default function GlassNav({
               bottom: 0,
               width: mountainWidth,
               height: mountainHeight,
-              opacity: 0.25,
+              opacity: 0.3,
               transform: [
                 {
                   translateX: Animated.add(
@@ -125,12 +127,14 @@ export default function GlassNav({
               </Defs>
               <Path
                 d={`M 0,${mountainHeight}
-      C ${mountainWidth * 0.35},${mountainHeight}
-        ${mountainWidth * 0.45},${-mountainHeight * 0.75}
-        ${mountainWidth / 2},${-mountainHeight}
-      C ${mountainWidth * 0.55},${-mountainHeight * 0.75}
-        ${mountainWidth * 0.65},${mountainHeight}
-        ${mountainWidth},${mountainHeight}
+      L ${center - baseOffset},${mountainHeight}
+      C ${center - tabWidth * 1.2},${mountainHeight}
+        ${center - tabWidth * 0.4},${-5}
+        ${center},${-5}
+      C ${center + tabWidth * 0.4},${-5}
+        ${center + tabWidth * 1.2},${mountainHeight}
+        ${center + baseOffset},${mountainHeight}
+      L ${mountainWidth},${mountainHeight}
       Z`}
                 fill="url(#grad)"
               />
