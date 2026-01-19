@@ -4,13 +4,25 @@ import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
   ClockIcon,
+  Relieved01Icon,
+  SadDizzyIcon,
+  CancelCircleIcon,
+  SmileIcon,
   Progress03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isToday } from "date-fns";
 import { useRouter } from "expo-router";
-import React from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { AuthContext } from "../../context/AuthContext";
+import api from "../../lib/api";
 import OverviewCalendar from "./OverviewCalendar";
 
 const OverviewTab = ({
@@ -23,15 +35,73 @@ const OverviewTab = ({
   responsibleItems: any[];
 }) => {
   const router = useRouter();
+  const auth = useContext(AuthContext);
+  const token = auth?.token;
+
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [projectCounts, setProjectCounts] = useState({
+    active: 0,
+    closed: 0,
+    bd: 0,
+    inactive: 0,
+  });
+
+  useEffect(() => {
+    const fetchProjectStats = async () => {
+      if (!token) return;
+      try {
+        setStatsLoading(true);
+        const res = await api.get("/projects", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const projects = res.data.projects;
+        if (Array.isArray(projects)) {
+          const counts = { active: 0, closed: 0, bd: 0, inactive: 0 };
+
+          for (const proj of projects) {
+            const status = proj.status?.toLowerCase();
+            if (status === "active") counts.active++;
+            else if (status === "closed" || status === "close") counts.closed++;
+            else if (status === "bd" || status === "b.d") counts.bd++;
+            else if (status === "inactive" || status === "in-active")
+              counts.inactive++;
+          }
+          setProjectCounts(counts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch project stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchProjectStats();
+  }, [token]);
+
   const projectStats = [
-    { label: "Active", count: 15, icon: ClockIcon, color: "#6366F1" },
-    { label: "6.0", count: 15, icon: Cancel01Icon, color: "#EF4444" },
-    { label: "In-Active", count: 15, icon: AlertCircleIcon, color: "#F59E0B" },
     {
-      label: "Close",
-      count: 15,
+      label: "Active",
+      count: projectCounts.active,
+      icon: SmileIcon,
+      color: "#5B4CCC",
+    },
+    {
+      label: "B.D",
+      count: projectCounts.bd,
+      icon: Relieved01Icon,
+      color: "#0073CB",
+    },
+    {
+      label: "In-Active",
+      count: projectCounts.inactive,
+      icon: SadDizzyIcon,
+      color: "#FFC366",
+    },
+    {
+      label: "Closed",
+      count: projectCounts.closed,
       icon: CheckmarkCircle02Icon,
-      color: "#10B981",
+      color: "#1AA45B",
     },
   ];
 
@@ -54,11 +124,11 @@ const OverviewTab = ({
   }
 
   return (
-    <View className=" py-5 px-2 dark:bg-black">
+    <View className=" py-5 px-2 bg-[#F6F8FA] dark:bg-black">
       {/* Project Summary */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-bold text-gray-900 dark:text-white">
+          <Text className="text-lg font-dmBold text-gray-900 dark:text-white">
             Project Summary
           </Text>
           <TouchableOpacity onPress={() => setActiveTab("Projects")}>
@@ -68,28 +138,29 @@ const OverviewTab = ({
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row justify-between">
-          {projectStats.map((stat, index) => (
+        <FlatList
+          data={projectStats}
+          horizontal
+          // className="w-full"
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.label}
+          contentContainerStyle={{ gap: 6, paddingRight: 12 }}
+          renderItem={({ item: stat }) => (
             <View
-              key={index}
-              className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 items-center"
-              style={{ width: "23%" }}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#2B2B2B] rounded-2xl p-2 px-3"
+              style={{ width: 105 }}
             >
-              <View
-                className="w-12 h-12 rounded-full items-center justify-center mb-2"
-                style={{ backgroundColor: `${stat.color}20` }}
-              >
-                <HugeiconsIcon icon={stat.icon} size={24} color={stat.color} />
-              </View>
-              <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                {stat.count}
+              <HugeiconsIcon icon={stat.icon} size={20} color={stat.color} />
+
+              <Text className="text-2xl mt-6 font-dmSemiBold text-gray-900 dark:text-[#F5F5F5] mb-1">
+                {statsLoading ? "..." : stat.count}
               </Text>
-              <Text className="text-xs text-gray-500 dark:text-[#919191] font-poppins">
+              <Text className="text-xs text-gray-500 dark:text-[#AAAAAA] font-poppins">
                 {stat.label}
               </Text>
             </View>
-          ))}
-        </View>
+          )}
+        />
       </View>
 
       {/* Tasks */}
@@ -163,7 +234,7 @@ const OverviewTab = ({
               <TouchableOpacity
                 key={idx}
                 onPress={handlePress}
-                className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 flex-row"
+                className=" rounded-2xl p-4 mb-3 flex-row"
               >
                 {/* <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
                   <View className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-[#5B4CCC]" />
