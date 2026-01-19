@@ -1,7 +1,7 @@
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, parseISO } from "date-fns";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -15,8 +15,10 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 const OverviewCalendar = ({
   setActiveTab,
+  responsibleItems = [],
 }: {
   setActiveTab: (tab: string) => void;
+  responsibleItems?: any[];
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -31,26 +33,28 @@ const OverviewCalendar = ({
 
   const visibleMonthDate = parseISO(currentMonth);
 
-  const taskCounts: Record<string, number> = {
-    "29": 2,
-    "30": 7,
-    "03": 4,
-    "05": 5,
-    "08": 9,
-    "13": 3,
-    "15": 1,
-    "17": 8,
-    "21": 1,
-    "23": 6,
-    "28": 10,
-  };
+  const taskCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    responsibleItems.forEach((item) => {
+      if (item.targetDate) {
+        try {
+          // Format the targetDate to yyyy-MM-dd to match calendar keys
+          const dateKey = format(new Date(item.targetDate), "yyyy-MM-dd");
+          counts[dateKey] = (counts[dateKey] || 0) + 1;
+        } catch (e) {
+          console.warn("Invalid task date found:", item.targetDate);
+        }
+      }
+    });
+    return counts;
+  }, [responsibleItems]);
 
   /** 🔹 Custom Day Card */
   const DayCard = ({ date, state }: any) => {
     const isSelected = date.dateString === selectedDate;
     const isDisabled = state === "disabled";
-    const dayKey = date.day < 10 ? `0${date.day}` : `${date.day}`;
-    const taskCount = taskCounts[dayKey];
+    // Look up count using the full date string (yyyy-MM-dd)
+    const taskCount = taskCounts[date.dateString];
 
     return (
       <TouchableOpacity
@@ -88,7 +92,7 @@ const OverviewCalendar = ({
         {taskCount && !isDisabled ? (
           <Text
             numberOfLines={1}
-            className={`text-[8px] font-poppins text-center w-full ${
+            className={`text-[8px] font-poppins text-center  ${
               isSelected
                 ? "text-white"
                 : isDark

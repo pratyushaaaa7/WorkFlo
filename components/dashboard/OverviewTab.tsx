@@ -313,7 +313,10 @@ const OverviewTab = ({
       </View>
 
       {/* Calendar Section */}
-      <OverviewCalendar setActiveTab={setActiveTab} />
+      <OverviewCalendar
+        setActiveTab={setActiveTab}
+        responsibleItems={responsibleItems}
+      />
     </View>
   );
 };
