@@ -246,7 +246,9 @@ const OverviewTab = ({
                 onPress={handlePress}
                 className=" px-3 py-1 pt-2 "
               >
-                <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#252525] mb-4" />
+                {idx !== 0 && (
+                  <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#252525] mb-4" />
+                )}
                 <View className="flex-row items-center justify-between mb-1">
                   <View className="flex-row items-start flex-1">
                     <View className="mr-3 mt-1">
@@ -303,7 +305,9 @@ const OverviewTab = ({
           })
         ) : (
           <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 items-center">
-            <Text className="text-gray-500 font-poppins">You have no tasks :)</Text>
+            <Text className="text-gray-500 font-poppins">
+              You have no tasks :)
+            </Text>
           </View>
         )}
       </View>
