@@ -6,6 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -43,9 +44,60 @@ const getDateStatus = (dateString: string | null) => {
 const TaskItem = ({ task }: { task: any }) => {
   const isDarkMode = useColorScheme() === "dark";
   const dateStatus = getDateStatus(task.date);
+  const router = useRouter();
+
+  const handlePress = () => {
+    switch (task.type) {
+      case "MOM":
+        router.push({
+          pathname: "/minuteDetail",
+          params: {
+            minuteId: task.id,
+            meetingId: task.meetingId,
+            issueSubject: task.title,
+            description: task.description,
+            targetDate: task.date,
+            status: task.status,
+            remarks: task.remarks,
+            responsibility: JSON.stringify(task.responsibility || []),
+            raisedBy: JSON.stringify(task.raisedBy || []),
+          },
+        });
+        break;
+      case "Running Notes":
+        router.push({
+          pathname: "/runningNotes",
+          params: {
+            projectId: task.projectId,
+            projectName: task.projectName,
+            company: task.company,
+          },
+        });
+        break;
+      case "ILR":
+        router.push({
+          pathname: "/ilrActivities",
+          params: {
+            ilrId: task.id,
+            description: task.description,
+            targetDate: task.date,
+            remarks: task.remarks,
+            status: task.status,
+            ilrNumber: task.ilrNumber,
+            responsibility: JSON.stringify(task.responsibility || []),
+            createdBy: task.createdBy,
+            createdAt: task.createdAt,
+          },
+        });
+        break;
+      default:
+        console.warn("Unknown task type:", task.type);
+        break;
+    }
+  };
 
   return (
-    <TouchableOpacity className=" px-4 py-1 pt-2 ">
+    <TouchableOpacity onPress={handlePress} className=" px-4 py-1 pt-2 ">
       <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mb-4" />
       <View className="flex-row items-center justify-between mb-1">
         <View className="flex-row items-start flex-1">
@@ -209,6 +261,18 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
             : item.description || item.remarks || "",
         date: item.targetDate,
         location: item.projectName || "No Project",
+        type: item.type,
+        meetingId: item.meetingId,
+        projectId: item.projectId,
+        company: item.company,
+        projectName: item.projectName,
+        status: item.status,
+        remarks: item.remarks,
+        responsibility: item.responsibility,
+        ilrNumber: item.ilrNumber,
+        createdBy: item.createdBy,
+        createdAt: item.createdAt,
+        raisedBy: item.raisedBy,
       }));
 
     // Group by Project

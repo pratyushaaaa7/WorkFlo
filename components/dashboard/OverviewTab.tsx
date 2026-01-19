@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isToday } from "date-fns";
+import { useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import OverviewCalendar from "./OverviewCalendar";
@@ -20,6 +21,7 @@ const OverviewTab = ({
   loading: boolean;
   responsibleItems: any[];
 }) => {
+  const router = useRouter();
   const projectStats = [
     { label: "Active", count: 15, icon: ClockIcon, color: "#6366F1" },
     { label: "6.0", count: 15, icon: Cancel01Icon, color: "#EF4444" },
@@ -105,9 +107,61 @@ const OverviewTab = ({
         {displayTasks.length > 0 ? (
           displayTasks.map((task, idx) => {
             const dateInfo = getDateDisplay(task.targetDate);
+
+            const handlePress = () => {
+              switch (task.type) {
+                case "MOM":
+                  router.push({
+                    pathname: "/minuteDetail",
+                    params: {
+                      minuteId: task.id,
+                      meetingId: task.meetingId,
+                      issueSubject: task.title,
+                      description: task.description,
+                      targetDate: task.targetDate,
+                      status: task.status,
+                      remarks: task.remarks,
+                      responsibility: JSON.stringify(task.responsibility || []),
+                      raisedBy: JSON.stringify(task.raisedBy || []),
+                    },
+                  });
+                  break;
+                case "Running Notes":
+                  router.push({
+                    pathname: "/runningNotes",
+                    params: {
+                      projectId: task.projectId,
+                      projectName: task.projectName,
+                      company: task.company,
+                    },
+                  });
+                  break;
+                case "ILR":
+                  router.push({
+                    pathname: "/ilrActivities",
+                    params: {
+                      ilrId: task.id,
+                      description: task.description,
+                      targetDate: task.targetDate,
+                      remarks: task.remarks,
+                      status: task.status,
+                      ilrNumber: task.ilrNumber,
+                      responsibility: JSON.stringify(task.responsibility || []),
+                      createdBy: task.createdBy,
+                      createdAt: task.createdAt,
+                    },
+                  });
+                  break;
+                default:
+                  console.warn("Unknown task type:", task.type);
+                  break;
+              }
+            };
+
             return (
               <TouchableOpacity
                 key={idx}
+                onPress={handlePress}
                 className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 flex-row"
               >
                 <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
@@ -119,7 +173,7 @@ const OverviewTab = ({
                     {task.title}
                   </Text>
                   <Text className="text-sm text-gray-400 dark:text-[#919191] font-poppins mb-1">
-                    {task.projectName} ({task.projectCode})
+                    {task.projectName} 
                   </Text>
                   <View className="flex-row items-center">
                     <HugeiconsIcon
