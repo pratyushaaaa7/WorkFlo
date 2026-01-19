@@ -75,7 +75,7 @@ const OverviewCalendar = ({
             : "#F3F4F6",
           // margin: 1.5,
         }}
-        className="flex-1 rounded-lg border p-1 justify-between items-center"
+        className="flex-1 rounded-lg border justify-between items-center"
       >
         <Text
           className={`font-DM text-[13px] mb-2 text-center ${
