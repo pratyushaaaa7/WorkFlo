@@ -115,7 +115,7 @@ const NotesTab = () => {
   };
 
   const getRandomColor = (id: string) => {
-    const colors = ["#FEE4A1", "#FCC7E3", "#B1F0F7", "#FFD6B9"];
+    const colors = ["#FFE7A0", "#FFC7EA", "#B7F0FF", "#FFE4D4"];
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
       hash = id.charCodeAt(i) + ((hash << 5) - hash);
@@ -143,7 +143,7 @@ const NotesTab = () => {
         <Text className="text-[#000000] text-lg font-poppinsMedium flex-1 mr-2">
           {note.title || "Untitled"}
         </Text>
-        <HugeiconsIcon icon={MoreHorizontalIcon} size={20} color="#1A1A1A" />
+        {/* <HugeiconsIcon icon={MoreHorizontalIcon} size={20} color="#1A1A1A" /> */}
       </View>
 
       <Text
@@ -153,7 +153,7 @@ const NotesTab = () => {
         {note.content}
       </Text>
 
-      <Text className="text-[#1A1A1A] text-xs font-poppinsBold opacity-70 mt-auto">
+      <Text className="text-[#4C4C4C] text-xs font-poppinsMedium opacity-70 mt-auto">
         {new Date(note.createdAt).toDateString()}
       </Text>
     </View>
