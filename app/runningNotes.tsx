@@ -1,38 +1,38 @@
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
 // import DateTimePicker from "@react-native-community/datetimepicker";
+import * as FileSystem from "expo-file-system";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import React, {
+  useCallback,
   useContext,
   useEffect,
-  useState,
-  useRef,
-  useCallback,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
-  FlatList,
+  ActivityIndicator,
+  Animated,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  RefreshControl,
   ScrollView,
+  SectionList,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Modal,
-  RefreshControl,
-  ActivityIndicator,
-  SectionList,
-  Platform,
-  KeyboardAvoidingView,
   useWindowDimensions,
+  View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { AuthContext } from "../context/AuthContext";
 import { Swipeable } from "react-native-gesture-handler";
-import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
+import { AuthContext } from "../context/AuthContext";
+import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
 
 //Download the excel of notes
 const handleDownloadRunningNotesExcel = async (
@@ -155,7 +155,8 @@ type Note = {
 
 const RunningNotes = () => {
   const router = useRouter();
-  const { projectId, projectName, company } = useLocalSearchParams();
+  const { projectId, projectName, company, highlightId } =
+    useLocalSearchParams();
   const auth = useContext(AuthContext);
   const token = auth?.token;
   const user = auth?.user;
@@ -168,6 +169,10 @@ const RunningNotes = () => {
     "Open"
   );
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
+  const sectionListRef = useRef<SectionList>(null);
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(
+    null
+  );
 
   const [responsible, setResponsible] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
@@ -237,6 +242,64 @@ const RunningNotes = () => {
   useEffect(() => {
     fetchNotes();
   }, [token, projectId]);
+
+  const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
+    const dateKey = formatDate(note.createdAt);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(note);
+    return acc;
+  }, {});
+
+  // Prepare sections from groupedNotes
+  const noteSections = useMemo(
+    () =>
+      Object.entries(groupedNotes).map(([date, notes]) => ({
+        title: date,
+        data: notes,
+      })),
+    [notes]
+  );
+
+  // 🔹 SCROLL & HIGHLIGHT LOGIC
+  useEffect(() => {
+    if (highlightId && notes.length > 0 && noteSections.length > 0) {
+      const idToFind = Array.isArray(highlightId)
+        ? highlightId[0]
+        : highlightId;
+      setHighlightedNoteId(idToFind);
+
+      // Find indices
+      let sectionIndex = -1;
+      let itemIndex = -1;
+
+      for (let s = 0; s < noteSections.length; s++) {
+        const data = noteSections[s].data;
+        const idx = data.findIndex((n) => n.id === idToFind);
+        if (idx !== -1) {
+          sectionIndex = s;
+          itemIndex = idx;
+          break;
+        }
+      }
+
+      if (sectionIndex !== -1 && itemIndex !== -1) {
+        // Delay slightly to ensure list is rendered
+        setTimeout(() => {
+          sectionListRef.current?.scrollToLocation({
+            sectionIndex,
+            itemIndex: itemIndex + 1, // +1 for the section header
+            viewOffset: 80,
+            animated: true,
+          });
+        }, 500);
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedNoteId(null);
+        }, 3500);
+      }
+    }
+  }, [highlightId, notes, noteSections]);
 
   //refresh
   const onRefresh = async () => {
@@ -371,23 +434,6 @@ const RunningNotes = () => {
     </View>
   );
 
-  const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
-    const dateKey = formatDate(note.createdAt);
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(note);
-    return acc;
-  }, {});
-
-  // Prepare sections from groupedNotes
-  const noteSections = useMemo(
-    () =>
-      Object.entries(groupedNotes).map(([date, notes]) => ({
-        title: date,
-        data: notes,
-      })),
-    [notes]
-  );
-
   const DateHeader = ({ date }: { date: string }) => (
     <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
       <Text className="font-semibold text-xs text-indigo-800">{date}</Text>
@@ -410,6 +456,45 @@ const RunningNotes = () => {
 
   const isEditDisabled = !editingNote?.text?.trim();
 
+  // Animated Highlight Wrapper
+  const AnimatedNoteRow = ({
+    item,
+    children,
+  }: {
+    item: Note;
+    children: React.ReactNode;
+  }) => {
+    const isHighlighted = item.id === highlightedNoteId;
+    const animValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      if (isHighlighted) {
+        Animated.sequence([
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: false,
+          }),
+          Animated.delay(2000),
+          Animated.timing(animValue, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: false,
+          }),
+        ]).start();
+      }
+    }, [isHighlighted]);
+
+    const backgroundColor = animValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [getNoteBgColor(item.status), "#B7F0FF"], // Normal to Yellow highlight
+    });
+
+    return (
+      <Animated.View style={{ backgroundColor }}>{children}</Animated.View>
+    );
+  };
+
   // Note row
   const renderNote = useCallback(
     ({ item }: { item: Note }) => (
@@ -428,11 +513,6 @@ const RunningNotes = () => {
           setNoteToDelete(item);
           setDeleteModalVisible(true);
         }}
-        // onSwipeableOpen={() => {
-        //   setNoteToDelete(item);
-        //   setDeleteModalVisible(true);
-        //   setTimeout(() => swipeableRefs.current.get(item.id)?.close(), 100);
-        // }}
       >
         <TouchableOpacity
           activeOpacity={0.8}
@@ -441,43 +521,44 @@ const RunningNotes = () => {
             setEditModalVisible(true);
           }}
         >
-          <View className="flex-row border-l border-slate-400 bg-white">
-            {/* Note */}
-            <View
-              className="border-r border-b border-gray-300 px-2 py-1"
-              style={{
-                width: COL.note,
-                backgroundColor: getNoteBgColor(item.status),
-              }}
-            >
-              <Text className="text-sm text-black">{item.text}</Text>
-            </View>
+          <AnimatedNoteRow item={item}>
+            <View className="flex-row border-l border-slate-400">
+              {/* Note */}
+              <View
+                className="border-r border-b border-gray-300 px-2 py-1"
+                style={{
+                  width: COL.note,
+                }}
+              >
+                <Text className="text-sm text-black">{item.text}</Text>
+              </View>
 
-            {/* Responsible */}
-            <View
-              className="border-r border-b border-gray-300 px-1 py-1"
-              style={{ width: COL.responsible }}
-            >
-              <Text className="text-xs" numberOfLines={2}>
-                {users.find((u) => u.value === item.responsible)?.label ||
-                  "N/A"}
-              </Text>
-            </View>
+              {/* Responsible */}
+              <View
+                className="border-r border-b border-gray-300 px-1 py-1"
+                style={{ width: COL.responsible }}
+              >
+                <Text className="text-xs" numberOfLines={2}>
+                  {users.find((u) => u.value === item.responsible)?.label ||
+                    "N/A"}
+                </Text>
+              </View>
 
-            {/* Target Date */}
-            <View
-              className="border-r border-b border-gray-300 px-1 py-1"
-              style={{ width: COL.target }}
-            >
-              <Text className="text-xs">
-                {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-              </Text>
+              {/* Target Date */}
+              <View
+                className="border-r border-b border-gray-300 px-1 py-1"
+                style={{ width: COL.target }}
+              >
+                <Text className="text-xs">
+                  {item.targetDate ? formatDate(item.targetDate) : "N/A"}
+                </Text>
+              </View>
             </View>
-          </View>
+          </AnimatedNoteRow>
         </TouchableOpacity>
       </Swipeable>
     ),
-    [users, swipeableRefs, COL]
+    [users, swipeableRefs, COL, highlightedNoteId]
   );
 
   return (
@@ -583,6 +664,7 @@ const RunningNotes = () => {
       ) : ( */}
       {/* // DATA STATE */}
       <SectionList
+        ref={sectionListRef}
         style={{ flex: 1, backgroundColor: "#F1F5F9" }}
         contentContainerStyle={{
           backgroundColor: "#F1F5F9",

@@ -71,6 +71,7 @@ const TaskItem = ({ task }: { task: any }) => {
             projectId: task.projectId,
             projectName: task.projectName,
             company: task.company,
+            highlightId: task.id,
           },
         });
         break;
