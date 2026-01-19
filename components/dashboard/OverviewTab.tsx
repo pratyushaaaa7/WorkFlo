@@ -108,7 +108,7 @@ const OverviewTab = ({
 
   const getDateStatus = (dateString: string | null) => {
     if (!dateString || !isValid(new Date(dateString))) {
-      return { color: "#9CA3AF", text: "For Info" }; // Gray-400
+      return { color: "#454545", text: "For Info" }; // Gray-400
     }
 
     const date = new Date(dateString);
@@ -116,11 +116,11 @@ const OverviewTab = ({
     const targetDate = startOfDay(date);
 
     if (targetDate.getTime() === today.getTime()) {
-      return { color: "#a855f7", text: "Today" }; // Purple
+      return { color: "#5B4CCC", text: "Today" }; // Purple
     } else if (targetDate < today) {
-      return { color: "#ef4444", text: format(date, "d MMM yyyy") }; // Red
+      return { color: "#DF5B5B", text: format(date, "d MMM yyyy") }; // Red
     } else {
-      return { color: "#22c55e", text: format(date, "d MMM yyyy") }; // Green
+      return { color: "#1AA45B", text: format(date, "d MMM yyyy") }; // Green
     }
   };
 
