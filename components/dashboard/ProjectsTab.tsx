@@ -327,7 +327,7 @@ const ProjectsTab = () => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-gray-100 dark:border-[#252525]  ">
+      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525]  ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
@@ -344,7 +344,7 @@ const ProjectsTab = () => {
               <Text
                 className={`text-sm  font-poppinsMedium ${
                   isActive
-                    ? "text-gray-900 dark:text-white"
+                    ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
                     : "text-gray-400 dark:text-[#606060]"
                 }`}
               >
@@ -357,7 +357,7 @@ const ProjectsTab = () => {
 
       {/* List Header */}
       <View className="px-5 pt-5 pb-3">
-        <Text className="text-2xl font-poppinsSemiBold text-gray-900 dark:text-white">
+        <Text className="text-lg font-poppinsSemiBold text-gray-900 dark:text-white">
           Projects{" "}
           <Text className="text-gray-400 dark:text-[#606060] font-poppins">
             ({filteredProjects.length})

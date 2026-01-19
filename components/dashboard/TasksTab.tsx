@@ -317,7 +317,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-gray-100 dark:border-[#252525] ">
+      <View className="flex-row  border-b border-[#E0E5EB]  dark:border-[#252525] ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
@@ -336,7 +336,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
                 adjustsFontSizeToFit
                 className={`text-sm font-poppinsMedium ${
                   isActive
-                    ? "text-gray-900 dark:text-white"
+                    ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
                     : "text-gray-400 dark:text-[#606060]"
                 }`}
               >
