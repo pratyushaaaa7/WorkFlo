@@ -1,17 +1,13 @@
 import {
-  AlertCircleIcon,
   Calendar03Icon,
-  Cancel01Icon,
   CheckmarkCircle02Icon,
-  ClockIcon,
+  Progress03Icon,
   Relieved01Icon,
   SadDizzyIcon,
-  CancelCircleIcon,
   SmileIcon,
-  Progress03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { format, isToday } from "date-fns";
+import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
@@ -19,6 +15,7 @@ import {
   FlatList,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
@@ -34,6 +31,7 @@ const OverviewTab = ({
   loading: boolean;
   responsibleItems: any[];
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -108,11 +106,22 @@ const OverviewTab = ({
   // Display only top 5 tasks in overview
   const displayTasks = responsibleItems.slice(0, 5);
 
-  const getDateDisplay = (dateStr: string) => {
-    if (!dateStr) return { text: "No Date", color: "#6B7280" };
-    const date = new Date(dateStr);
-    if (isToday(date)) return { text: "Today", color: "#6366F1" };
-    return { text: format(date, "d MMM yyyy"), color: "#10B981" };
+  const getDateStatus = (dateString: string | null) => {
+    if (!dateString || !isValid(new Date(dateString))) {
+      return { color: "#9CA3AF", text: "For Info" }; // Gray-400
+    }
+
+    const date = new Date(dateString);
+    const today = startOfDay(new Date());
+    const targetDate = startOfDay(date);
+
+    if (targetDate.getTime() === today.getTime()) {
+      return { color: "#a855f7", text: "Today" }; // Purple
+    } else if (targetDate < today) {
+      return { color: "#ef4444", text: format(date, "d MMM yyyy") }; // Red
+    } else {
+      return { color: "#22c55e", text: format(date, "d MMM yyyy") }; // Green
+    }
   };
 
   if (loading) {
@@ -124,7 +133,7 @@ const OverviewTab = ({
   }
 
   return (
-    <View className=" py-5 px-2 bg-[#F6F8FA] dark:bg-black">
+    <View className=" py-5 px-3 bg-[#F6F8FA] dark:bg-black">
       {/* Project Summary */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-4">
@@ -148,11 +157,11 @@ const OverviewTab = ({
           renderItem={({ item: stat }) => (
             <View
               className="bg-[#F0F3F7] dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#2B2B2B] rounded-2xl p-2 px-3"
-              style={{ width: 105 }}
+              style={{ width: 100 }}
             >
-              <HugeiconsIcon icon={stat.icon} size={20} color={stat.color} />
+              <HugeiconsIcon icon={stat.icon} size={22} color={stat.color} />
 
-              <Text className="text-2xl mt-6 font-dmSemiBold text-gray-900 dark:text-[#F5F5F5] mb-1">
+              <Text className="text-2xl mt-4 font-dmSemiBold text-gray-900 dark:text-[#F5F5F5] mb-1">
                 {statsLoading ? "..." : stat.count}
               </Text>
               <Text className="text-xs text-gray-500 dark:text-[#AAAAAA] font-poppins">
@@ -166,7 +175,7 @@ const OverviewTab = ({
       {/* Tasks */}
       <View>
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-bold text-gray-900 dark:text-white">
+          <Text className="text-lg font-dmBold text-gray-900 dark:text-white">
             Tasks
           </Text>
           <TouchableOpacity onPress={() => setActiveTab("Tasks")}>
@@ -178,9 +187,10 @@ const OverviewTab = ({
 
         {displayTasks.length > 0 ? (
           displayTasks.map((task, idx) => {
-            const dateInfo = getDateDisplay(task.targetDate);
+            const dateStatus = getDateStatus(task.targetDate);
 
             const handlePress = () => {
+              // ... handlePress logic stays the same
               switch (task.type) {
                 case "MOM":
                   router.push({
@@ -234,41 +244,57 @@ const OverviewTab = ({
               <TouchableOpacity
                 key={idx}
                 onPress={handlePress}
-                className=" rounded-2xl p-4 mb-3 flex-row"
+                className=" px-3 py-1 pt-2 "
               >
-                {/* <View className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 items-center justify-center mr-3 mt-1">
-                  <View className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-[#5B4CCC]" />
-                </View> */}
-
-                <HugeiconsIcon
-                  icon={Progress03Icon}
-                  size={18}
-                  color={task.status === "open" ? "#5B4CCC" : "#5B4CCC"}
-                />
-
-                <View className="flex-1">
-                  <Text className="text-base font-poppinsMedium text-gray-900 dark:text-white mb-1">
-                    {task.title}
-                  </Text>
-                  <Text className="text-sm text-gray-400 dark:text-[#919191] font-poppins mb-1">
-                    {task.projectName}
-                  </Text>
-                  <View className="flex-row items-center">
-                    <HugeiconsIcon
-                      icon={Calendar03Icon}
-                      size={14}
-                      color={dateInfo.color}
-                    />
-                    <Text
-                      className="ml-1 text-xs font-poppinsMedium"
-                      style={{ color: dateInfo.color }}
-                    >
-                      {dateInfo.text}
-                    </Text>
-                    <View className="ml-3 bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 rounded-md">
-                      <Text className="text-[10px] text-indigo-600 dark:text-indigo-300 font-poppinsMedium">
-                        {task.type}
+                <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#252525] mb-4" />
+                <View className="flex-row items-center justify-between mb-1">
+                  <View className="flex-row items-start flex-1">
+                    <View className="mr-3 mt-1">
+                      <HugeiconsIcon
+                        icon={Progress03Icon}
+                        size={18}
+                        color={isDarkMode ? "#5B4CCC" : "#5B4CCC"}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className=" font-dmSemiBold text-gray-900 dark:text-white mb-1">
+                        {task.title}
                       </Text>
+
+                      {/* <View className="flex-row items-center mb-2">
+                        <Text className="text-[10px] text-gray-400 dark:text-[#919191] font-poppins">
+                          {task.projectName}
+                        </Text>
+                        <View className="mx-2 w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+                        <View className="bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 rounded-md">
+                          <Text className="text-[9px] text-indigo-600 dark:text-indigo-300 font-poppinsMedium">
+                            {task.type}
+                          </Text>
+                        </View>
+                      </View> */}
+
+                      {!!task.description && (
+                        <Text
+                          className="text-sm text-[#454545] dark:text-[#919191] font-poppins mb-2"
+                          numberOfLines={2}
+                        >
+                          {task.description}
+                        </Text>
+                      )}
+
+                      <View className="flex-row mt-1 items-center">
+                        <HugeiconsIcon
+                          icon={Calendar03Icon}
+                          size={14}
+                          color={dateStatus.color}
+                        />
+                        <Text
+                          className="ml-1.5 text-xs font-poppinsMedium"
+                          style={{ color: dateStatus.color }}
+                        >
+                          {dateStatus.text}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -277,7 +303,7 @@ const OverviewTab = ({
           })
         ) : (
           <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 items-center">
-            <Text className="text-gray-500 font-poppins">No tasks found</Text>
+            <Text className="text-gray-500 font-poppins">You have no tasks :)</Text>
           </View>
         )}
       </View>

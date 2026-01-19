@@ -135,7 +135,7 @@ const OverviewCalendar = ({
       <View className="flex-row items-center justify-between mb-6">
         <View className="flex-row items-center">
           <Text
-            className={`text-2xl font-poppinsBold mr-4 ${
+            className={`text-lg font-dmBold text-gray-900 dark:text-white mr-4 ${
               isDark ? "text-white" : "text-[#111827]"
             }`}
           >
