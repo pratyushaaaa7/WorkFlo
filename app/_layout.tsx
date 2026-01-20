@@ -4,6 +4,12 @@ import {
   DMSans_600SemiBold,
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from "@expo-google-fonts/poppins";
 import { Ionicons } from "@expo/vector-icons";
 import {
   AlertCircleIcon,
@@ -41,12 +47,6 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
-import {
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-  Poppins_700Bold,
-} from "@expo-google-fonts/poppins";
 import { useUsageTracking } from "../hooks/useUsageTracking";
 
 export default function RootLayout() {
@@ -415,7 +415,11 @@ function AppLayout() {
             key={item.name}
             name={item.name}
             options={{
-              headerShown: item.name === "dashboard" ? false : true,
+              headerShown:
+                item.name === "dashboard" ||
+                item.name === "centralUserDirectory"
+                  ? false
+                  : true,
               title: item.label,
             }}
           />
