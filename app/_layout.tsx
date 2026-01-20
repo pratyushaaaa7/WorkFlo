@@ -41,13 +41,13 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
-
 import {
   Poppins_400Regular,
   Poppins_500Medium,
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
+import { useUsageTracking } from "../hooks/useUsageTracking";
 
 export default function RootLayout() {
   return (
@@ -63,6 +63,9 @@ function AppLayout() {
   const segments = useSegments();
   const pathname = usePathname();
   const { isAuthenticated, authLoading, user, logout } = useAuth();
+
+  // 🚀 Start Usage Tracking
+  useUsageTracking();
 
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
@@ -147,7 +150,7 @@ function AppLayout() {
           icon: ({ color, size }: any) => (
             <Ionicons name="person-add-outline" size={size} color={color} />
           ),
-        }
+        },
       );
     }
     return items;
@@ -275,8 +278,8 @@ function AppLayout() {
                       color: isActive
                         ? "#5B4CCC" // Indigo-600 when active
                         : isDarkMode
-                        ? "#919191" // Gray for dark mode when inactive
-                        : "#454545", // Default gray for light mode when inactive
+                          ? "#919191" // Gray for dark mode when inactive
+                          : "#454545", // Default gray for light mode when inactive
                       size: 24,
                     })}
                   </View>
