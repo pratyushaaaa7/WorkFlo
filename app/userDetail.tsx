@@ -1,11 +1,10 @@
 import { AuthContext } from "@/context/AuthContext";
 import {
-  ArrowLeft02Icon,
+  ArrowLeft01Icon,
   Delete02Icon,
   Delete03Icon,
   Edit03Icon,
   PencilEdit02Icon,
-  ArrowLeft01Icon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -126,32 +125,32 @@ const UserDetail = () => {
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* 🔹 CUSTOM HEADER */}
-      <View className="flex-row items-center justify-between px-4 py-3 pt-16 bg-[#FBFCFD] dark:bg-black  ">
+      <View className="flex-row items-center justify-between px-4 py-6 pt-16 bg-[#FBFCFD] dark:bg-black  ">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}
-              color={isDarkMode ? "#fff" : "#000"}
+              color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
           <Text className="text-xl font-dmSemiBold text-black dark:text-white">
             Contact Details
           </Text>
         </View>
-        <View className="flex-row items-center gap-5">
+        <View className="flex-row items-center pr-3 gap-5">
           <TouchableOpacity>
             <HugeiconsIcon
               icon={Delete03Icon}
               size={24}
-              color={isDarkMode ? "#fff" : "#000"}
+              color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <HugeiconsIcon
               icon={PencilEdit02Icon}
               size={24}
-              color={isDarkMode ? "#fff" : "#000"}
+              color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
         </View>
@@ -251,7 +250,7 @@ const UserDetail = () => {
           {/* 🔹 RATINGS SECTION (Only if reviews exist) */}
           {ratings && ratings.length > 0 && (
             <View className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
-              <View className="flex-row items-start">
+              <View className="flex-row items-start mb-6">
                 {/* Big Score */}
                 <View className="w-[30%] items-start border-r border-[#413E47] dark:border-[#413E47] pr-4">
                   <Text className="text-5xl font-dmBold text-black dark:text-white">
@@ -299,6 +298,24 @@ const UserDetail = () => {
                   })}
                 </View>
               </View>
+
+              <LinearGradient
+                colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ borderRadius: 16 }}
+              >
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  activeOpacity={0.85}
+                  className="flex-row items-center justify-center py-4 rounded-2xl"
+                >
+                  <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
+                  <Text className="text-white font-dmMedium ml-3">
+                    Write a review
+                  </Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
           )}
 
@@ -357,8 +374,8 @@ const UserDetail = () => {
         </ScrollView>
       )}
 
-      {/* 🔹 FIXED FOOTER BUTTON */}
-      {!loading && (
+      {/* 🔹 FIXED FOOTER BUTTON (Only if NO reviews exist) */}
+      {!loading && (!ratings || ratings.length === 0) && (
         <View className="absolute bottom-8 left-4 right-4">
           <LinearGradient
             colors={["#5B4CCC", "#6347C2", "#8056D1"]}
