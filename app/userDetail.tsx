@@ -2,13 +2,15 @@ import { AuthContext } from "@/context/AuthContext";
 import {
   ArrowLeft02Icon,
   Delete02Icon,
+  Delete03Icon,
   Edit02Icon,
+  PencilEdit02Icon,
   Edit03Icon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
 import moment from "moment";
 import React, { useContext, useEffect, useState } from "react";
 import {
@@ -57,6 +59,7 @@ const UserDetail = () => {
 
         const fetchedUser = res?.data || preloadedUser;
         setUserData(fetchedUser);
+        // console.log("fetchedUser", fetchedUser);
         setRatings(fetchedUser?.ratings || []);
       } catch (err) {
         console.error("Error fetching user:", err);
@@ -106,11 +109,11 @@ const UserDetail = () => {
     isFullWidth = false,
   ) => (
     <View className={`mb-5 ${isFullWidth ? "w-full" : "w-[48%]"}`}>
-      <Text className="text-gray-500 dark:text-gray-400 text-xs font-poppins mb-1">
+      <Text className="text-[#454545] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
       <Text
-        className="text-gray-900 dark:text-white text-sm font-poppinsMedium"
+        className="text-black dark:text-white text-sm font-poppinsMedium"
         numberOfLines={2}
       >
         {value || "N/A"}
@@ -123,7 +126,7 @@ const UserDetail = () => {
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* 🔹 CUSTOM HEADER */}
-      <View className="flex-row items-center justify-between px-4 py-3 pt-12 bg-white dark:bg-black border-b border-gray-100 dark:border-gray-800">
+      <View className="flex-row items-center justify-between px-4 py-3 pt-16 bg-[#FBFCFD] dark:bg-black  ">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <HugeiconsIcon
@@ -139,14 +142,14 @@ const UserDetail = () => {
         <View className="flex-row items-center gap-3">
           <TouchableOpacity>
             <HugeiconsIcon
-              icon={Delete02Icon}
+              icon={Delete03Icon}
               size={22}
               color={isDarkMode ? "#fff" : "#000"}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <HugeiconsIcon
-              icon={Edit02Icon}
+              icon={PencilEdit02Icon}
               size={22}
               color={isDarkMode ? "#fff" : "#000"}
             />
@@ -161,7 +164,7 @@ const UserDetail = () => {
       ) : (
         <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
           {/* 🔹 INFO CARD */}
-          <View className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
             <View className="flex-row flex-wrap justify-between">
               {/* Row 1 */}
               {renderInfoField(
@@ -215,6 +218,20 @@ const UserDetail = () => {
                   : "N/A",
                 true,
               )}
+
+              {renderInfoField(
+                "Created By",
+                userData?.createdBy?.fullName || "N/A",
+                false,
+              )}
+
+              {renderInfoField(
+                "Created On",
+                userData?.createdAt
+                  ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
+                  : "N/A",
+                false,
+              )}
             </View>
           </View>
 
@@ -223,7 +240,7 @@ const UserDetail = () => {
             {/* Rating Summary */}
             <View className="flex-row items-start mb-6">
               {/* Big Score */}
-              <View className="w-[30%] items-start border-r border-gray-300 dark:border-gray-700 pr-4">
+              <View className="w-[30%] items-start border-r border-[#413E47] dark:border-[#413E47] pr-4">
                 <Text className="text-5xl font-dmBold text-black dark:text-white">
                   {userData.averageRating
                     ? userData.averageRating.toFixed(1)
@@ -242,22 +259,22 @@ const UserDetail = () => {
                   return (
                     <View key={starCount} className="flex-row items-center h-4">
                       <View className="flex-row w-[65px] justify-end mr-3">
-                        {[...Array(5)].map((_, i) => (
+                        {[...Array(starCount)].map((_, i) => (
                           <Image
                             key={i}
                             source={
-                              i < starCount
-                                ? require("../assets/images/Rating Black Star.png")
-                                : require("../assets/images/Rating White Star.png")
+                              isDarkMode
+                                ? require("../assets/images/Rating White Star.png")
+                                : require("../assets/images/Rating Black Star.png")
                             }
                             style={{ width: 10, height: 10, marginLeft: 2 }}
                             resizeMode="contain"
                           />
                         ))}
                       </View>
-                      <View className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <View className="flex-1 h-1.5 bg-[#D2D2D2] dark:bg-[#4E4E4E] rounded-full overflow-hidden">
                         <View
-                          className="h-full bg-gray-800 rounded-full"
+                          className="h-full bg-black dark:bg-white rounded-full"
                           style={{ width: `${percentage}%` }}
                         />
                       </View>
@@ -267,16 +284,23 @@ const UserDetail = () => {
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              className="bg-[#1C1C1C] flex-row items-center justify-center py-4 rounded-2xl"
-              activeOpacity={0.8}
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ borderRadius: 16 }}
             >
-              <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
-              <Text className="text-white font-bold text-lg ml-3">
-                Write a review
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                activeOpacity={0.85}
+                className="flex-row items-center justify-center py-4 rounded-2xl"
+              >
+                <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
+                <Text className="text-white font-dmMedium  ml-3">
+                  Write a review
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
 
           <Text className="text-lg font-dmBold text-black dark:text-white mb-3">
