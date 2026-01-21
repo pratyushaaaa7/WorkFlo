@@ -162,7 +162,7 @@ export default function CentralUserDirectory() {
               color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
-          <Text className="text-xl font-bold dark:text-white text-black">
+          <Text className="text-xl font-dmSemiBold dark:text-white text-black">
             Central Directory
           </Text>
         </View>
@@ -179,11 +179,15 @@ export default function CentralUserDirectory() {
       {searchVisible && (
         <View className="px-4 pb-2 bg-[#FBFCFD] dark:bg-black">
           <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl px-4 py-2">
-            <Ionicons name="search" size={20} color="#9CA3AF" />
+             <HugeiconsIcon
+            icon={Search01Icon}
+            size={24}
+            color={isDarkMode ? "#606060" : "#454545"}
+          />
             <TextInput
-              placeholder="Search..."
+              placeholder="Search"
               placeholderTextColor="#9CA3AF"
-              className="ml-2 flex-1 text-gray-900 dark:text-white text-base" // Ensure text size is readable
+              className="ml-2 flex-1 font-dm text-gray-900 dark:text-white text-base" // Ensure text size is readable
               autoFocus
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -282,10 +286,10 @@ export default function CentralUserDirectory() {
           alignItems: "center",
           justifyContent: "center",
           shadowColor: "#5B4CCC",
-          shadowOffset: { width: 0, height: 10 },
+          shadowOffset: { width: 0, height: 15 },
           shadowOpacity: 1,
-          shadowRadius: 30,
-          elevation: 20,
+          shadowRadius: 40,
+          elevation: 30,
         }}
         className="w-16 h-16 bg-[#5B4CCC] rounded-full"
       >
