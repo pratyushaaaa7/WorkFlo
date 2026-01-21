@@ -178,12 +178,12 @@ export default function CentralUserDirectory() {
       {/* 🔹 SEARCH BAR (Collapsible) */}
       {searchVisible && (
         <View className="px-4 pb-2 bg-[#FBFCFD] dark:bg-black">
-          <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl px-4 py-2">
-             <HugeiconsIcon
-            icon={Search01Icon}
-            size={24}
-            color={isDarkMode ? "#606060" : "#454545"}
-          />
+          <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl px-4 py-1">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={24}
+              color={isDarkMode ? "#606060" : "#454545"}
+            />
             <TextInput
               placeholder="Search"
               placeholderTextColor="#9CA3AF"
