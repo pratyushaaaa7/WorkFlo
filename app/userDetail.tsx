@@ -3,9 +3,9 @@ import {
   ArrowLeft02Icon,
   Delete02Icon,
   Delete03Icon,
-  Edit02Icon,
-  PencilEdit02Icon,
   Edit03Icon,
+  PencilEdit02Icon,
+  ArrowLeft01Icon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -114,7 +114,7 @@ const UserDetail = () => {
       </Text>
       <Text
         className="text-black dark:text-white text-sm font-poppinsMedium"
-        numberOfLines={2}
+        numberOfLines={3}
       >
         {value || "N/A"}
       </Text>
@@ -130,7 +130,7 @@ const UserDetail = () => {
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <HugeiconsIcon
-              icon={ArrowLeft02Icon}
+              icon={ArrowLeft01Icon}
               size={24}
               color={isDarkMode ? "#fff" : "#000"}
             />
@@ -139,18 +139,18 @@ const UserDetail = () => {
             Contact Details
           </Text>
         </View>
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-5">
           <TouchableOpacity>
             <HugeiconsIcon
               icon={Delete03Icon}
-              size={22}
+              size={24}
               color={isDarkMode ? "#fff" : "#000"}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <HugeiconsIcon
               icon={PencilEdit02Icon}
-              size={22}
+              size={24}
               color={isDarkMode ? "#fff" : "#000"}
             />
           </TouchableOpacity>
@@ -167,40 +167,49 @@ const UserDetail = () => {
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
             <View className="flex-row flex-wrap justify-between">
               {/* Row 1 */}
-              {renderInfoField(
-                "Full Name",
-                userData?.gender?.toLowerCase() === "male"
-                  ? `Mr. ${userData?.individualName}`
-                  : userData?.gender?.toLowerCase() === "female"
-                    ? `Ms. ${userData?.individualName}`
-                    : userData?.individualName,
-              )}
-              {renderInfoField("Role", userData?.role)}
+              <View className="flex-row justify-between w-full">
+                {renderInfoField(
+                  "Full Name",
+                  userData?.gender?.toLowerCase() === "male"
+                    ? `Mr. ${userData?.individualName}`
+                    : userData?.gender?.toLowerCase() === "female"
+                      ? `Ms. ${userData?.individualName}`
+                      : userData?.individualName,
+                )}
+                {renderInfoField("Role", userData?.role)}
+              </View>
+              <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
 
               {/* Row 2 */}
-              {renderInfoField("Firm", userData?.firmName)}
-              {renderInfoField(
-                "Designation",
-                userData?.designationList?.length
-                  ? userData.designationList[0]
-                  : userData?.designation,
-              )}
+              <View className="flex-row justify-between w-full">
+                {renderInfoField("Firm", userData?.firmName)}
+                {renderInfoField(
+                  "Designation",
+                  userData?.designationList?.length
+                    ? userData.designationList[0]
+                    : userData?.designation,
+                )}
+              </View>
+              <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
 
               {/* Row 3 */}
-              {renderInfoField(
-                "Email",
-                userData?.emailList?.length
-                  ? userData.emailList[0]
-                  : userData?.email,
-                false,
-              )}
-              {renderInfoField(
-                "Mobile",
-                userData?.mobileNumberList?.length
-                  ? userData.mobileNumberList[0]
-                  : "N/A",
-                false,
-              )}
+              <View className="flex-row justify-between w-full">
+                {renderInfoField(
+                  "Email",
+                  userData?.emailList?.length
+                    ? userData.emailList[0]
+                    : userData?.email,
+                  false,
+                )}
+                {renderInfoField(
+                  "Mobile",
+                  userData?.mobileNumberList?.length
+                    ? userData.mobileNumberList[0]
+                    : "N/A",
+                  false,
+                )}
+              </View>
+              <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
 
               {/* Full Width Rows */}
               {renderInfoField(
@@ -210,6 +219,7 @@ const UserDetail = () => {
                   : "N/A",
                 true,
               )}
+              <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
 
               {renderInfoField(
                 "Address",
@@ -218,100 +228,88 @@ const UserDetail = () => {
                   : "N/A",
                 true,
               )}
+              <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
 
-              {renderInfoField(
-                "Created By",
-                userData?.createdBy?.fullName || "N/A",
-                false,
-              )}
+              <View className="flex-row justify-between w-full">
+                {renderInfoField(
+                  "Created By",
+                  userData?.createdBy?.fullName || "N/A",
+                  false,
+                )}
 
-              {renderInfoField(
-                "Created On",
-                userData?.createdAt
-                  ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
-                  : "N/A",
-                false,
-              )}
+                {renderInfoField(
+                  "Created On",
+                  userData?.createdAt
+                    ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
+                    : "N/A",
+                  false,
+                )}
+              </View>
             </View>
           </View>
 
-          {/* 🔹 RATINGS & REVIEWS SECTION */}
-          <View className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
-            {/* Rating Summary */}
-            <View className="flex-row items-start mb-6">
-              {/* Big Score */}
-              <View className="w-[30%] items-start border-r border-[#413E47] dark:border-[#413E47] pr-4">
-                <Text className="text-5xl font-dmBold text-black dark:text-white">
-                  {userData.averageRating
-                    ? userData.averageRating.toFixed(1)
-                    : "0.0"}
-                </Text>
-                <Text className="text-gray-500 text-xs mt-1">Out of 5</Text>
-              </View>
+          {/* 🔹 RATINGS SECTION (Only if reviews exist) */}
+          {ratings && ratings.length > 0 && (
+            <View className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
+              <View className="flex-row items-start">
+                {/* Big Score */}
+                <View className="w-[30%] items-start border-r border-[#413E47] dark:border-[#413E47] pr-4">
+                  <Text className="text-5xl font-dmBold text-black dark:text-white">
+                    {userData.averageRating
+                      ? userData.averageRating.toFixed(1)
+                      : "0.0"}
+                  </Text>
+                  <Text className="text-gray-500 text-xs mt-1">Out of 5</Text>
+                </View>
 
-              <View className="flex-1 pl-6 gap-y-1.5">
-                {[5, 4, 3, 2, 1].map((starCount) => {
-                  const count = ratings.filter(
-                    (r: any) => r.stars === starCount,
-                  ).length;
-                  const percentage =
-                    ratings.length > 0 ? (count / ratings.length) * 100 : 0;
-                  return (
-                    <View key={starCount} className="flex-row items-center h-4">
-                      <View className="flex-row w-[65px] justify-end mr-3">
-                        {[...Array(starCount)].map((_, i) => (
-                          <Image
-                            key={i}
-                            source={
-                              isDarkMode
-                                ? require("../assets/images/Rating White Star.png")
-                                : require("../assets/images/Rating Black Star.png")
-                            }
-                            style={{ width: 10, height: 10, marginLeft: 2 }}
-                            resizeMode="contain"
+                <View className="flex-1 pl-6 gap-y-1.5">
+                  {[5, 4, 3, 2, 1].map((starCount) => {
+                    const count = ratings.filter(
+                      (r: any) => r.stars === starCount,
+                    ).length;
+                    const percentage =
+                      ratings.length > 0 ? (count / ratings.length) * 100 : 0;
+                    return (
+                      <View
+                        key={starCount}
+                        className="flex-row items-center h-4"
+                      >
+                        <View className="flex-row w-[65px] justify-end mr-3">
+                          {[...Array(starCount)].map((_, i) => (
+                            <Image
+                              key={i}
+                              source={
+                                isDarkMode
+                                  ? require("../assets/images/Rating White Star.png")
+                                  : require("../assets/images/Rating Black Star.png")
+                              }
+                              style={{ width: 10, height: 10, marginLeft: 2 }}
+                              resizeMode="contain"
+                            />
+                          ))}
+                        </View>
+                        <View className="flex-1 h-1.5 bg-[#D2D2D2] dark:bg-[#4E4E4E] rounded-full overflow-hidden">
+                          <View
+                            className="h-full bg-black dark:bg-white rounded-full"
+                            style={{ width: `${percentage}%` }}
                           />
-                        ))}
+                        </View>
                       </View>
-                      <View className="flex-1 h-1.5 bg-[#D2D2D2] dark:bg-[#4E4E4E] rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-black dark:bg-white rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
+                </View>
               </View>
             </View>
+          )}
 
-            <LinearGradient
-              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 16 }}
-            >
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.85}
-                className="flex-row items-center justify-center py-4 rounded-2xl"
-              >
-                <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
-                <Text className="text-white font-dmMedium  ml-3">
-                  Write a review
-                </Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
-
-          <Text className="text-lg font-dmBold text-black dark:text-white mb-3">
-            Review
-          </Text>
-
-          {ratings?.length === 0 ? (
-            <Text className="text-gray-400 text-sm italic mb-10">
-              No reviews yet.
+          {ratings && ratings.length > 0 && (
+            <Text className="text-lg font-dmBold text-black dark:text-white mb-3">
+              Review
             </Text>
-          ) : (
+          )}
+
+          {ratings &&
+            ratings.length > 0 &&
             ratings.map((r: any, idx: number) => (
               <View
                 key={idx}
@@ -354,10 +352,32 @@ const UserDetail = () => {
                   </Text>
                 )}
               </View>
-            ))
-          )}
-          <View className="h-10" />
+            ))}
+          <View className="h-24" />
         </ScrollView>
+      )}
+
+      {/* 🔹 FIXED FOOTER BUTTON */}
+      {!loading && (
+        <View className="absolute bottom-8 left-4 right-4">
+          <LinearGradient
+            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 16 }}
+          >
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.85}
+              className="flex-row items-center justify-center py-4 rounded-2xl"
+            >
+              <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
+              <Text className="text-white font-dmMedium ml-3">
+                Write a review
+              </Text>
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
       )}
 
       {/* 🔹 ADD RATING MODAL */}
