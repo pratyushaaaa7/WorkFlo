@@ -1,20 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
+  Add01Icon,
   Menu02Icon,
   Search01Icon,
-  Add01Icon,
 } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   RefreshControl,
-  SafeAreaView,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -147,7 +144,6 @@ export default function CentralUserDirectory() {
       )} */}
     </TouchableOpacity>
   );
-  0;
 
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
@@ -181,13 +177,13 @@ export default function CentralUserDirectory() {
 
       {/* 🔹 SEARCH BAR (Collapsible) */}
       {searchVisible && (
-        <View className="px-4 pb-2 bg-white">
-          <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-2">
+        <View className="px-4 pb-2 bg-[#FBFCFD] dark:bg-black">
+          <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl px-4 py-2">
             <Ionicons name="search" size={20} color="#9CA3AF" />
             <TextInput
               placeholder="Search..."
               placeholderTextColor="#9CA3AF"
-              className="ml-2 flex-1 text-gray-900 text-base" // Ensure text size is readable
+              className="ml-2 flex-1 text-gray-900 dark:text-white text-base" // Ensure text size is readable
               autoFocus
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -210,20 +206,28 @@ export default function CentralUserDirectory() {
               <TouchableOpacity
                 onPress={() => setSelectedFilter(item)}
                 style={{
-                  backgroundColor: isActive ? "#DAE0FA" : "transparent", // Blue tint for active, White for inactive
-                  borderColor: isActive ? "#566FEC" : "#E0E5EB", // Blue border active, gray inactive
+                  backgroundColor: isActive
+                    ? isDarkMode
+                      ? "#27215880"
+                      : "#DAE0FA"
+                    : "transparent",
+                  borderColor: isActive
+                    ? "#566FEC"
+                    : isDarkMode
+                      ? "#333"
+                      : "#E0E5EB",
                   borderWidth: 1,
                   paddingHorizontal: 24,
-                  paddingVertical: 4,
-                  borderRadius: 50, // Pill shape
+                  paddingVertical: 8,
+                  borderRadius: 50,
                   marginRight: 10,
                 }}
               >
                 <Text
+                  className="font-poppins text-sm"
                   style={{
-                    color: isActive ? "#566FEC" : "#000", // Dark blue text active, gray inactive
+                    color: isActive ? "#566FEC" : isDarkMode ? "#fff" : "#000",
                   }}
-                  className="font-poppins items-center dark:text-white justify-center"
                 >
                   {item}
                 </Text>
