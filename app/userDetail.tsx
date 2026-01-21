@@ -320,7 +320,7 @@ const UserDetail = () => {
           )}
 
           {ratings && ratings.length > 0 && (
-            <Text className="text-lg font-dmBold text-black dark:text-white mb-3">
+            <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-3">
               Review
             </Text>
           )}
@@ -332,39 +332,48 @@ const UserDetail = () => {
                 key={idx}
                 className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
               >
-                <View className="flex-row justify-between items-start mb-2">
-                  <View className="flex-row items-center">
+                <View className="flex-row justify-between items-start mb-4">
+                  <View className="flex-row items-center flex-1">
                     {/* Avatar */}
-                    <View className="w-10 h-10 rounded-full bg-[#007AFF] items-center justify-center mr-3">
-                      <Text className="text-white font-bold text-sm">
-                        {r.givenBy?.username
-                          ? r.givenBy.username.substring(0, 2).toUpperCase()
+                    <View className="w-11 h-11 rounded-full bg-[#0073CB] items-center justify-center mr-3">
+                      <Text className="text-white font-poppinsMedium text-base">
+                        {r.givenBy?.fullName
+                          ? r.givenBy.fullName.substring(0, 2).toUpperCase()
                           : "UN"}
                       </Text>
                     </View>
                     <View>
-                      <Text className="text-black dark:text-white font-dmSemiBold text-sm">
+                      <Text className="text-black dark:text-white font-dmSemiBold text-base">
                         {r.givenBy?.username || "Unknown"}
                       </Text>
-                      <View className="bg-[#FF4444] rounded px-1.5 py-0.5 self-start mt-0.5 flex-row items-center">
-                        <Text className="text-white text-[10px] font-bold mr-0.5">
-                          {r.stars}
-                        </Text>
-                        <HugeiconsIcon
-                          icon={StarIcon}
-                          size={8}
-                          color="white"
-                          variant="solid"
-                        />
+                      {/* 5 Stars Rating */}
+                      <View className="flex-row mt-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Image
+                            key={s}
+                            source={
+                              s <= r.stars
+                                ? isDarkMode
+                                  ? require("../assets/images/Rating White Star.png")
+                                  : require("../assets/images/Rating Black Star.png")
+                                : isDarkMode
+                                  ? require("../assets/images/Rating Black Star.png") // Background for empty in dark? Usually it's inversed.
+                                  : require("../assets/images/Rating White Star.png")
+                            }
+                            style={{ width: 12, height: 12, marginRight: 2 }}
+                            resizeMode="contain"
+                          />
+                        ))}
                       </View>
                     </View>
                   </View>
-                  <Text className="text-gray-400 text-xs font-poppins">
+                  <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
                     {moment(r.createdAt).format("DD MMM YYYY")}
                   </Text>
                 </View>
+
                 {r.note && (
-                  <Text className="text-gray-600 dark:text-gray-300 text-xs font-poppins leading-5 mt-1">
+                  <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
                     {r.note}
                   </Text>
                 )}
