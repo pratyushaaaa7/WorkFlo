@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   Menu02Icon,
@@ -35,35 +34,66 @@ export default function CentralUserDirectory() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 30;
 
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
 
-  // ✅ Fetch Users
-  const fetchUsers = async () => {
+  // ✅ Fetch Users (Paginated)
+  const fetchUsers = async (pageNum: number = 1, append: boolean = false) => {
     try {
-      if (!refreshing) setLoading(true);
+      if (!append) setLoading(true);
+      else setLoadingMore(true);
+
       const res = await api.get(`/user-directory`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(res.data);
-      console.log(res.data);
+
+      const allUsers = res.data || [];
+
+      // Simulate pagination on client side (since backend doesn't support it yet)
+      const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      const paginatedUsers = allUsers.slice(startIndex, endIndex);
+
+      if (append) {
+        setUsers((prev) => [...prev, ...paginatedUsers]);
+      } else {
+        setUsers(paginatedUsers);
+      }
+
+      // Check if there are more items
+      setHasMore(endIndex < allUsers.length);
     } catch (err) {
       console.error("Error fetching users:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(1, false);
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchUsers();
+    setPage(1);
+    setHasMore(true);
+    fetchUsers(1, false);
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchUsers(nextPage, true);
+    }
   };
 
   // ✅ Filtering Logic
@@ -253,6 +283,8 @@ export default function CentralUserDirectory() {
             keyExtractor={(item) => item._id}
             renderItem={renderUser}
             showsVerticalScrollIndicator={false}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -267,6 +299,16 @@ export default function CentralUserDirectory() {
                   No users found.
                 </Text>
               </View>
+            }
+            ListFooterComponent={
+              loadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#6366F1" />
+                  <Text className="text-gray-400 text-sm mt-2">
+                    Loading more...
+                  </Text>
+                </View>
+              ) : null
             }
           />
         )}
