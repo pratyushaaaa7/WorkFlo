@@ -249,7 +249,7 @@ const UserDetail = () => {
 
           {/* 🔹 RATINGS SECTION (Only if reviews exist) */}
           {ratings && ratings.length > 0 && (
-            <View className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
+            <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
               <View className="flex-row items-start mb-6">
                 {/* Big Score */}
                 <View className="w-[30%] items-start border-r border-[#413E47] dark:border-[#413E47] pr-4">
@@ -330,53 +330,58 @@ const UserDetail = () => {
             ratings.map((r: any, idx: number) => (
               <View
                 key={idx}
-                className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
               >
-                <View className="flex-row justify-between items-start mb-4">
-                  <View className="flex-row items-center flex-1">
-                    {/* Avatar */}
-                    <View className="w-11 h-11 rounded-full bg-[#0073CB] items-center justify-center mr-3">
-                      <Text className="text-white font-poppinsMedium text-base">
-                        {r.givenBy?.fullName
-                          ? r.givenBy.fullName.substring(0, 2).toUpperCase()
-                          : "UN"}
-                      </Text>
-                    </View>
-                    <View>
-                      <Text className="text-black dark:text-white font-dmSemiBold text-base">
-                        {r.givenBy?.username || "Unknown"}
-                      </Text>
-                      {/* 5 Stars Rating */}
-                      <View className="flex-row mt-1">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Image
-                            key={s}
-                            source={
-                              s <= r.stars
-                                ? isDarkMode
-                                  ? require("../assets/images/Rating White Star.png")
-                                  : require("../assets/images/Rating Black Star.png")
-                                : isDarkMode
-                                  ? require("../assets/images/Rating Black Star.png") // Background for empty in dark? Usually it's inversed.
-                                  : require("../assets/images/Rating White Star.png")
-                            }
-                            style={{ width: 12, height: 12, marginRight: 2 }}
-                            resizeMode="contain"
-                          />
-                        ))}
-                      </View>
-                    </View>
+                <View className="flex-row items-start">
+                  {/* Left Column: Avatar */}
+                  <View className="w-11 h-11 rounded-full bg-[#0073CB] items-center justify-center mr-3 mt-1">
+                    <Text className="text-white font-poppinsMedium text-base">
+                      {r.givenBy?.fullName
+                        ? r.givenBy.fullName
+                            .trim()
+                            .split(/\s+/)
+                            .slice(0, 2)
+                            .map((name: string) => name[0])
+                            .join("")
+                            .toUpperCase()
+                        : "UN"}
+                    </Text>
                   </View>
-                  <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
-                    {moment(r.createdAt).format("DD MMM YYYY")}
-                  </Text>
-                </View>
 
-                {r.note && (
-                  <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
-                    {r.note}
-                  </Text>
-                )}
+                  {/* Right Column: Content */}
+                  <View className="flex-1">
+                    <View className="flex-row justify-between items-start">
+                      <Text className="text-black dark:text-white font-dmSemiBold text-base flex-1 mr-2">
+                        {r.givenBy?.fullName || "Unknown"}
+                      </Text>
+                      <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
+                        {moment(r.createdAt).format("DD MMM YYYY")}
+                      </Text>
+                    </View>
+
+                    {/* Stars Rating - Only show given stars */}
+                    <View className="flex-row mt-1 mb-2">
+                      {[...Array(r.stars || 0)].map((_, i) => (
+                        <Image
+                          key={i}
+                          source={
+                            isDarkMode
+                              ? require("../assets/images/Rating White Star.png")
+                              : require("../assets/images/Rating Black Star.png")
+                          }
+                          style={{ width: 12, height: 12, marginRight: 2 }}
+                          resizeMode="contain"
+                        />
+                      ))}
+                    </View>
+
+                    {r.note && (
+                      <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
+                        {r.note}
+                      </Text>
+                    )}
+                  </View>
+                </View>
               </View>
             ))}
           <View className="h-24" />
