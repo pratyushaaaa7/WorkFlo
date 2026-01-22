@@ -1,4 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Add01Icon,
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  Cancel01Icon,
+  CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
@@ -8,6 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -38,85 +46,119 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
   setter,
   updateField,
   addField,
-}) => (
-  <View className="mb-4">
-    <Text className="text-gray-700 font-semibold mb-1">{label}</Text>
-    {list.map((item, index) => (
-      <View key={index} className="mb-2 relative">
-        {label.toLowerCase().includes("number") ? (
-          <View style={{ width: "100%" }}>
-            {/* @ts-ignore: PhoneInput type mismatch in current environment */}
-            <PhoneInput
-              defaultValue={item}
-              defaultCode="IN"
-              layout="first"
-              onChangeFormattedText={(text) =>
-                updateField(setter, list, index, text)
-              }
-              containerStyle={{
-                width: "100%",
-                backgroundColor: "white",
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: "#E5E7EB",
-                height: 52,
-                elevation: 1,
-              }}
-              textContainerStyle={{
-                backgroundColor: "white",
-                borderRadius: 12,
-                paddingVertical: 0,
-              }}
-              textInputStyle={{
-                height: 48,
-                fontSize: 14,
-                color: "#000",
-              }}
-              codeTextStyle={{
-                fontSize: 14,
-                color: "#000",
-              }}
-              placeholder={`Enter ${label.toLowerCase()}`}
-            />
-          </View>
-        ) : (
-          <TextInput
-            placeholder={`Enter ${label.toLowerCase()}`}
-            placeholderTextColor="#888"
-            value={item}
-            onChangeText={(text) => updateField(setter, list, index, text)}
-            className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 pr-10"
-            keyboardType={
-              label.toLowerCase().includes("email")
-                ? "email-address"
-                : "default"
-            }
-            returnKeyType="next"
-          />
-        )}
-        {list.length > 1 && (
-          <TouchableOpacity
-            onPress={() => {
-              const newList = [...list];
-              newList.splice(index, 1);
-              setter(newList);
-            }}
-            className="absolute right-3 top-3"
-          >
-            <Ionicons name="close-circle-outline" size={22} color="#EF4444" />
-          </TouchableOpacity>
-        )}
+}) => {
+  const isDarkMode = useColorScheme() === "dark";
+
+  return (
+    <View className="mb-6">
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm">
+          {label}{" "}
+          {label.toLowerCase().includes("role") ||
+          label.toLowerCase().includes("name") ||
+          label.toLowerCase().includes("firm") ? (
+            <Text className="text-red-500">*</Text>
+          ) : (
+            ""
+          )}
+        </Text>
+        <TouchableOpacity
+          onPress={() => addField(setter, list)}
+          className="flex-row items-center"
+        >
+          <HugeiconsIcon icon={Add01Icon} size={16} color="#4F46E5" />
+          <Text className="text-indigo-600 dark:text-indigo-400 font-dmSemiBold text-sm ml-1">
+            Add
+          </Text>
+        </TouchableOpacity>
       </View>
-    ))}
-    <TouchableOpacity
-      onPress={() => addField(setter, list)}
-      className="flex-row items-center space-x-2 mt-1"
-    >
-      <Ionicons name="add-circle-outline" size={22} color="#4F46E5" />
-      <Text className="text-indigo-600 font-semibold">Add {label}</Text>
-    </TouchableOpacity>
-  </View>
-);
+      {list.map((item, index) => (
+        <View key={index} className="mb-3 relative">
+          {label.toLowerCase().includes("number") ? (
+            <View style={{ width: "100%" }}>
+              {/* @ts-ignore: PhoneInput type mismatch in current environment */}
+              <PhoneInput
+                defaultValue={item}
+                defaultCode="IN"
+                layout="second"
+                onChangeFormattedText={(text) =>
+                  updateField(setter, list, index, text)
+                }
+                renderDropdownImage={
+                  <HugeiconsIcon
+                    icon={ArrowDown01Icon}
+                    size={14}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                }
+                containerStyle={{
+                  width: "100%",
+                  backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
+                  borderRadius: 16,
+                  height: 56,
+                  elevation: 0,
+                }}
+                flagButtonStyle={{
+                  backgroundColor: isDarkMode ? "#333" : "#FFF",
+                  borderRadius: 12,
+                  marginVertical: 6,
+                  marginLeft: 6,
+                  width: 65,
+                  height: 44,
+                }}
+                textContainerStyle={{
+                  backgroundColor: "transparent",
+                  borderRadius: 16,
+                  paddingVertical: 0,
+                  paddingHorizontal: 0,
+                }}
+                textInputStyle={{
+                  height: 56,
+                  fontSize: 16,
+                  color: isDarkMode ? "#FFF" : "#000",
+                  fontFamily: "Poppins",
+                }}
+                codeTextStyle={{
+                  fontSize: 16,
+                  color: isDarkMode ? "#FFF" : "#000",
+                  fontFamily: "Poppins",
+                  marginLeft: -15, // Adjusted for chevron presence
+                }}
+                placeholder={`e.g. 12345789654`}
+              />
+            </View>
+          ) : (
+            <TextInput
+              placeholder={`Enter ${label.toLowerCase()}`}
+              placeholderTextColor="#9CA3AF"
+              value={item}
+              onChangeText={(text) => updateField(setter, list, index, text)}
+              className="bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl shadow-none text-black dark:text-white font-poppins text-sm pr-12"
+              keyboardType={
+                label.toLowerCase().includes("email")
+                  ? "email-address"
+                  : "default"
+              }
+              returnKeyType="next"
+            />
+          )}
+          {list.length > 1 && (
+            <TouchableOpacity
+              onPress={() => {
+                const newList = [...list];
+                newList.splice(index, 1);
+                setter(newList);
+              }}
+              className="absolute right-4 top-4"
+            >
+              <HugeiconsIcon icon={Cancel01Icon} size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
 
 type RoleItem = {
   label: string;
@@ -127,17 +169,18 @@ const AddUserForm: React.FC = () => {
   const router = useRouter();
   const auth = useContext(AuthContext); // ✅ get JWT from context
   const token = auth?.token;
+  const isDarkMode = useColorScheme() === "dark";
 
   const { userData } = useLocalSearchParams();
   const parsedUser = userData
-    ? JSON.parse(Array.isArray(userData) ? userData[0] : userData)
+    ? JSON.parse(Array.isArray(userData) ? userData[0] : (userData as string))
     : null;
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         if (userData) {
-          const parsedUser = JSON.parse(userData);
+          const parsedUser = JSON.parse(userData as string);
 
           // Fetch full details from backend (in case not all fields came)
           const response = await api.get(`/user-directory/${parsedUser._id}`, {
@@ -187,6 +230,13 @@ const AddUserForm: React.FC = () => {
   // User fields
   const [firmName, setFirmName] = useState("");
   const [individualName, setIndividualName] = useState("");
+  const [prefix, setPrefix] = useState("Mr");
+  const [honorifics] = useState([
+    { label: "Mr", value: "Mr" },
+    { label: "Mrs", value: "Mrs" },
+    { label: "Ms", value: "Ms" },
+    { label: "Dr", value: "Dr" },
+  ]);
   const [gender, setGender] = useState<"Male" | "Female" | null>(null);
 
   const [expertiseList, setExpertiseList] = useState<string[]>([""]);
@@ -293,7 +343,7 @@ const AddUserForm: React.FC = () => {
       }
 
       // ✅ Redirect to directory
-      router.push("/(drawer)/centralUserDirectory");
+      router.push("/(drawer)/centralUserDirectory" as any);
     } catch (error: any) {
       console.log("Error creating/updating user:", error.response?.data);
 
@@ -337,30 +387,22 @@ const AddUserForm: React.FC = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-            zIndex: 10,
-          }}
+      <View className="pt-14 pb-4 px-4 flex-row items-center border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1A1A1A]">
+        <TouchableOpacity
+          onPress={() => router.push("/(drawer)/centralUserDirectory" as any)}
+          className="p-2"
+          activeOpacity={0.7}
         >
-          <TouchableOpacity
-            onPress={() => router.push("/(drawer)/centralUserDirectory")}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-bold text-white ml-4">
-              {isEditMode ? "Edit Contact" : "Create Contact"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
+        <Text className="text-xl font-dmBold text-black dark:text-white ml-2">
+          {isEditMode ? "Edit Contact" : "Create Contact"}
+        </Text>
+      </View>
 
       {/* Keyboard-aware scrollable form */}
       <KeyboardAwareScrollView
@@ -370,79 +412,110 @@ const AddUserForm: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Role Dropdown */}
-        {isEditMode ? (
-          <View className="mb-4">
-            <Text className="text-gray-700 font-semibold mb-1">Role</Text>
-
-            <View className="bg-gray-100 px-4 py-2 rounded-xl border border-gray-300">
-              <Text className="text-gray-800">{roleValue}</Text>
-              <Text className="text-xs italic text-gray-500 mt-1">
-                Role cannot be edited
+        <View className="mb-6">
+          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
+            Role <Text className="text-red-500">*</Text>
+          </Text>
+          {isEditMode ? (
+            <View className="bg-[#F0F3F7] dark:bg-[#262626] px-4 py-3 rounded-2xl">
+              <Text className="text-black dark:text-white font-poppins">
+                {roleValue}
               </Text>
             </View>
-          </View>
-        ) : (
-          // Create Mode: Role Dropdown (your existing dropdown)
-          <View className="mb-4 z-10">
-            <Text className="text-gray-700 font-semibold mb-1">
-              Role <Text className="text-red-500">*</Text>
-            </Text>
+          ) : (
             <Dropdown
               style={{
-                backgroundColor: "white",
-                borderRadius: 10,
-                borderWidth: 1,
-                borderColor: "#ddd",
-                paddingHorizontal: 12,
-                height: 40,
+                backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                height: 56,
               }}
-              placeholderStyle={{ color: "#888", fontSize: 14 }}
-              selectedTextStyle={{ color: "#000", fontSize: 16 }}
+              placeholderStyle={{
+                color: "#9CA3AF",
+                fontSize: 14,
+                fontFamily: "Poppins",
+              }}
+              selectedTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
+                fontFamily: "Poppins",
+              }}
               data={roleItems}
               labelField="label"
               valueField="value"
               placeholder="Select role"
               value={roleValue}
               onChange={(item) => setRoleValue(item.value)}
-              showsVerticalScrollIndicator={false}
               containerStyle={{
-                borderRadius: 12,
-                backgroundColor: "#fff",
-                elevation: 4,
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFF",
+                borderWidth: 0,
+                marginTop: 4,
               }}
-              activeColor="#E0E7FF"
+              activeColor={isDarkMode ? "#333" : "#F3F4F6"}
             />
-          </View>
-        )}
+          )}
+        </View>
 
         {/* Individual Name */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold mb-1">
+        <View className="mb-6">
+          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
             Individual Name <Text className="text-red-500">*</Text>
           </Text>
-          <TextInput
-            placeholder="Enter individual’s full name"
-            placeholderTextColor="#888"
-            value={individualName}
-            onChangeText={setIndividualName}
-            className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200"
-            returnKeyType="next"
-          />
+          <View className="flex-row items-center">
+            <Dropdown
+              style={{
+                backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
+                borderRadius: 16,
+                paddingHorizontal: 12,
+                height: 56,
+                width: 80,
+                marginRight: 8,
+              }}
+              selectedTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
+                fontFamily: "Poppins",
+              }}
+              data={honorifics}
+              labelField="label"
+              valueField="value"
+              value={prefix}
+              onChange={(item) => setPrefix(item.value)}
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFF",
+                borderWidth: 0,
+              }}
+            />
+            <TextInput
+              placeholder="e.g. John Smith"
+              placeholderTextColor="#9CA3AF"
+              value={individualName}
+              onChangeText={setIndividualName}
+              className="flex-1 bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl text-black dark:text-white font-poppins text-sm"
+              returnKeyType="next"
+            />
+          </View>
         </View>
 
         {/* Gender Selection */}
         <View className="mb-6">
-          <Text className="text-gray-700 font-semibold mb-2">
+          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-3">
             Gender <Text className="text-red-500">*</Text>
           </Text>
 
-          <View className="flex-row justify-around bg-white p-3 rounded-xl shadow-sm border border-gray-200">
+          <View className="flex-row space-x-3">
             {["Male", "Female"].map((option) => (
               <TouchableOpacity
                 key={option}
-                className="flex-row items-center space-x-2"
                 activeOpacity={0.8}
-                onPress={() => setGender(option)}
+                onPress={() => setGender(option as "Male" | "Female")}
+                className={`flex-1 flex-row items-center justify-center h-14 rounded-2xl border-2 ${
+                  gender === option
+                    ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
+                    : "border-transparent bg-[#F0F3F7] dark:bg-[#262626]"
+                }`}
               >
                 <View
                   className={`w-5 h-5 rounded-full border-2 mr-2 items-center justify-center ${
@@ -454,8 +527,10 @@ const AddUserForm: React.FC = () => {
                   )}
                 </View>
                 <Text
-                  className={`font-medium ${
-                    gender === option ? "text-indigo-700" : "text-gray-700"
+                  className={`font-dmSemiBold ${
+                    gender === option
+                      ? "text-indigo-700 dark:text-indigo-400"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {option}
@@ -466,16 +541,16 @@ const AddUserForm: React.FC = () => {
         </View>
 
         {/* Firm / Company Name */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-semibold mb-1">
+        <View className="mb-6">
+          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
             Firm / Company Name <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
-            placeholder="Enter firm or company name"
-            placeholderTextColor="#888"
+            placeholder="e.g. Dena Consulting"
+            placeholderTextColor="#9CA3AF"
             value={firmName}
             onChangeText={setFirmName}
-            className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200"
+            className="bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl text-black dark:text-white font-poppins text-sm"
             returnKeyType="next"
           />
         </View>
@@ -513,25 +588,45 @@ const AddUserForm: React.FC = () => {
           />
         ))}
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          disabled={saving}
-          activeOpacity={0.8}
-          onPress={handleSubmit}
-          className={`py-4 rounded-2xl mt-2 shadow-lg items-center flex-row justify-center space-x-2 mb-20
-    ${saving ? "bg-gray-400" : "bg-indigo-600"}`}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="checkmark-done-outline" size={24} color="white" />
-              <Text className="text-white text-lg font-semibold">
-                {isEditMode ? "Update User" : "Create User"}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* Submit Buttons */}
+        <View className="flex-row items-center space-x-3 mt-4 mb-20">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-1 h-14 rounded-2xl border border-gray-300 dark:border-gray-700 items-center justify-center"
+            activeOpacity={0.7}
+          >
+            <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+              Cancel
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={saving}
+            activeOpacity={0.8}
+            className="flex-1 h-14 rounded-2xl overflow-hidden"
+          >
+            <LinearGradient
+              colors={saving ? ["#9CA3AF", "#9CA3AF"] : ["#6366F1", "#8B5CF6"]}
+              className="w-full h-full items-center justify-center flex-row"
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <HugeiconsIcon
+                    icon={CheckmarkCircle02Icon}
+                    size={20}
+                    color="#FFF"
+                  />
+                  <Text className="text-white font-dmBold text-lg ml-2">
+                    {isEditMode ? "Update" : "Save"}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </KeyboardAwareScrollView>
     </View>
   );

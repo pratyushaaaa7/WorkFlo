@@ -142,6 +142,7 @@ const UserDetail = () => {
             <HugeiconsIcon
               icon={Delete03Icon}
               size={24}
+              strokeWidth={1.5}
               color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
@@ -149,6 +150,7 @@ const UserDetail = () => {
             <HugeiconsIcon
               icon={PencilEdit02Icon}
               size={24}
+              strokeWidth={1.5}
               color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
@@ -450,8 +452,8 @@ const UserDetail = () => {
                   onPress={() => setNewStars(star)}
                   className={`w-[18%] aspect-square border-[#E0E5EB] dark:border-[#413E47] rounded-2xl border items-center justify-center ${
                     newStars && newStars >= star
-                      // ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#2B2B2B]"
-                      // : "border-[#E0E5EB] dark:border-[#2B2B2B]"
+                    // ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#2B2B2B]"
+                    // : "border-[#E0E5EB] dark:border-[#2B2B2B]"
                   }`}
                 >
                   <Image
