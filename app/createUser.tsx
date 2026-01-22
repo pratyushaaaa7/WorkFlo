@@ -445,7 +445,7 @@ const AddUserForm: React.FC = () => {
             <Dropdown
               style={{
                 backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 8,
+                borderRadius: 6,
                 paddingHorizontal: 16,
                 height: 56,
               }}
