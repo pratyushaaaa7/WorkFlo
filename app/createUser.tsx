@@ -1,11 +1,8 @@
 import {
-  Add01Icon,
   ArrowDown01Icon,
-  PlusSignCircleIcon,
   ArrowLeft01Icon,
   MinusSignCircleIcon,
-  Cancel01Icon,
-  CheckmarkCircle02Icon,
+  PlusSignCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -54,7 +51,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
   return (
     <View className="mb-6">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm">
+        <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm">
           {label}{" "}
           {label.toLowerCase().includes("role") ||
           label.toLowerCase().includes("name") ||
@@ -98,8 +95,8 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                 }
                 containerStyle={{
                   width: "100%",
-                  backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
-                  borderRadius: 16,
+                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                  borderRadius: 8,
                   height: 56,
                   elevation: 0,
                 }}
@@ -139,7 +136,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
               placeholderTextColor="#9CA3AF"
               value={item}
               onChangeText={(text) => updateField(setter, list, index, text)}
-              className="bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl shadow-none text-black dark:text-white font-poppins text-sm pr-12"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg shadow-none text-black dark:text-white font-poppins text-sm pr-12"
               keyboardType={
                 label.toLowerCase().includes("email")
                   ? "email-address"
@@ -398,7 +395,7 @@ const AddUserForm: React.FC = () => {
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0A0A0A]">
       {/* Header */}
-      <View className="pt-14 pb-4 px-4 flex-row items-center  bg-[#FBFCFD] dark:bg-[#1A1A1A]">
+      <View className="pt-14 pb-4 px-4 flex-row items-center  bg-[#FBFCFD] dark:bg-[#0A0A0A]">
         <TouchableOpacity
           onPress={() => router.back()}
           className="p-2"
@@ -425,11 +422,11 @@ const AddUserForm: React.FC = () => {
       >
         {/* Role Dropdown */}
         <View className="mb-6">
-          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
+          <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-2">
             Role <Text className="text-red-500">*</Text>
           </Text>
           {isEditMode ? (
-            <View className="bg-[#F0F3F7] dark:bg-[#262626] px-4 py-3 rounded-2xl">
+            <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 py-3 rounded-lg">
               <Text className="text-black dark:text-white font-poppins">
                 {roleValue}
               </Text>
@@ -437,8 +434,8 @@ const AddUserForm: React.FC = () => {
           ) : (
             <Dropdown
               style={{
-                backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
-                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 8,
                 paddingHorizontal: 16,
                 height: 56,
               }}
@@ -471,7 +468,7 @@ const AddUserForm: React.FC = () => {
 
         {/* Individual Name */}
         <View className="mb-6">
-          <Text className="text-[black] dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-2">
+          <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-2">
             Individual Name <Text className="text-red-500">*</Text>
           </Text>
 
@@ -481,7 +478,7 @@ const AddUserForm: React.FC = () => {
               style={{
                 width: 68,
                 height: 40,
-                backgroundColor: isDarkMode ? "#000" : "#111827",
+                backgroundColor: isDarkMode ? "#000" : "#FFF",
                 borderRadius: 8,
                 paddingHorizontal: 10,
               }}
@@ -509,7 +506,7 @@ const AddUserForm: React.FC = () => {
             {/* Name Input */}
             <TextInput
               placeholder="e.g. John Smith"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={individualName}
               onChangeText={setIndividualName}
               className="flex-1 h-14 text-black dark:text-white font-poppins text-sm px-2"
@@ -520,7 +517,7 @@ const AddUserForm: React.FC = () => {
 
         {/* Gender Selection */}
         <View className="mb-6">
-          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-3">
+          <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-3">
             Gender <Text className="text-red-500">*</Text>
           </Text>
 
@@ -530,10 +527,10 @@ const AddUserForm: React.FC = () => {
                 key={option}
                 activeOpacity={0.8}
                 onPress={() => setGender(option as "Male" | "Female")}
-                className={`flex-1 flex-row items-center justify-center h-14 rounded-2xl border-2 ${
+                className={`flex-1 flex-row items-center justify-center h-14 rounded-lg border-2 ${
                   gender === option
                     ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                    : "border-transparent bg-[#F0F3F7] dark:bg-[#262626]"
+                    : "border-transparent bg-[#F0F3F7] dark:bg-[#1A1A1A]"
                 }`}
               >
                 <View
@@ -561,7 +558,7 @@ const AddUserForm: React.FC = () => {
 
         {/* Firm / Company Name */}
         <View className="mb-6">
-          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
+          <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-2">
             Firm / Company Name <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
@@ -569,7 +566,7 @@ const AddUserForm: React.FC = () => {
             placeholderTextColor="#9CA3AF"
             value={firmName}
             onChangeText={setFirmName}
-            className="bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl text-black dark:text-white font-poppins text-sm"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg text-black dark:text-white font-poppins text-sm"
             returnKeyType="next"
           />
         </View>
@@ -609,7 +606,7 @@ const AddUserForm: React.FC = () => {
       </KeyboardAwareScrollView>
 
       {/* Sticky Bottom Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] px-4 pt-4 pb-12">
+      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#0D0D0D] px-4 pt-4 pb-12">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
