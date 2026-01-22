@@ -592,13 +592,13 @@ const AddUserForm: React.FC = () => {
         ))}
 
         {/* Submit Buttons */}
-        <View className="flex-row items-center space-x-3 mt-4 mb-20">
+        <View className="flex-row items-center gap-3 mt-4 mb-20">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="flex-1 h-14 rounded-2xl border border-gray-300 dark:border-gray-700 items-center justify-center"
+            className="flex-1 h-14 rounded-2xl border dark:border-[#F5F5F5] border-black items-center justify-center"
             activeOpacity={0.7}
           >
-            <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+            <Text className="dark:text-[#F5F5F5] text-black font-dmMedium text-lg">
               Cancel
             </Text>
           </TouchableOpacity>
@@ -610,19 +610,18 @@ const AddUserForm: React.FC = () => {
             className="flex-1 h-14 rounded-2xl overflow-hidden"
           >
             <LinearGradient
-              colors={saving ? ["#9CA3AF", "#9CA3AF"] : ["#6366F1", "#8B5CF6"]}
+                 colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ borderRadius: 16 }}
               className="w-full h-full items-center justify-center flex-row"
             >
               {saving ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                  <HugeiconsIcon
-                    icon={CheckmarkCircle02Icon}
-                    size={20}
-                    color="#FFF"
-                  />
-                  <Text className="text-white font-dmBold text-lg ml-2">
+                
+                  <Text className="text-white font-dmMedium text-lg ml-2">
                     {isEditMode ? "Update" : "Save"}
                   </Text>
                 </>
