@@ -419,9 +419,10 @@ const UserDetail = () => {
         backdropOpacity={0.4}
         animationIn="slideInUp"
         animationOut="slideOutDown"
-        useNativeDriver
-        useNativeDriverForBackdrop
-        hideModalContentWhileAnimating
+        // useNativeDriver
+        // useNativeDriverForBackdrop
+        // swipeThreshold={50}
+        // backdropTransitionOutTiming={0}
         propagateSwipe
       >
         <View className="bg-[#FBFCFD] dark:bg-[#1A1A1A] w-full rounded-t-[32px] px-6 pt-4 pb-10 shadow-xl">
