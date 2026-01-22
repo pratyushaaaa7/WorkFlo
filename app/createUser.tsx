@@ -68,10 +68,13 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
           onPress={() => addField(setter, list)}
           className="flex-row items-center"
         >
-          <HugeiconsIcon icon={PlusSignCircleIcon} strokeWidth={2} size={14} color="#0073CB" />
-          <Text className="text-[#0073CB] font-dmBold text-sm ml-1">
-            Add
-          </Text>
+          <HugeiconsIcon
+            icon={PlusSignCircleIcon}
+            strokeWidth={2}
+            size={14}
+            color="#0073CB"
+          />
+          <Text className="text-[#0073CB] font-dmBold text-sm ml-1">Add</Text>
         </TouchableOpacity>
       </View>
       {list.map((item, index) => (
@@ -154,7 +157,11 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
               }}
               className="absolute right-4 top-4"
             >
-              <HugeiconsIcon icon={MinusSignCircleIcon} size={16} color="#DF5B5B"  />
+              <HugeiconsIcon
+                icon={MinusSignCircleIcon}
+                size={16}
+                color="#DF5B5B"
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -239,6 +246,7 @@ const AddUserForm: React.FC = () => {
     { label: "Mrs", value: "Mrs" },
     { label: "Ms", value: "Ms" },
     { label: "Dr", value: "Dr" },
+    { label: "-", value: "" },
   ]);
   const [gender, setGender] = useState<"Male" | "Female" | null>(null);
 
@@ -610,17 +618,16 @@ const AddUserForm: React.FC = () => {
             className="flex-1 h-14 rounded-2xl overflow-hidden"
           >
             <LinearGradient
-                 colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ borderRadius: 16 }}
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ borderRadius: 16 }}
               className="w-full h-full items-center justify-center flex-row"
             >
               {saving ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <>
-                
                   <Text className="text-white font-dmMedium text-lg ml-2">
                     {isEditMode ? "Update" : "Save"}
                   </Text>
