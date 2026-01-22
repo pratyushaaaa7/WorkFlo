@@ -1,7 +1,9 @@
 import {
   Add01Icon,
   ArrowDown01Icon,
+  PlusSignCircleIcon,
   ArrowLeft01Icon,
+  MinusSignCircleIcon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
@@ -66,8 +68,8 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
           onPress={() => addField(setter, list)}
           className="flex-row items-center"
         >
-          <HugeiconsIcon icon={Add01Icon} size={16} color="#4F46E5" />
-          <Text className="text-indigo-600 dark:text-indigo-400 font-dmSemiBold text-sm ml-1">
+          <HugeiconsIcon icon={PlusSignCircleIcon} strokeWidth={2} size={14} color="#0073CB" />
+          <Text className="text-[#0073CB] font-dmBold text-sm ml-1">
             Add
           </Text>
         </TouchableOpacity>
@@ -103,7 +105,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   borderRadius: 12,
                   marginVertical: 6,
                   marginLeft: 6,
-                  width: 65,
+                  // width: 65,
                   height: 44,
                 }}
                 textContainerStyle={{
@@ -111,6 +113,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   borderRadius: 16,
                   paddingVertical: 0,
                   paddingHorizontal: 0,
+                  paddingLeft: 10,
                 }}
                 textInputStyle={{
                   height: 56,
@@ -122,7 +125,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   fontSize: 16,
                   color: isDarkMode ? "#FFF" : "#000",
                   fontFamily: "Poppins",
-                  marginLeft: -15, // Adjusted for chevron presence
+                  // marginLeft: -15, // Adjusted for chevron presence
                 }}
                 placeholder={`e.g. 12345789654`}
               />
@@ -151,7 +154,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
               }}
               className="absolute right-4 top-4"
             >
-              <HugeiconsIcon icon={Cancel01Icon} size={20} color="#9CA3AF" />
+              <HugeiconsIcon icon={MinusSignCircleIcon} size={16} color="#DF5B5B"  />
             </TouchableOpacity>
           )}
         </View>
@@ -389,7 +392,7 @@ const AddUserForm: React.FC = () => {
       {/* Header */}
       <View className="pt-14 pb-4 px-4 flex-row items-center border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1A1A1A]">
         <TouchableOpacity
-          onPress={() => router.push("/(drawer)/centralUserDirectory" as any)}
+          onPress={() => router.back()}
           className="p-2"
           activeOpacity={0.7}
         >
