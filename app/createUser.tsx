@@ -108,7 +108,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   placeholderTextColor: isDarkMode ? "#919191" : "#454545",
                 }}
                 flagButtonStyle={{
-                  backgroundColor: isDarkMode ? "#333" : "#FFF",
+                  backgroundColor: isDarkMode ? "#000" : "#FFF",
                   borderRadius: 12,
                   marginVertical: 6,
                   marginLeft: 6,
