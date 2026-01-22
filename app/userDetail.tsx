@@ -481,19 +481,19 @@ const UserDetail = () => {
             <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
               Your Review
             </Text>
-            <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl p-4">
+            <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl">
               <TextInput
                 placeholder="Provide a detailed review..."
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#454545"
                 value={newNote}
                 onChangeText={setNewNote}
                 multiline
                 maxLength={200}
                 numberOfLines={4}
-                className="text-gray-700 dark:text-gray-200 text-sm font-poppins h-24 textAlignVertical-top"
+                className="text-gray-700 dark:text-gray-200 text-sm font-poppins h-20 textAlignVertical-top"
                 style={{ textAlignVertical: "top" }}
               />
-              <Text className="text-right text-xs text-gray-400 font-poppins mt-2">
+              <Text className="text-right text-xs text-gray-400 font-poppins mr-3 ">
                 {newNote.length}/200
               </Text>
             </View>
