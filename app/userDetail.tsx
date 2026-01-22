@@ -22,6 +22,7 @@ import {
   useColorScheme,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import VeryBlackStar from "../assets/images/Revised Black Star.png";
 import api from "../lib/api";
 
 const UserDetail = () => {
@@ -447,19 +448,27 @@ const UserDetail = () => {
                 <TouchableOpacity
                   key={star}
                   onPress={() => setNewStars(star)}
-                  className={`w-[18%] aspect-square rounded-2xl border items-center justify-center ${
+                  className={`w-[18%] aspect-square border-[#E0E5EB] dark:border-[#413E47] rounded-2xl border items-center justify-center ${
                     newStars && newStars >= star
-                      ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#252525]"
-                      : "border-[#E5E7EB] dark:border-[#333]"
+                      // ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#2B2B2B]"
+                      // : "border-[#E0E5EB] dark:border-[#2B2B2B]"
                   }`}
                 >
                   <Image
                     source={
                       newStars && newStars >= star
-                        ? require("../assets/images/Rating Black Star.png")
-                        : require("../assets/images/Rating White Star.png")
+                        ? isDarkMode
+                          ? require("../assets/images/Rating White Star.png")
+                          : VeryBlackStar
+                        : isDarkMode
+                          ? require("../assets/images/Rating White Star.png")
+                          : VeryBlackStar
                     }
-                    style={{ width: 24, height: 24 }}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      opacity: newStars && newStars >= star ? 1 : 0.2,
+                    }}
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
