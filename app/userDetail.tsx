@@ -424,17 +424,17 @@ const UserDetail = () => {
         hideModalContentWhileAnimating
         propagateSwipe
       >
-        <View className="bg-white dark:bg-[#1E1E1E] w-full rounded-t-[32px] p-6 pb-10 shadow-xl">
+        <View className="bg-[#FBFCFD] dark:bg-[#1A1A1A] w-full rounded-t-[32px] px-6 pt-4 pb-10 shadow-xl">
           {/* Top Indicator */}
           <View className="items-center mb-4">
-            <View className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full" />
+            <View className="w-16 h-1 bg-black dark:bg-gray-700 rounded-full" />
           </View>
 
-          <Text className="text-xl font-dmBold text-center text-black dark:text-white mb-6">
+          <Text className="text-xl font-dmSemiBold text-center text-black dark:text-white mb-3">
             Write a review
           </Text>
 
-          <View className="h-[1px] bg-gray-100 dark:bg-gray-800 w-full mb-6" />
+          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47] w-full mb-5" />
 
           {/* Star Rating Section */}
           <View className="mb-6">
@@ -471,9 +471,9 @@ const UserDetail = () => {
             <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
               Your Review
             </Text>
-            <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl p-4 bg-gray-50 dark:bg-[#252525]">
+            <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl p-4">
               <TextInput
-                placeholder="Provide a detailed reviewd..."
+                placeholder="Provide a detailed review..."
                 placeholderTextColor="#9CA3AF"
                 value={newNote}
                 onChangeText={setNewNote}
