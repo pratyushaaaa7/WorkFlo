@@ -128,12 +128,15 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   // marginLeft: -15, // Adjusted for chevron presence
                 }}
                 placeholder={`e.g. 12345789654`}
+                textInputProps={{
+                  placeholderTextColor: isDarkMode ? "#919191" : "#454545",
+                }}
               />
             </View>
           ) : (
             <TextInput
               placeholder={`Enter ${label.toLowerCase()}`}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={item}
               onChangeText={(text) => updateField(setter, list, index, text)}
               className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg shadow-none text-black dark:text-white font-poppins text-sm pr-12"
@@ -440,12 +443,12 @@ const AddUserForm: React.FC = () => {
                 height: 56,
               }}
               placeholderStyle={{
-                color: isDarkMode ? "#454545" : "#919191",
+                color: isDarkMode ? "#919191" : "#454545",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
               selectedTextStyle={{
-                color: isDarkMode ? "#454545" : "#919191",
+                color: isDarkMode ? "#919191" : "#454545",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
@@ -483,7 +486,7 @@ const AddUserForm: React.FC = () => {
                 paddingHorizontal: 10,
               }}
               selectedTextStyle={{
-                color: isDarkMode ? "#FFF" : "#111827",
+                color: isDarkMode ? "#919191" : "#454545",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
@@ -563,7 +566,7 @@ const AddUserForm: React.FC = () => {
           </Text>
           <TextInput
             placeholder="e.g. Dena Consulting"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={firmName}
             onChangeText={setFirmName}
             className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg text-black dark:text-white font-poppins text-sm"
