@@ -396,7 +396,7 @@ const AddUserForm: React.FC = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 dark:bg-[#0A0A0A]">
       {/* Header */}
       <View className="pt-14 pb-4 px-4 flex-row items-center border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1A1A1A]">
         <TouchableOpacity
@@ -421,6 +421,7 @@ const AddUserForm: React.FC = () => {
         extraScrollHeight={100}
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Role Dropdown */}
         <View className="mb-6">
@@ -473,15 +474,12 @@ const AddUserForm: React.FC = () => {
           <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
             Individual Name <Text className="text-red-500">*</Text>
           </Text>
-          <View className="flex-row items-center">
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#262626] rounded-2xl h-14">
             <Dropdown
               style={{
-                backgroundColor: isDarkMode ? "#262626" : "#F0F3F7",
-                borderRadius: 16,
                 paddingHorizontal: 12,
                 height: 56,
                 width: 80,
-                marginRight: 8,
               }}
               selectedTextStyle={{
                 color: isDarkMode ? "#FFF" : "#000",
@@ -504,7 +502,7 @@ const AddUserForm: React.FC = () => {
               placeholderTextColor="#9CA3AF"
               value={individualName}
               onChangeText={setIndividualName}
-              className="flex-1 bg-[#F0F3F7] dark:bg-[#262626] px-4 h-14 rounded-2xl text-black dark:text-white font-poppins text-sm"
+              className="flex-1 h-14 text-black dark:text-white font-poppins text-sm pr-4"
               returnKeyType="next"
             />
           </View>
@@ -599,8 +597,11 @@ const AddUserForm: React.FC = () => {
           />
         ))}
 
-        {/* Submit Buttons */}
-        <View className="flex-row items-center gap-3 mt-4 mb-20">
+      </KeyboardAwareScrollView>
+
+      {/* Sticky Bottom Buttons */}
+      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] px-4 py-4 border-t border-gray-100 dark:border-gray-800">
+        <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
             className="flex-1 h-14 rounded-2xl border dark:border-[#F5F5F5] border-black items-center justify-center"
@@ -636,7 +637,7 @@ const AddUserForm: React.FC = () => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </KeyboardAwareScrollView>
+      </View>
     </View>
   );
 };
