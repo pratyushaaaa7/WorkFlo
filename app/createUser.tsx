@@ -61,18 +61,22 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
             ""
           )}
         </Text>
-        <TouchableOpacity
-          onPress={() => addField(setter, list)}
-          className="flex-row items-center"
-        >
-          <HugeiconsIcon
-            icon={PlusSignCircleIcon}
-            strokeWidth={2}
-            size={14}
-            color="#0073CB"
-          />
-          <Text className="text-[#0073CB] font-dmBold text-sm ml-1">Add</Text>
-        </TouchableOpacity>
+        {(label.toLowerCase().includes("official number") ||
+          label.toLowerCase().includes("email") ||
+          label.toLowerCase().includes("expertise")) && (
+          <TouchableOpacity
+            onPress={() => addField(setter, list)}
+            className="flex-row items-center"
+          >
+            <HugeiconsIcon
+              icon={PlusSignCircleIcon}
+              strokeWidth={2}
+              size={14}
+              color="#0073CB"
+            />
+            <Text className="text-[#0073CB] font-dmBold text-sm ml-1">Add</Text>
+          </TouchableOpacity>
+        )}
       </View>
       {list.map((item, index) => (
         <View key={index} className="mb-3 relative">
@@ -100,6 +104,9 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   height: 56,
                   elevation: 0,
                 }}
+                textInputProps={{
+                  placeholderTextColor: isDarkMode ? "#919191" : "#454545",
+                }}
                 flagButtonStyle={{
                   backgroundColor: isDarkMode ? "#333" : "#FFF",
                   borderRadius: 12,
@@ -117,20 +124,17 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                 }}
                 textInputStyle={{
                   height: 56,
-                  fontSize: 16,
+                  fontSize: label.toLowerCase().includes("number") ? 14 : 16,
                   color: isDarkMode ? "#FFF" : "#000",
                   fontFamily: "Poppins",
                 }}
                 codeTextStyle={{
-                  fontSize: 16,
+                  fontSize: label.toLowerCase().includes("number") ? 14 : 16,
                   color: isDarkMode ? "#FFF" : "#000",
                   fontFamily: "Poppins",
                   // marginLeft: -15, // Adjusted for chevron presence
                 }}
                 placeholder={`e.g. 12345789654`}
-                textInputProps={{
-                  placeholderTextColor: isDarkMode ? "#919191" : "#454545",
-                }}
               />
             </View>
           ) : (
@@ -148,22 +152,25 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
               returnKeyType="next"
             />
           )}
-          {list.length > 1 && (
-            <TouchableOpacity
-              onPress={() => {
-                const newList = [...list];
-                newList.splice(index, 1);
-                setter(newList);
-              }}
-              className="absolute right-4 top-4"
-            >
-              <HugeiconsIcon
-                icon={MinusSignCircleIcon}
-                size={16}
-                color="#DF5B5B"
-              />
-            </TouchableOpacity>
-          )}
+          {index > 0 &&
+            (label.toLowerCase().includes("official number") ||
+              label.toLowerCase().includes("email") ||
+              label.toLowerCase().includes("expertise")) && (
+              <TouchableOpacity
+                onPress={() => {
+                  const newList = [...list];
+                  newList.splice(index, 1);
+                  setter(newList);
+                }}
+                className="absolute right-4 top-4"
+              >
+                <HugeiconsIcon
+                  icon={MinusSignCircleIcon}
+                  size={16}
+                  color="#DF5B5B"
+                />
+              </TouchableOpacity>
+            )}
         </View>
       ))}
     </View>
