@@ -462,11 +462,17 @@ const AddUserForm: React.FC = () => {
               onChange={(item) => setRoleValue(item.value)}
               containerStyle={{
                 borderRadius: 16,
-                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFF",
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFF",
                 borderWidth: 0,
                 marginTop: 4,
               }}
               activeColor={isDarkMode ? "#333" : "#F3F4F6"}
+              itemTextStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins",
+                color: isDarkMode ? "#F5F5F5" : "#000",
+              }}
+              iconColor={isDarkMode ? "#F5F5F5" : "#000"}
             />
           )}
         </View>
@@ -488,13 +494,14 @@ const AddUserForm: React.FC = () => {
                 paddingHorizontal: 10,
               }}
               selectedTextStyle={{
-                color: isDarkMode ? "#919191" : "#454545",
+                color: isDarkMode ? "#F5F5F5" : "#454545",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
               itemTextStyle={{
                 fontSize: 14,
                 fontFamily: "Poppins",
+                color: isDarkMode ? "#F5F5F5" : "#000",
               }}
               data={honorifics}
               labelField="label"
@@ -503,9 +510,11 @@ const AddUserForm: React.FC = () => {
               onChange={(item) => setPrefix(item.value)}
               containerStyle={{
                 borderRadius: 16,
-                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
                 borderWidth: 0,
               }}
+              activeColor={isDarkMode ? "#333" : "#F3F4F6"}
+              iconColor={isDarkMode ? "#F5F5F5" : "#000"}
             />
 
             {/* Name Input */}
