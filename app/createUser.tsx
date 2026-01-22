@@ -396,9 +396,9 @@ const AddUserForm: React.FC = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-[#0A0A0A]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0A0A0A]">
       {/* Header */}
-      <View className="pt-14 pb-4 px-4 flex-row items-center border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1A1A1A]">
+      <View className="pt-14 pb-4 px-4 flex-row items-center  bg-[#FBFCFD] dark:bg-[#1A1A1A]">
         <TouchableOpacity
           onPress={() => router.back()}
           className="p-2"
@@ -596,11 +596,10 @@ const AddUserForm: React.FC = () => {
             addField={addField}
           />
         ))}
-
       </KeyboardAwareScrollView>
 
       {/* Sticky Bottom Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] px-4 py-4 border-t border-gray-100 dark:border-gray-800">
+      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] px-4 pt-4 pb-12">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
