@@ -61,7 +61,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
             ""
           )}
         </Text>
-        {(label.toLowerCase().includes("official number") ||
+        {(label.toLowerCase().includes("mobile number") ||
           label.toLowerCase().includes("email") ||
           label.toLowerCase().includes("expertise")) && (
           <TouchableOpacity
@@ -109,7 +109,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                 }}
                 flagButtonStyle={{
                   backgroundColor: isDarkMode ? "#000" : "#FFF",
-                  borderRadius: 12,
+                  borderRadius: 6,
                   marginVertical: 6,
                   marginLeft: 6,
                   // width: 65,
@@ -153,7 +153,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
             />
           )}
           {index > 0 &&
-            (label.toLowerCase().includes("official number") ||
+            (label.toLowerCase().includes("mobile number") ||
               label.toLowerCase().includes("email") ||
               label.toLowerCase().includes("expertise")) && (
               <TouchableOpacity
@@ -222,9 +222,6 @@ const AddUserForm: React.FC = () => {
           setOfficialNumberList(
             user.officialNumberList?.length ? user.officialNumberList : [""],
           );
-          setMobileNumberList(
-            user.mobileNumberList?.length ? user.mobileNumberList : [""],
-          );
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -262,7 +259,6 @@ const AddUserForm: React.FC = () => {
   const [emailList, setEmailList] = useState<string[]>([""]);
   const [addressList, setAddressList] = useState<string[]>([""]);
   const [officialNumberList, setOfficialNumberList] = useState<string[]>([""]);
-  const [mobileNumberList, setMobileNumberList] = useState<string[]>([""]);
 
   const [saving, setSaving] = useState(false);
 
@@ -333,7 +329,6 @@ const AddUserForm: React.FC = () => {
         emailList: emailList.filter((e) => e.trim() !== ""),
         addressList: addressList.filter((a) => a.trim() !== ""),
         officialNumberList: officialNumberList.filter((n) => n.trim() !== ""),
-        mobileNumberList: mobileNumberList.filter((n) => n.trim() !== ""),
       };
 
       // 🟢 Update mode
@@ -596,14 +591,9 @@ const AddUserForm: React.FC = () => {
             setter: setAddressList,
           },
           {
-            label: "Official Number",
+            label: "Mobile Number",
             list: officialNumberList,
             setter: setOfficialNumberList,
-          },
-          {
-            label: "Mobile Number",
-            list: mobileNumberList,
-            setter: setMobileNumberList,
           },
         ].map((field, idx) => (
           <DynamicInputField
