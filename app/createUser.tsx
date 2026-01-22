@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useContext } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext"; // adjust path
+import PhoneInput from "react-native-phone-number-input";
 import Toast from "react-native-toast-message";
+import { AuthContext } from "../context/AuthContext"; // adjust path
+import api from "../lib/api";
 
 type DynamicInputFieldProps = {
   label: string;
@@ -23,11 +24,11 @@ type DynamicInputFieldProps = {
     setter: React.Dispatch<React.SetStateAction<string[]>>,
     list: string[],
     index: number,
-    value: string
+    value: string,
   ) => void;
   addField: (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
-    list: string[]
+    list: string[],
   ) => void;
 };
 
@@ -42,22 +43,57 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
     <Text className="text-gray-700 font-semibold mb-1">{label}</Text>
     {list.map((item, index) => (
       <View key={index} className="mb-2 relative">
-        <TextInput
-          placeholder={`Enter ${label.toLowerCase()}`}
-          placeholderTextColor="#888"
-          value={item}
-          onChangeText={(text) => updateField(setter, list, index, text)}
-          className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 pr-10"
-          // autoCapitalize="none"
-          keyboardType={
-            label.toLowerCase().includes("email")
-              ? "email-address"
-              : label.toLowerCase().includes("number")
-              ? "phone-pad"
-              : "default"
-          }
-          returnKeyType="next"
-        />
+        {label.toLowerCase().includes("number") ? (
+          <View style={{ width: "100%" }}>
+            {/* @ts-ignore: PhoneInput type mismatch in current environment */}
+            <PhoneInput
+              defaultValue={item}
+              defaultCode="IN"
+              layout="first"
+              onChangeFormattedText={(text) =>
+                updateField(setter, list, index, text)
+              }
+              containerStyle={{
+                width: "100%",
+                backgroundColor: "white",
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                height: 52,
+                elevation: 1,
+              }}
+              textContainerStyle={{
+                backgroundColor: "white",
+                borderRadius: 12,
+                paddingVertical: 0,
+              }}
+              textInputStyle={{
+                height: 48,
+                fontSize: 14,
+                color: "#000",
+              }}
+              codeTextStyle={{
+                fontSize: 14,
+                color: "#000",
+              }}
+              placeholder={`Enter ${label.toLowerCase()}`}
+            />
+          </View>
+        ) : (
+          <TextInput
+            placeholder={`Enter ${label.toLowerCase()}`}
+            placeholderTextColor="#888"
+            value={item}
+            onChangeText={(text) => updateField(setter, list, index, text)}
+            className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200 pr-10"
+            keyboardType={
+              label.toLowerCase().includes("email")
+                ? "email-address"
+                : "default"
+            }
+            returnKeyType="next"
+          />
+        )}
         {list.length > 1 && (
           <TouchableOpacity
             onPress={() => {
@@ -116,18 +152,18 @@ const AddUserForm: React.FC = () => {
           setIndividualName(user.individualName || "");
           setGender(user.gender || "");
           setExpertiseList(
-            user.expertiseList?.length ? user.expertiseList : [""]
+            user.expertiseList?.length ? user.expertiseList : [""],
           );
           setDesignationList(
-            user.designationList?.length ? user.designationList : [""]
+            user.designationList?.length ? user.designationList : [""],
           );
           setEmailList(user.emailList?.length ? user.emailList : [""]);
           setAddressList(user.addressList?.length ? user.addressList : [""]);
           setOfficialNumberList(
-            user.officialNumberList?.length ? user.officialNumberList : [""]
+            user.officialNumberList?.length ? user.officialNumberList : [""],
           );
           setMobileNumberList(
-            user.mobileNumberList?.length ? user.mobileNumberList : [""]
+            user.mobileNumberList?.length ? user.mobileNumberList : [""],
           );
         }
       } catch (error) {
@@ -165,13 +201,13 @@ const AddUserForm: React.FC = () => {
   // Helpers
   const addField = (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
-    list: string[]
+    list: string[],
   ) => setter([...list, ""]);
   const updateField = (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
     list: string[],
     index: number,
-    value: string
+    value: string,
   ) => {
     const newList = [...list];
     newList[index] = value;
