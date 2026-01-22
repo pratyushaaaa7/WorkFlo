@@ -443,12 +443,12 @@ const AddUserForm: React.FC = () => {
                 height: 56,
               }}
               placeholderStyle={{
-                color: "#9CA3AF",
+                color: isDarkMode ? "#454545" : "#919191",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
               selectedTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                color: isDarkMode ? "#454545" : "#919191",
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
@@ -471,18 +471,26 @@ const AddUserForm: React.FC = () => {
 
         {/* Individual Name */}
         <View className="mb-6">
-          <Text className="text-gray-500 dark:text-gray-400 font-dmSemiBold text-sm mb-2">
+          <Text className="text-[black] dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-2">
             Individual Name <Text className="text-red-500">*</Text>
           </Text>
-          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#262626] rounded-2xl h-14">
+
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg h-14 px-1">
+            {/* Prefix Dropdown */}
             <Dropdown
               style={{
-                paddingHorizontal: 12,
-                height: 56,
-                width: 80,
+                width: 68,
+                height: 40,
+                backgroundColor: isDarkMode ? "#000" : "#111827",
+                borderRadius: 8,
+                paddingHorizontal: 10,
               }}
               selectedTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                color: isDarkMode ? "#FFF" : "#111827",
+                fontSize: 14,
+                fontFamily: "Poppins",
+              }}
+              itemTextStyle={{
                 fontSize: 14,
                 fontFamily: "Poppins",
               }}
@@ -493,16 +501,18 @@ const AddUserForm: React.FC = () => {
               onChange={(item) => setPrefix(item.value)}
               containerStyle={{
                 borderRadius: 16,
-                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFF",
+                backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
                 borderWidth: 0,
               }}
             />
+
+            {/* Name Input */}
             <TextInput
               placeholder="e.g. John Smith"
               placeholderTextColor="#9CA3AF"
               value={individualName}
               onChangeText={setIndividualName}
-              className="flex-1 h-14 text-black dark:text-white font-poppins text-sm pr-4"
+              className="flex-1 h-14 text-black dark:text-white font-poppins text-sm px-2"
               returnKeyType="next"
             />
           </View>
