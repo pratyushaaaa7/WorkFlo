@@ -587,22 +587,22 @@ const AddUserForm: React.FC = () => {
 
         {/* Dynamic Fields */}
         {[
-          { label: "Expertise", list: expertiseList, setter: setExpertiseList },
+          {
+            label: "Mobile Number",
+            list: officialNumberList,
+            setter: setOfficialNumberList,
+          },
+          { label: "Email", list: emailList, setter: setEmailList },
           {
             label: "Designation",
             list: designationList,
             setter: setDesignationList,
           },
-          { label: "Email", list: emailList, setter: setEmailList },
+          { label: "Expertise", list: expertiseList, setter: setExpertiseList },
           {
             label: "Office Address",
             list: addressList,
             setter: setAddressList,
-          },
-          {
-            label: "Mobile Number",
-            list: officialNumberList,
-            setter: setOfficialNumberList,
           },
         ].map((field, idx) => (
           <DynamicInputField
