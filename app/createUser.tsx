@@ -37,6 +37,7 @@ type DynamicInputFieldProps = {
     setter: React.Dispatch<React.SetStateAction<string[]>>,
     list: string[],
   ) => void;
+  rawPhoneValues?: React.MutableRefObject<string[]>;
 };
 
 const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
@@ -45,6 +46,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
   setter,
   updateField,
   addField,
+  rawPhoneValues,
 }) => {
   const isDarkMode = useColorScheme() === "dark";
 
@@ -87,9 +89,19 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                 defaultValue={item}
                 defaultCode="IN"
                 layout="second"
-                onChangeFormattedText={(text) =>
-                  updateField(setter, list, index, text)
-                }
+                onChangeText={(text) => {
+                  if (rawPhoneValues) {
+                    rawPhoneValues.current[index] = text;
+                  }
+                  if (text.trim() === "") {
+                    updateField(setter, list, index, "");
+                  }
+                }}
+                onChangeFormattedText={(text) => {
+                  if (rawPhoneValues?.current[index]) {
+                    updateField(setter, list, index, text);
+                  }
+                }}
                 renderDropdownImage={
                   <HugeiconsIcon
                     icon={ArrowDown01Icon}
@@ -260,6 +272,8 @@ const AddUserForm: React.FC = () => {
   const [emailList, setEmailList] = useState<string[]>([""]);
   const [addressList, setAddressList] = useState<string[]>([""]);
   const [officialNumberList, setOfficialNumberList] = useState<string[]>([""]);
+
+  const rawPhoneValues = React.useRef<string[]>([]);
 
   const [saving, setSaving] = useState(false);
 
@@ -563,6 +577,7 @@ const AddUserForm: React.FC = () => {
             {...field}
             updateField={updateField}
             addField={addField}
+            rawPhoneValues={rawPhoneValues}
           />
         ))}
       </KeyboardAwareScrollView>
