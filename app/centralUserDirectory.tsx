@@ -5,8 +5,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
-import { useFocusEffect, useNavigation, useRouter } from "expo-router";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -54,6 +54,7 @@ export default function CentralUserDirectory() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const { refresh } = useLocalSearchParams<{ refresh: string }>();
 
   // ✅ Fetch Users (Paginated)
   const fetchUsers = async (pageNum: number = 1, append: boolean = false) => {
@@ -97,11 +98,18 @@ export default function CentralUserDirectory() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUsers(1, false);
-    }, [token]),
-  );
+  const lastRefresh = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (token) {
+      // Refresh if:
+      // 1. List is empty
+      // 2. We have a NEW refresh signal that we haven't handled yet
+      if (users.length === 0 || (refresh && refresh !== lastRefresh.current)) {
+        fetchUsers(1, false);
+        if (refresh) lastRefresh.current = refresh;
+      }
+    }
+  }, [token, refresh]);
 
   const onRefresh = () => {
     setRefreshing(true);

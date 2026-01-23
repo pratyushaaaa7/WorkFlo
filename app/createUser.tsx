@@ -407,10 +407,16 @@ const AddUserForm: React.FC = () => {
 
       // 🟣 Redirect
       if (isEditMode) {
-        router.back();
+        router.replace({
+          pathname: "/centralUserDirectory" as any,
+          params: { refresh: Date.now().toString() },
+        });
       } else {
         resetForm();
-        router.replace("/centralUserDirectory" as any);
+        router.replace({
+          pathname: "/centralUserDirectory" as any,
+          params: { refresh: Date.now().toString() },
+        });
       }
     } catch (error: any) {
       console.log("Error creating/updating user:", error.response?.data);

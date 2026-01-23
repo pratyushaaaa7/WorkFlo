@@ -58,7 +58,7 @@ const UserDetail = () => {
 
           const fetchedUser = res?.data || preloadedUser;
           setUserData(fetchedUser);
-          console.log("fetchedUser", fetchedUser);
+          // console.log("fetchedUser", fetchedUser);
           setRatings(fetchedUser?.ratings || []);
         } catch (err) {
           console.error("Error fetching user:", err);
