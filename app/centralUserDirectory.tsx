@@ -23,6 +23,18 @@ import api from "../lib/api";
 // Filter categories
 const FILTERS = ["All", "Client", "Vendor", "Consultant"];
 
+const getDisplayName = (user: any) => {
+  if (user.salutation) {
+    return `${user.salutation} ${user.individualName}`;
+  }
+
+  // fallback for old data
+  if (user.gender === "Male") return `Mr ${user.individualName}`;
+  if (user.gender === "Female") return `Ms ${user.individualName}`;
+
+  return user.individualName;
+};
+
 export default function CentralUserDirectory() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -50,24 +62,32 @@ export default function CentralUserDirectory() {
       else setLoadingMore(true);
 
       const res = await api.get(`/user-directory`, {
+        params: {
+          page: pageNum,
+          limit: ITEMS_PER_PAGE,
+        },
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const allUsers = res.data || [];
-
-      // Simulate pagination on client side (since backend doesn't support it yet)
-      const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      const paginatedUsers = allUsers.slice(startIndex, endIndex);
+      // 🧩 Backend now returns { users: [], total: 100, ... }
+      const newUsers = res.data.users || [];
+      const total = res.data.total || 0;
 
       if (append) {
-        setUsers((prev) => [...prev, ...paginatedUsers]);
+        setUsers((prev) => {
+          // 🛡️ Prevent duplicates using _id
+          const existingIds = new Set(prev.map((u: any) => u._id));
+          const uniqueNewUsers = newUsers.filter(
+            (u: any) => !existingIds.has(u._id),
+          );
+          return [...prev, ...uniqueNewUsers];
+        });
       } else {
-        setUsers(paginatedUsers);
+        setUsers(newUsers);
       }
 
-      // Check if there are more items
-      setHasMore(endIndex < allUsers.length);
+      // ✅ Determine if there are more pages based on total count
+      setHasMore(pageNum * ITEMS_PER_PAGE < total);
     } catch (err) {
       console.error("Error fetching users:", err);
     } finally {
@@ -116,6 +136,7 @@ export default function CentralUserDirectory() {
       result = result.filter((u) => {
         return (
           u.individualName?.toLowerCase().includes(q) ||
+          u.salutation?.toLowerCase().includes(q) ||
           u.userCode?.toString().toLowerCase().includes(q) ||
           u.firmName?.toLowerCase().includes(q) ||
           u.expertiseList?.some((e: any) => e.toLowerCase().includes(q)) ||
@@ -145,7 +166,7 @@ export default function CentralUserDirectory() {
           #{item.userCode || "N/A"}
         </Text>
         <Text className="text-lg font-dmSemiBold text-black dark:text-white mr-2">
-          {item.individualName || "Unnamed"}
+          {getDisplayName(item) || "Unnamed"}
         </Text>
         <Text className="text-[#454545] dark:text-[#919191] ">•</Text>
         <Text className="text-[#454545] dark:text-[#919191] text-sm ml-2 font-poppins capitalize">
@@ -231,7 +252,7 @@ export default function CentralUserDirectory() {
         <FlatList
           horizontal
           data={FILTERS}
-          keyExtractor={(item) => item}
+          keyExtractor={(item, index) => item + index}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => {
@@ -280,7 +301,9 @@ export default function CentralUserDirectory() {
         ) : (
           <FlatList
             data={filteredUsers}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, index) =>
+              item._id?.toString() || index.toString()
+            }
             renderItem={renderUser}
             showsVerticalScrollIndicator={false}
             onEndReached={loadMore}

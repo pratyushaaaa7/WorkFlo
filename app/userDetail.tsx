@@ -170,11 +170,13 @@ const UserDetail = () => {
               <View className="flex-row justify-between w-full">
                 {renderInfoField(
                   "Full Name",
-                  userData?.gender?.toLowerCase() === "male"
-                    ? `Mr. ${userData?.individualName}`
-                    : userData?.gender?.toLowerCase() === "female"
-                      ? `Ms. ${userData?.individualName}`
-                      : userData?.individualName,
+                  userData?.salutation
+                    ? `${userData.salutation} ${userData.individualName}`
+                    : userData?.gender?.toLowerCase() === "male"
+                      ? `Mr. ${userData?.individualName}`
+                      : userData?.gender?.toLowerCase() === "female"
+                        ? `Ms. ${userData?.individualName}`
+                        : userData?.individualName,
                 )}
                 {renderInfoField("Role", userData?.role)}
               </View>
@@ -203,9 +205,11 @@ const UserDetail = () => {
                 )}
                 {renderInfoField(
                   "Mobile",
-                  userData?.mobileNumberList?.length
-                    ? userData.mobileNumberList[0]
-                    : "N/A",
+                  userData?.officialNumberList?.length
+                    ? userData.officialNumberList[0]
+                    : userData?.mobileNumberList?.length
+                      ? userData.mobileNumberList[0]
+                      : "N/A",
                   false,
                 )}
               </View>
