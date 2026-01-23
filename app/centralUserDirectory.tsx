@@ -136,7 +136,6 @@ export default function CentralUserDirectory() {
       result = result.filter((u) => {
         return (
           u.individualName?.toLowerCase().includes(q) ||
-          u.salutation?.toLowerCase().includes(q) ||
           u.userCode?.toString().toLowerCase().includes(q) ||
           u.firmName?.toLowerCase().includes(q) ||
           u.expertiseList?.some((e: any) => e.toLowerCase().includes(q)) ||
