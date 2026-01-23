@@ -147,7 +147,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   fontFamily: "Poppins",
                   // marginLeft: -15, // Adjusted for chevron presence
                 }}
-                placeholder={`e.g. 12345789654`}
+                placeholder={`e.g. 1234578965`}
               />
             </View>
           ) : (
