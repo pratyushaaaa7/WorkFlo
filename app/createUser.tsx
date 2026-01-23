@@ -384,13 +384,11 @@ const AddUserForm: React.FC = () => {
         });
       }
 
-      // ✅ Reset form after success
-      resetForm();
-
-      // ✅ Redirect
+      // 🟣 Redirect
       if (isEditMode) {
         router.back();
       } else {
+        resetForm();
         router.replace("/centralUserDirectory" as any);
       }
     } catch (error: any) {

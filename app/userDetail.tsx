@@ -7,9 +7,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -46,30 +46,31 @@ const UserDetail = () => {
   const [newNote, setNewNote] = useState("");
 
   // fetch latest user details from backend using ID
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!token || !preloadedUser?._id) return;
-      setLoading(true);
-      try {
-        const res = await api.get(`/user-directory/${preloadedUser._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        if (!token || !preloadedUser?._id) return;
+        setLoading(true);
+        try {
+          const res = await api.get(`/user-directory/${preloadedUser._id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        const fetchedUser = res?.data || preloadedUser;
-        setUserData(fetchedUser);
-        // console.log("fetchedUser", fetchedUser);
-        setRatings(fetchedUser?.ratings || []);
-      } catch (err) {
-        console.error("Error fetching user:", err);
-        setUserData(preloadedUser);
-        setRatings(preloadedUser?.ratings || []);
-      } finally {
-        setLoading(false);
-      }
-    };
+          const fetchedUser = res?.data || preloadedUser;
+          setUserData(fetchedUser);
+          setRatings(fetchedUser?.ratings || []);
+        } catch (err) {
+          console.error("Error fetching user:", err);
+          setUserData(preloadedUser);
+          setRatings(preloadedUser?.ratings || []);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchUser();
-  }, [token, preloadedUser?._id]);
+      fetchUser();
+    }, [token, preloadedUser?._id]),
+  );
 
   // submit new rating/note
   const handleSubmit = async () => {
