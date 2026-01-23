@@ -387,8 +387,12 @@ const AddUserForm: React.FC = () => {
       // ✅ Reset form after success
       resetForm();
 
-      // ✅ Redirect to directory (use replace for cleaner stack)
-      router.replace("/centralUserDirectory" as any);
+      // ✅ Redirect
+      if (isEditMode) {
+        router.back();
+      } else {
+        router.replace("/centralUserDirectory" as any);
+      }
     } catch (error: any) {
       console.log("Error creating/updating user:", error.response?.data);
 
