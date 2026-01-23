@@ -210,7 +210,8 @@ const AddUserForm: React.FC = () => {
           setRoleValue(user.role || null);
           setFirmName(user.firmName || "");
           setIndividualName(user.individualName || "");
-          setGender(user.gender || "");
+          setPrefix(user.salutation || "Mr");
+          setGender(user.gender || null);
           setExpertiseList(
             user.expertiseList?.length ? user.expertiseList : [""],
           );
@@ -306,30 +307,23 @@ const AddUserForm: React.FC = () => {
       return;
     }
 
-    if (!gender) {
-      Toast.show({
-        type: "error",
-        text1: "Validation",
-        text2: "Please select gender.",
-        position: "bottom",
-      });
-      setSaving(false);
-      return;
-    }
-
     try {
       // 🧱 Prepare request payload
-      const payload = {
+      const payload: any = {
         role: roleValue,
         firmName,
         individualName,
-        gender,
+        salutation: prefix,
         expertiseList: expertiseList.filter((e) => e.trim() !== ""),
         designationList: designationList.filter((d) => d.trim() !== ""),
         emailList: emailList.filter((e) => e.trim() !== ""),
         addressList: addressList.filter((a) => a.trim() !== ""),
         officialNumberList: officialNumberList.filter((n) => n.trim() !== ""),
       };
+
+      if (gender) {
+        payload.gender = gender;
+      }
 
       // 🟢 Update mode
       if (isEditMode && parsedUser?._id) {
@@ -526,47 +520,6 @@ const AddUserForm: React.FC = () => {
               className="flex-1 h-14 text-black dark:text-white font-poppins text-sm px-2"
               returnKeyType="next"
             />
-          </View>
-        </View>
-
-        {/* Gender Selection */}
-        <View className="mb-6">
-          <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm mb-3">
-            Gender <Text className="text-red-500">*</Text>
-          </Text>
-
-          <View className="flex-row space-x-3">
-            {["Male", "Female"].map((option) => (
-              <TouchableOpacity
-                key={option}
-                activeOpacity={0.8}
-                onPress={() => setGender(option as "Male" | "Female")}
-                className={`flex-1 flex-row items-center justify-center h-14 rounded-lg border-2 ${
-                  gender === option
-                    ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20"
-                    : "border-transparent bg-[#F0F3F7] dark:bg-[#1A1A1A]"
-                }`}
-              >
-                <View
-                  className={`w-5 h-5 rounded-full border-2 mr-2 items-center justify-center ${
-                    gender === option ? "border-indigo-600" : "border-gray-400"
-                  }`}
-                >
-                  {gender === option && (
-                    <View className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-                  )}
-                </View>
-                <Text
-                  className={`font-dmSemiBold ${
-                    gender === option
-                      ? "text-indigo-700 dark:text-indigo-400"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
-                >
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
           </View>
         </View>
 
