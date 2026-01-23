@@ -213,11 +213,17 @@ const UserDetail = () => {
                 )}
                 {renderInfoField(
                   "Mobile",
-                  userData?.officialNumberList?.length
-                    ? userData.officialNumberList[0]
-                    : userData?.mobileNumberList?.length
-                      ? userData.mobileNumberList[0]
-                      : "N/A",
+                  (() => {
+                    const numbers = [
+                      ...(userData?.officialNumberList || []),
+                      ...(userData?.mobileNumberList || []),
+                      userData?.mobileNumber,
+                    ].filter((n) => n && n.trim() !== "");
+                    const uniqueNumbers = [...new Set(numbers)];
+                    return uniqueNumbers.length > 0
+                      ? uniqueNumbers.join(", ")
+                      : "N/A";
+                  })(),
                   false,
                 )}
               </View>

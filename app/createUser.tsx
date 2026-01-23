@@ -86,7 +86,10 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
             <View style={{ width: "100%" }}>
               {/* @ts-ignore: PhoneInput type mismatch in current environment */}
               <PhoneInput
-                defaultValue={item}
+                key={`${index}-${item}`}
+                defaultValue={
+                  item.startsWith("+91") ? item.replace("+91", "") : item
+                }
                 defaultCode="IN"
                 layout="second"
                 onChangeText={(text) => {
@@ -98,9 +101,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
                   }
                 }}
                 onChangeFormattedText={(text) => {
-                  if (rawPhoneValues?.current[index]) {
-                    updateField(setter, list, index, text);
-                  }
+                  updateField(setter, list, index, text);
                 }}
                 renderDropdownImage={
                   <HugeiconsIcon
@@ -232,8 +233,28 @@ const AddUserForm: React.FC = () => {
           );
           setEmailList(user.emailList?.length ? user.emailList : [""]);
           setAddressList(user.addressList?.length ? user.addressList : [""]);
-          setOfficialNumberList(
-            user.officialNumberList?.length ? user.officialNumberList : [""],
+          const officialNumbers = user.officialNumberList || [];
+          const mobileNumbers = user.mobileNumberList || [];
+          // Handle legacy single mobileNumber field
+          if (
+            user.mobileNumber &&
+            !mobileNumbers.includes(user.mobileNumber) &&
+            !officialNumbers.includes(user.mobileNumber)
+          ) {
+            mobileNumbers.push(user.mobileNumber);
+          }
+
+          // Merge and deduplicate
+          const combinedNumbers = [...officialNumbers, ...mobileNumbers].filter(
+            (n: string) => n && n.trim() !== "",
+          );
+          // Remove duplicates
+          const uniqueNumbers = [...new Set(combinedNumbers)];
+
+          setOfficialNumberList(uniqueNumbers.length ? uniqueNumbers : [""]);
+          // 🧩 Initialize rawPhoneValues with national numbers for PhoneInput
+          rawPhoneValues.current = uniqueNumbers.map((n) =>
+            n.startsWith("+91") ? n.replace("+91", "") : n,
           );
         }
       } catch (error) {
