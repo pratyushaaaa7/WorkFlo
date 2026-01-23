@@ -297,6 +297,11 @@ const AddUserForm: React.FC = () => {
   const rawPhoneValues = React.useRef<string[]>([]);
 
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<{
+    role?: boolean;
+    individualName?: boolean;
+    firmName?: boolean;
+  }>({});
 
   // Helpers
   const addField = (
@@ -338,30 +343,25 @@ const AddUserForm: React.FC = () => {
   // Submit handler
   const handleSubmit = async () => {
     if (saving) return; // prevent double tap
+
+    const newErrors: any = {};
+    if (!roleValue) newErrors.role = true;
+    if (individualName.trim() === "") newErrors.individualName = true;
+    if (firmName.trim() === "") newErrors.firmName = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Please fill all mandatory fields.",
+        position: "bottom",
+      });
+      return;
+    }
+
     setSaving(true);
-
-    // 🧩 Validation checks
-    if (!roleValue) {
-      Toast.show({
-        type: "error",
-        text1: "Validation",
-        text2: "Please select a role.",
-        position: "bottom",
-      });
-      setSaving(false);
-      return;
-    }
-
-    if (individualName.trim() === "") {
-      Toast.show({
-        type: "error",
-        text1: "Validation",
-        text2: "Name cannot be empty.",
-        position: "bottom",
-      });
-      setSaving(false);
-      return;
-    }
+    setErrors({});
 
     try {
       // 🧱 Prepare request payload
@@ -495,12 +495,6 @@ const AddUserForm: React.FC = () => {
             </View>
           ) : (
             <Dropdown
-              style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 6,
-                paddingHorizontal: 16,
-                height: 56,
-              }}
               placeholderStyle={{
                 color: isDarkMode ? "#919191" : "#454545",
                 fontSize: 14,
@@ -516,7 +510,11 @@ const AddUserForm: React.FC = () => {
               valueField="value"
               placeholder="Select role"
               value={roleValue}
-              onChange={(item) => setRoleValue(item.value)}
+              onChange={(item) => {
+                setRoleValue(item.value);
+                if (errors.role)
+                  setErrors((prev) => ({ ...prev, role: false }));
+              }}
               containerStyle={{
                 borderRadius: 16,
                 backgroundColor: isDarkMode ? "#1A1A1A" : "#FFF",
@@ -530,7 +528,20 @@ const AddUserForm: React.FC = () => {
                 color: isDarkMode ? "#F5F5F5" : "#000",
               }}
               iconColor={isDarkMode ? "#F5F5F5" : "#000"}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 6,
+                paddingHorizontal: 16,
+                height: 56,
+                borderWidth: errors.role ? 1 : 0,
+                borderColor: errors.role ? "#DF5B5B" : "transparent",
+              }}
             />
+          )}
+          {errors.role && (
+            <Text className="text-[#DF5B5B] text-xs font-poppins mt-1 ml-1">
+              Please select a role
+            </Text>
           )}
         </View>
 
@@ -540,7 +551,13 @@ const AddUserForm: React.FC = () => {
             Individual Name <Text className="text-red-500">*</Text>
           </Text>
 
-          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg h-14 px-1">
+          <View
+            className={`flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg h-14 px-1 ${
+              errors.individualName
+                ? "border border-[#DF5B5B] bg-[#FFF5F5] dark:bg-[#2A1A1A]"
+                : ""
+            }`}
+          >
             {/* Prefix Dropdown */}
             <Dropdown
               style={{
@@ -579,11 +596,20 @@ const AddUserForm: React.FC = () => {
               placeholder="e.g. John Smith"
               placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={individualName}
-              onChangeText={setIndividualName}
+              onChangeText={(text) => {
+                setIndividualName(text);
+                if (errors.individualName)
+                  setErrors((prev) => ({ ...prev, individualName: false }));
+              }}
               className="flex-1 h-14 text-black dark:text-white font-poppins text-sm px-2"
               returnKeyType="next"
             />
           </View>
+          {errors.individualName && (
+            <Text className="text-[#DF5B5B] text-xs font-poppins mt-1 ml-1">
+              Individual name is required
+            </Text>
+          )}
         </View>
 
         {/* Firm / Company Name */}
@@ -595,10 +621,23 @@ const AddUserForm: React.FC = () => {
             placeholder="e.g. Dena Consulting"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={firmName}
-            onChangeText={setFirmName}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg text-black dark:text-white font-poppins text-sm"
+            onChangeText={(text) => {
+              setFirmName(text);
+              if (errors.firmName)
+                setErrors((prev) => ({ ...prev, firmName: false }));
+            }}
+            className={`bg-[#F0F3F7] dark:bg-[#1A1A1A] px-4 h-14 rounded-lg text-black dark:text-white font-poppins text-sm ${
+              errors.firmName
+                ? "border border-[#DF5B5B] bg-[#FFF5F5] dark:bg-[#2A1A1A]"
+                : ""
+            }`}
             returnKeyType="next"
           />
+          {errors.firmName && (
+            <Text className="text-[#DF5B5B] text-xs font-poppins mt-1 ml-1">
+              Firm name is required
+            </Text>
+          )}
         </View>
 
         {/* Dynamic Fields */}
