@@ -58,6 +58,7 @@ const UserDetail = () => {
 
           const fetchedUser = res?.data || preloadedUser;
           setUserData(fetchedUser);
+          console.log("fetchedUser", fetchedUser);
           setRatings(fetchedUser?.ratings || []);
         } catch (err) {
           console.error("Error fetching user:", err);
@@ -263,6 +264,32 @@ const UserDetail = () => {
                   false,
                 )}
               </View>
+
+              {userData?.projects && userData.projects.length > 0 && (
+                <>
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />
+                  <View className="w-full">
+                    <Text className="text-[#454545] dark:text-[#919191] text-xs font-poppins mb-2">
+                      Associated Projects
+                    </Text>
+                    {userData.projects.map((proj: any, index: number) => (
+                      <View
+                        key={index}
+                        className="flex-row items-start mb-1 px-1"
+                      >
+                        <Text className="text-black dark:text-white mr-2">
+                          •
+                        </Text>
+                        <Text className="text-black dark:text-white text-sm font-poppinsMedium flex-1">
+                          {proj.projectName ||
+                            proj.projectCode ||
+                            "Unnamed Project"}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
             </View>
           </View>
 
