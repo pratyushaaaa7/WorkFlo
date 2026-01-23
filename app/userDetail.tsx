@@ -146,7 +146,14 @@ const UserDetail = () => {
               color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/createUser" as any,
+                params: { userData: JSON.stringify(userData) },
+              })
+            }
+          >
             <HugeiconsIcon
               icon={PencilEdit02Icon}
               size={24}

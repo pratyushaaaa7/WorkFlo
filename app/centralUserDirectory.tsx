@@ -5,8 +5,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
-import { useNavigation, useRouter } from "expo-router";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -97,9 +97,11 @@ export default function CentralUserDirectory() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers(1, false);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers(1, false);
+    }, [token]),
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

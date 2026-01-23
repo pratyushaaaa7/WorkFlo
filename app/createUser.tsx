@@ -293,6 +293,27 @@ const AddUserForm: React.FC = () => {
     setter(newList);
   };
 
+  const resetForm = () => {
+    setRoleValue(null);
+    setFirmName("");
+    setIndividualName("");
+    setPrefix("Mr");
+    setGender(null);
+    setExpertiseList([""]);
+    setDesignationList([""]);
+    setEmailList([""]);
+    setAddressList([""]);
+    setOfficialNumberList([""]);
+    rawPhoneValues.current = [];
+  };
+
+  // ✅ Reset form if we leave edit mode (no userData in params)
+  useEffect(() => {
+    if (!userData) {
+      resetForm();
+    }
+  }, [userData]);
+
   // Submit handler
   const handleSubmit = async () => {
     if (saving) return; // prevent double tap
@@ -363,8 +384,11 @@ const AddUserForm: React.FC = () => {
         });
       }
 
-      // ✅ Redirect to directory
-      router.push("/(drawer)/centralUserDirectory" as any);
+      // ✅ Reset form after success
+      resetForm();
+
+      // ✅ Redirect to directory (use replace for cleaner stack)
+      router.replace("/centralUserDirectory" as any);
     } catch (error: any) {
       console.log("Error creating/updating user:", error.response?.data);
 
@@ -410,8 +434,10 @@ const AddUserForm: React.FC = () => {
       {/* Header */}
       <View className="pt-14 pb-4 px-4 flex-row items-center  bg-[#FBFCFD] dark:bg-[#0A0A0A]">
         <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-2"
+          onPress={() => {
+            resetForm();
+            router.back();
+          }}
           activeOpacity={0.7}
         >
           <HugeiconsIcon
@@ -586,7 +612,10 @@ const AddUserForm: React.FC = () => {
       <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#0D0D0D] px-4 pt-4 pb-12">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => {
+              resetForm();
+              router.back();
+            }}
             className="flex-1 h-14 rounded-2xl border dark:border-[#F5F5F5] border-black items-center justify-center"
             activeOpacity={0.7}
           >
