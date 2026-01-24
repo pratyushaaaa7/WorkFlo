@@ -14,6 +14,7 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   Platform,
   RefreshControl,
   Text,
@@ -202,17 +203,29 @@ export default function CentralEmployeeDirectory() {
 
       {/* Contact Info Row */}
       <View className="flex-row items-center justify-between">
-        <Text
-          numberOfLines={1}
-          className="flex-1 text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB] mr-2"
+        <TouchableOpacity
+          onPress={() => item.email && Linking.openURL(`mailto:${item.email}`)}
+          className="flex-1 mr-2"
         >
-          {item.email}
-        </Text>
-        <Text className="text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB]">
-          {item.contactNumbers && item.contactNumbers.length > 0
-            ? item.contactNumbers[0]
-            : "N/A"}
-        </Text>
+          <Text
+            numberOfLines={1}
+            className="text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB]"
+          >
+            {item.email}
+          </Text>
+        </TouchableOpacity>
+
+        {item.contactNumbers && item.contactNumbers.length > 0 ? (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(`tel:${item.contactNumbers![0]}`)}
+          >
+            <Text className="text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB]">
+              {item.contactNumbers[0]}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text className="text-[13px] font-poppins text-gray-400">N/A</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
