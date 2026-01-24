@@ -12,55 +12,12 @@ import {
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { Project } from "../../types/Project";
+import GlobalAvatar from "../GlobalAvatar";
 
 const ProjectCard = memo(
   function ProjectCard({ project }: { project: Project }) {
     const isDarkMode = useColorScheme() === "dark";
     const router = useRouter();
-
-    // Avatar color palette
-    const avatarColors = [
-      {
-        bg: "bg-indigo-100 dark:bg-indigo-900",
-        text: "text-indigo-600 dark:text-indigo-300",
-      },
-      {
-        bg: "bg-emerald-100 dark:bg-emerald-900",
-        text: "text-emerald-600 dark:text-emerald-300",
-      },
-      {
-        bg: "bg-orange-100 dark:bg-orange-800",
-        text: "text-orange-600 dark:text-orange-200",
-      },
-      {
-        bg: "bg-pink-100 dark:bg-pink-900",
-        text: "text-pink-600 dark:text-pink-300",
-      },
-      {
-        bg: "bg-cyan-100 dark:bg-cyan-900",
-        text: "text-cyan-600 dark:text-cyan-300",
-      },
-      {
-        bg: "bg-amber-100 dark:bg-amber-800",
-        text: "text-amber-600 dark:text-amber-200",
-      },
-      {
-        bg: "bg-violet-100 dark:bg-violet-900",
-        text: "text-violet-600 dark:text-violet-300",
-      },
-      {
-        bg: "bg-rose-100 dark:bg-rose-900",
-        text: "text-rose-600 dark:text-rose-300",
-      },
-    ];
-
-    const getAvatarColor = (name: string, index: number) => {
-      // Generate a consistent color based on the name
-      const hash =
-        name?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) ||
-        index;
-      return avatarColors[hash % avatarColors.length];
-    };
 
     const handlePress = () => {
       router.push({
@@ -179,26 +136,18 @@ const ProjectCard = memo(
           {/* Avatar Stack */}
           <View className="flex-row">
             {team.length > 0 ? (
-              team.map((member, index) => {
-                const avatarColor = getAvatarColor(
-                  member.fullName || "",
-                  index,
-                );
-                return (
-                  <View
-                    key={index}
-                    className={`w-10 h-10 rounded-full border-2 border-[#F0F3F7] dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
-                  >
-                    <Text
-                      className={`text-[11px] font-poppinsSemiBold ${avatarColor.text}`}
-                    >
-                      {member.fullName?.substring(0, 2).toUpperCase() || "??"}
-                    </Text>
-                  </View>
-                );
-              })
+              team.map((member, index) => (
+                <GlobalAvatar
+                  key={index}
+                  name={member.fullName || ""}
+                  index={index}
+                  size={36}
+                  fontSize={12}
+                  className="border-2 border-[#F0F3F7] dark:border-[#1A1A1A] -mr-3"
+                />
+              ))
             ) : (
-              <Text className="text-gray-400 text-[10px] font-poppins">
+              <Text className="text-gray-400 text-[12px] font-poppins">
                 No team assigned
               </Text>
             )}

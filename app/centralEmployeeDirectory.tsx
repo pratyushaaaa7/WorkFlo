@@ -1,10 +1,9 @@
 import {
   Add01Icon,
   Cancel01Icon,
-  FileDownloadIcon,
   Menu02Icon,
-  Xsl01Icon,
   Search01Icon,
+  Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
@@ -15,7 +14,6 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Platform,
   RefreshControl,
   Text,
@@ -25,6 +23,7 @@ import {
   useColorScheme,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -178,19 +177,14 @@ export default function CentralEmployeeDirectory() {
       }
     >
       <View className="flex-row items-center mb-3">
-        {/* Profile Image / Initials */}
-        <View className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 items-center justify-center mr-4 overflow-hidden">
-          {item.profileImage ? (
-            <Image
-              source={{ uri: item.profileImage }}
-              className="w-full h-full"
-            />
-          ) : (
-            <Text className="text-gray-500 font-dmBold text-lg">
-              {item.fullName.charAt(0)}
-            </Text>
-          )}
-        </View>
+        {/* Global Avatar */}
+        <GlobalAvatar
+          name={item.fullName || ""}
+          size={48}
+          fontSize={18}
+          className="mr-4"
+          borderRadius={12}
+        />
 
         {/* Name & Designation */}
         <View className="flex-1">
@@ -271,7 +265,6 @@ export default function CentralEmployeeDirectory() {
                   size={24}
                   color={isDarkMode ? "#FFF" : "#000"}
                 />
-               
               </View>
             )}
           </TouchableOpacity>
