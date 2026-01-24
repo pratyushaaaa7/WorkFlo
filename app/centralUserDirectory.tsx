@@ -1,5 +1,6 @@
 import {
   Add01Icon,
+  Cancel01Icon,
   Menu02Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
@@ -226,9 +227,16 @@ export default function CentralUserDirectory() {
             Central Directory
           </Text>
         </View>
-        <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
+        <TouchableOpacity
+          onPress={() => {
+            if (searchVisible) {
+              setSearchQuery("");
+            }
+            setSearchVisible(!searchVisible);
+          }}
+        >
           <HugeiconsIcon
-            icon={Search01Icon}
+            icon={searchVisible ? Cancel01Icon : Search01Icon}
             size={24}
             color={isDarkMode ? "#D2D2D2" : "#454545"}
           />
@@ -241,13 +249,13 @@ export default function CentralUserDirectory() {
           <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-xl px-4 py-1">
             <HugeiconsIcon
               icon={Search01Icon}
-              size={24}
+              size={20}
               color={isDarkMode ? "#606060" : "#454545"}
             />
             <TextInput
               placeholder="Search"
               placeholderTextColor="#9CA3AF"
-              className="ml-2 flex-1 font-dm text-gray-900 dark:text-white text-base" // Ensure text size is readable
+              className="ml-2 flex-1 font-dm text-gray-900 dark:text-white text-base"
               autoFocus
               value={searchQuery}
               onChangeText={setSearchQuery}

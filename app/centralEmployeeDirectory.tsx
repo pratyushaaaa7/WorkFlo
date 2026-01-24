@@ -1,7 +1,9 @@
 import {
   Add01Icon,
+  Cancel01Icon,
   FileDownloadIcon,
   Menu02Icon,
+  Xsl01Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -167,7 +169,7 @@ export default function CentralEmployeeDirectory() {
   const renderEmployee = ({ item }: { item: User }) => (
     <TouchableOpacity
       activeOpacity={0.9}
-      className="mb-4 mx-4 rounded-3xl bg-[#F6F7FB] dark:bg-[#1A1A1A] p-4 shadow-sm overflow-hidden"
+      className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-4 shadow-sm overflow-hidden"
       onPress={() =>
         router.push({
           pathname: "/employeeDetail",
@@ -175,7 +177,7 @@ export default function CentralEmployeeDirectory() {
         })
       }
     >
-      <View className="flex-row items-center mb-4">
+      <View className="flex-row items-center mb-3">
         {/* Profile Image / Initials */}
         <View className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 items-center justify-center mr-4 overflow-hidden">
           {item.profileImage ? (
@@ -202,7 +204,7 @@ export default function CentralEmployeeDirectory() {
       </View>
 
       {/* Divider */}
-      <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#2A2A2A] mb-4" />
+      <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-3" />
 
       {/* Contact Info Row */}
       <View className="flex-row items-center justify-between">
@@ -222,7 +224,7 @@ export default function CentralEmployeeDirectory() {
   );
 
   return (
-    <View className="flex-1 bg-white dark:bg-black">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
       {/* 🔹 HEADER */}
       <View className="flex-row items-center justify-between px-4 py-3 pt-16">
         <View className="flex-row items-center">
@@ -242,9 +244,16 @@ export default function CentralEmployeeDirectory() {
         </View>
 
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
+          <TouchableOpacity
+            onPress={() => {
+              if (searchVisible) {
+                setSearchQuery("");
+              }
+              setSearchVisible(!searchVisible);
+            }}
+          >
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={searchVisible ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "#FFF" : "#000"}
             />
@@ -256,15 +265,13 @@ export default function CentralEmployeeDirectory() {
                 color={isDarkMode ? "#FFF" : "#000"}
               />
             ) : (
-              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+              <View className="flex-row items-center">
                 <HugeiconsIcon
-                  icon={FileDownloadIcon}
-                  size={20}
+                  icon={Xsl01Icon}
+                  size={24}
                   color={isDarkMode ? "#FFF" : "#000"}
                 />
-                <Text className="ml-1 text-[10px] font-dmBold text-black dark:text-white">
-                  XSL
-                </Text>
+               
               </View>
             )}
           </TouchableOpacity>
@@ -273,8 +280,8 @@ export default function CentralEmployeeDirectory() {
 
       {/* 🔹 SEARCH BAR (Collapsible) */}
       {searchVisible && (
-        <View className="px-4 pb-4">
-          <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-2xl px-4 py-2">
+        <View className="px-4 ">
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-2">
             <HugeiconsIcon
               icon={Search01Icon}
               size={20}
@@ -293,7 +300,7 @@ export default function CentralEmployeeDirectory() {
       )}
 
       {/* 🔹 EMPLOYEE LIST */}
-      <View className="flex-1 pt-2">
+      <View className="flex-1 pt-4">
         {loading && !refreshing ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#5B4CCC" />
