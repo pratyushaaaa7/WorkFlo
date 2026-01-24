@@ -417,7 +417,8 @@ function AppLayout() {
             options={{
               headerShown:
                 item.name === "dashboard" ||
-                item.name === "centralUserDirectory"
+                item.name === "centralUserDirectory" ||
+                item.name === "centralEmployeeDirectory"
                   ? false
                   : true,
               title: item.label,

@@ -1,28 +1,30 @@
-import React, {
-  useEffect,
-  useState,
-  useContext,
-  useCallback,
-  useMemo,
-} from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-  TextInput,
-  Platform,
-  Linking,
-} from "react-native";
-import { AuthContext } from "../context/AuthContext"; // adjust path if needed
-import api from "../lib/api"; // axios instance with baseURL
-import Toast from "react-native-toast-message";
-import { useRouter } from "expo-router"; // if you are using expo-router
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+  Add01Icon,
+  FileDownloadIcon,
+  Menu02Icon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { DrawerActions } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Platform,
+  RefreshControl,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
+import Toast from "react-native-toast-message";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 type User = {
   _id: string;
@@ -34,21 +36,61 @@ type User = {
   status?: string;
   company?: string;
   contactNumbers?: string[];
+  designation?: string; // Added based on UI image
+  profileImage?: string; // Added based on UI image
 };
 
-export default function AllUsersScreen() {
+export default function CentralEmployeeDirectory() {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const auth = useContext(AuthContext);
   const token = auth?.token;
-  const router = useRouter(); // expo-router navigation
+  const router = useRouter();
+  const navigation = useNavigation();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [downloading, setDownloading] = useState(false); // ✅ state to track download
+  const [downloading, setDownloading] = useState(false);
+
+  const fetchUsers = async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await api.get("/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(res.data.users);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Unable to fetch employees",
+        position: "bottom",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers();
+    }, [token]),
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchUsers();
+  };
 
   const downloadExcelWeb = async () => {
     try {
-      setDownloading(true); // start loader
+      setDownloading(true);
       const response = await fetch(`${api.defaults.baseURL}/users/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -57,19 +99,17 @@ export default function AllUsersScreen() {
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
-      a.download = "users.xlsx";
+      a.download = "employees.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
-
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Excel download error:", error);
     } finally {
-      setDownloading(false); // stop loader
+      setDownloading(false);
     }
   };
 
@@ -77,21 +117,18 @@ export default function AllUsersScreen() {
     if (Platform.OS === "web") {
       return downloadExcelWeb();
     }
-
     try {
-      setDownloading(true); // start loader
-
+      setDownloading(true);
       const url = `${api.defaults.baseURL}/users/download`;
-      const fileUri = FileSystem.documentDirectory + "users.xlsx";
+      const fileUri = FileSystem.documentDirectory + "employees.xlsx";
 
       const downloadResumable = FileSystem.createDownloadResumable(
         url,
         fileUri,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const { uri } = await downloadResumable.downloadAsync();
-
       if (uri && (await Sharing.isAvailableAsync())) {
         await Sharing.shareAsync(uri);
       } else {
@@ -109,196 +146,195 @@ export default function AllUsersScreen() {
         text2: "Failed to download Excel",
       });
     } finally {
-      setDownloading(false); // stop loader
+      setDownloading(false);
     }
   };
 
-  const fetchUsers = async () => {
-    if (!token) return;
-
-    try {
-      const res = await api.get("/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(res.data.users);
-      // console.log(res.data);
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Unable to fetch users",
-        position: "bottom",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatEmployeeCode = (code?: number) =>
-    code !== undefined && code !== null
-      ? code.toString().padStart(3, "0")
-      : "---";
-
-  // 🔍 Filter users efficiently using useMemo
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
-
     const q = searchQuery.toLowerCase();
-
     return users.filter((u) => {
-      const employeeCodeStr = u.employeeCode
-        ? u.employeeCode.toString().padStart(3, "0")
-        : "";
       return (
         u.fullName?.toLowerCase().includes(q) ||
-        u.status?.toLowerCase().includes(q) ||
-        u.company?.toLowerCase().includes(q) ||
-        employeeCodeStr.includes(q)
+        u.email?.toLowerCase().includes(q) ||
+        u.role?.toLowerCase().includes(q) ||
+        u.designation?.toLowerCase().includes(q) ||
+        u.employeeCode?.toString().includes(q)
       );
     });
   }, [searchQuery, users]);
 
-  // inside AllUsersScreen
-  useFocusEffect(
-    useCallback(() => {
-      fetchUsers();
-    }, [token])
+  const renderEmployee = ({ item }: { item: User }) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      className="mb-4 mx-4 rounded-3xl bg-[#F6F7FB] dark:bg-[#1A1A1A] p-4 shadow-sm overflow-hidden"
+      onPress={() =>
+        router.push({
+          pathname: "/employeeDetail",
+          params: { userId: item._id },
+        })
+      }
+    >
+      <View className="flex-row items-center mb-4">
+        {/* Profile Image / Initials */}
+        <View className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 items-center justify-center mr-4 overflow-hidden">
+          {item.profileImage ? (
+            <Image
+              source={{ uri: item.profileImage }}
+              className="w-full h-full"
+            />
+          ) : (
+            <Text className="text-gray-500 font-dmBold text-lg">
+              {item.fullName.charAt(0)}
+            </Text>
+          )}
+        </View>
+
+        {/* Name & Designation */}
+        <View className="flex-1">
+          <Text className="text-base font-dmBold text-black dark:text-white">
+            {item.fullName}
+          </Text>
+          <Text className="text-[13px] font-poppins text-[#8E8E8E] dark:text-[#A1A1A1]">
+            {item.designation || item.role}
+          </Text>
+        </View>
+      </View>
+
+      {/* Divider */}
+      <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#2A2A2A] mb-4" />
+
+      {/* Contact Info Row */}
+      <View className="flex-row items-center justify-between">
+        <Text
+          numberOfLines={1}
+          className="flex-1 text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB] mr-2"
+        >
+          {item.email}
+        </Text>
+        <Text className="text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB]">
+          {item.contactNumbers && item.contactNumbers.length > 0
+            ? item.contactNumbers[0]
+            : "N/A"}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text className="mt-2 text-gray-600">Loading users...</Text>
-      </View>
-    );
-  }
-
-  if (!users.length) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <Text className="text-gray-500">No users found.</Text>
-      </View>
-    );
-  }
-
   return (
-    <View className="flex-1 bg-gray-50 px-4 pt-2">
-      {/* 🔍 Search & Download Row */}
+    <View className="flex-1 bg-white dark:bg-black">
+      {/* 🔹 HEADER */}
+      <View className="flex-row items-center justify-between px-4 py-3 pt-16">
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            className="mr-3"
+          >
+            <HugeiconsIcon
+              icon={Menu02Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <Text className="text-xl font-dmBold text-black dark:text-white ml-2">
+            Employee Directory
+          </Text>
+        </View>
 
-      {/* 📥 Download Excel Button (only for admin) */}
-      {auth?.user?.role === "admin" && (
-        <TouchableOpacity
-          onPress={downloadExcel}
-          disabled={downloading}
-          className={`flex-row items-center justify-center px-4 py-2 rounded-xl shadow-sm mb-2 ${
-            downloading ? "bg-green-400" : "bg-green-500"
-          }`}
-          activeOpacity={0.8}
-        >
-          {downloading ? (
-            <>
-              <ActivityIndicator size="small" color="#fff" />
-              <Text className="text-white ml-2 text-[14px] font-medium">
-                Downloading...
-              </Text>
-            </>
-          ) : (
-            <>
-              <Ionicons name="download-outline" size={20} color="#fff" />
-              <Text className="text-white ml-2 text-[14px] font-medium">
-                Download Excel
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={downloadExcel} disabled={downloading}>
+            {downloading ? (
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            ) : (
+              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+                <HugeiconsIcon
+                  icon={FileDownloadIcon}
+                  size={20}
+                  color={isDarkMode ? "#FFF" : "#000"}
+                />
+                <Text className="ml-1 text-[10px] font-dmBold text-black dark:text-white">
+                  XSL
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 🔹 SEARCH BAR (Collapsible) */}
+      {searchVisible && (
+        <View className="px-4 pb-4">
+          <View className="flex-row items-center bg-gray-100 dark:bg-[#1A1A1A] rounded-2xl px-4 py-2">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={20}
+              color={isDarkMode ? "#A1A1A1" : "#606060"}
+            />
+            <TextInput
+              placeholder="Search employees..."
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="ml-2 flex-1 font-dm text-black dark:text-white text-base"
+              autoFocus
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
       )}
 
-      <View className="flex-row items-center bg-white border border-gray-300 rounded-full px-2 py-1 mb-2 shadow-sm">
-        <Ionicons
-          name="search-outline"
-          size={18}
-          color="#888"
-          className="mr-2"
-        />
-        <TextInput
-          placeholder="Search by name, company, or employee code"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          className="flex-1 text-gray-800 text-[14px]"
-          placeholderTextColor="#888"
-        />
+      {/* 🔹 EMPLOYEE LIST */}
+      <View className="flex-1 pt-2">
+        {loading && !refreshing ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#5B4CCC" />
+            <Text className="mt-4 text-[#8E8E8E] font-poppinsSmall">
+              Loading employees...
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item) => item._id}
+            renderItem={renderEmployee}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#5B4CCC"]}
+                tintColor={isDarkMode ? "#FFF" : "#5B4CCC"}
+              />
+            }
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={
+              <View className="mt-20 items-center px-6">
+                <Text className="text-[#8E8E8E] font-poppins text-center text-base">
+                  No employees found.
+                </Text>
+              </View>
+            }
+          />
+        )}
       </View>
 
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={{ paddingBottom: 40 }} // 👈 adds bottom padding
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            disabled={auth?.user?.role !== "admin"} // disable press if not admin
-            onPress={() =>
-              router.push({
-                pathname: "/employeeDetail",
-                params: { userId: item._id },
-              })
-            }
-            className="bg-white p-4 mb-3 rounded-xl shadow-sm border border-gray-200"
-          >
-            <View className="flex-row justify-between items-center">
-              {/* Left Side - User Info */}
-              <View>
-                <Text className="text-lg font-semibold text-gray-800">
-                  {item.fullName}
-                </Text>
-                <Text className="text-gray-600">{item.email}</Text>
-                {/* {item.employeeCode && (
-                  <Text
-                    className={`mt-1 p-1 rounded-lg text-sm font-medium w-20 text-center ${
-                      item.role === "admin"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    W{formatEmployeeCode(item.employeeCode)}
-                  </Text>
-                )} */}
-                {item.contactNumbers && item.contactNumbers.length > 0 && (
-                  <View className="mt-1 flex-row flex-wrap">
-                    {item.contactNumbers.map((number, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => Linking.openURL(`tel:${number}`)}
-                      >
-                        <Text className="text-blue-500 underline mr-2">
-                          {number}
-                          {index !== item.contactNumbers!.length - 1 ? "," : ""}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-
-              {/* Right Side - Edit Button */}
-              {auth?.user?.role === "admin" && (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "/registerUser", // same form screen
-                      params: { userId: item._id }, // pass id for editing
-                    })
-                  }
-                  className="p-4 bg-indigo-50 rounded-full"
-                >
-                  <Ionicons name="create-outline" size={22} color="#4F46E5" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+      {/* 🔹 FAB (Purple +) */}
+      <TouchableOpacity
+        onPress={() => router.push("/registerUser")}
+        activeOpacity={0.9}
+        className="absolute bottom-10 right-6 w-14 h-14 bg-[#5B4CCC] rounded-full items-center justify-center shadow-xl shadow-purple-500/50"
+      >
+        <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
+      </TouchableOpacity>
     </View>
   );
 }
