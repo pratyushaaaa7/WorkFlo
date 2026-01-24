@@ -1,54 +1,52 @@
-import React, { useEffect, useState, useContext } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
+  ArrowLeft01Icon,
+  Call02Icon,
+  Chatting01Icon,
+  Mail01Icon,
+  Message01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Linking,
+  Text,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
+import GlobalAvatar from "../components/GlobalAvatar";
+import AboutTab from "../components/employeeDetail/AboutTab";
+import ProjectsTab from "../components/employeeDetail/ProjectsTab";
+import ReviewsTab from "../components/employeeDetail/ReviewsTab";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
-function toProperCase(name: any) {
-  if (!name) return "";
-  return name
-    .toLowerCase()
-    .split(" ")
-    .map((word: any) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-const UserDetails = () => {
-  const auth = useContext(AuthContext);
-  const token = auth?.token;
-  const router = useRouter();
+const EmployeeDetail = () => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+  const { token } = useContext(AuthContext) || {};
   const { userId } = useLocalSearchParams();
+  const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Profile");
 
-  const formatEmployeeCode = (code?: number) =>
-    code !== undefined && code !== null
-      ? code.toString().padStart(3, "0")
-      : "---";
+  const tabs = ["Profile", "Projects", "Reviews"];
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (!userId || !token) return;
       try {
+        setLoading(true);
         const res = await api.get(`/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUser(res.data);
-        // console.log(res.data);
-      } catch (err: any) {
-        console.error(
-          "Error fetching user:",
-          err.response?.data || err.message
-        );
+        setUserData(res.data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
       } finally {
         setLoading(false);
       }
@@ -56,269 +54,167 @@ const UserDetails = () => {
     fetchUser();
   }, [userId, token]);
 
-  // Reusable Section card
-  const Section = ({ icon, title, children }: any) => (
-    <View className="bg-white p-5 rounded-2xl shadow-md mb-5">
-      <View className="flex-row items-center mb-3">
-        <Ionicons name={icon} size={22} color="#6366F1" />
-        <Text className="ml-2 text-lg font-semibold text-gray-800">
-          {title}
+  const handleSMS = () => {
+    if (userData?.contactNumbers?.[0]) {
+      Linking.openURL(`sms:${userData.contactNumbers[0]}`);
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (userData?.contactNumbers?.[0]) {
+      Linking.openURL(`whatsapp://send?phone=${userData.contactNumbers[0]}`);
+    }
+  };
+
+  const handleEmail = () => {
+    if (userData?.email) {
+      Linking.openURL(`mailto:${userData.email}`);
+    }
+  };
+
+  const handleCall = () => {
+    if (userData?.contactNumbers?.[0]) {
+      Linking.openURL(`tel:${userData.contactNumbers[0]}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
+        <ActivityIndicator size="large" color="#5B4CCC" />
+        <Text className="mt-4 text-[#8E8E8E] font-poppins">
+          Loading employee details...
         </Text>
       </View>
-      {children}
-    </View>
-  );
+    );
+  }
+
+  if (!userData) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
+        <Text className="text-[#8E8E8E] font-poppins">Employee not found</Text>
+      </View>
+    );
+  }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white dark:bg-black">
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pb-6 pt-16 px-4 flex-row items-center justify-between"
-          style={{
-            // paddingTop: Platform.OS === "ios" ? 64 : 40, // ← iOS-specific padding
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-          }}
-        >
+      <View className="px-4 pt-16 pb-4">
+        <View className="flex-row items-center justify-between mb-6">
+          <TouchableOpacity onPress={() => router.back()}>
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <Text className="text-xl font-dmBold text-black dark:text-white">
+            Profile
+          </Text>
+          <View className="w-6" />
+        </View>
+
+        {/* Avatar & Name */}
+        <View className="items-center mb-6">
+          <GlobalAvatar
+            name={userData?.fullName || ""}
+            size={120}
+            fontSize={40}
+            borderRadius={60}
+            className="mb-4"
+          />
+          <Text className="text-2xl font-dmBold text-black dark:text-white mb-1">
+            {userData?.fullName}
+          </Text>
+          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191]">
+            {userData?.role || "Employee"}
+          </Text>
+        </View>
+
+        {/* Action Buttons */}
+        <View className="flex-row justify-center gap-4 mb-6">
           <TouchableOpacity
-            onPress={() => router.push("/centralEmployeeDirectory")}
-            className="flex-row items-center"
-            activeOpacity={0.7}
+            onPress={handleSMS}
+            className="w-16 h-16 rounded-2xl bg-[#E9D7FE] dark:bg-[#4C1D95] items-center justify-center"
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-bold text-white ml-3">
-              Employee Information
-            </Text>
+            <HugeiconsIcon
+              icon={Message01Icon}
+              size={24}
+              color={isDarkMode ? "#C4B5FD" : "#7C3AED"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleWhatsApp}
+            className="w-16 h-16 rounded-2xl bg-[#D1FAE5] dark:bg-[#064E3B] items-center justify-center"
+          >
+            <HugeiconsIcon
+              icon={Chatting01Icon}
+              size={24}
+              color={isDarkMode ? "#6EE7B7" : "#059669"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleEmail}
+            className="w-16 h-16 rounded-2xl bg-[#DBEAFE] dark:bg-[#1E3A8A] items-center justify-center"
+          >
+            <HugeiconsIcon
+              icon={Mail01Icon}
+              size={24}
+              color={isDarkMode ? "#93C5FD" : "#2563EB"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleCall}
+            className="w-16 h-16 rounded-2xl bg-[#CFFAFE] dark:bg-[#164E63] items-center justify-center"
+          >
+            <HugeiconsIcon
+              icon={Call02Icon}
+              size={24}
+              color={isDarkMode ? "#67E8F9" : "#0891B2"}
+            />
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
-      {loading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#6366F1" />
-        </View>
-      ) : !user ? (
-        <Text style={{ textAlign: "center", marginTop: 50 }}>
-          User not found
-        </Text>
-      ) : (
-        <ScrollView
-          className="flex-1 px-4 py-4 "
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
-          {/* Profile Card */}
-          <LinearGradient
-            colors={["#EDE9FE", "#FCE7F3"]} // soft lavender → blush pink
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              borderRadius: 16,
-              padding: 24,
-              marginBottom: 24,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.08,
-              shadowRadius: 6,
-              elevation: 3,
-            }}
-          >
-            <Text
-              style={{ fontSize: 22, fontWeight: "bold", color: "#1F2937" }}
+      {/* Tabs */}
+      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525] px-4">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              className="flex-1 items-center pb-3"
+              style={
+                isActive
+                  ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
+                  : {}
+              }
             >
-              {user.fullName}
-            </Text>
-            <Text style={{ fontSize: 16, marginTop: 4, color: "#4B5563" }}>
-              {user.designation} • {user.level}
-            </Text>
-            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
-              Employee Code: W{formatEmployeeCode(user.employeeCode)}
-            </Text>
-            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
-              Username: {user.username}
-            </Text>
-            <Text style={{ fontSize: 14, marginTop: 4, color: "#6B7280" }}>
-              Status: {user.status}
-            </Text>
-          </LinearGradient>
+              <Text
+                className={`text-sm font-poppinsMedium ${
+                  isActive
+                    ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
+                    : "text-gray-400 dark:text-[#606060]"
+                }`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-          {/* Employment Info */}
-          <Section icon="business-outline" title="Employment Info">
-            <View className="space-y-2">
-              <Text className="text-gray-700">
-                <Text className="font-medium">Company: </Text>
-                {user.company}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Joining Date: </Text>
-                {user.joiningDate
-                  ? new Date(user.joiningDate).toLocaleDateString()
-                  : "N/A"}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Created By: </Text>
-                {user.createdBy?.fullName} ({user.createdBy?.role})
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Created At: </Text>
-                {user.createdAt
-                  ? new Date(user.createdAt).toLocaleDateString()
-                  : "N/A"}
-              </Text>
-            </View>
-          </Section>
-
-          {/* Contact Info */}
-          <Section icon="call-outline" title="Contact Info">
-            <View className="space-y-2">
-              <Text className="text-gray-700">
-                <Text className="font-medium">Official Email: </Text>
-                {user.email}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Personal Email: </Text>
-                {user.personalEmail}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Phone Number: </Text>
-                {user.contactNumbers?.join(", ")}
-              </Text>
-              <Text className="text-gray-700 ">
-                <Text className="font-medium">Emergency Contact:</Text>{" "}
-                {user.emergencyContact}
-              </Text>
-            </View>
-          </Section>
-
-          {/* Personal Info */}
-          <Section icon="person-circle-outline" title="Personal Info">
-            <View className="space-y-2">
-              <Text className="text-gray-700">
-                <Text className="font-medium">Gender: </Text>
-                {user.gender}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Birth Date: </Text>
-                {user.birthDate
-                  ? new Date(user.birthDate).toLocaleDateString()
-                  : "N/A"}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Father: </Text>
-
-                {toProperCase(user.fatherName)}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Mother: </Text>
-                {toProperCase(user.motherName)}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Marital: </Text>
-                {user.maritalStatus}
-              </Text>
-              {user.maritalStatus === "Married" && (
-                <Text className="text-gray-700">
-                  <Text className="font-medium">Spouse: </Text>
-                  {toProperCase(user.spouseName)}
-                </Text>
-              )}
-              <Text className="text-gray-700">
-                <Text className="font-medium">Address: </Text>
-                {toProperCase(user.homeAddress)}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">Blood Group: </Text>
-                {user.bloodGroup}
-              </Text>
-            </View>
-          </Section>
-
-          {/* Identity Info */}
-          <Section icon="id-card-outline" title="Identity">
-            <View className="space-y-2">
-              <Text className="text-gray-700">
-                <Text className="font-medium">Aadhar: </Text>
-                {user.aadhar}
-              </Text>
-              <Text className="text-gray-700">
-                <Text className="font-medium">PAN: </Text>
-                {user.pan}
-              </Text>
-            </View>
-          </Section>
-
-          {/* Education */}
-          <Section icon="school-outline" title="Education">
-            {user.education?.length > 0 ? (
-              user.education.map((edu: any, i: number) => (
-                <View
-                  key={i}
-                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
-                >
-                  <Text className="text-gray-900 font-medium">
-                    {edu.qualification}
-                  </Text>
-                  <Text className="text-gray-600">{edu.college}</Text>
-                  <Text className="text-gray-500 text-sm mt-1">
-                    {edu.graduationYear}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text className="text-gray-500">No education records</Text>
-            )}
-          </Section>
-
-          {/* Experience */}
-          <Section icon="briefcase-outline" title="Experience">
-            {user.experience?.length > 0 ? (
-              user.experience.map((exp: any, i: number) => (
-                <View
-                  key={i}
-                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
-                >
-                  <Text className="text-gray-900 font-medium">
-                    {exp.company}
-                  </Text>
-                  <Text className="text-gray-600">{exp.designation}</Text>
-                  <Text className="text-gray-500 text-sm mt-1">
-                    {exp.fromDate
-                      ? new Date(exp.fromDate).toLocaleDateString()
-                      : "?"}{" "}
-                    -{" "}
-                    {exp.toDate
-                      ? new Date(exp.toDate).toLocaleDateString()
-                      : "Present"}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text className="text-gray-500">No past experience</Text>
-            )}
-          </Section>
-
-          {/* Additional Info */}
-          <Section icon="information-circle-outline" title="Additional Info">
-            {user.additionalInfo?.length > 0 ? (
-              user.additionalInfo.map((info: string, i: number) => (
-                <View
-                  key={i}
-                  className="bg-gray-50 p-3 rounded-xl mb-3 border border-gray-100"
-                >
-                  <Text className="text-gray-700">{info}</Text>
-                </View>
-              ))
-            ) : (
-              <Text className="text-gray-500">No additional info</Text>
-            )}
-          </Section>
-        </ScrollView>
-      )}
+      {/* Tab Content */}
+      {activeTab === "Profile" && <AboutTab userData={userData} />}
+      {activeTab === "Projects" && <ProjectsTab userData={userData} />}
+      {activeTab === "Reviews" && <ReviewsTab userData={userData} />}
     </View>
   );
 };
 
-export default UserDetails;
+export default EmployeeDetail;
