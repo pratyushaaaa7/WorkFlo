@@ -21,35 +21,35 @@ const ProjectCard = memo(
     // Avatar color palette
     const avatarColors = [
       {
-        bg: "bg-indigo-100 dark:bg-indigo-900/50",
+        bg: "bg-indigo-100 dark:bg-indigo-900",
         text: "text-indigo-600 dark:text-indigo-300",
       },
       {
-        bg: "bg-emerald-100 dark:bg-emerald-900/50",
+        bg: "bg-emerald-100 dark:bg-emerald-900",
         text: "text-emerald-600 dark:text-emerald-300",
       },
       {
-        bg: "bg-orange-100 dark:bg-orange-900/50",
-        text: "text-orange-600 dark:text-orange-300",
+        bg: "bg-orange-100 dark:bg-orange-800",
+        text: "text-orange-600 dark:text-orange-200",
       },
       {
-        bg: "bg-pink-100 dark:bg-pink-900/50",
+        bg: "bg-pink-100 dark:bg-pink-900",
         text: "text-pink-600 dark:text-pink-300",
       },
       {
-        bg: "bg-cyan-100 dark:bg-cyan-900/50",
+        bg: "bg-cyan-100 dark:bg-cyan-900",
         text: "text-cyan-600 dark:text-cyan-300",
       },
       {
-        bg: "bg-amber-100 dark:bg-amber-900/50",
-        text: "text-amber-600 dark:text-amber-300",
+        bg: "bg-amber-100 dark:bg-amber-800",
+        text: "text-amber-600 dark:text-amber-200",
       },
       {
-        bg: "bg-violet-100 dark:bg-violet-900/50",
+        bg: "bg-violet-100 dark:bg-violet-900",
         text: "text-violet-600 dark:text-violet-300",
       },
       {
-        bg: "bg-rose-100 dark:bg-rose-900/50",
+        bg: "bg-rose-100 dark:bg-rose-900",
         text: "text-rose-600 dark:text-rose-300",
       },
     ];
@@ -182,7 +182,7 @@ const ProjectCard = memo(
               team.map((member, index) => {
                 const avatarColor = getAvatarColor(
                   member.fullName || "",
-                  index
+                  index,
                 );
                 return (
                   <View
@@ -206,11 +206,7 @@ const ProjectCard = memo(
 
           {/* Deadline/Start Date */}
           <View className="flex-row items-center ">
-            <HugeiconsIcon
-              icon={Calendar03Icon}
-              size={14}
-              color="#DF5B5B"
-            />
+            <HugeiconsIcon icon={Calendar03Icon} size={14} color="#DF5B5B" />
             <Text
               className={`text-[#DF5B5B] text-[10px] font-poppinsMedium ml-1.5 mt-0.5`}
             >
@@ -225,7 +221,7 @@ const ProjectCard = memo(
   },
   (prev, next) =>
     prev.project._id === next.project._id &&
-    prev.project.status === next.project.status
+    prev.project.status === next.project.status,
 );
 
 const ProjectsTab = () => {
@@ -380,8 +376,8 @@ const ProjectsTab = () => {
                 borderColor: isActive
                   ? filter.borderColor
                   : isDarkMode
-                  ? "#252525"
-                  : "#E5E7EB",
+                    ? "#252525"
+                    : "#E5E7EB",
               }}
             >
               <View
@@ -410,8 +406,8 @@ const ProjectsTab = () => {
                   color: isActive
                     ? filter.color
                     : isDarkMode
-                    ? "#919191"
-                    : "#6B7280",
+                      ? "#919191"
+                      : "#6B7280",
                 }}
               >
                 {filter.label}
