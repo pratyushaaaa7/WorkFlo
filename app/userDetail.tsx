@@ -22,7 +22,9 @@ import {
   useColorScheme,
 } from "react-native";
 import ReactNativeModal from "react-native-modal";
+import Toast from "react-native-toast-message";
 import VeryBlackStar from "../assets/images/Revised Black Star.png";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import api from "../lib/api";
 
 const UserDetail = () => {
@@ -44,6 +46,9 @@ const UserDetail = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [newStars, setNewStars] = useState<number | null>(null);
   const [newNote, setNewNote] = useState("");
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // fetch latest user details from backend using ID
   useFocusEffect(
@@ -102,6 +107,40 @@ const UserDetail = () => {
     }
   };
 
+  // 🗑️ Delete User
+  const handleDelete = async () => {
+    if (!token || deleting) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/user-directory/${userData._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "User deleted successfully",
+        position: "bottom",
+      });
+
+      setDeleteModalVisible(false);
+      // Redirect with refresh signal
+      router.replace({
+        pathname: "/centralUserDirectory" as any,
+        params: { refresh: Date.now().toString() },
+      });
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to delete user",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Helper render for Info Fields
   const renderInfoField = (
     label: string,
@@ -140,7 +179,7 @@ const UserDetail = () => {
           </Text>
         </View>
         <View className="flex-row items-center pr-3 gap-5">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
             <HugeiconsIcon
               icon={Delete03Icon}
               size={24}
@@ -588,6 +627,14 @@ const UserDetail = () => {
           </View>
         </View>
       </ReactNativeModal>
+
+      {/* 🔹 DELETE CONFIRMATION MODAL */}
+      <DeleteConfirmationModal
+        isVisible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </View>
   );
 };
