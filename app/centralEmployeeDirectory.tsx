@@ -265,22 +265,24 @@ export default function CentralEmployeeDirectory() {
               color={isDarkMode ? "#FFF" : "#000"}
             />
           </TouchableOpacity>
-          <TouchableOpacity onPress={downloadExcel} disabled={downloading}>
-            {downloading ? (
-              <ActivityIndicator
-                size="small"
-                color={isDarkMode ? "#FFF" : "#000"}
-              />
-            ) : (
-              <View className="flex-row items-center">
-                <HugeiconsIcon
-                  icon={Xsl01Icon}
-                  size={24}
+          {auth?.user?.role === "admin" && (
+            <TouchableOpacity onPress={downloadExcel} disabled={downloading}>
+              {downloading ? (
+                <ActivityIndicator
+                  size="small"
                   color={isDarkMode ? "#FFF" : "#000"}
                 />
-              </View>
-            )}
-          </TouchableOpacity>
+              ) : (
+                <View className="flex-row items-center">
+                  <HugeiconsIcon
+                    icon={Xsl01Icon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -340,21 +342,23 @@ export default function CentralEmployeeDirectory() {
         )}
       </View>
 
-      {/* 🔹 FAB (Purple +) */}
-      <TouchableOpacity
-        onPress={() => router.push("/registerUser")}
-        activeOpacity={0.9}
-        style={{
-          shadowColor: "#5B4CCC",
-          shadowOffset: { width: 0, height: 15 },
-          shadowOpacity: 5,
-          shadowRadius: 40,
-          elevation: 90,
-        }}
-        className="absolute bottom-14 right-6 w-14 h-14 bg-[#5B4CCC] rounded-full items-center justify-center"
-      >
-        <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
-      </TouchableOpacity>
+      {/* 🔹 FAB (Purple +) - Admin Only */}
+      {auth?.user?.role === "admin" && (
+        <TouchableOpacity
+          onPress={() => router.push("/registerUser")}
+          activeOpacity={0.9}
+          style={{
+            shadowColor: "#5B4CCC",
+            shadowOffset: { width: 0, height: 15 },
+            shadowOpacity: 5,
+            shadowRadius: 40,
+            elevation: 90,
+          }}
+          className="absolute bottom-14 right-6 w-14 h-14 bg-[#5B4CCC] rounded-full items-center justify-center"
+        >
+          <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
