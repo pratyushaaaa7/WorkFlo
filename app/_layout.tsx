@@ -144,13 +144,13 @@ function AppLayout() {
             />
           ),
         },
-        {
-          name: "registerUser",
-          label: "Register User",
-          icon: ({ color, size }: any) => (
-            <Ionicons name="person-add-outline" size={size} color={color} />
-          ),
-        },
+        // {
+        //   name: "registerUser",
+        //   label: "Register User",
+        //   icon: ({ color, size }: any) => (
+        //     <Ionicons name="person-add-outline" size={size} color={color} />
+        //   ),
+        // },
       );
     }
     return items;
