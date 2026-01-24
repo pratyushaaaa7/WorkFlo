@@ -187,10 +187,10 @@ const ProjectCard = memo(
                 return (
                   <View
                     key={index}
-                    className={`w-8 h-8 rounded-full border-2 border-white dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
+                    className={`w-10 h-10 rounded-full border-2 border-[#F0F3F7] dark:border-[#1A1A1A] ${avatarColor.bg} items-center justify-center -mr-3`}
                   >
                     <Text
-                      className={`text-[10px] font-poppinsSemiBold ${avatarColor.text}`}
+                      className={`text-[11px] font-poppinsSemiBold ${avatarColor.text}`}
                     >
                       {member.fullName?.substring(0, 2).toUpperCase() || "??"}
                     </Text>
