@@ -38,6 +38,7 @@ type DynamicInputFieldProps = {
     list: string[],
   ) => void;
   rawPhoneValues?: React.MutableRefObject<string[]>;
+  isDataLoaded?: boolean;
 };
 
 const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
@@ -47,6 +48,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
   updateField,
   addField,
   rawPhoneValues,
+  isDataLoaded,
 }) => {
   const isDarkMode = useColorScheme() === "dark";
 
@@ -86,7 +88,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
             <View style={{ width: "100%" }}>
               {/* @ts-ignore: PhoneInput type mismatch in current environment */}
               <PhoneInput
-                key={`${index}-${item}`}
+                key={`${isDataLoaded ? "loaded" : "loading"}-${index}`}
                 defaultValue={
                   item.startsWith("+91") ? item.replace("+91", "") : item
                 }
@@ -205,6 +207,7 @@ const AddUserForm: React.FC = () => {
   const parsedUser = userData
     ? JSON.parse(Array.isArray(userData) ? userData[0] : (userData as string))
     : null;
+  const [isDataLoaded, setIsDataLoaded] = useState(!userData);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -256,6 +259,7 @@ const AddUserForm: React.FC = () => {
           rawPhoneValues.current = uniqueNumbers.map((n) =>
             n.startsWith("+91") ? n.replace("+91", "") : n,
           );
+          setIsDataLoaded(true);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -672,6 +676,7 @@ const AddUserForm: React.FC = () => {
             updateField={updateField}
             addField={addField}
             rawPhoneValues={rawPhoneValues}
+            isDataLoaded={isDataLoaded}
           />
         ))}
       </KeyboardAwareScrollView>
