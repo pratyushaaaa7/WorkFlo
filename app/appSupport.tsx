@@ -1,16 +1,18 @@
+import api from "@/lib/api";
+import { Ionicons } from "@expo/vector-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Add01Icon } from "@hugeicons/core-free-icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import api from "@/lib/api";
 import Toast from "react-native-toast-message";
+import { useAuth } from "../context/AuthContext";
 
 const AppSupport = () => {
   const router = useRouter();
@@ -86,7 +88,7 @@ const AppSupport = () => {
               {item.type || "Support Ticket"}
             </Text>
           </View>
-           <View className="flex-row items-center">
+          <View className="flex-row items-center">
             <Ionicons name="person-circle-outline" size={16} color="#6b7280" />
             <Text className="ml-1 text-xs text-gray-500">
               {item.raisedBy?.fullName || item.raisedBy?.username || "Unknown"}
@@ -98,7 +100,6 @@ const AppSupport = () => {
           <Text className="text-gray-600 font-medium ">
             {item.relatedPage || "N/A"}
           </Text>
-         
         </View>
 
         <Text
@@ -197,24 +198,17 @@ const AppSupport = () => {
       {/* Floating + Button */}
       <TouchableOpacity
         onPress={() => router.push("/appSupportForm")}
+        activeOpacity={0.9}
         style={{
-          position: "absolute",
-          bottom: 50,
-          right: 30,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: "#4F46E5",
-          alignItems: "center",
-          justifyContent: "center",
-          elevation: 8,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 5,
+          shadowColor: "#5B4CCC",
+          shadowOffset: { width: 0, height: 15 },
+          shadowOpacity: 5,
+          shadowRadius: 40,
+          elevation: 90,
         }}
+        className="absolute bottom-14 right-6 w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center"
       >
-        <Ionicons name="add" size={28} color="white" />
+        <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
       </TouchableOpacity>
     </View>
   );

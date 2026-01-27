@@ -5,7 +5,6 @@ import moment from "moment";
 import React, { useState } from "react";
 import {
   Image,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -27,10 +26,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData }) => {
   const averageRating = userData?.averageRating || 0;
 
   return (
-    <ScrollView
-      className="flex-1 px-5 pt-4"
-      showsVerticalScrollIndicator={false}
-    >
+    <View className="px-5 pt-4">
       {reviews.length > 0 ? (
         <>
           {/* Rating Summary */}
@@ -131,7 +127,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData }) => {
         </View>
       )}
       <View className="h-20" />
-    </ScrollView>
+    </View>
   );
 };
 

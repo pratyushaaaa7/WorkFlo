@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, Text, View, useColorScheme } from "react-native";
+import { Text, View, useColorScheme } from "react-native";
 
 interface ProjectsTabProps {
   userData: any;
@@ -12,10 +12,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
   const projects = userData?.projects || [];
 
   return (
-    <ScrollView
-      className="flex-1 px-5 pt-4"
-      showsVerticalScrollIndicator={false}
-    >
+    <View className="px-5 pt-4">
       {projects.length > 0 ? (
         projects.map((project: any, index: number) => (
           <View
@@ -52,7 +49,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
         </View>
       )}
       <View className="h-20" />
-    </ScrollView>
+    </View>
   );
 };
 

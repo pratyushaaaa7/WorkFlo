@@ -1,15 +1,19 @@
 import {
   ArrowLeft01Icon,
+  BubbleChatIcon,
   Call02Icon,
-  Chatting01Icon,
+  Camera01Icon,
   Mail01Icon,
-  Message01Icon,
+  PencilEdit02Icon,
+  Share04Icon,
+  WhatsappIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Linking,
   Text,
   TouchableOpacity,
@@ -33,6 +37,25 @@ const EmployeeDetail = () => {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Profile");
+  const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
+
+  // Scroll Value for Animation
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<any>(null);
+
+  const handleSnap = (e: any) => {
+    const y = e.nativeEvent.contentOffset.y;
+    if (y > 0 && y < profileHeaderHeight) {
+      if (y < profileHeaderHeight / 2) {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      } else {
+        scrollViewRef.current?.scrollTo({
+          y: profileHeaderHeight,
+          animated: true,
+        });
+      }
+    }
+  };
 
   const tabs = ["Profile", "Projects", "Reviews"];
 
@@ -97,122 +120,240 @@ const EmployeeDetail = () => {
     );
   }
 
+  // Header Animations
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [0, 40],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const headerNameOpacity = scrollY.interpolate({
+    inputRange: [60, 100],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const headerNameTranslateY = scrollY.interpolate({
+    inputRange: [60, 100],
+    outputRange: [10, 0],
+    extrapolate: "clamp",
+  });
+
+  const HEADER_HEIGHT = 100;
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
-      {/* Header */}
-      <View className="px-4 pt-16 pb-4">
-        <View className="flex-row items-center justify-between mb-6">
-          <TouchableOpacity onPress={() => router.back()}>
+      {/* Fixed Sticky Header Bar (Absolute) */}
+      <View
+        style={{ height: HEADER_HEIGHT }}
+        className="absolute top-0 left-0 right-0 z-20 bg-white dark:bg-black px-4 pt-12 pb-4 border-b border-transparent"
+      >
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity onPress={() => router.back()} className="w-10">
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}
               color={isDarkMode ? "#FFF" : "#000"}
             />
           </TouchableOpacity>
-          <Text className="text-xl font-dmBold text-black dark:text-white">
-            Profile
-          </Text>
-          <View className="w-6" />
-        </View>
 
-        {/* Avatar & Name */}
-        <View className="items-center mb-6">
+          {/* Center Title Area */}
+          <View className="flex-1  h-8">
+            {/* Original 'Profile' Title */}
+            <Animated.View
+              style={{
+                opacity: headerTitleOpacity,
+                position: "absolute",
+                left: 0,
+                right: 0,
+              }}
+            >
+              <View className="flex-row justify-between items-center">
+                <View>
+                  <Text className="text-xl font-dmBold text-black dark:text-white">
+                    Profile
+                  </Text>
+                </View>
+                <View className="flex-row gap-2 ">
+                  <TouchableOpacity
+                  // onPress={() => router.back()}
+                  // className="w-10"
+                  >
+                    <HugeiconsIcon
+                      icon={Share04Icon}
+                      size={24}
+                      color={isDarkMode ? "#FFF" : "#000"}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                  // onPress={() => router.back()}
+                  // className="w-10"
+                  >
+                    <HugeiconsIcon
+                      icon={Camera01Icon}
+                      size={24}
+                      color={isDarkMode ? "#FFF" : "#000"}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                  // onPress={() => router.back()}
+                  // className="w-10"
+                  >
+                    <HugeiconsIcon
+                      icon={PencilEdit02Icon}
+                      size={24}
+                      color={isDarkMode ? "#FFF" : "#000"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Animated.View>
+
+            {/* New 'Employee Name' Title */}
+            <Animated.View
+              style={{
+                opacity: headerNameOpacity,
+                transform: [{ translateY: headerNameTranslateY }],
+                position: "absolute",
+                left: 0,
+                right: 0,
+                alignItems: "center",
+              }}
+            >
+              <Text className="text-lg font-dmBold text-black dark:text-white">
+                {userData?.fullName}
+              </Text>
+            </Animated.View>
+          </View>
+
+          <View className="w-10" />
+        </View>
+      </View>
+
+      {/* Main Content ScrollView */}
+      <Animated.ScrollView
+        ref={scrollViewRef}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
+        stickyHeaderIndices={[1]} // Index 1 is the Tabs View
+        style={{ marginTop: HEADER_HEIGHT }}
+        showsVerticalScrollIndicator={false}
+        onScrollEndDrag={handleSnap}
+        onMomentumScrollEnd={handleSnap}
+      >
+        {/* Child 0: Profile Info (Avatar, Name, Buttons) - Scrolls Away */}
+        <View
+          onLayout={(e) => setProfileHeaderHeight(e.nativeEvent.layout.height)}
+          className="items-center px-4 pb-6 bg-white dark:bg-black pt-4"
+        >
           <GlobalAvatar
             name={userData?.fullName || ""}
             size={120}
             fontSize={40}
-            borderRadius={60}
+            borderRadius={32}
             className="mb-4"
           />
-          <Text className="text-2xl font-dmBold text-black dark:text-white mb-1">
+          <Text className="text-2xl font-dmBold text-black dark:text-white mb-1 text-center">
             {userData?.fullName}
           </Text>
-          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191]">
-            {userData?.role || "Employee"}
+          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] mb-6">
+            {userData?.designation}
           </Text>
-        </View>
 
-        {/* Action Buttons */}
-        <View className="flex-row justify-center gap-4 mb-6">
-          <TouchableOpacity
-            onPress={handleSMS}
-            className="w-16 h-16 rounded-2xl bg-[#E9D7FE] dark:bg-[#4C1D95] items-center justify-center"
-          >
-            <HugeiconsIcon
-              icon={Message01Icon}
-              size={24}
-              color={isDarkMode ? "#C4B5FD" : "#7C3AED"}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleWhatsApp}
-            className="w-16 h-16 rounded-2xl bg-[#D1FAE5] dark:bg-[#064E3B] items-center justify-center"
-          >
-            <HugeiconsIcon
-              icon={Chatting01Icon}
-              size={24}
-              color={isDarkMode ? "#6EE7B7" : "#059669"}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleEmail}
-            className="w-16 h-16 rounded-2xl bg-[#DBEAFE] dark:bg-[#1E3A8A] items-center justify-center"
-          >
-            <HugeiconsIcon
-              icon={Mail01Icon}
-              size={24}
-              color={isDarkMode ? "#93C5FD" : "#2563EB"}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleCall}
-            className="w-16 h-16 rounded-2xl bg-[#CFFAFE] dark:bg-[#164E63] items-center justify-center"
-          >
-            <HugeiconsIcon
-              icon={Call02Icon}
-              size={24}
-              color={isDarkMode ? "#67E8F9" : "#0891B2"}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Tabs */}
-      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525] px-4">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab;
-          return (
+          {/* Action Buttons */}
+          <View className="flex-row justify-center gap-4">
             <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className="flex-1 items-center pb-3"
-              style={
-                isActive
-                  ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
-                  : {}
-              }
+              onPress={handleSMS}
+              className="w-16 h-16 rounded-2xl bg-[#E5D4EB] items-center justify-center"
             >
-              <Text
-                className={`text-sm font-poppinsMedium ${
-                  isActive
-                    ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
-                    : "text-gray-400 dark:text-[#606060]"
-                }`}
-              >
-                {tab}
-              </Text>
+              <HugeiconsIcon
+                icon={BubbleChatIcon}
+                size={24}
+                color={"#7122A8"}
+                stroke={2}
+              />
             </TouchableOpacity>
-          );
-        })}
-      </View>
 
-      {/* Tab Content */}
-      {activeTab === "Profile" && <AboutTab userData={userData} />}
-      {activeTab === "Projects" && <ProjectsTab userData={userData} />}
-      {activeTab === "Reviews" && <ReviewsTab userData={userData} />}
+            <TouchableOpacity
+              onPress={handleWhatsApp}
+              className="w-16 h-16 rounded-2xl bg-[#E3F8EB] items-center justify-center"
+            >
+              <HugeiconsIcon
+                icon={WhatsappIcon}
+                size={24}
+                color={"#17825A"}
+                stroke={2}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleEmail}
+              className="w-16 h-16 rounded-2xl bg-[#E0F7FE] items-center justify-center"
+            >
+              <HugeiconsIcon
+                icon={Mail01Icon}
+                size={24}
+                color={"#0A8CAD"}
+                stroke={2}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleCall}
+              className="w-16 h-16 rounded-2xl bg-[#E0ECFE] items-center justify-center"
+            >
+              <HugeiconsIcon
+                icon={Call02Icon}
+                size={24}
+                color={"#0073CB"}
+                stroke={2}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Child 1: Tabs - Sticky Header */}
+        <View className="bg-white dark:bg-black pt-2 pb-0 z-10">
+          <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525]">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setActiveTab(tab)}
+                  className="flex-1 items-center pb-3"
+                  style={
+                    isActive
+                      ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
+                      : {}
+                  }
+                >
+                  <Text
+                    className={`text-sm font-poppinsMedium ${
+                      isActive
+                        ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
+                        : "text-[#454545] dark:text-[#BBBBBB]"
+                    }`}
+                  >
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Child 2: Tab Content */}
+        <View className="bg-white dark:bg-black flex-1">
+          {activeTab === "Profile" && <AboutTab userData={userData} />}
+          {activeTab === "Projects" && <ProjectsTab userData={userData} />}
+          {activeTab === "Reviews" && <ReviewsTab userData={userData} />}
+          <View className="h-24" />
+        </View>
+      </Animated.ScrollView>
     </View>
   );
 };

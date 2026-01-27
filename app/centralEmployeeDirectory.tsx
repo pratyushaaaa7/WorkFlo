@@ -354,7 +354,7 @@ export default function CentralEmployeeDirectory() {
             shadowRadius: 40,
             elevation: 90,
           }}
-          className="absolute bottom-14 right-6 w-14 h-14 bg-[#5B4CCC] rounded-full items-center justify-center"
+          className="absolute bottom-14 right-6 w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center"
         >
           <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
         </TouchableOpacity>

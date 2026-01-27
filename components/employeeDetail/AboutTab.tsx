@@ -1,6 +1,6 @@
 import moment from "moment";
 import React from "react";
-import { ScrollView, Text, View, useColorScheme } from "react-native";
+import { Text, View, useColorScheme } from "react-native";
 
 interface AboutTabProps {
   userData: any;
@@ -45,10 +45,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   );
 
   return (
-    <ScrollView
-      className="flex-1 px-5 pt-4"
-      showsVerticalScrollIndicator={false}
-    >
+    <View className="px-5 pt-4">
       {/* Basic Information */}
       <Section title="Basic Information">
         {renderInfoField("Full Name", userData?.fullName)}
@@ -202,7 +199,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       )}
 
       <View className="h-20" />
-    </ScrollView>
+    </View>
   );
 };
 
