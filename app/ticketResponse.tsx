@@ -3,14 +3,15 @@ import { ArrowLeft01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Image,
   Platform,
+  Pressable,
   ScrollView,
   StatusBar,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -20,6 +21,98 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
+
+const CustomToggle = ({
+  value,
+  onValueChange,
+}: {
+  value: boolean;
+  onValueChange: (val: boolean) => void;
+}) => {
+  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const stretchValue = useRef(new Animated.Value(0)).current;
+  const isDarkMode = useColorScheme() === "dark";
+
+  useEffect(() => {
+    Animated.timing(animatedValue, {
+      toValue: value ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [value]);
+
+  const backgroundColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [isDarkMode ? "#333" : "#D1D5DB", "#16A34A"],
+  });
+
+  const thumbWidth = stretchValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [22, 30],
+  });
+
+  const translateX = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [3, 48 - 22 - 3],
+  });
+
+  const stretchOffset = stretchValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -8],
+  });
+
+  // Calculate final translation: base position + (if checked, move left when stretching)
+  const finalTranslateX = Animated.add(
+    translateX,
+    Animated.multiply(animatedValue, stretchOffset),
+  );
+
+  const handlePressIn = () => {
+    Animated.timing(stretchValue, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(stretchValue, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+    onValueChange(!value);
+  };
+
+  return (
+    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
+      <Animated.View
+        style={{
+          width: 48,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor,
+          justifyContent: "center",
+        }}
+      >
+        <Animated.View
+          style={{
+            width: thumbWidth,
+            height: 22,
+            borderRadius: 11,
+            backgroundColor: "#FFF",
+            transform: [{ translateX: finalTranslateX }],
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 1.5,
+            elevation: 3,
+          }}
+        />
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function TicketDetails() {
   const router = useRouter();
@@ -151,24 +244,14 @@ export default function TicketDetails() {
             <Text className="text-base font-dmMedium text-black dark:text-white">
               Fixed
             </Text>
-            <Switch
-              value={isFixed}
-              onValueChange={setIsFixed}
-              trackColor={{ false: "#D1D5DB", true: "#34D399" }}
-              thumbColor={Platform.OS === "ios" ? undefined : "#FFF"}
-            />
+            <CustomToggle value={isFixed} onValueChange={setIsFixed} />
           </View>
 
           <View className="flex-row justify-between items-center">
             <Text className="text-base font-dmMedium text-black dark:text-white">
               Published
             </Text>
-            <Switch
-              value={isPublished}
-              onValueChange={setIsPublished}
-              trackColor={{ false: "#D1D5DB", true: "#34D399" }}
-              thumbColor={Platform.OS === "ios" ? undefined : "#FFF"}
-            />
+            <CustomToggle value={isPublished} onValueChange={setIsPublished} />
           </View>
         </View>
 
