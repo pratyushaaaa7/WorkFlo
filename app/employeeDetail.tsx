@@ -265,53 +265,61 @@ const EmployeeDetail = () => {
 
           {/* Action Buttons */}
           <View className="flex-row justify-center gap-4">
-            <TouchableOpacity
-              onPress={handleSMS}
-              className="w-16 h-16 rounded-2xl bg-[#E5D4EB] items-center justify-center"
-            >
-              <HugeiconsIcon
-                icon={BubbleChatIcon}
-                size={24}
-                color={"#7122A8"}
-                stroke={2}
-              />
-            </TouchableOpacity>
+            {userData?.contactNumbers?.[0] && (
+              <>
+                <TouchableOpacity
+                  onPress={handleSMS}
+                  className="w-16 h-16 rounded-2xl bg-[#E5D4EB] items-center justify-center"
+                >
+                  <HugeiconsIcon
+                    icon={BubbleChatIcon}
+                    size={24}
+                    color={"#7122A8"}
+                    stroke={2}
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleWhatsApp}
-              className="w-16 h-16 rounded-2xl bg-[#E3F8EB] items-center justify-center"
-            >
-              <HugeiconsIcon
-                icon={WhatsappIcon}
-                size={24}
-                color={"#17825A"}
-                stroke={2}
-              />
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleWhatsApp}
+                  className="w-16 h-16 rounded-2xl bg-[#E3F8EB] items-center justify-center"
+                >
+                  <HugeiconsIcon
+                    icon={WhatsappIcon}
+                    size={24}
+                    color={"#17825A"}
+                    stroke={2}
+                  />
+                </TouchableOpacity>
+              </>
+            )}
 
-            <TouchableOpacity
-              onPress={handleEmail}
-              className="w-16 h-16 rounded-2xl bg-[#E0F7FE] items-center justify-center"
-            >
-              <HugeiconsIcon
-                icon={Mail01Icon}
-                size={24}
-                color={"#0A8CAD"}
-                stroke={2}
-              />
-            </TouchableOpacity>
+            {userData?.email && (
+              <TouchableOpacity
+                onPress={handleEmail}
+                className="w-16 h-16 rounded-2xl bg-[#E0F7FE] items-center justify-center"
+              >
+                <HugeiconsIcon
+                  icon={Mail01Icon}
+                  size={24}
+                  color={"#0A8CAD"}
+                  stroke={2}
+                />
+              </TouchableOpacity>
+            )}
 
-            <TouchableOpacity
-              onPress={handleCall}
-              className="w-16 h-16 rounded-2xl bg-[#E0ECFE] items-center justify-center"
-            >
-              <HugeiconsIcon
-                icon={Call02Icon}
-                size={24}
-                color={"#0073CB"}
-                stroke={2}
-              />
-            </TouchableOpacity>
+            {userData?.contactNumbers?.[0] && (
+              <TouchableOpacity
+                onPress={handleCall}
+                className="w-16 h-16 rounded-2xl bg-[#E0ECFE] items-center justify-center"
+              >
+                <HugeiconsIcon
+                  icon={Call02Icon}
+                  size={24}
+                  color={"#0073CB"}
+                  stroke={2}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
