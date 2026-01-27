@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   Calendar03Icon,
+  Cancel01Icon,
   Menu02Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
@@ -10,6 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import moment from "moment";
+import { AnimatePresence, MotiView } from "moti";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,6 +19,7 @@ import {
   RefreshControl,
   StatusBar,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -37,6 +40,8 @@ const AppSupport = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   const fetchTickets = async () => {
     try {
@@ -70,14 +75,34 @@ const AppSupport = () => {
   };
 
   const filteredTickets = useMemo(() => {
-    if (selectedFilter === "All") return tickets;
-    if (selectedFilter === "Open") return tickets.filter((t) => !t.fixed);
-    if (selectedFilter === "UnPublished")
-      return tickets.filter((t) => !t.published);
-    if (selectedFilter === "Published")
-      return tickets.filter((t) => t.published);
-    return tickets;
-  }, [tickets, selectedFilter]);
+    let result = tickets;
+
+    // Filter by category
+    if (selectedFilter === "Open") {
+      result = result.filter((t) => !t.fixed);
+    } else if (selectedFilter === "Unpublished") {
+      result = result.filter((t) => !t.published);
+    } else if (selectedFilter === "Published") {
+      result = result.filter((t) => t.published);
+    }
+
+    // Filter by search query (Raised By, Ticket ID, Related Page)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((t) => {
+        const raisedBy = t.raisedBy?.fullName?.toLowerCase() || "";
+        const ticketId = String(t.ticketId).toLowerCase();
+        const relatedPage = t.relatedPage?.toLowerCase() || "";
+        return (
+          raisedBy.includes(query) ||
+          ticketId.includes(query) ||
+          relatedPage.includes(query)
+        );
+      });
+    }
+
+    return result;
+  }, [tickets, selectedFilter, searchQuery]);
 
   const renderTicket = ({ item }: { item: any }) => {
     const isAdmin = user?.role === "admin";
@@ -177,9 +202,7 @@ const AppSupport = () => {
           <View className="mt-1">
             <Text className="text-[#454545] dark:text-[#919191] text-sm  font-poppins">
               Remark by Dev -{" "}
-              <Text className="text-black dark:text-white">
-                {item.remark}
-              </Text>
+              <Text className="text-black dark:text-white">{item.remark}</Text>
             </Text>
           </View>
         )}
@@ -209,14 +232,52 @@ const AppSupport = () => {
           </Text>
         </View>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
           <HugeiconsIcon
-            icon={Search01Icon}
+            icon={showSearch ? Cancel01Icon : Search01Icon}
             size={24}
             color={isDarkMode ? "#FFF" : "#000"}
           />
         </TouchableOpacity>
       </View>
+
+      {/* 🔹 SEARCH BAR */}
+      <AnimatePresence>
+        {showSearch && (
+          <MotiView
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="px-4 pb-2"
+          >
+            <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333]">
+              <HugeiconsIcon
+                icon={Search01Icon}
+                size={18}
+                color={isDarkMode ? "#A1A1A1" : "#6B7280"}
+              />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search by Raised By, Ticket #, or Page..."
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                className="flex-1 ml-2 text-black dark:text-white font-poppins text-sm"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
 
       {/* 🔹 FILTERS */}
       <View className="py-4">
