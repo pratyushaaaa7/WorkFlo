@@ -36,8 +36,8 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
     title: string;
     children: React.ReactNode;
   }) => (
-    <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
-      <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
+    <View className="mb-8">
+      <Text className="text-xl font-dmBold text-black dark:text-white mb-4">
         {title}
       </Text>
       {children}
@@ -133,10 +133,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Section title="Education">
         {userData?.education && userData.education.length > 0 ? (
           userData.education.map((edu: any, index: number) => (
-            <View
-              key={index}
-              className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 mb-3 border border-[#E0E5EB] dark:border-[#252525]"
-            >
+            <View key={index} className="mb-4">
               <Text className="text-black dark:text-white font-dmBold text-base mb-1">
                 {edu.qualification}
               </Text>
@@ -159,10 +156,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Section title="Work Experience">
         {userData?.experience && userData.experience.length > 0 ? (
           userData.experience.map((exp: any, index: number) => (
-            <View
-              key={index}
-              className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 mb-3 border border-[#E0E5EB] dark:border-[#252525]"
-            >
+            <View key={index} className="mb-4">
               <Text className="text-black dark:text-white font-dmBold text-base mb-1">
                 {exp.company}
               </Text>
@@ -186,10 +180,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       {userData?.additionalInfo && userData.additionalInfo.length > 0 && (
         <Section title="Additional Information">
           {userData.additionalInfo.map((info: string, index: number) => (
-            <View
-              key={index}
-              className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 mb-3 border border-[#E0E5EB] dark:border-[#252525]"
-            >
+            <View key={index} className="mb-3">
               <Text className="text-black dark:text-white font-poppins text-sm">
                 {info}
               </Text>
