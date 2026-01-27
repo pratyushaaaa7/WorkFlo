@@ -29,87 +29,104 @@ const CustomToggle = ({
   value: boolean;
   onValueChange: (val: boolean) => void;
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
   const stretchValue = useRef(new Animated.Value(0)).current;
-  const isDarkMode = useColorScheme() === "dark";
 
   useEffect(() => {
     Animated.timing(animatedValue, {
       toValue: value ? 1 : 0,
-      duration: 250,
-      useNativeDriver: false,
+      duration: 200,
+      useNativeDriver: true,
     }).start();
   }, [value]);
 
-  const backgroundColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [isDarkMode ? "#333" : "#D1D5DB", "#16A34A"],
-  });
-
-  const thumbWidth = stretchValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [22, 30],
-  });
-
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 48 - 22 - 3],
+    outputRange: [3, 23],
   });
 
+  const scaleX = stretchValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.4],
+  });
+
+  // Calculate scaling offset (expansion = 30.8 - 22 = 8.8, half offset = 4.4)
   const stretchOffset = stretchValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -8],
+    outputRange: [0, 4.4],
   });
 
-  // Calculate final translation: base position + (if checked, move left when stretching)
+  // Side modifier: +1 on left, -1 on right
+  const sideModifier = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, -1],
+  });
+
+  // Final X position = base transition + scaling compensation
   const finalTranslateX = Animated.add(
     translateX,
-    Animated.multiply(animatedValue, stretchOffset),
+    Animated.multiply(stretchOffset, sideModifier),
   );
+
+  const greenOpacity = animatedValue;
 
   const handlePressIn = () => {
     Animated.timing(stretchValue, {
       toValue: 1,
-      duration: 150,
-      useNativeDriver: false,
+      duration: 100,
+      useNativeDriver: true,
     }).start();
   };
 
   const handlePressOut = () => {
     Animated.timing(stretchValue, {
       toValue: 0,
-      duration: 150,
-      useNativeDriver: false,
+      duration: 100,
+      useNativeDriver: true,
     }).start();
     onValueChange(!value);
   };
 
   return (
     <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-      <Animated.View
+      <View
         style={{
           width: 48,
           height: 28,
           borderRadius: 14,
-          backgroundColor,
+          backgroundColor: isDarkMode ? "#333" : "#D1D5DB",
+          overflow: "hidden",
           justifyContent: "center",
         }}
       >
         <Animated.View
           style={{
-            width: thumbWidth,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "#16A34A",
+            opacity: greenOpacity,
+          }}
+        />
+
+        <Animated.View
+          style={{
+            width: 22,
             height: 22,
             borderRadius: 11,
             backgroundColor: "#FFF",
-            transform: [{ translateX: finalTranslateX }],
+            transform: [{ translateX: finalTranslateX }, { scaleX }],
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.2,
-            shadowRadius: 1.5,
+            shadowRadius: 2,
             elevation: 3,
           }}
         />
-      </Animated.View>
+      </View>
     </Pressable>
   );
 };
