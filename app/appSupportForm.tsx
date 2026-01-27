@@ -1,27 +1,28 @@
-import React, { useEffect, useState, useContext } from "react";
+import api from "@/lib/api";
+import { ArrowLeft01Icon, Upload01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
-  // ScrollView,
-  Alert,
-  ActivityIndicator,
-  Image,
+  View,
+  useColorScheme,
 } from "react-native";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-// import { AuthContext } from "../context/AuthContext";
-import * as ImagePicker from "expo-image-picker";
-import { useAuth } from "../context/AuthContext";
 import Toast from "react-native-toast-message";
-import api from "@/lib/api";
+import { useAuth } from "../context/AuthContext";
 
 const CreateSupport = () => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const { user, token } = useAuth(); // ✅ Get user directly from context
   // console.log(user)
 
@@ -50,7 +51,7 @@ const CreateSupport = () => {
     if (permissionResult.granted === false) {
       Alert.alert(
         "Permission Required",
-        "You need to allow access to your gallery to attach images."
+        "You need to allow access to your gallery to attach images.",
       );
       return;
     }
@@ -158,172 +159,170 @@ const CreateSupport = () => {
   };
 
   return (
-    <>
-      {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
-          <TouchableOpacity
-            onPress={() => router.push("/(drawer)/appSupport")}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              App Support
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+    <View className="flex-1 bg-white dark:bg-black">
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+
+      {/* 🔹 HEADER */}
+      <View className="flex-row items-center px-4 pb-6 pt-16 bg-white dark:bg-black">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
+        <Text className="text-xl font-dmSemiBold text-black dark:text-white">
+          Raise Ticket
+        </Text>
+      </View>
+
       <KeyboardAwareScrollView
-        className="flex-1 bg-gray-50 "
-        extraScrollHeight={50}
-        enableOnAndroid={true}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        enableOnAndroid
+        extraScrollHeight={60}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Form Card */}
-        <View className="bg-white p-3 mx-2 my-3 rounded-xl shadow-sm border border-gray-100">
-          {/* Raised By & Date Row */}
-          <View className="flex-row justify-between mb-4">
-            {/* Raised By */}
-            <View className="flex-1 mr-2">
-              <Text className="text-gray-600 mb-1">Raised By</Text>
-              <Text
-                className="text-base font-medium text-gray-900"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {user?.fullName || user?.username || "Unknown User"}
-              </Text>
+        <View className="px-4 pt-4">
+          {/* 🔹 MAIN CARD */}
+          <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-[16px] p-5 mb-5 shadow-sm">
+            {/* Raised By & Date Row */}
+            <View className="flex-row justify-between items-center pb-4 border-b border-[#E0E5EB] dark:border-[#413E47] mb-4">
+              <View>
+                <Text className="text-[#6B7280] dark:text-[#919191] text-sm font-dmMedium mb-1">
+                  Raised By
+                </Text>
+                <Text className="text-black dark:text-white text-base font-dmSemiBold">
+                  {user?.fullName || "User Name"}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-[#6B7280] dark:text-[#919191] text-sm font-dmMedium mb-1">
+                  Date
+                </Text>
+                <Text className="text-black dark:text-white text-base font-dmSemiBold">
+                  {date}
+                </Text>
+              </View>
             </View>
 
-            {/* Date */}
-            <View className="items-end">
-              <Text className="text-gray-600 mb-1">Date</Text>
-              <Text className="text-base font-medium text-gray-900">
-                {date}
-              </Text>
-            </View>
-          </View>
-
-          {/* Type Selector */}
-          <Text className="text-gray-600 mb-2">Select Type</Text>
-          <View className="flex-row justify-around mb-4">
-            {typeOptions.map((t) => (
-              <TouchableOpacity
-                key={t}
-                onPress={() => setType(t)}
-                activeOpacity={0.8}
-                className={`px-5 py-2 rounded-full border ${
-                  type === t
-                    ? "bg-indigo-600 border-indigo-600"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-              >
-                <Text
-                  className={`font-semibold ${
-                    type === t ? "text-white" : "text-gray-700"
+            {/* Select Type */}
+            <Text className="text-[#6B7280] dark:text-[#919191]  text-sm font-dmMedium mb-3">
+              Select Type
+            </Text>
+            <View className="flex-row gap-2 mb-6 pb-4 border-b border-[#E0E5EB] dark:border-[#413E47]">
+              {typeOptions.map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => setType(t)}
+                  className={`px-6 py-3 rounded-full border ${
+                    type === t
+                      ? "bg-[#DDE2FB] dark:bg-[#11162F] border-[#5B4CCC]"
+                      : "bg-[#F3F4F6] dark:bg-[#262626] border-[#E5E7EB] dark:border-[#333]"
                   }`}
                 >
-                  {t}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    className={`text-sm font-dmMedium ${
+                      type === t
+                        ? "text-[#5B4CCC]"
+                        : "text-black dark:text-white"
+                    }`}
+                  >
+                    {t}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Related Page Section */}
+            <Text className="text-[#6B7280] dark:text-[#919191] text-sm font-dmMedium mb-2">
+              Related page/Section*
+            </Text>
+            <TextInput
+              placeholder="e.g. ILR Page"
+              placeholderTextColor={isDarkMode ? "#919191" : "#919191"}
+              value={relatedPage}
+              onChangeText={setRelatedPage}
+              className="bg-white dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#333] rounded-xl px-4 py-3 text-black dark:text-white font-poppins text-sm mb-5"
+            />
+
+            {/* Describe Issue */}
+            <Text className="text-[#6B7280] dark:text-[#919191] text-sm font-dmMedium mb-2">
+              Describe your Issue*
+            </Text>
+            <TextInput
+              multiline
+              textAlignVertical="top"
+              placeholder="Description here..."
+              placeholderTextColor={isDarkMode ? "#919191" : "#919191"}
+              value={description}
+              onChangeText={setDescription}
+              className="bg-white dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#333] rounded-xl px-4 py-3 text-black dark:text-white font-poppins text-sm min-h-[120px]"
+            />
           </View>
 
-          {/* Related Page */}
-          <Text className="text-gray-600 mb-2">
-            Related Page / Section <Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            placeholder="e.g. Login Screen, ILR Form, Project List..."
-            placeholderTextColor="#999"
-            value={relatedPage}
-            onChangeText={setRelatedPage}
-            className="border border-gray-300 rounded-xl p-3 mb-4 bg-gray-50 text-gray-900"
-          />
+          {/* 🔹 IMAGES CARD */}
+          <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-[24px] p-5 mb-8">
+            <Text className="text-black dark:text-white text-lg font-dmSemiBold mb-4">
+              Images
+            </Text>
 
-          {/* description */}
-          <Text className="text-gray-600 mb-2">
-            Describe your {type || "issue"}{" "}
-            <Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            multiline
-            scrollEnabled={false} // ✅ KEY FIX
-            textAlignVertical="top"
-            placeholder="Write your description here..."
-            placeholderTextColor="#999"
-            value={description}
-            autoCorrect={true}
-            spellCheck={true}
-            onChangeText={setDescription}
-            className="border border-gray-300 rounded-xl p-3  bg-gray-50 text-gray-900"
-          />
-
-          {/* Optional Image Attachment */}
-          <Text className="text-gray-600 mb-2 mt-4">
-            Attach Image (Optional)
-          </Text>
-
-          {imageUri ? (
-            <View className="mb-4 relative">
-              {/* Image */}
-              <Image
-                source={{ uri: imageUri }}
-                style={{
-                  width: "100%",
-                  height: 250, // good visibility
-                  borderRadius: 10,
-                }}
-                resizeMode="contain"
-              />
-
-              {/* Delete icon on top-right */}
-              <TouchableOpacity
-                onPress={() => setImageUri(null)}
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  right: 10,
-                  // backgroundColor: "rgba(0,0,0,0.5)",
-                  borderRadius: 20,
-                  padding: 6,
-                }}
-                className="bg-red-600"
-              >
-                <Ionicons name="trash" size={22} color="#fff" />
-              </TouchableOpacity>
+            <View className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 items-center border border-[#E0E5EB] dark:border-[#333]">
+              {imageUri ? (
+                <View className="w-full relative">
+                  <Image
+                    source={{ uri: imageUri }}
+                    className="w-full h-[200px] rounded-2xl"
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setImageUri(null)}
+                    className="absolute -top-3 -right-3 bg-red-500 w-8 h-8 rounded-full items-center justify-center shadow-lg"
+                  >
+                    <Text className="text-white font-bold">×</Text>
+                  </TouchableOpacity>
+                  <Text className="text-center mt-3 text-gray-400 text-xs">
+                    Tap to change image
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    className="bg-[#0D0D0D] dark:bg-[#0D0D0D] flex-row items-center px-6 py-3 rounded-xl mb-3 shadow-md"
+                  >
+                    <HugeiconsIcon
+                      icon={Upload01Icon}
+                      size={18}
+                      color="white"
+                    />
+                    <Text className="text-white font-dmMedium ml-2">
+                      Upload
+                    </Text>
+                  </TouchableOpacity>
+                  <Text className="text-[#6B7280] dark:text-[#D2D2D2] font-poppins text-sm">
+                    Choose Image
+                  </Text>
+                </>
+              )}
             </View>
-          ) : (
-            // When no image is selected
-            <TouchableOpacity
-              onPress={pickImage} // restore your image picker here
-              className="py-3 border border-dashed border-gray-400 rounded-xl items-center bg-gray-50"
-            >
-              <Ionicons name="image-outline" size={28} color="#6B7280" />
-              <Text className="text-gray-600 mt-1">Choose Image</Text>
-            </TouchableOpacity>
-          )}
+          </View>
 
-          {/* Submit Button */}
+          {/* 🔹 SUBMIT BUTTON */}
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={loading}
-            activeOpacity={0.8}
-            className={`mt-6 rounded-xl overflow-hidden ${
-              loading ? "opacity-70" : ""
-            }`}
+            activeOpacity={0.9}
+            className="mb-10"
           >
-            <View className="p-4 rounded-xl bg-indigo-600 items-center flex-row justify-center">
+            <View
+              className={`py-4 rounded-3xl items-center justify-center shadow-lg ${
+                loading ? "bg-gray-400" : "bg-[#5B4CCC]"
+              }`}
+            >
               {loading ? (
-                <>
-                  <ActivityIndicator size="small" color="#fff" />
-                  <Text className="text-white font-semibold text-lg ml-3">
-                    Submitting...
-                  </Text>
-                </>
+                <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-semibold text-lg">
+                <Text className="text-white text-lg font-dmBold">
                   Submit Feedback
                 </Text>
               )}
@@ -331,7 +330,7 @@ const CreateSupport = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
-    </>
+    </View>
   );
 };
 
