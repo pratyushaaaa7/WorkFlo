@@ -172,6 +172,17 @@ const AppSupport = () => {
             </Text>
           </View>
         </View>
+        {/* Remark Section */}
+        {item.remark && (
+          <View className="mt-1">
+            <Text className="text-[#454545] dark:text-[#919191] text-sm  font-poppins">
+              Remark from Dev -{" "}
+              <Text className="text-black dark:text-white">
+                {item.remark}
+              </Text>
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -298,8 +309,8 @@ const AppSupport = () => {
           position: "absolute",
           bottom: 45,
           right: 24,
-          width: 64,
-          height: 64,
+          width: 50,
+          height: 50,
           borderRadius: 32,
           alignItems: "center",
           justifyContent: "center",
@@ -311,7 +322,7 @@ const AppSupport = () => {
           elevation: 20,
         }}
       >
-        <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
+        <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
       </TouchableOpacity>
     </View>
   );
