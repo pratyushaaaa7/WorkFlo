@@ -192,7 +192,7 @@ const AppSupport = () => {
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* 🔹 CUSTOM HEADER */}
-      <View className="flex-row items-center justify-between px-4 py-3 pt-14">
+      <View className="flex-row items-center justify-between px-4 py-3 pt-16">
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}

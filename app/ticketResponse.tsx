@@ -195,7 +195,7 @@ export default function TicketDetails() {
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* 🔹 HEADER */}
-      <View className="flex-row items-center px-4 py-3 pt-14 bg-[#FBFCFD] dark:bg-black">
+      <View className="flex-row items-center px-4 pb-6 pt-16 bg-[#FBFCFD] dark:bg-black">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
@@ -220,16 +220,17 @@ export default function TicketDetails() {
         {/* Ticket Info Section */}
         <View className="mt-4">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-[#454545] dark:text-[#919191] text-sm font-dmMedium">
+            <Text className="text-[#454545] dark:text-[#919191] font-dmMedium">
               {type || "Issue"} • Ticket #{ticketId}
             </Text>
             <View className="flex-row items-center gap-2">
               <HugeiconsIcon
                 icon={Calendar03Icon}
                 size={14}
+                strokeWidth={2}
                 color={isDarkMode ? "#A1A1A1" : "#454545"}
               />
-              <Text className="text-[#454545] dark:text-[#A1A1A1] text-sm font-poppins">
+              <Text className="text-[#454545] dark:text-[#A1A1A1] text-sm font-poppinsMedium">
                 {date ? moment(date as string).format("DD MMM YYYY") : "N/A"}
               </Text>
             </View>
@@ -253,11 +254,11 @@ export default function TicketDetails() {
 
         {/* Status Section */}
         <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
-          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
+          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
             Status
           </Text>
 
-          <View className="flex-row justify-between items-center mb-4">
+          <View className="flex-row justify-between items-center mb-2">
             <Text className="text-base font-dmMedium text-black dark:text-white">
               Fixed
             </Text>
@@ -274,7 +275,7 @@ export default function TicketDetails() {
 
         {/* Remarks Section */}
         <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
-          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
+          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
             Remarks by Developer
           </Text>
           <View className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
@@ -292,7 +293,7 @@ export default function TicketDetails() {
 
         {/* Images Section */}
         <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
-          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
+          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
             Images
           </Text>
           {imageUrl ? (
