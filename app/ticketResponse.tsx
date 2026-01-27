@@ -299,18 +299,36 @@ export default function TicketDetails() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-3">
                 {/* Handling multiple images if comma separated, otherwise single */}
-                {(imageUrl as string).split(",").map((url, index) => (
+                {typeof imageUrl === "string" && imageUrl.includes(",") ? (
+                  imageUrl.split(",").map((url, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: url.trim() }}
+                      style={{
+                        width: 280,
+                        height: 280,
+                        borderRadius: 16,
+                        marginRight: 12,
+                      }}
+                      resizeMode="cover"
+                    />
+                  ))
+                ) : (
                   <Image
-                    key={index}
-                    source={{ uri: url.trim() }}
-                    className="w-24 h-24 rounded-xl"
+                    source={{ uri: imageUrl as string }}
+                    style={{
+                      width: 300,
+                      height: 280,
+                      borderRadius: 16,
+                    }}
+                    resizeMode="contain"
                   />
-                ))}
+                )}
               </View>
             </ScrollView>
           ) : (
             <Text className="text-[#8E8E8E] font-poppins italic text-sm">
-              No images attached
+              No image attached
             </Text>
           )}
         </View>

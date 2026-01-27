@@ -45,7 +45,7 @@ const AppSupport = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTickets(response.data.supports || []);
-      console.log(response.data.supports);
+      // console.log(response.data.supports);
     } catch (err) {
       console.error("❌ Error fetching tickets:", err);
       Toast.show({
@@ -176,7 +176,7 @@ const AppSupport = () => {
         {item.remark && (
           <View className="mt-1">
             <Text className="text-[#454545] dark:text-[#919191] text-sm  font-poppins">
-              Remark from Dev -{" "}
+              Remark by Dev -{" "}
               <Text className="text-black dark:text-white">
                 {item.remark}
               </Text>
