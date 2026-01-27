@@ -2,6 +2,7 @@ import api from "@/lib/api";
 import { ArrowLeft01Icon, Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -125,7 +126,7 @@ const CreateSupport = () => {
           text2: "Thank you for your input.",
           position: "bottom",
         });
-        setTimeout(() => router.push("/(drawer)/appSupport"));
+        setTimeout(() => router.push("/appSupport"));
       } else {
         Toast.show({
           type: "error",
@@ -306,30 +307,40 @@ const CreateSupport = () => {
               )}
             </View>
           </View>
-
-          {/* 🔹 SUBMIT BUTTON */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={loading}
-            activeOpacity={0.9}
-            className="mb-10"
-          >
-            <View
-              className={`py-4 rounded-3xl items-center justify-center shadow-lg ${
-                loading ? "bg-gray-400" : "bg-[#5B4CCC]"
-              }`}
-            >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white text-lg font-dmBold">
-                  Submit Feedback
-                </Text>
-              )}
-            </View>
-          </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
+
+      {/* 🔹 STICKY SUBMIT BUTTON */}
+      <View className="px-5 pb-10 pt-2 bg-white dark:bg-black">
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="py-4 rounded-2xl items-center justify-center shadow-lg"
+            style={{
+              shadowColor: "#5B4CCC",
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 8,
+              borderRadius: 12,
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-lg font-poppinsMedium">
+                Submit
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
