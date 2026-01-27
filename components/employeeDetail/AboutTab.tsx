@@ -47,7 +47,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   return (
     <View className="px-5 pt-4">
       {/* Basic Information */}
-      <Section title="Basic Information">
+      <Section title="About">
         {renderInfoField("Full Name", userData?.fullName)}
         {renderInfoField("Username", userData?.username)}
         {renderInfoField("Role", userData?.role)}
@@ -83,8 +83,26 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         )}
       </Section>
 
+      {/* Personal Information */}
+      <Section title="Personal Details">
+        {renderInfoField("Gender", userData?.gender)}
+        {renderInfoField(
+          "Birth Date",
+          userData?.birthDate
+            ? moment(userData.birthDate).format("DD MMM YYYY")
+            : undefined,
+        )}
+        {renderInfoField("Father's Name", toProperCase(userData?.fatherName))}
+        {renderInfoField("Mother's Name", toProperCase(userData?.motherName))}
+        {renderInfoField("Marital Status", userData?.maritalStatus)}
+        {userData?.maritalStatus === "Married" &&
+          renderInfoField("Spouse Name", toProperCase(userData?.spouseName))}
+        {renderInfoField("Home Address", toProperCase(userData?.homeAddress))}
+        {renderInfoField("Blood Group", userData?.bloodGroup)}
+      </Section>
+
       {/* Contact Information */}
-      <Section title="Contact Information">
+      <Section title="Contact Details">
         {renderInfoField("Official Email", userData?.email)}
         {renderInfoField("Personal Email", userData?.personalEmail)}
         {userData?.contactNumbers && userData.contactNumbers.length > 0 && (
@@ -103,24 +121,6 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           </View>
         )}
         {renderInfoField("Emergency Contact", userData?.emergencyContact)}
-      </Section>
-
-      {/* Personal Information */}
-      <Section title="Personal Information">
-        {renderInfoField("Gender", userData?.gender)}
-        {renderInfoField(
-          "Birth Date",
-          userData?.birthDate
-            ? moment(userData.birthDate).format("DD MMM YYYY")
-            : undefined,
-        )}
-        {renderInfoField("Father's Name", toProperCase(userData?.fatherName))}
-        {renderInfoField("Mother's Name", toProperCase(userData?.motherName))}
-        {renderInfoField("Marital Status", userData?.maritalStatus)}
-        {userData?.maritalStatus === "Married" &&
-          renderInfoField("Spouse Name", toProperCase(userData?.spouseName))}
-        {renderInfoField("Home Address", toProperCase(userData?.homeAddress))}
-        {renderInfoField("Blood Group", userData?.bloodGroup)}
       </Section>
 
       {/* Identity Information */}

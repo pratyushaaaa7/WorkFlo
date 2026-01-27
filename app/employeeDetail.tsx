@@ -30,7 +30,7 @@ import api from "../lib/api";
 const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const { token } = useContext(AuthContext) || {};
+  const { token, user } = useContext(AuthContext) || {};
   const { userId } = useLocalSearchParams();
   const router = useRouter();
 
@@ -168,43 +168,11 @@ const EmployeeDetail = () => {
                 right: 0,
               }}
             >
-              <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center">
                 <View>
                   <Text className="text-xl font-dmBold text-black dark:text-white">
                     Profile
                   </Text>
-                </View>
-                <View className="flex-row gap-2 ">
-                  <TouchableOpacity
-                  // onPress={() => router.back()}
-                  // className="w-10"
-                  >
-                    <HugeiconsIcon
-                      icon={Share04Icon}
-                      size={24}
-                      color={isDarkMode ? "#FFF" : "#000"}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                  // onPress={() => router.back()}
-                  // className="w-10"
-                  >
-                    <HugeiconsIcon
-                      icon={Camera01Icon}
-                      size={24}
-                      color={isDarkMode ? "#FFF" : "#000"}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                  // onPress={() => router.back()}
-                  // className="w-10"
-                  >
-                    <HugeiconsIcon
-                      icon={PencilEdit02Icon}
-                      size={24}
-                      color={isDarkMode ? "#FFF" : "#000"}
-                    />
-                  </TouchableOpacity>
                 </View>
               </View>
             </Animated.View>
@@ -226,7 +194,38 @@ const EmployeeDetail = () => {
             </Animated.View>
           </View>
 
-          <View className="w-10" />
+          <Animated.View
+            style={{ opacity: headerTitleOpacity }}
+            className="flex-row items-center justify-end"
+          >
+            {user?.role === "admin" ? (
+              <View className="flex-row gap-2">
+                <TouchableOpacity>
+                  <HugeiconsIcon
+                    icon={Share04Icon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <HugeiconsIcon
+                    icon={Camera01Icon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <HugeiconsIcon
+                    icon={PencilEdit02Icon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="w-10" />
+            )}
+          </Animated.View>
         </View>
       </View>
 
