@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 import { ArrowLeft01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
 import React, { useEffect, useRef, useState } from "react";
@@ -336,25 +337,34 @@ export default function TicketDetails() {
       </KeyboardAwareScrollView>
 
       {/* Sticky Save Button at the Bottom */}
-      <View className="px-5 pb-8 pt-2 bg-[#FBFCFD] dark:bg-black">
+      <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
         <TouchableOpacity
           onPress={handleUpdate}
           disabled={loading}
-          activeOpacity={0.9}
-          className="bg-[#5B4CCC] py-4 rounded-2xl items-center justify-center shadow-lg"
-          style={{
-            shadowColor: "#5B4CCC",
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
-            shadowRadius: 15,
-            elevation: 8,
-          }}
+          activeOpacity={0.8}
         >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white text-lg font-dmBold">Save Changes</Text>
-          )}
+          <LinearGradient
+            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="py-4 rounded-2xl items-center justify-center shadow-lg"
+            style={{
+              shadowColor: "#5B4CCC",
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 15,
+              elevation: 8,
+              borderRadius: 12,
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-lg font-dmBold">
+                Submit
+              </Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>

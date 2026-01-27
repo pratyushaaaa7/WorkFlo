@@ -133,7 +133,7 @@ const AppSupport = () => {
                 color={item.fixed ? "#16A34A" : "#EF4444"}
               />
               <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
-                {item.fixed ? "Close" : "Open"}
+                {item.fixed ? "Closed" : "Open"}
               </Text>
             </View>
           </View>
