@@ -44,7 +44,7 @@ const CustomToggle = ({
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 23],
+    outputRange: [2, 22],
   });
 
   const scaleX = stretchValue.interpolate({
@@ -52,10 +52,10 @@ const CustomToggle = ({
     outputRange: [1, 1.4],
   });
 
-  // Calculate scaling offset (expansion = 30.8 - 22 = 8.8, half offset = 4.4)
+  // Calculate scaling offset (expansion = 28 - 20 = 8, half offset = 4)
   const stretchOffset = stretchValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 4.4],
+    outputRange: [0, 4],
   });
 
   // Side modifier: +1 on left, -1 on right
@@ -93,9 +93,9 @@ const CustomToggle = ({
     <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <View
         style={{
-          width: 48,
-          height: 28,
-          borderRadius: 14,
+          width: 44,
+          height: 24,
+          borderRadius: 12,
           backgroundColor: isDarkMode ? "#333" : "#D1D5DB",
           overflow: "hidden",
           justifyContent: "center",
@@ -115,9 +115,9 @@ const CustomToggle = ({
 
         <Animated.View
           style={{
-            width: 22,
-            height: 22,
-            borderRadius: 11,
+            width: 20,
+            height: 20,
+            borderRadius: 10,
             backgroundColor: "#FFF",
             transform: [{ translateX: finalTranslateX }, { scaleX }],
             shadowColor: "#000",
@@ -259,7 +259,7 @@ export default function TicketDetails() {
             Status
           </Text>
 
-          <View className="flex-row justify-between items-center mb-2">
+          <View className="flex-row justify-between items-center mb-3">
             <Text className="text-base font-dmMedium text-black dark:text-white">
               Fixed
             </Text>
@@ -360,9 +360,7 @@ export default function TicketDetails() {
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white text-lg font-dmBold">
-                Submit
-              </Text>
+              <Text className="text-white text-lg font-dmBold">Submit</Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
