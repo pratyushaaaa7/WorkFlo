@@ -1,26 +1,30 @@
+import api from "@/lib/api";
+import { ArrowLeft01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import moment from "moment";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
+  ActivityIndicator,
   Image,
+  Platform,
+  ScrollView,
+  StatusBar,
   Switch,
+  Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  // Alert,
-  KeyboardAvoidingView,
-  Platform,
+  View,
+  useColorScheme,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "../context/AuthContext";
-import api from "@/lib/api";
-import Toast from "react-native-toast-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
+import { useAuth } from "../context/AuthContext";
 
 export default function TicketDetails() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const { token } = useAuth();
   const {
     id,
@@ -36,8 +40,6 @@ export default function TicketDetails() {
     remark: initialRemark,
   } = useLocalSearchParams();
 
-  // console.log(raisedBy)
-
   const parseBool = (v: any) =>
     Array.isArray(v)
       ? String(v[0]) === "true"
@@ -45,14 +47,16 @@ export default function TicketDetails() {
 
   const [isFixed, setIsFixed] = useState<boolean>(parseBool(fixed));
   const [isPublished, setIsPublished] = useState<boolean>(parseBool(published));
-  const [remark, setRemark] = useState<string>(initialRemark || "");
+  const [remark, setRemark] = useState<string>((initialRemark as string) || "");
+  const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
     try {
+      setLoading(true);
       const res = await api.patch(
         `/support/${id}`,
         { fixed: isFixed, published: isPublished, remark },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (res.status === 200) {
@@ -61,7 +65,7 @@ export default function TicketDetails() {
           text1: "Ticket updated successfully!",
           position: "bottom",
         });
-        setTimeout(() => router.push("/(drawer)/appSupport"));
+        router.back();
       }
     } catch (err) {
       console.error(err);
@@ -71,175 +75,169 @@ export default function TicketDetails() {
         text2: "Please try again later.",
         position: "bottom",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between">
-          <TouchableOpacity
-            onPress={() => router.push("/(drawer)/appSupport")}
-            activeOpacity={0.7}
-            className="flex-row items-center"
-          >
-            <Ionicons name="arrow-back" size={22} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-3">
-              Ticket Details
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
-      {/* Body */}
+      {/* 🔹 HEADER */}
+      <View className="flex-row items-center px-4 py-3 pt-14 bg-[#FBFCFD] dark:bg-black">
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
+        <Text className="text-xl font-dmBold text-black dark:text-white">
+          Ticket Details
+        </Text>
+      </View>
 
       <KeyboardAwareScrollView
         enableOnAndroid
         extraScrollHeight={Platform.OS === "ios" ? 40 : 60}
-        keyboardOpeningTime={0}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 14,
-          paddingVertical: 10,
-          paddingBottom: 60,
+          paddingHorizontal: 20,
+          paddingBottom: 20,
         }}
       >
-        {/* Ticket Summary */}
-        <View className="bg-white rounded-3xl shadow-sm p-5 mt-2 border border-gray-100">
-          <View className="flex-row justify-between items-center mb-1">
-            <Text className="text-lg font-bold text-indigo-600">
-              Ticket #{ticketId}
+        {/* Ticket Info Section */}
+        <View className="mt-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-[#454545] dark:text-[#919191] text-sm font-dmMedium">
+              {type || "Issue"} • Ticket #{ticketId}
             </Text>
-            <View className="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100">
-              <Text className="text-indigo-600 text-xs font-medium">
-                {type || "Support Ticket"}
-              </Text>
-            </View>
-          </View>
-
-          {relatedPage ? (
-            <Text className="text-gray-700 font-semibold leading-5 mt-2">
-              {relatedPage}
-            </Text>
-          ) : null}
-
-          {description ? (
-            <Text className="text-gray-700 leading-5 mt-2">{description}</Text>
-          ) : null}
-
-          <View className="mt-3 flex-row justify-between items-center">
-            <Text className="text-sm text-gray-500">{date}</Text>
-            <View className="flex-row items-center">
-              <Ionicons
-                name="person-circle-outline"
-                size={16}
-                color="#6b7280"
+            <View className="flex-row items-center gap-2">
+              <HugeiconsIcon
+                icon={Calendar03Icon}
+                size={14}
+                color={isDarkMode ? "#A1A1A1" : "#454545"}
               />
-              <Text className="ml-1 text-sm text-gray-500">
-                Raised by{" "}
-                <Text className="font-semibold text-gray-800">{raisedBy}</Text>
+              <Text className="text-[#454545] dark:text-[#A1A1A1] text-sm font-poppins">
+                {date ? moment(date as string).format("DD MMM YYYY") : "N/A"}
               </Text>
             </View>
           </View>
+
+          <Text className="text-2xl font-dmBold text-black dark:text-white mb-2">
+            {relatedPage || "Project Space"}
+          </Text>
+
+          <Text className="text-[#454545] dark:text-[#D2D2D2] text-base font-poppins leading-6 mb-4">
+            {description || "No description provided."}
+          </Text>
+
+          <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-6">
+            Raised by -{" "}
+            <Text className="text-black dark:text-white">
+              {raisedBy || "Unknown"}
+            </Text>
+          </Text>
         </View>
 
-        {/* Status Toggles */}
-        <View className="bg-white rounded-3xl shadow-sm p-5 mt-3 border border-gray-100">
-          <Text className="text-lg font-semibold text-gray-800 mb-2">
+        {/* Status Section */}
+        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
+          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
             Status
           </Text>
 
-          <View className="flex-row justify-between items-center mb-3">
-            <View className="flex-row items-center">
-              <Ionicons
-                name={isFixed ? "checkmark-circle" : "close-circle"}
-                size={18}
-                color={isFixed ? "#16a34a" : "#dc2626"}
-              />
-              <Text className="ml-2 text-base text-gray-700 font-medium">
-                Fixed
-              </Text>
-            </View>
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-base font-dmMedium text-black dark:text-white">
+              Fixed
+            </Text>
             <Switch
               value={isFixed}
               onValueChange={setIsFixed}
-              trackColor={{ false: "#E5E7EB", true: "#A7F3D0" }}
-              thumbColor={isFixed ? "#10B981" : "#f4f3f4"}
+              trackColor={{ false: "#D1D5DB", true: "#34D399" }}
+              thumbColor={Platform.OS === "ios" ? undefined : "#FFF"}
             />
           </View>
 
           <View className="flex-row justify-between items-center">
-            <View className="flex-row items-center">
-              <Ionicons
-                name={isPublished ? "checkmark-circle" : "close-circle"}
-                size={18}
-                color={isPublished ? "#6366F1" : "#dc2626"}
-              />
-              <Text className="ml-2 text-base text-gray-700 font-medium">
-                Published
-              </Text>
-            </View>
+            <Text className="text-base font-dmMedium text-black dark:text-white">
+              Published
+            </Text>
             <Switch
               value={isPublished}
               onValueChange={setIsPublished}
-              trackColor={{ false: "#E5E7EB", true: "#C7D2FE" }}
-              thumbColor={isPublished ? "#6366F1" : "#f4f3f4"}
+              trackColor={{ false: "#D1D5DB", true: "#34D399" }}
+              thumbColor={Platform.OS === "ios" ? undefined : "#FFF"}
             />
           </View>
         </View>
 
-        {/* Remarks */}
-        <View className="bg-white rounded-3xl shadow-sm p-5 mt-3 border border-gray-100">
-          <Text className="text-lg font-semibold text-gray-800 mb-2">
+        {/* Remarks Section */}
+        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
+          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
             Remarks by Developer
           </Text>
-          <TextInput
-            value={remark}
-            onChangeText={setRemark}
-            placeholder="Add developer notes or update details..."
-            multiline
-            textAlignVertical="top"
-            placeholderTextColor="#9ca3af"
-            className="bg-gray-50 text-gray-900 rounded-2xl p-4 min-h-[120px] border border-gray-100"
-          />
+          <View className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
+            <TextInput
+              value={remark}
+              onChangeText={setRemark}
+              placeholder="Add remarks..."
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              multiline
+              textAlignVertical="top"
+              className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
+            />
+          </View>
         </View>
 
-        {/* Save Button */}
-        <TouchableOpacity
-          className="mt-4"
-          activeOpacity={0.9}
-          onPress={handleUpdate}
-        >
-          <View className="p-3 rounded-2xl shadow-md bg-indigo-600">
-            <Text className="text-white text-center text-lg font-semibold tracking-wide">
-              Save Changes
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Image Section */}
-        <View className="rounded-3xl overflow-hidden shadow-sm bg-white border border-gray-100 mt-4 mb-10">
+        {/* Images Section */}
+        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
+          <Text className="text-lg font-dmBold text-black dark:text-white mb-4">
+            Images
+          </Text>
           {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              style={{
-                width: "100%",
-                height: 280,
-                borderRadius: 16,
-              }}
-              resizeMode="contain"
-            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-3">
+                {/* Handling multiple images if comma separated, otherwise single */}
+                {(imageUrl as string).split(",").map((url, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: url.trim() }}
+                    className="w-24 h-24 rounded-xl"
+                  />
+                ))}
+              </View>
+            </ScrollView>
           ) : (
-            <View className="w-full h-64 bg-gray-100 items-center justify-center">
-              <Ionicons name="image-outline" size={48} color="#9ca3af" />
-              <Text className="text-gray-500 mt-2 text-sm">
-                No Image Available
-              </Text>
-            </View>
+            <Text className="text-[#8E8E8E] font-poppins italic text-sm">
+              No images attached
+            </Text>
           )}
         </View>
       </KeyboardAwareScrollView>
+
+      {/* Sticky Save Button at the Bottom */}
+      <View className="px-5 pb-8 pt-2 bg-[#FBFCFD] dark:bg-black">
+        <TouchableOpacity
+          onPress={handleUpdate}
+          disabled={loading}
+          activeOpacity={0.9}
+          className="bg-[#5B4CCC] py-4 rounded-2xl items-center justify-center shadow-lg"
+          style={{
+            shadowColor: "#5B4CCC",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.3,
+            shadowRadius: 15,
+            elevation: 8,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white text-lg font-dmBold">Save Changes</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

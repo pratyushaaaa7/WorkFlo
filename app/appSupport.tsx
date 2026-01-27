@@ -97,7 +97,7 @@ const AppSupport = () => {
               imageUrl: item.imageUrl,
               relatedPage: item.relatedPage,
               raisedBy: item.raisedBy?.fullName,
-              date: item.date,
+              date: item.createdAt,
               fixed: item.fixed,
               published: item.published,
               remark: item.remark || "",
