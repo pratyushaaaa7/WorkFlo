@@ -1,15 +1,11 @@
 import api from "@/lib/api";
 import {
-  ChartAverageIcon,
-  PieChart01Icon,
-  Clock01Icon,
   Analytics01Icon,
-  Xsl01Icon,
-  DashboardSpeed01Icon,
-  File02Icon,
+  Clock01Icon,
   Menu02Icon,
+  PieChart01Icon,
   Search01Icon,
-  Time02Icon,
+  Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
@@ -74,7 +70,7 @@ export default function UsageScreen() {
         }),
       ]);
 
-      // console.log("🟦 USERS LEADERBOARD:", usersRes.data);
+      console.log("🟦 USERS LEADERBOARD:", usersRes.data);
 
       // Safety check for array data
       const data = usersRes.data;
@@ -127,11 +123,11 @@ export default function UsageScreen() {
     // Assuming API returns: { _id: { fullName, role, ... }, apiCount, totalDuration, sessionCount, lastActive, mostActivePage }
     // If some fields missing, fallbacks used.
 
-    const name = item._id?.fullName || "Unknown User";
-    const role = item._id?.role || "User";
-    const requests = item.apiCount || 0;
-    const lastActive = item.lastUsed
-      ? moment(item.lastUsed).calendar(null, {
+    const name = item.name || "Unknown User";
+    const role = item.role || "User";
+    const requests = item.requests || 0;
+    const lastActive = item.lastActive
+      ? moment(item.lastActive).calendar(null, {
           sameDay: "[Today], h:mm A",
           lastDay: "[Yesterday], h:mm A",
           lastWeek: "dddd, h:mm A",
@@ -139,15 +135,11 @@ export default function UsageScreen() {
         })
       : "Never";
 
-    // These might need adjustment based on real API response structure for 'session' and 'time'
-    // If backend only returns apiCount currently, we might show 0 or hide.
-    // Based on the prompt's new tracking hook, we likely have duration.
-    // Let's assume the leaderboard endpoint aggregates these.
-    const sessions = item.sessionCount || 0;
+    const sessions = item.sessions || 0;
     const timeString = item.totalDuration
       ? formatDuration(item.totalDuration)
       : "0h - 0m";
-    const mostUsed = item.mostActivePage || "N/A";
+    const mostUsed = item.mostUsed || "N/A";
 
     return (
       <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]">
