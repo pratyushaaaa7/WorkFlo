@@ -1,106 +1,173 @@
-import { usePathname, useSegments } from "expo-router";
+import api from "@/lib/api";
+import { usePathname } from "expo-router";
 import { useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
 /**
- * useUsageTracking - High Performance Activity Monitoring
+ * useUsageTracking - Analytics for App Session and Screen Usage
+ * Matches requirements:
+ * 1. POST /api/usage/session - Track active time (incremental) and new sessions.
+ * 2. POST /api/usage/activity - Track screen usage (total time on screen).
  *
- * Performance Guarantees:
- * 1. Zero-Render Impact: Uses refs for all internal state, so it never triggers component re-renders.
- * 2. Debounced Tracking: Only logs screen views if user stays for > 2 seconds (avoids logging rapid swipes).
- * 3. Asynchronous: API calls are non-blocking and fire-and-forget.
- * 4. Efficient: Only one AppState listener for the entire app.
+ * Improvements:
+ * - Duplicate guard (screenSyncedRef)
+ * - Screen Name normalization (/:id)
  */
 export const useUsageTracking = () => {
   const { isAuthenticated, token } = useAuth();
   const pathname = usePathname();
-  const segments = useSegments();
 
-  // -- REFS (Prevents re-renders) --
-  const sessionStartTime = useRef<number>(Date.now());
+  // -- REFS --
+  // Session tracking
+  const lastSessionSyncTime = useRef<number>(Date.now());
+  const isNewSessionRef = useRef<boolean>(true);
+
+  // Screen tracking
   const currentScreenStartTime = useRef<number>(Date.now());
   const previousPathname = useRef<string>(pathname);
+  const screenSyncedRef = useRef<boolean>(false); // Prevent double logging
+
   const appState = useRef(AppState.currentState);
 
-  // Tracking debounce timer
-  const viewTimer = useRef<NodeJS.Timeout | null>(null);
-
-  // Auth state ref for background cleanup
+  // Auth refs for accessing current state inside async/intervals without deps
   const authRef = useRef({ isAuthenticated, token, pathname });
   useEffect(() => {
     authRef.current = { isAuthenticated, token, pathname };
   }, [isAuthenticated, token, pathname]);
 
-  // -- LOGIC: Send Session Data --
-  const sendSessionDuration = async (durationMs: number) => {
+  // ---------------------------------------------------------
+  // Helper: Normalize Screen Names
+  // ---------------------------------------------------------
+  const normalizeScreenName = (path: string) => {
+    if (!path) return "Unknown";
+    return path
+      .split("?")[0] // Remove query params
+      .replace(/\/([0-9a-fA-F]{24}|[0-9]+)/g, "/:id"); // Replace IDs (MongoIDs or numbers) with :id
+  };
+
+  // ---------------------------------------------------------
+  // 1. Session Tracking (Heartbeat + App State)
+  // ---------------------------------------------------------
+
+  const sendSessionUpdate = async (manualDuration?: number) => {
     if (!authRef.current.isAuthenticated || !authRef.current.token) return;
+
+    const now = Date.now();
+    const durationMs = manualDuration ?? now - lastSessionSyncTime.current;
+    const durationSeconds = Math.round(durationMs / 1000);
+
+    if (manualDuration === undefined) {
+      lastSessionSyncTime.current = now;
+    }
+
+    const isNewSession = isNewSessionRef.current;
+
+    // Skip if no time passed and not a new session
+    if (durationSeconds <= 0 && !isNewSession) return;
+
     try {
-      const durationSeconds = Math.round(durationMs / 1000);
-      if (durationSeconds < 1) return;
+      // console.log(`[Analytics] 📡 Session: ${durationSeconds}s${isNewSession ? " (New)" : ""}`);
 
-      console.log(`[UsageTracking] 🕒 Session Duration: ${durationSeconds}s`);
+      await api.post(
+        "/usage/session",
+        {
+          duration: durationSeconds,
+          isNewSession: isNewSession,
+        },
+        { headers: { Authorization: `Bearer ${authRef.current.token}` } },
+      );
 
-      // Backend integration (Uncomment when ready)
-      /*
-      api.post('/usage/session', {
-        duration: durationSeconds,
-        startTime: new Date(sessionStartTime.current).toISOString(),
-        endTime: new Date().toISOString(),
-      }, {
-        headers: { Authorization: `Bearer ${authRef.current.token}` }
-      }).catch(e => console.error('[UsageTracking] Session sync failed', e));
-      */
-    } catch (error) {
-      // Silent fail to prevent app crash
+      if (isNewSession) {
+        isNewSessionRef.current = false;
+      }
+    } catch (err) {
+      console.error("[Analytics] Failed to sync session:", err);
     }
   };
 
-  // -- LOGIC: Send Screen View Data --
-  const sendScreenTime = (screenName: string, durationMs: number) => {
+  // ---------------------------------------------------------
+  // 2. Screen Activity Tracking
+  // ---------------------------------------------------------
+
+  const sendScreenActivity = async (screenName: string, durationMs: number) => {
     if (!authRef.current.isAuthenticated || !authRef.current.token) return;
 
+    // GUARD: Prevent duplicate logging for same screen session
+    if (screenSyncedRef.current) return;
+
     const durationSeconds = Math.round(durationMs / 1000);
-    // ⚡ DEBOUNCE: Only track if user stayed for at least 2 seconds
-    if (durationSeconds < 2) return;
+    if (durationSeconds < 1) return; // Ignore < 1s views
 
-    console.log(
-      `[UsageTracking]  Screen: ${screenName} | Time: ${durationSeconds}s`,
-    );
+    // Mark as synced so we don't send again until reset
+    screenSyncedRef.current = true;
 
-    // Backend integration (Uncomment when ready)
-    /*
-    api.post('/usage/activity', {
-      screenName,
-      duration: durationSeconds,
-      timestamp: new Date().toISOString(),
-    }, {
-      headers: { Authorization: `Bearer ${authRef.current.token}` }
-    }).catch(e => console.error('[UsageTracking] Activity sync failed', e));
-    */
+    try {
+      const cleanName = normalizeScreenName(screenName);
+      console.log(`[Analytics] 📱 Screen: ${cleanName} (${durationSeconds}s)`);
+
+      await api.post(
+        "/usage/activity",
+        {
+          screenName: cleanName,
+          duration: durationSeconds,
+        },
+        { headers: { Authorization: `Bearer ${authRef.current.token}` } },
+      );
+    } catch (err) {
+      console.error("[Analytics] Failed to sync activity:", err);
+    }
   };
 
-  // 1. AppState Listener (Single instance)
+  // ---------------------------------------------------------
+  // 3. Effects & Listeners
+  // ---------------------------------------------------------
+
+  // A) Initial App Launch Session Ping (Run once)
+  useEffect(() => {
+    if (isAuthenticated) {
+      sendSessionUpdate(0);
+      // Also reset screen synced state on fresh auth mount just in case
+      screenSyncedRef.current = false;
+    }
+  }, [isAuthenticated]);
+
+  // B) Heartbeat Interval (Every 60 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (appState.current === "active") {
+        sendSessionUpdate();
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // C) App State Changes
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      // Active -> Inactive/Background: Sync EVERYTHING
       if (
         appState.current === "active" &&
         nextAppState.match(/inactive|background/)
       ) {
-        // App backgrounded: sync EVERYTHING
-        const elapsed = Date.now() - sessionStartTime.current;
-        sendSessionDuration(elapsed);
+        sendSessionUpdate();
 
         const screenElapsed = Date.now() - currentScreenStartTime.current;
-        sendScreenTime(authRef.current.pathname, screenElapsed);
-      } else if (
+        sendScreenActivity(authRef.current.pathname, screenElapsed);
+      }
+
+      // Inactive -> Active: Reset timers
+      if (
         appState.current.match(/inactive|background/) &&
         nextAppState === "active"
       ) {
-        // App foregrounded: restart timers
-        sessionStartTime.current = Date.now();
+        lastSessionSyncTime.current = Date.now();
         currentScreenStartTime.current = Date.now();
+        // Reset check for the "new" active screen session
+        screenSyncedRef.current = false;
       }
+
       appState.current = nextAppState;
     };
 
@@ -111,29 +178,29 @@ export const useUsageTracking = () => {
     return () => subscription.remove();
   }, []);
 
-  // 2. Navigation Tracking (Ref-driven, no renders)
+  // D) Navigation / Pathname Changes
   useEffect(() => {
-    // When pathname changes, calculate time spent on PREVIOUS screen
-    if (pathname !== previousPathname.current) {
-      const elapsed = Date.now() - currentScreenStartTime.current;
-      sendScreenTime(previousPathname.current, elapsed);
-
-      // Reset for the NEW screen
-      previousPathname.current = pathname;
-      currentScreenStartTime.current = Date.now();
+    const now = Date.now();
+    // 1. Send usage for PREVIOUS screen
+    if (previousPathname.current !== pathname) {
+      const elapsed = now - currentScreenStartTime.current;
+      sendScreenActivity(previousPathname.current, elapsed);
     }
+
+    // 2. Setup for NEW screen
+    previousPathname.current = pathname;
+    currentScreenStartTime.current = now;
+    // Reset sync guard for the new screen
+    screenSyncedRef.current = false;
   }, [pathname]);
 
-  // 3. Final Cleanup
+  // E) Cleanup on Unmount
   useEffect(() => {
     return () => {
-      // If user logs out or app unmounts
       if (authRef.current.isAuthenticated) {
-        const elapsed = Date.now() - sessionStartTime.current;
-        sendSessionDuration(elapsed);
-
-        const screenElapsed = Date.now() - currentScreenStartTime.current;
-        sendScreenTime(authRef.current.pathname, screenElapsed);
+        sendSessionUpdate();
+        const elapsed = Date.now() - currentScreenStartTime.current;
+        sendScreenActivity(authRef.current.pathname, elapsed);
       }
     };
   }, []);
