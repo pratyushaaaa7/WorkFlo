@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { ArrowLeft01Icon, Upload01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, Cancel01Icon, Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -215,7 +215,7 @@ const CreateSupport = () => {
                 <TouchableOpacity
                   key={t}
                   onPress={() => setType(t)}
-                  className={`px-6 py-3 rounded-full border ${
+                  className={`px-6 py-2 rounded-full border ${
                     type === t
                       ? "bg-[#DDE2FB] dark:bg-[#11162F] border-[#5B4CCC]"
                       : "bg-[#F3F4F6] dark:bg-[#262626] border-[#E5E7EB] dark:border-[#333]"
@@ -269,17 +269,17 @@ const CreateSupport = () => {
 
             <View className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 items-center border border-[#E0E5EB] dark:border-[#333]">
               {imageUri ? (
-                <View className="w-full relative">
+                <View className="w-full relative ">
                   <Image
                     source={{ uri: imageUri }}
-                    className="w-full h-[200px] rounded-2xl"
+                    className="w-full h-[200px] bg-black/20 rounded-2xl"
                     resizeMode="cover"
                   />
                   <TouchableOpacity
                     onPress={() => setImageUri(null)}
-                    className="absolute -top-3 -right-3 bg-red-500 w-8 h-8 rounded-full items-center justify-center shadow-lg"
+                    className="absolute top-2 right-2 bg-white/50 w-8 h-8 rounded-full items-center justify-center shadow-lg"
                   >
-                    <Text className="text-white font-bold">×</Text>
+                    <HugeiconsIcon icon={Cancel01Icon} size={20} color="black "  strokeWidth={2}/>
                   </TouchableOpacity>
                   <Text className="text-center mt-3 text-gray-400 text-xs">
                     Tap to change image
