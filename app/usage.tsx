@@ -25,22 +25,6 @@ import {
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 
-// Dummy data for design alignment if API data is missing properties
-const DUMMY_DATA = [
-  {
-    _id: {
-      fullName: "Aisha Patel",
-      role: "UX UI Designer",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    apiCount: 4109,
-    sessions: 42,
-    totalTime: "3h - 12m",
-    lastUsed: new Date().toISOString(),
-    mostUsedPage: "Running Page",
-  },
-];
-
 const TABS = ["Today", "Week", "Month", "Custom"];
 
 export default function UsageScreen() {
@@ -62,26 +46,25 @@ export default function UsageScreen() {
     try {
       if (!refreshing) setLoading(true);
 
-      // console.log("🔄 Fetching leaderboard...");
+      const typeMap: any = {
+        Today: "day",
+        Week: "week",
+        Month: "month",
+        Custom: "custom",
+      };
 
-      const [usersRes] = await Promise.all([
-        api.get("/usage/users/leaderboard", {
-          headers: { Authorization: "Bearer " + token },
-        }),
-      ]);
+      const params: any = { type: typeMap[selectedTab] };
 
-      console.log("🟦 USERS LEADERBOARD:", usersRes.data);
+      const res = await api.get("/usage/users/leaderboard", {
+        params,
+        headers: { Authorization: "Bearer " + token },
+      });
 
-      // Safety check for array data
-      const data = usersRes.data;
+      // console.log(JSON.stringify(res.data, null, 2));
+
+      const data = res.data;
       if (Array.isArray(data)) {
         setUserLeaderboard(data);
-      } else if (data && Array.isArray(data.users)) {
-        // Handle if wrapped in { users: [...] }
-        setUserLeaderboard(data.users);
-      } else if (data && Array.isArray(data.data)) {
-        // Handle if wrapped in { data: [...] }
-        setUserLeaderboard(data.data);
       } else {
         console.warn("⚠️ Unexpected leaderboard data format", data);
         setUserLeaderboard([]);
@@ -98,11 +81,11 @@ export default function UsageScreen() {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchLeaderboard();
-  }, []);
+  }, [selectedTab, token]); // Added dependencies
 
   useEffect(() => {
     fetchLeaderboard();
-  }, []);
+  }, [selectedTab]); // Refetch when tab changes
 
   // -------------------------------------
   // HELPER: Format Duration (seconds -> 3h - 12m)
@@ -119,15 +102,12 @@ export default function UsageScreen() {
   // RENDER ITEM
   // -------------------------------------
   const renderUserCard = ({ item, index }: { item: any; index: number }) => {
-    // Map API fields to UI.
-    // Assuming API returns: { _id: { fullName, role, ... }, apiCount, totalDuration, sessionCount, lastActive, mostActivePage }
-    // If some fields missing, fallbacks used.
-
-    const name = item.name || "Unknown User";
-    const role = item.role || "User";
-    const requests = item.requests || 0;
-    const lastActive = item.lastActive
-      ? moment(item.lastActive).calendar(null, {
+    // New API Fields Mapping
+    const name = item.userId?.fullName || "Unknown User";
+    const designation = item.userId?.designation || "N/A";
+    const requests = item.apiRequestCount || 0;
+    const lastActive = item.lastSeen
+      ? moment(item.lastSeen).calendar(null, {
           sameDay: "[Today], h:mm A",
           lastDay: "[Yesterday], h:mm A",
           lastWeek: "dddd, h:mm A",
@@ -135,11 +115,11 @@ export default function UsageScreen() {
         })
       : "Never";
 
-    const sessions = item.sessions || 0;
+    const sessions = item.sessionCount || 0;
     const timeString = item.totalDuration
       ? formatDuration(item.totalDuration)
       : "0h - 0m";
-    const mostUsed = item.mostUsed || "N/A";
+    const mostUsed = item.mostUsedScreen || "N/A";
 
     return (
       <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]">
@@ -156,7 +136,7 @@ export default function UsageScreen() {
                   : "th"}
           </Text>
           <Text className="text-[#8E8E8E] dark:text-[#919191] font-poppins text-xs">
-            Last active : {lastActive}
+            Last seen : {lastActive}
           </Text>
         </View>
 
@@ -165,6 +145,7 @@ export default function UsageScreen() {
           <View className="flex-row  items-center mb-5">
             <GlobalAvatar
               name={name}
+              image={item.userId?.profileImage}
               size={44}
               fontSize={18}
               borderRadius={8}
@@ -175,7 +156,7 @@ export default function UsageScreen() {
                 {name}
               </Text>
               <Text className="text-[#8E8E8E] dark:text-[#919191] text-sm font-poppins">
-                {role}
+                {designation}
               </Text>
             </View>
 
