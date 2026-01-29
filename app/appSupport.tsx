@@ -6,6 +6,7 @@ import {
   Cancel01Icon,
   Menu02Icon,
   Search01Icon,
+  Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
@@ -26,6 +27,7 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
+import { exportSupportToExcel } from "../utils/supportExcel";
 
 const FILTERS = ["All", "Open", "Unpublished", "Published"];
 
@@ -232,13 +234,25 @@ const AppSupport = () => {
           </Text>
         </View>
 
-        <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
-          <HugeiconsIcon
-            icon={showSearch ? Cancel01Icon : Search01Icon}
-            size={24}
-            color={isDarkMode ? "#FFF" : "#000"}
-          />
-        </TouchableOpacity>
+        <View className="flex-row gap-4 items-center">
+          <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+            <HugeiconsIcon
+              icon={showSearch ? Cancel01Icon : Search01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => exportSupportToExcel(filteredTickets)}
+          >
+            <HugeiconsIcon
+              icon={Xsl01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* 🔹 SEARCH BAR */}
