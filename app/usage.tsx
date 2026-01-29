@@ -165,7 +165,7 @@ export default function UsageScreen() {
           <View className="flex-row  items-center mb-5">
             <GlobalAvatar
               name={name}
-              size={48}
+              size={44}
               fontSize={18}
               borderRadius={8}
             />
@@ -174,7 +174,7 @@ export default function UsageScreen() {
               <Text className="text-black dark:text-white text-lg font-dmBold">
                 {name}
               </Text>
-              <Text className="text-[#8E8E8E] dark:text-[#919191] text-xs font-poppins">
+              <Text className="text-[#8E8E8E] dark:text-[#919191] text-sm font-poppins">
                 {role}
               </Text>
             </View>
