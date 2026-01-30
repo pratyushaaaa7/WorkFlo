@@ -62,7 +62,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
                     ? require("../../assets/images/ProjectImageDark.jpg")
                     : require("../../assets/images/ProjectImageLight.jpg")
                 }
-                className=" rounded-[8px]"
+                className=" rounded-[12px]"
                 style={{ width: 56, height: 56 }}
                 resizeMode="cover"
               />
