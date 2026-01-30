@@ -68,6 +68,7 @@ const EmployeeDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserData(res.data);
+        // console.log(res.data)
       } catch (err) {
         console.error("Error fetching user:", err);
       } finally {

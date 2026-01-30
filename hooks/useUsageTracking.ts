@@ -82,7 +82,7 @@ export const useUsageTracking = () => {
         isNewSessionRef.current = false;
       }
     } catch (err) {
-      console.error("[Analytics] Failed to sync session:", err);
+      // console.error("[Analytics] Failed to sync session:", err);
     }
   };
 
@@ -104,7 +104,7 @@ export const useUsageTracking = () => {
 
     try {
       const cleanName = normalizeScreenName(screenName);
-      console.log(`[Analytics] 📱 Screen: ${cleanName} (${durationSeconds}s)`);
+      // console.log(`[Analytics] 📱 Screen: ${cleanName} (${durationSeconds}s)`);
 
       await api.post(
         "/usage/activity",
@@ -115,7 +115,7 @@ export const useUsageTracking = () => {
         { headers: { Authorization: `Bearer ${authRef.current.token}` } },
       );
     } catch (err) {
-      console.error("[Analytics] Failed to sync activity:", err);
+      // console.error("[Analytics] Failed to sync activity:", err);
     }
   };
 
