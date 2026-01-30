@@ -25,6 +25,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -55,6 +56,7 @@ const UserList = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
@@ -212,11 +214,11 @@ const UserList = () => {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (showLoader = true) => {
     if (!projectId || !token) return;
 
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const res = await api.get(`/projects/${projectId}/project-users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -250,7 +252,13 @@ const UserList = () => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchUsers(false);
   };
 
   useEffect(() => {
@@ -611,6 +619,13 @@ const UserList = () => {
             renderItem={renderUserCard}
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#5B4CCC"]}
+              />
+            }
           />
         )}
       </View>
