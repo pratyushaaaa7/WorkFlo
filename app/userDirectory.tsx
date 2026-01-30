@@ -1,27 +1,36 @@
-import React, { useEffect, useState, useContext } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-  View,
+  Add01Icon,
+  ArrowLeft01Icon,
+  MoreHorizontalIcon,
+  Search01Icon,
+  UserAdd01Icon,
+  Xsl01Icon,
+  Pdf01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as FileSystem from "expo-file-system";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
   Text,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  TextInput,
-  Linking,
-  Platform,
+  View,
+  useColorScheme,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
-import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
-// Delete handlers
+// User Interface
 interface IUser {
   _id: string;
   individualName: string;
@@ -34,41 +43,172 @@ interface IUser {
   expertise?: string;
 }
 
-// Edit handlers
-interface EditUserData {
-  _id: string;
-  individualName: string;
-  designation: string;
-  role: string;
-  roleDescription: string;
-  firmName: string;
-  email: string;
-  phone: string;
-  expertise?: string; // ✅ new field
-}
-
-interface EditFieldChangeHandler {
-  (field: keyof EditUserData, value: string): void;
-}
-
 const UserList = () => {
+  const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
   const { projectId, projectName, company } = useLocalSearchParams();
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
   const auth = useContext(AuthContext);
   const token = auth?.token;
-  console.log(company);
+
+  // Filter state
+  const [activeFilter, setActiveFilter] = useState("All");
+  const filters = ["All", "Client", "Vendor", "Consultant"];
+
+  // Export menu state
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [excelLoading, setExcelLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   // Delete modal state
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+
+  const handleDownloadExcel = async () => {
+    if (!token || !projectId) {
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Project or token is missing",
+      });
+      return;
+    }
+
+    try {
+      setExcelLoading(true);
+      setExportMenuVisible(false);
+
+      const response = await api.post(
+        "/user-directory/export/excel",
+        { projectId, projectName, company },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        },
+      );
+
+      const fileName = `${projectName || "project"}_User_Directory.xlsx`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(response.data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Download User Directory",
+          UTI: "com.microsoft.excel.xlsx",
+        });
+      }
+    } catch (err) {
+      console.error("Excel download error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Unable to download user directory.",
+        position: "bottom",
+      });
+    } finally {
+      setExcelLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!token || !projectId) {
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Project or token is missing",
+      });
+      return;
+    }
+
+    try {
+      setPdfLoading(true);
+      setExportMenuVisible(false);
+
+      const response = await api.post(
+        "/user-directory/export/pdf",
+        { projectId, projectName, company },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        },
+      );
+
+      const fileName = `${projectName || "project"}_User_Directory.pdf`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(response.data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Download User Directory PDF",
+          UTI: "com.adobe.pdf",
+        });
+      }
+    } catch (err) {
+      console.error("PDF download error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Download Failed",
+        text2: "Unable to download user directory PDF.",
+        position: "bottom",
+      });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const fetchUsers = async () => {
     if (!projectId || !token) return;
 
     try {
       setLoading(true);
-
       const res = await api.get(`/projects/${projectId}/project-users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -78,12 +218,10 @@ const UserList = () => {
         ...(res.data.users.members || []),
         ...(res.data.users.others || []),
       ];
-      // console.log("Project Users Raw:", projectUsers);
 
       const formattedUsers: IUser[] = projectUsers.map((pu: any) => ({
-        _id: pu._id || "", // use _id from API
+        _id: pu._id || "",
         individualName: pu.individualName || pu.fullName || "N/A",
-
         designation: pu.designation || "-",
         expertise: pu.expertise || "-",
         role: pu.role || "-",
@@ -92,8 +230,6 @@ const UserList = () => {
         email: pu.email || "-",
         phone: pu.phone || "-",
       }));
-
-      // console.log(formattedUsers);
 
       setUsers(formattedUsers);
     } catch (error) {
@@ -115,24 +251,28 @@ const UserList = () => {
     }
   }, [projectId, token]);
 
+  const filteredUsers = useMemo(() => {
+    if (activeFilter === "All") return users;
+    return users.filter(
+      (u) => u.role?.toLowerCase() === activeFilter.toLowerCase(),
+    );
+  }, [users, activeFilter]);
+
   const handleDeletePress = (user: IUser) => {
     setSelectedUser(user);
     setDeleteModalVisible(true);
   };
 
-  // Confirm deletion from project only
   const handleConfirmDelete = async () => {
     if (!selectedUser || !projectId || !token) return;
 
     try {
       setLoading(true);
-
-      // DELETE request to remove user from project's projectUsers array
       await api.delete(
         `/projects/${projectId}/project-users/${selectedUser._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       Toast.show({
@@ -144,15 +284,9 @@ const UserList = () => {
 
       setDeleteModalVisible(false);
       setSelectedUser(null);
-
-      // Refresh the user list
       fetchUsers();
     } catch (error: any) {
-      console.error(
-        "Error removing user from project:",
-        error.response || error
-      );
-
+      console.error("Error removing user:", error);
       Toast.show({
         type: "error",
         text1: "Remove Failed",
@@ -164,76 +298,51 @@ const UserList = () => {
     }
   };
 
-  const renderUserItem = ({ item, index }: { item: IUser; index: number }) => (
-    <TouchableOpacity
-      key={index}
-      activeOpacity={0.85}
-      onPress={() =>
-        router.push({
-          pathname: "/userDetail",
-          params: { user: JSON.stringify(item) }, // send full user object
-        })
-      }
-      className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100"
+  const renderUserCard = ({ item }: { item: IUser }) => (
+    <View
+      className="bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4 shadow-sm"
+      style={{ elevation: 2 }}
     >
-      {/* Top row: Username + Edit/Delete icons */}
-      <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-xl font-bold text-blue-700 flex-1 truncate">
-          {item.individualName || "-"}
+      <View className="flex-row justify-between items-start mb-2">
+        <Text className="text-lg font-dmBold text-black dark:text-white flex-1">
+          {item.individualName} <Text className="text-[#8E8E8E]"> • </Text>{" "}
+          <Text className="text-[#8E8E8E] font-dmMedium">{item.role}</Text>
         </Text>
-
-        <View className="flex-row space-x-4 ml-4">
-          {/* Edit and Delete icons */}
-          {/* Example: You can re-enable Edit later */}
-          {/* <TouchableOpacity
-          onPress={() => handleEditPress(item)}
-          className="px-3 py-1 rounded bg-blue-50"
-          activeOpacity={0.7}
-        >
-          <Ionicons name="pencil-outline" size={20} color="#2563EB" />
-        </TouchableOpacity> */}
-
-          <TouchableOpacity
-            onPress={() => handleDeletePress(item)}
-            className="px-3 py-1 rounded bg-red-50"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+        {/* Delete option could be in more menu, for now keeping handle for admin if needed */}
+        {/* {auth?.user?.role === "admin" && (
+          <TouchableOpacity onPress={() => handleDeletePress(item)}>
+            <HugeiconsIcon
+              icon={MoreVerticalIcon}
+              size={20}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
           </TouchableOpacity>
-        </View>
+        )} */}
       </View>
 
-      {/* Role and Description */}
-      <View className="flex-row justify-between mb-1">
-        <Text className="text-sm text-gray-800 font-semibold capitalize flex-1 pr-2">
-          {item.role || "-"}
-        </Text>
-        <Text className="text-sm text-gray-600 italic flex-1 text-right truncate">
-          {item.expertise || "-"}
-        </Text>
-      </View>
+      <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-1">
+        {item.firmName} <Text className="text-[#8E8E8E]"> • </Text>{" "}
+        {item.roleDescription}
+      </Text>
 
-      {/* Firm Name and Designation */}
-      <View className="flex-row justify-between mb-1">
-        <Text className="text-xs text-gray-600 flex-1 pr-2 truncate">
-          {item.firmName || "-"}
-        </Text>
-        <Text className="text-xs text-gray-600 flex-1 text-right truncate">
-          {item.designation || "-"}
-        </Text>
-      </View>
+      <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-6">
+        {item.designation}
+      </Text>
 
-      {/* Email and Phone */}
-      <View className="flex-row justify-between">
-        <Text className="text-xs text-gray-500 flex-1 pr-2 truncate">
-          {item.email || "-"}
-        </Text>
-        {/* <Text className="text-sm text-gray-500 flex-1 text-right truncate">
-          {item.phone || "-"}
-        </Text> */}
+      <View className="flex-row justify-between items-center border-t border-[#E0E5EB] dark:border-[#252525] pt-4">
+        <TouchableOpacity
+          onPress={() => item.email && Linking.openURL(`mailto:${item.email}`)}
+          className="flex-1 mr-2"
+        >
+          <Text
+            numberOfLines={1}
+            className="text-[#3B82F6] text-sm font-dmMedium"
+          >
+            {item.email}
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
-          className="flex-1"
           onPress={() => {
             if (item.phone) {
               const phoneNumber =
@@ -244,303 +353,194 @@ const UserList = () => {
             }
           }}
         >
-          <Text
-            className={`text-sm text-right truncate ${
-              item.phone ? "text-blue-600 underline" : "text-gray-500"
-            }`}
-          >
-            {item.phone || "-"}
+          <Text className="text-[#3B82F6] text-sm font-dmMedium">
+            {item.phone}
           </Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
-  const [excelLoading, setExcelLoading] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-
-  const handleDownloadExcel = async () => {
-    if (!token || !projectId) {
-      Toast.show({
-        type: "error",
-        text1: "Download Failed",
-        text2: "Project or token is missing",
-      });
-      return;
-    }
-
-    try {
-      setExcelLoading(true); // START LOADING
-
-      // 1️⃣ Call backend route
-      const response = await api.post(
-        "/user-directory/export/excel",
-        {
-          projectId,
-          projectName,
-          company,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: "blob",
-        }
-      );
-
-      const fileName = `${projectName || "project"}_User_Directory.xlsx`;
-
-      if (Platform.OS === "web") {
-        // ✅ Web download
-        const url = window.URL.createObjectURL(response.data);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } else {
-        // ✅ Mobile download (iOS/Android)
-        const blobToBase64 = (blob: Blob) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () =>
-              resolve(reader.result?.toString().split(",")[1] || "");
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-
-        const base64data = await blobToBase64(response.data);
-
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        await Sharing.shareAsync(fileUri, {
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          dialogTitle: "Download User Directory",
-          UTI: "com.microsoft.excel.xlsx",
-        });
-      }
-
-      // Toast.show({
-      //   type: "success",
-      //   text1: "Excel Downloaded",
-      //   text2: "User directory has been downloaded successfully.",
-      //   position: "bottom",
-      // });
-    } catch (err) {
-      console.error("Excel download error:", err);
-      Toast.show({
-        type: "error",
-        text1: "Download Failed",
-        text2: "Unable to download user directory.",
-        position: "bottom",
-      });
-    } finally {
-      setExcelLoading(false); // STOP LOADING
-    }
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!token || !projectId) {
-      Toast.show({
-        type: "error",
-        text1: "Download Failed",
-        text2: "Project or token is missing",
-      });
-      return;
-    }
-
-    try {
-      setPdfLoading(true); // START LOADING
-
-      // Call backend PDF export route
-      const response = await api.post(
-        "/user-directory/export/pdf",
-        {
-          projectId,
-          projectName,
-          company,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: "blob", // important for binary data
-        }
-      );
-
-      const fileName = `${projectName || "project"}_User_Directory.pdf`;
-
-      if (Platform.OS === "web") {
-        // Web download
-        const url = window.URL.createObjectURL(response.data);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } else {
-        // Mobile download (iOS/Android)
-        const blobToBase64 = (blob: Blob) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () =>
-              resolve(reader.result?.toString().split(",")[1] || "");
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-
-        const base64data = await blobToBase64(response.data);
-
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        await Sharing.shareAsync(fileUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Download User Directory PDF",
-          UTI: "com.adobe.pdf",
-        });
-      }
-
-      // Toast.show({
-      //   type: "success",
-      //   text1: "PDF Downloaded",
-      //   text2: "User directory PDF has been downloaded successfully.",
-      //   position: "bottom",
-      // });
-    } catch (err) {
-      console.error("PDF download error:", err);
-      Toast.show({
-        type: "error",
-        text1: "Download Failed",
-        text2: "Unable to download user directory PDF.",
-        position: "bottom",
-      });
-    } finally {
-      setPdfLoading(false); // STOP LOADING
-    }
-  };
-
   return (
-    <View className="flex-1 bg-gray-50">
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-            zIndex: 10,
-          }}
-        >
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">Back</Text>
-          </TouchableOpacity>
+    <View className="flex-1 bg-white dark:bg-black">
+      {/* Header */}
+      <View className="pt-14 pb-4 px-5 flex-row items-center justify-between">
+        <TouchableOpacity onPress={() => router.back()} className="mr-4">
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
 
-          <View className="flex-row gap-6">
-            {/* Excel Download */}
-            <TouchableOpacity
-              disabled={excelLoading} // disable during loading
-              onPress={handleDownloadExcel}
-              className="px-3 py-1 rounded-full bg-white/30 active:bg-white/50 flex items-center justify-center"
-            >
-              {excelLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <MaterialCommunityIcons
-                  name="microsoft-excel"
-                  size={24}
-                  color="white"
-                />
-              )}
-            </TouchableOpacity>
-
-            {/* PDF Download */}
-            <TouchableOpacity
-              disabled={pdfLoading}
-              onPress={handleDownloadPDF}
-              className="px-3 py-1 rounded-full bg-white/30 active:bg-white/50 flex items-center justify-center"
-            >
-              {pdfLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <MaterialCommunityIcons
-                  name="file-pdf-box"
-                  size={26}
-                  color="white"
-                />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </LinearGradient>
-
-      <View className="px-4 pt-5 flex-1">
-        <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
-          {projectName} User Directory
+        <Text className="flex-1 text-xl font-dmBold text-black dark:text-white">
+          User Directory
         </Text>
 
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity>
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              router.push(
+                `/addProjectUser?projectId=${projectId}&projectName=${projectName}`,
+              )
+            }
+          >
+            <HugeiconsIcon
+              icon={UserAdd01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
+            <HugeiconsIcon
+              icon={MoreHorizontalIcon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Export Menu Modal */}
+      <Modal
+        transparent={true}
+        visible={exportMenuVisible}
+        animationType="fade"
+        onRequestClose={() => setExportMenuVisible(false)}
+      >
+        <Pressable
+          className="flex-1"
+          onPress={() => setExportMenuVisible(false)}
+        >
+          <View className="absolute top-[50px] right-3">
+            {/* Menu Container */}
+            <View
+              className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-2 w-[190px] shadow"
+              style={{
+                elevation: 15,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.1,
+                shadowRadius: 20,
+              }}
+            >
+              {/* Triangle Pointer (Merged) */}
+              <View
+                className="absolute right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rounded rotate-45"
+                style={{
+                  zIndex: -1,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={handleDownloadPDF}
+                className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+              >
+                <HugeiconsIcon
+                  icon={Pdf01Icon}
+                  size={24}
+                  color={isDarkMode ? "#D2D2D2" : "#454545"}
+                />
+                <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                  Export PDF
+                </Text>
+              </TouchableOpacity>
+
+              <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2" />
+
+              <TouchableOpacity
+                onPress={handleDownloadExcel}
+                className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+              >
+                <HugeiconsIcon
+                  icon={Xsl01Icon}
+                  size={24}
+                  color={isDarkMode ? "#D2D2D2" : "#454545"}
+                />
+                <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                  Export Excel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Filter Chips */}
+      <View className="px-5 py-4">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="flex-row"
+        >
+          {filters.map((filter) => {
+            const isActive = activeFilter === filter;
+            return (
+              <TouchableOpacity
+                key={filter}
+                onPress={() => setActiveFilter(filter)}
+                className={`px-6 py-2.5 rounded-2xl mr-3 border ${
+                  isActive
+                    ? "bg-[#E0E7FF] border-[#5B4CCC] dark:bg-[#1A1F3D] dark:border-[#5B4CCC]"
+                    : "bg-[#F8F9FB] border-[#E0E5EB] dark:bg-[#121212] dark:border-[#252525]"
+                }`}
+              >
+                <Text
+                  className={`text-sm font-dmMedium ${
+                    isActive
+                      ? "text-[#5B4CCC]"
+                      : "text-[#454545] dark:text-[#919191]"
+                  }`}
+                >
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Main Content */}
+      <View className="flex-1 px-5">
         {loading ? (
-          <ActivityIndicator size="large" color="#2563EB" />
-        ) : users.length === 0 ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#5B4CCC" />
+          </View>
+        ) : filteredUsers.length === 0 ? (
           <View className="flex-1 justify-center items-center py-10">
-            <Text className="text-gray-500 text-lg italic">No user exists</Text>
+            <Text className="text-[#8E8E8E] text-lg font-poppins italic">
+              No users found
+            </Text>
           </View>
         ) : (
           <FlatList
-            data={users}
-            keyExtractor={(item, index) => item._id || String(index)}
-            renderItem={renderUserItem}
-            contentContainerStyle={{ paddingBottom: 80 }}
+            data={filteredUsers}
+            keyExtractor={(item) => item._id}
+            renderItem={renderUserCard}
+            contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
           />
         )}
       </View>
 
-      {/* Floating + Button */}
+      {/* Floating Action Button */}
       <TouchableOpacity
-        // onPress={() =>
-        //   router.push(
-        //     `/addUserDirectory?projectId=${projectId}&projectName=${projectName}`
-        //   )
-        // }
         onPress={() =>
           router.push(
-            `/addProjectUser?projectId=${projectId}&projectName=${projectName}`
+            `/addProjectUser?projectId=${projectId}&projectName=${projectName}`,
           )
         }
-        className="bg-indigo-600"
-        style={{
-          position: "absolute",
-          bottom: 44,
-          right: 20,
-
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          alignItems: "center",
-          justifyContent: "center",
-          elevation: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3,
-        }}
+        className="absolute bottom-10 right-6 w-16 h-16 rounded-full bg-[#5B4CCC] items-center justify-center shadow-lg"
+        style={{ elevation: 8 }}
       >
-        <Ionicons name="add" size={30} color="white" />
+        <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
       </TouchableOpacity>
 
       {/* Delete Confirmation Modal */}
@@ -554,149 +554,38 @@ const UserList = () => {
           className="flex-1 justify-center items-center px-6"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <View className="bg-white rounded-lg p-5 w-full max-w-sm shadow-md">
-            <Text className="text-lg font-semibold mb-3 text-center">
-              Confirm Delete
+          <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <Text className="text-xl font-dmBold mb-3 text-black dark:text-white">
+              Remove User
             </Text>
-            <Text className="text-center mb-5 text-gray-700">
-              Are you sure you want to delete user{" "}
-              <Text className="font-semibold">
+            <Text className="mb-6 text-[#454545] dark:text-[#919191] font-poppins">
+              Are you sure you want to remove{" "}
+              <Text className="font-dmBold text-black dark:text-white">
                 {selectedUser?.individualName}
-              </Text>
-              ?
+              </Text>{" "}
+              from this project?
             </Text>
 
-            <View className="flex-row justify-between">
-              <Pressable
+            <View className="flex-row justify-end gap-4">
+              <TouchableOpacity
                 onPress={() => setDeleteModalVisible(false)}
-                className="px-6 py-2 rounded-lg bg-gray-200"
+                className="px-6 py-2.5 rounded-xl bg-gray-100 dark:bg-[#252525]"
               >
-                <Text className="text-gray-700 font-semibold text-center">
+                <Text className="text-gray-700 dark:text-[#919191] font-dmBold">
                   Cancel
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
 
-              <Pressable
+              <TouchableOpacity
                 onPress={handleConfirmDelete}
-                className="px-6 py-2 rounded-lg bg-red-600"
+                className="px-6 py-2.5 rounded-xl bg-red-600"
               >
-                <Text className="text-white font-semibold text-center">
-                  Delete
-                </Text>
-              </Pressable>
+                <Text className="text-white font-dmBold">Remove</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
-      {/* Edit User Modal */}
-      {/* <Modal
-        transparent={true}
-        visible={editModalVisible}
-        animationType="fade"
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View
-          className="flex-1 justify-center px-6 pt-10"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <View className="bg-white rounded-lg p-5 w-full max-w-sm mx-auto shadow-md">
-            <Text className="text-xl font-semibold mb-5 text-center">
-              Edit User
-            </Text>
-
-            <Text className="font-semibold mb-1 text-gray-700">Name</Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.individualName}
-              onChangeText={(text) => handleEditChange("individualName", text)}
-              placeholder="Name"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">
-              Designation
-            </Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.designation}
-              onChangeText={(text) => handleEditChange("designation", text)}
-              placeholder="Designation"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">Role</Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.role}
-              onChangeText={(text) => handleEditChange("role", text)}
-              placeholder="Role"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">
-              Role Description
-            </Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.roleDescription}
-              onChangeText={(text) => handleEditChange("roleDescription", text)}
-              placeholder="Role Description"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">Firm Name</Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.firmName}
-              onChangeText={(text) => handleEditChange("firmName", text)}
-              placeholder="Firm Name"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">Email</Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-3"
-              value={editUserData.email}
-              onChangeText={(text) => handleEditChange("email", text)}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <Text className="font-semibold mb-1 text-gray-700">Phone</Text>
-            <TextInput
-              className="border border-gray-300 rounded-md p-2 mb-5"
-              value={editUserData.phone}
-              onChangeText={(text) => handleEditChange("phone", text)}
-              placeholder="Phone"
-              keyboardType="phone-pad"
-              placeholderTextColor="#9ca3af"
-            />
-
-            <View className="flex-row justify-between">
-              <Pressable
-                onPress={() => setEditModalVisible(false)}
-                className="px-6 py-2 rounded-lg bg-gray-200"
-              >
-                <Text className="text-gray-700 font-semibold text-center">
-                  Cancel
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleSaveEdit}
-                className="px-6 py-2 rounded-lg bg-indigo-600"
-              >
-                <Text className="text-white font-semibold text-center">
-                  Save
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal> */}
     </View>
   );
 };
