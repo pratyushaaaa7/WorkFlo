@@ -1,8 +1,9 @@
 import { ArrowRight01Icon, File02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useContext } from "react";
 import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import { AuthContext } from "../../context/AuthContext";
 
 interface ProjectsTabProps {
   userData: any;
@@ -11,10 +12,12 @@ interface ProjectsTabProps {
 const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
+  const { user } = useContext(AuthContext) || {};
 
   const projects = userData?.projects || [];
 
   const handleProjectClick = (project: any) => {
+    if (user?.role !== "admin") return;
     router.push({
       pathname: "/projectDetails",
       params: {
@@ -42,7 +45,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
           <TouchableOpacity
             key={project._id || index}
             onPress={() => handleProjectClick(project)}
-            activeOpacity={0.7}
+            activeOpacity={user?.role === "admin" ? 0.7 : 1}
             className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[12px] p-4 mb-4 flex-row items-center"
           >
             {/* Project Image Placeholder */}
@@ -67,14 +70,16 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
               </Text>
             </View>
 
-            {/* Chevron */}
-            <View className="ml-2">
-              <HugeiconsIcon
-                icon={ArrowRight01Icon}
-                size={24}
-                color={isDarkMode ? "#919191" : "#454545"}
-              />
-            </View>
+            {/* Chevron (Admin Only) */}
+            {user?.role === "admin" && (
+              <View className="ml-2">
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={24}
+                  color={isDarkMode ? "#919191" : "#454545"}
+                />
+              </View>
+            )}
           </TouchableOpacity>
         ))
       ) : (
