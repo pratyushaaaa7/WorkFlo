@@ -104,26 +104,29 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData }) => {
         </>
       ) : (
         <View className="flex-1 items-center justify-center pt-20">
-          <Text className="text-[#606060] dark:text-[#919191] font-poppins text-center mb-4">
-            No reviews yet
-          </Text>
-          <LinearGradient
+          {/* <LinearGradient
             colors={["#5B4CCC", "#6347C2", "#8056D1"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ borderRadius: 16 }}
-          >
+          > */}
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl ">
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               activeOpacity={0.85}
               className="flex-row items-center justify-center py-4 px-6 rounded-2xl"
             >
-              <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
-              <Text className="text-white font-dmMedium ml-3">
+              <HugeiconsIcon
+                icon={Edit03Icon}
+                size={18}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+              <Text className="text-black dark:text-white font-dmMedium ml-3">
                 Write a review
               </Text>
             </TouchableOpacity>
-          </LinearGradient>
+            {/* </LinearGradient> */}
+          </View>
         </View>
       )}
       <View className="h-20" />
