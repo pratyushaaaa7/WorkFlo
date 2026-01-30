@@ -1,18 +1,23 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   ArrowLeft01Icon,
+  Cancel01Icon,
+  Delete03Icon,
   MoreHorizontalIcon,
+  Pdf01Icon,
   Search01Icon,
   UserAdd01Icon,
   Xsl01Icon,
-  Pdf01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { BlurView } from "@react-native-community/blur";
 import * as FileSystem from "expo-file-system";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, MotiView } from "moti";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -22,6 +27,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -53,17 +59,19 @@ const UserList = () => {
   const token = auth?.token;
 
   // Filter state
-  const [activeFilter, setActiveFilter] = useState("All");
-  const filters = ["All", "Client", "Vendor", "Consultant"];
+  const [activeFilter, setActiveFilter] = useState("  All  ");
+  const filters = ["  All  ", "Client", "Vendor", "Consultant"];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   // Export menu state
   const [exportMenuVisible, setExportMenuVisible] = useState(false);
   const [excelLoading, setExcelLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  // Delete modal state
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  // Delete/Focus state
+  const [focusedUser, setFocusedUser] = useState<any | null>(null);
+  const userRefs = useRef<{ [key: string]: View | null }>({});
 
   const handleDownloadExcel = async () => {
     if (!token || !projectId) {
@@ -252,28 +260,44 @@ const UserList = () => {
   }, [projectId, token]);
 
   const filteredUsers = useMemo(() => {
-    if (activeFilter === "All") return users;
-    return users.filter(
-      (u) => u.role?.toLowerCase() === activeFilter.toLowerCase(),
-    );
-  }, [users, activeFilter]);
+    let result = users;
 
-  const handleDeletePress = (user: IUser) => {
-    setSelectedUser(user);
-    setDeleteModalVisible(true);
+    if (activeFilter !== "  All  ") {
+      result = result.filter(
+        (u) => u.role?.toLowerCase() === activeFilter.toLowerCase(),
+      );
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((u) =>
+        u.individualName.toLowerCase().includes(query),
+      );
+    }
+
+    return result;
+  }, [users, activeFilter, searchQuery]);
+
+  const handleLongPress = (user: IUser) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const ref = userRefs.current[user._id];
+    if (ref) {
+      ref.measureInWindow((x, y, width, height) => {
+        setFocusedUser({ ...user, layout: { x, y, width, height } });
+      });
+    }
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedUser || !projectId || !token) return;
+    if (!focusedUser || !projectId || !token) return;
 
     try {
       setLoading(true);
-      await api.delete(
-        `/projects/${projectId}/project-users/${selectedUser._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const userId = focusedUser._id;
+      setFocusedUser(null);
+      await api.delete(`/projects/${projectId}/project-users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       Toast.show({
         type: "success",
@@ -282,8 +306,6 @@ const UserList = () => {
         position: "bottom",
       });
 
-      setDeleteModalVisible(false);
-      setSelectedUser(null);
       fetchUsers();
     } catch (error: any) {
       console.error("Error removing user:", error);
@@ -298,45 +320,53 @@ const UserList = () => {
     }
   };
 
-  const renderUserCard = ({ item }: { item: IUser }) => (
+  const UserCard = ({
+    item,
+    isFocused = false,
+  }: {
+    item: IUser;
+    isFocused?: boolean;
+  }) => (
     <View
-      className="bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4 shadow-sm"
-      style={{ elevation: 2 }}
+      ref={(el) => {
+        if (!isFocused) userRefs.current[item._id] = el;
+      }}
+      className={`bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-2xl p-3  ${
+        isFocused ? "" : "mb-4"
+      }`}
+      // style={{ elevation: isFocused ? 0 : 2 }}
     >
       <View className="flex-row justify-between items-start mb-2">
         <Text className="text-lg font-dmBold text-black dark:text-white flex-1">
-          {item.individualName} <Text className="text-[#8E8E8E]"> • </Text>{" "}
-          <Text className="text-[#8E8E8E] font-dmMedium">{item.role}</Text>
+          {item.individualName}{" "}
+          <Text className="text-[#454545] dark:text-[#919191] text-sm">
+            {" "}
+            •{" "}
+          </Text>{" "}
+          <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
+            {item.role}
+          </Text>
         </Text>
-        {/* Delete option could be in more menu, for now keeping handle for admin if needed */}
-        {/* {auth?.user?.role === "admin" && (
-          <TouchableOpacity onPress={() => handleDeletePress(item)}>
-            <HugeiconsIcon
-              icon={MoreVerticalIcon}
-              size={20}
-              color={isDarkMode ? "#919191" : "#454545"}
-            />
-          </TouchableOpacity>
-        )} */}
       </View>
 
       <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-1">
-        {item.firmName} <Text className="text-[#8E8E8E]"> • </Text>{" "}
-        {item.roleDescription}
-      </Text>
-
-      <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-6">
+        {item.firmName}{" "}
+        <Text className="text-[#454545] dark:text-[#919191]"> • </Text>{" "}
         {item.designation}
       </Text>
 
-      <View className="flex-row justify-between items-center border-t border-[#E0E5EB] dark:border-[#252525] pt-4">
+      <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-3">
+        {item.expertise}
+      </Text>
+
+      <View className="flex-row justify-between items-center border-t border-[#E0E5EB] dark:border-[#252525] pt-2">
         <TouchableOpacity
           onPress={() => item.email && Linking.openURL(`mailto:${item.email}`)}
           className="flex-1 mr-2"
         >
           <Text
             numberOfLines={1}
-            className="text-[#3B82F6] text-sm font-dmMedium"
+            className="text-[#0073CB] text-sm font-dmMedium"
           >
             {item.email}
           </Text>
@@ -353,7 +383,7 @@ const UserList = () => {
             }
           }}
         >
-          <Text className="text-[#3B82F6] text-sm font-dmMedium">
+          <Text className="text-[#0073CB] text-sm font-dmMedium">
             {item.phone}
           </Text>
         </TouchableOpacity>
@@ -361,10 +391,26 @@ const UserList = () => {
     </View>
   );
 
+  const renderUserCard = ({ item }: { item: IUser }) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() =>
+        router.push({
+          pathname: "/userDetail",
+          params: { user: JSON.stringify(item) },
+        })
+      }
+      onLongPress={() => handleLongPress(item)}
+      delayLongPress={300}
+    >
+      <UserCard item={item} />
+    </TouchableOpacity>
+  );
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       {/* Header */}
-      <View className="pt-14 pb-4 px-5 flex-row items-center justify-between">
+      <View className="pt-16 pb-3 px-5 flex-row items-center justify-between">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
@@ -378,9 +424,9 @@ const UserList = () => {
         </Text>
 
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={showSearch ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "#FFF" : "#000"}
             />
@@ -408,6 +454,44 @@ const UserList = () => {
         </View>
       </View>
 
+      {/* 🔹 SEARCH BAR */}
+      <AnimatePresence>
+        {showSearch && (
+          <MotiView
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="px-5 pb-2"
+          >
+            <View className="flex-row items-center bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333]">
+              <HugeiconsIcon
+                icon={Search01Icon}
+                size={18}
+                color={isDarkMode ? "#A1A1A1" : "#6B7280"}
+              />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search by User Name..."
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                className="flex-1 ml-2 text-black dark:text-white font-poppins text-sm"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
+
       {/* Export Menu Modal */}
       <Modal
         transparent={true}
@@ -422,7 +506,7 @@ const UserList = () => {
           <View className="absolute top-[50px] right-3">
             {/* Menu Container */}
             <View
-              className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-2 w-[190px] shadow"
+              className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-2 shadow"
               style={{
                 elevation: 15,
                 shadowColor: "#000",
@@ -474,11 +558,12 @@ const UserList = () => {
       </Modal>
 
       {/* Filter Chips */}
-      <View className="px-5 py-4">
+      <View className="py-4">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           className="flex-row"
+          contentContainerStyle={{ paddingHorizontal: 20 }}
         >
           {filters.map((filter) => {
             const isActive = activeFilter === filter;
@@ -486,10 +571,10 @@ const UserList = () => {
               <TouchableOpacity
                 key={filter}
                 onPress={() => setActiveFilter(filter)}
-                className={`px-6 py-2.5 rounded-2xl mr-3 border ${
+                className={`px-6 py-2.5 rounded-3xl mr-3 border ${
                   isActive
                     ? "bg-[#E0E7FF] border-[#5B4CCC] dark:bg-[#1A1F3D] dark:border-[#5B4CCC]"
-                    : "bg-[#F8F9FB] border-[#E0E5EB] dark:bg-[#121212] dark:border-[#252525]"
+                    : "bg-[#F8F9FB] border-[#E0E5EB] dark:bg-[#000] dark:border-[#413E47]"
                 }`}
               >
                 <Text
@@ -537,53 +622,72 @@ const UserList = () => {
             `/addProjectUser?projectId=${projectId}&projectName=${projectName}`,
           )
         }
-        className="absolute bottom-10 right-6 w-16 h-16 rounded-full bg-[#5B4CCC] items-center justify-center shadow-lg"
-        style={{ elevation: 8 }}
+        activeOpacity={0.9}
+        className="absolute bottom-10 right-6 w-16 h-16 rounded-full bg-[#5B4CCC] items-center justify-center"
+        style={{
+          shadowColor: "#5B4CCC",
+          shadowOffset: { width: 0, height: 15 },
+          shadowOpacity: 0.5,
+          shadowRadius: 20,
+          elevation: 20,
+        }}
       >
         <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
       </TouchableOpacity>
 
-      {/* Delete Confirmation Modal */}
+      {/* Focused User / Delete Modal */}
       <Modal
+        visible={!!focusedUser}
         transparent={true}
-        visible={deleteModalVisible}
         animationType="fade"
-        onRequestClose={() => setDeleteModalVisible(false)}
+        onRequestClose={() => setFocusedUser(null)}
       >
-        <View
-          className="flex-1 justify-center items-center px-6"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <Text className="text-xl font-dmBold mb-3 text-black dark:text-white">
-              Remove User
-            </Text>
-            <Text className="mb-6 text-[#454545] dark:text-[#919191] font-poppins">
-              Are you sure you want to remove{" "}
-              <Text className="font-dmBold text-black dark:text-white">
-                {selectedUser?.individualName}
-              </Text>{" "}
-              from this project?
-            </Text>
+        <View className="flex-1">
+          <Pressable style={{ flex: 1 }} onPress={() => setFocusedUser(null)}>
+            <BlurView
+              blurType={isDarkMode ? "dark" : "light"}
+              blurAmount={2}
+              reducedTransparencyFallbackColor={isDarkMode ? "black" : "white"}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+              }}
+            />
+          </Pressable>
 
-            <View className="flex-row justify-end gap-4">
-              <TouchableOpacity
-                onPress={() => setDeleteModalVisible(false)}
-                className="px-6 py-2.5 rounded-xl bg-gray-100 dark:bg-[#252525]"
-              >
-                <Text className="text-gray-700 dark:text-[#919191] font-dmBold">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
+          {focusedUser && focusedUser.layout && (
+            <View
+              style={{
+                position: "absolute",
+                top: focusedUser.layout.y,
+                left: focusedUser.layout.x,
+                width: focusedUser.layout.width,
+              }}
+            >
+              <UserCard item={focusedUser} isFocused={true} />
 
               <TouchableOpacity
                 onPress={handleConfirmDelete}
-                className="px-6 py-2.5 rounded-xl bg-red-600"
+                activeOpacity={0.9}
+                className="mt-4 flex-row items-center justify-center self-end bg-white dark:bg-[#1A1A1A] px-4 py-4 rounded-2xl "
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 12,
+                  elevation: 5,
+                }}
               >
-                <Text className="text-white font-dmBold">Remove</Text>
+                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                <Text className="ml-3 text-[#DF5B5B] font-dmBold text-base">
+                  Remove User
+                </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          )}
         </View>
       </Modal>
     </View>
