@@ -1,8 +1,14 @@
-import { ArrowRight01Icon, File02Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
-import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 
 interface ProjectsTabProps {
@@ -46,14 +52,19 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
             key={project._id || index}
             onPress={() => handleProjectClick(project)}
             activeOpacity={user?.role === "admin" ? 0.7 : 1}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[12px] p-4 mb-4 flex-row items-center"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[12px] p-2 mb-4 flex-row items-center"
           >
             {/* Project Image Placeholder */}
-            <View className="w-16 h-16 rounded-2xl bg-[#EBEFF5] dark:bg-[#2A2A2A] items-center justify-center mr-4">
-              <HugeiconsIcon
-                icon={File02Icon}
-                size={28}
-                color={isDarkMode ? "#606060" : "#AAB5C3"}
+            <View className="mr-4">
+              <Image
+                source={
+                  isDarkMode
+                    ? require("../../assets/images/ProjectImageDark.jpg")
+                    : require("../../assets/images/ProjectImageLight.jpg")
+                }
+                className=" rounded-[8px]"
+                style={{ width: 56, height: 56 }}
+                resizeMode="cover"
               />
             </View>
 
