@@ -30,8 +30,8 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
         <Text className="text-2xl font-dmBold text-black dark:text-white mr-3">
           Current Project
         </Text>
-        <View className="bg-[#1F1F1F] dark:bg-[#333333] px-3 py-1 rounded-lg">
-          <Text className="text-white text-sm font-dmBold">
+        <View className="bg-[#E0E5EB] dark:bg-[#2F2F2F] px-3 py-1 rounded-lg">
+          <Text className="text-black dark:text-white text-sm font-dmBold">
             {projects.length}
           </Text>
         </View>
@@ -43,7 +43,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
             key={project._id || index}
             onPress={() => handleProjectClick(project)}
             activeOpacity={0.7}
-            className="bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-[24px] p-4 mb-4 flex-row items-center border border-[#EDF1F5] dark:border-[#252525]"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[12px] p-4 mb-4 flex-row items-center"
           >
             {/* Project Image Placeholder */}
             <View className="w-16 h-16 rounded-2xl bg-[#EBEFF5] dark:bg-[#2A2A2A] items-center justify-center mr-4">
@@ -58,11 +58,11 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
             <View className="flex-1">
               <Text
                 numberOfLines={1}
-                className="text-lg font-dmBold text-black dark:text-white mb-0.5"
+                className="text-lg font-poppinsMedium text-black dark:text-white mb-0.5"
               >
                 {project.projectName || "Unnamed Project"}
               </Text>
-              <Text className="text-[#606060] dark:text-[#919191] text-sm font-poppins">
+              <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
                 {project.company || "N/A"}
               </Text>
             </View>
@@ -72,7 +72,7 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
               <HugeiconsIcon
                 icon={ArrowRight01Icon}
                 size={24}
-                color={isDarkMode ? "#606060" : "#AAB5C3"}
+                color={isDarkMode ? "#919191" : "#454545"}
               />
             </View>
           </TouchableOpacity>
