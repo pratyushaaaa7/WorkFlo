@@ -153,7 +153,7 @@ const EmployeeDetail = () => {
       {/* Fixed Sticky Header Bar (Absolute) */}
       <View
         style={{ height: HEADER_HEIGHT }}
-        className="absolute top-0 left-0 right-0 z-20 bg-white dark:bg-black px-4 pt-12 pb-4 border-b border-transparent"
+        className="absolute top-0 left-0 right-0 z-20 bg-white dark:bg-black px-4 pt-14 pb-4 border-b border-transparent"
       >
         <View className="flex-row items-center justify-between">
           <TouchableOpacity onPress={() => router.back()} className="w-10">
@@ -206,7 +206,7 @@ const EmployeeDetail = () => {
             className="flex-row items-center justify-end"
           >
             {user?.role === "admin" ? (
-              <View className="flex-row gap-2">
+              <View className="flex-row gap-4">
                 <TouchableOpacity>
                   <HugeiconsIcon
                     icon={Share04Icon}

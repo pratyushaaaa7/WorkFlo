@@ -10,7 +10,6 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
-import { Ionicons } from "@expo/vector-icons";
 import {
   AlertCircleIcon,
   ArchiveArrowDownIcon,
@@ -45,6 +44,7 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
+import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import "../global.css";
 import { useUsageTracking } from "../hooks/useUsageTracking";
@@ -310,13 +310,14 @@ function AppLayout() {
         <View className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1A1A1A] flex-row items-center justify-between">
           <TouchableOpacity
             className="flex-row items-center flex-1"
-            onPress={() => router.push("/profile")}
+            onPress={() => props.navigation.navigate("profile")}
           >
-            <View className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-600 items-center justify-center border-2 border-indigo-200 dark:border-[#252525]">
-              <Text className="text-indigo-600 dark:text-white font-bold text-lg">
-                {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
-              </Text>
-            </View>
+            <GlobalAvatar
+              name={user?.fullName || user?.username || "Guest"}
+              size={48}
+              fontSize={18}
+              borderRadius={16}
+            />
 
             <View className="ml-3 flex-1">
               <Text
@@ -367,9 +368,9 @@ function AppLayout() {
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         backBehavior="history"
         screenOptions={({ route }) => {
-          const isMainDrawerRoute =
-            drawerItems.some((item) => item.name === route.name) ||
-            route.name === "profile";
+          const isMainDrawerRoute = drawerItems.some(
+            (item) => item.name === route.name,
+          );
 
           const commonOptions = {
             swipeEnabled: true,
@@ -427,6 +428,13 @@ function AppLayout() {
             }}
           />
         ))}
+        <Drawer.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            title: "Profile",
+          }}
+        />
         {/* 'otherPage' removed as it caused a warning. 
             All other routes will be auto-handled by Drawer with the global screenOptions logic above. */}
       </Drawer>

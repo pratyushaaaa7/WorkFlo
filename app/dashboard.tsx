@@ -25,6 +25,7 @@ import {
   View,
 } from "react-native";
 import GlassNav from "../components/GlassNav";
+import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -199,11 +200,12 @@ const Dashboard = () => {
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push("/profile")}>
-              <View className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-600 items-center justify-center border-2 border-indigo-200 dark:border-[#252525]">
-                <Text className="text-indigo-600 dark:text-white font-bold text-base">
-                  {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
-                </Text>
-              </View>
+              <GlobalAvatar
+                name={user?.fullName || user?.username || "User"}
+                size={36}
+                fontSize={16}
+                borderRadius={20}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -269,8 +271,8 @@ const Dashboard = () => {
                           isActive
                             ? themeColor
                             : isDarkMode
-                            ? "#919191"
-                            : "#6B7280"
+                              ? "#919191"
+                              : "#6B7280"
                         }
                       />
                       <Text
@@ -298,7 +300,7 @@ const Dashboard = () => {
           scrollEventThrottle={16}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
+            { useNativeDriver: true },
           )}
         >
           {/* Search Bar (Determines Height) */}

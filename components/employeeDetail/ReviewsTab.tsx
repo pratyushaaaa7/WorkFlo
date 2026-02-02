@@ -40,6 +40,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
     if (!newStars || !newNote.trim()) {
       Toast.show({
         type: "info",
+        position: "bottom",
         text1: "Rating required",
         text2: "Please provide both stars and review text.",
       });
@@ -49,6 +50,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
     if (!token) {
       Toast.show({
         type: "error",
+        position: "bottom",
         text1: "Error",
         text2: "You must be logged in to give a review.",
       });
@@ -65,6 +67,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
 
       Toast.show({
         type: "success",
+        position: "bottom",
         text1: "Review Submitted",
         text2: "Thank you for your feedback!",
       });
@@ -77,6 +80,7 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
       console.error("Error submitting rating:", err);
       Toast.show({
         type: "error",
+        position: "bottom",
         text1: "Error",
         text2: "Something went wrong. Please try again.",
       });
