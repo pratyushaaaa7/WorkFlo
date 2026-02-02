@@ -10,7 +10,13 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -59,24 +65,24 @@ const EmployeeDetail = () => {
 
   const tabs = ["Profile", "Projects", "Reviews"];
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!userId || !token) return;
-      try {
-        setLoading(true);
-        const res = await api.get(`/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserData(res.data);
-        // console.log(res.data)
-      } catch (err) {
-        console.error("Error fetching user:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+  const fetchUser = useCallback(async () => {
+    if (!userId || !token) return;
+    try {
+      setLoading(true);
+      const res = await api.get(`/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserData(res.data);
+    } catch (err) {
+      console.error("Error fetching user:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [userId, token]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const handleSMS = () => {
     if (userData?.contactNumbers?.[0]) {
@@ -324,15 +330,24 @@ const EmployeeDetail = () => {
         </View>
 
         {/* Child 1: Tabs - Sticky Header */}
-        <View className="bg-white dark:bg-black pt-2 pb-0 z-10">
+        <View
+          collapsable={false}
+          className="bg-white dark:bg-black pt-2 pb-0 z-50 elevation-5"
+          style={{ zIndex: 50 }}
+        >
           <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525]">
             {tabs.map((tab) => {
               const isActive = activeTab === tab;
               return (
                 <TouchableOpacity
                   key={tab}
-                  onPress={() => setActiveTab(tab)}
-                  className="flex-1 items-center pb-3"
+                  onPress={() => {
+                    setActiveTab(tab);
+                    // If we're stuck, staying at the stuck position is fine
+                    // Otherwise this ensures we don't jump around
+                  }}
+                  className="flex-1 items-center pb-3 pt-1"
+                  activeOpacity={0.7}
                   style={
                     isActive
                       ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
@@ -342,7 +357,7 @@ const EmployeeDetail = () => {
                   <Text
                     className={`text-sm font-poppinsMedium ${
                       isActive
-                        ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
+                        ? "text-[#5B4CCC]"
                         : "text-[#454545] dark:text-[#BBBBBB]"
                     }`}
                   >
@@ -358,7 +373,9 @@ const EmployeeDetail = () => {
         <View className="bg-white dark:bg-black flex-1">
           {activeTab === "Profile" && <AboutTab userData={userData} />}
           {activeTab === "Projects" && <ProjectsTab userData={userData} />}
-          {activeTab === "Reviews" && <ReviewsTab userData={userData} />}
+          {activeTab === "Reviews" && (
+            <ReviewsTab userData={userData} onRefresh={fetchUser} />
+          )}
           <View className="h-24" />
         </View>
       </Animated.ScrollView>
