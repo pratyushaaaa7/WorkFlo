@@ -1,42 +1,55 @@
-import React, { useState, useContext, useEffect } from "react";
 import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowUp01Icon,
+  Cancel01Icon,
+  PlusSignCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Keyboard,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
-  Platform,
-  Keyboard,
-  ScrollView,
-  ActivityIndicator,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 type Experience = {
   company: string;
   designation: string;
-  fromDate: string; // for DateTimePicker
-  toDate: string; // for DateTimePicker
-  showFromPicker: boolean;
-  showToPicker: boolean;
+  fromDate: string | null;
+  toDate: string | null;
+  jobDescription: string;
+};
+
+type Education = {
+  college: string;
+  qualification: string;
+  specialization: string;
+  graduationYear: string;
 };
 
 const RegisterUserScreen = () => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
 
-  const { userId } = useLocalSearchParams(); // 👈 check if we are editing
-
+  const { userId, educationData, experienceData } = useLocalSearchParams();
   const router = useRouter();
-
-  const existingUser = !!userId; // 👈 determines edit mode
-  console.log(existingUser);
 
   const [loading, setLoading] = useState(false);
 
@@ -51,11 +64,9 @@ const RegisterUserScreen = () => {
   const [personalEmail, setPersonalEmail] = useState("");
 
   // Employee Info
-  //  const [employeeCode, setEmployeeCode] = useState<number | null>(null);
   const [employeeCode, setEmployeeCode] = useState<string>("");
   const [designation, setDesignation] = useState("");
   const [level, setLevel] = useState("");
-  // const [company, setCompany] = useState(null);
   const [status, setStatus] = useState<string>("");
 
   // Contact
@@ -63,12 +74,10 @@ const RegisterUserScreen = () => {
   const [emergencyContact, setEmergencyContact] = useState("");
 
   // Personal
-
   const [gender, setGender] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [motherName, setMotherName] = useState("");
   const [maritalStatus, setMaritalStatus] = useState<string | null>(null);
-
   const [spouseName, setSpouseName] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
@@ -82,17 +91,25 @@ const RegisterUserScreen = () => {
   const [aadhar, setAadhar] = useState("");
   const [pan, setPan] = useState("");
 
+  // Key Strength & Languages
+  const [keyStrength, setKeyStrength] = useState<string[]>([]);
+  const [keyStrengthInput, setKeyStrengthInput] = useState("");
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [languageInput, setLanguageInput] = useState("");
+
   // Education
-  const [education, setEducation] = useState<
-    {
-      qualification: string;
-      college: string;
-      graduationYear: string;
-    }[]
-  >([]);
+  const [education, setEducation] = useState<Education[]>([]);
 
   // Experience
   const [experience, setExperience] = useState<Experience[]>([]);
+
+  // Expansion state
+  const [expandedEducation, setExpandedEducation] = useState<number | null>(
+    null,
+  );
+  const [expandedExperience, setExpandedExperience] = useState<number | null>(
+    null,
+  );
 
   // Additional Info
   const [additionalInfo, setAdditionalInfo] = useState<string[]>([]);
@@ -139,27 +156,47 @@ const RegisterUserScreen = () => {
   const [showJoinPicker, setShowJoinPicker] = useState(false);
 
   useEffect(() => {
-    if (userId) {
+    if (educationData) {
+      try {
+        const parsed = JSON.parse(educationData as string);
+        setEducation(parsed);
+      } catch (e) {
+        console.error("Failed to parse education data:", e);
+      }
+    }
+  }, [educationData]);
+
+  useEffect(() => {
+    if (experienceData) {
+      try {
+        const parsed = JSON.parse(experienceData as string);
+        setExperience(parsed);
+      } catch (e) {
+        console.error("Failed to parse experience data:", e);
+      }
+    }
+  }, [experienceData]);
+
+  useEffect(() => {
+    if (userId && userId !== "undefined") {
+      setLoading(true);
       api
         .get(`/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
           const user = res.data;
-          console.log(user);
-
-          // ✅ Prefill all fields
           setFullName(user.fullName || "");
           setUsername(user.username || "");
           setEmail(user.email || "");
           setPersonalEmail(user.personalEmail || "");
-          setEmployeeCode(user.employeeCode?.toString() || ""); // convert number to string
+          setEmployeeCode(user.employeeCode?.toString() || "");
           setDesignation(user.designation || "");
           setLevel(user.level || "");
           setSelectedCompany(user.company || null);
           setStatus(user.status || "");
           setContactNumbers(
-            user.contactNumbers?.length ? user.contactNumbers : [""]
+            user.contactNumbers?.length ? user.contactNumbers : [""],
           );
           setEmergencyContact(user.emergencyContact || "");
           setBirthDate(user.birthDate ? new Date(user.birthDate) : null);
@@ -173,36 +210,61 @@ const RegisterUserScreen = () => {
           setBloodGroup(user.bloodGroup || "");
           setAadhar(user.aadhar || "");
           setPan(user.pan || "");
-          setEducation(user.education?.length ? user.education : []);
-          setExperience(user.experience?.length ? user.experience : []);
-          setAdditionalInfo(
-            user.additionalInfo?.length ? user.additionalInfo : []
-          );
+          setKeyStrength(user.keyStrength?.length ? user.keyStrength : []);
+          setLanguages(user.languages?.length ? user.languages : []);
 
-          // ✅ Prefill role
+          if (!educationData && user.education?.length) {
+            setEducation(
+              user.education.map((edu: any) => ({
+                college: edu.college || "",
+                qualification: edu.qualification || "",
+                specialization: edu.specialization || "",
+                graduationYear: edu.graduationYear || "",
+              })),
+            );
+          }
+
+          if (!experienceData && user.experience?.length) {
+            setExperience(
+              user.experience.map((exp: any) => ({
+                company: exp.company || "",
+                designation: exp.designation || "",
+                fromDate: exp.fromDate || null,
+                toDate: exp.toDate || null,
+                jobDescription: exp.jobDescription || "",
+              })),
+            );
+          }
+
+          setAdditionalInfo(
+            user.additionalInfo?.length ? user.additionalInfo : [],
+          );
           setRole(user.role || "user");
         })
         .catch((err) => {
           console.error(
             "Failed to fetch user:",
-            err.response?.data || err.message
+            err.response?.data || err.message,
           );
+        })
+        .finally(() => {
+          setLoading(false);
         });
     }
-  }, [userId, token]);
+  }, [userId, token, educationData, experienceData]);
 
   const handleRegister = async () => {
     Keyboard.dismiss();
 
     try {
-      setLoading(true); // ✅ start loading
+      setLoading(true);
       const payload: any = {
         fullName,
         username,
         role,
         email,
         personalEmail,
-        employeeCode: Number(employeeCode), // convert back to number
+        employeeCode: Number(employeeCode),
         designation,
         level,
         company: selectedCompany,
@@ -220,6 +282,8 @@ const RegisterUserScreen = () => {
         bloodGroup,
         aadhar,
         pan,
+        keyStrength,
+        languages,
         education,
         experience,
         additionalInfo,
@@ -258,12 +322,10 @@ const RegisterUserScreen = () => {
         position: "bottom",
       });
 
-      // Redirect after a short delay to show the toast
       setTimeout(() => {
         router.push("/centralEmployeeDirectory");
       }, 800);
 
-      // Reset only for new users
       if (!userId) {
         setFullName("");
         setUsername("");
@@ -289,23 +351,8 @@ const RegisterUserScreen = () => {
         setBloodGroup("");
         setAadhar("");
         setPan("");
-        setEducation([
-          {
-            qualification: "",
-            college: "",
-            graduationYear: "",
-          },
-        ]);
-        setExperience([
-          {
-            company: "",
-            designation: "",
-            fromDate: "",
-            toDate: "",
-            showFromPicker: false,
-            showToPicker: false,
-          },
-        ]);
+        setEducation([]);
+        setExperience([]);
         setAdditionalInfo([""]);
       }
     } catch (err: any) {
@@ -317,837 +364,1018 @@ const RegisterUserScreen = () => {
         position: "bottom",
       });
     } finally {
-      setLoading(false); // ✅ stop loading
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        padding: 20,
-        backgroundColor: "#F9FAFB",
-      }}
-      enableOnAndroid
-      extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false} // move this from inner ScrollView
-    >
-      {/* HEADER */}
-      {/* <View className="items-center my-6">
-          <Text className="text-black font-bold text-2xl text-center">
-            Employee Registration
+    <View className="flex-1 bg-white dark:bg-black">
+      {/* Header */}
+      <View className="pt-14 px-4 pb-4 bg-white dark:bg-black">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <Text className="text-xl font-dmSemiBold text-black dark:text-white">
+            Register User
           </Text>
-          <Text className="text-gray-500 mt-1 text-sm">
-            Fill out employee details below
-          </Text>
-        </View> */}
-
-      {existingUser && (
-        <TouchableOpacity
-          onPress={() => router.push("/centralEmployeeDirectory")}
-          className="bg-white p-2 mb-4 rounded-3xl flex-row items-center gap-4"
-        >
-          <Icon name="arrow-left" size={24} color="#000" />
-          <Text className="font-semibold text-lg">Back</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* EMPLOYEE CODE */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Employee Code <Text className="text-red-500">*</Text>
-        </Text>
-        <TextInput
-          value={employeeCode}
-          onChangeText={setEmployeeCode} // keep as string
-          placeholder="Enter employee code"
-          placeholderTextColor="#9CA3AF"
-          keyboardType="numeric"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-        />
+        </View>
       </View>
 
-      {/* Company Dropdown */}
-      <View className="mb-5 bg-white rounded-xl shadow-sm p-4">
-        <Text className="text-base font-semibold text-gray-700 mb-2">
-          Select Company <Text className="text-red-500">*</Text>
-        </Text>
-        <Dropdown
-          data={companyOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Choose company"
-          value={selectedCompany}
-          onChange={(item) => setSelectedCompany(item.value)}
-          style={{
-            height: 35,
-            borderRadius: 12,
-            paddingHorizontal: 10,
-            borderColor: "#D1D5DB",
-            borderWidth: 1,
-            // backgroundColor: "#F9FAFB",
-          }}
-          placeholderStyle={{
-            fontSize: 14,
-            color: "#9CA3AF",
-          }}
-          selectedTextStyle={{
-            fontSize: 14,
-            color: "#111827",
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          activeColor="#E0E7FF"
-        />
-      </View>
-
-      {/* FULL NAME */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Full Name <Text className="text-red-500">*</Text>
-        </Text>
-        <TextInput
-          value={fullName}
-          onChangeText={setFullName}
-          placeholder="Enter full name"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* USERNAME */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Username <Text className="text-red-500">*</Text>
-        </Text>
-        <TextInput
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Enter username"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* PASSWORD */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Password <Text className="text-red-500">*</Text>
-        </Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Enter password"
-          // secureTextEntry
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* ROLE DROPDOWN */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Role <Text className="text-red-500">*</Text>
-        </Text>
-        <Dropdown
-          data={roleOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select role..."
-          value={role}
-          onChange={(item) => setRole(item.value)}
-          style={{
-            height: 35,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            paddingHorizontal: 12,
-          }}
-          placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          activeColor="#E0E7FF"
-        />
-      </View>
-
-      {/* OFFICIAL EMAIL */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Official Email <Text className="text-red-500">*</Text>
-        </Text>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Enter official email"
-          keyboardType="email-address"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* PERSONAL EMAIL */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Personal Email</Text>
-        <TextInput
-          value={personalEmail}
-          onChangeText={setPersonalEmail}
-          placeholder="Enter personal email"
-          keyboardType="email-address"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* DESIGNATION */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Designation</Text>
-        <TextInput
-          value={designation}
-          onChangeText={setDesignation}
-          placeholder="Enter designation"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* LEVEL DROPDOWN */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Level</Text>
-        <Dropdown
-          data={levelOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select level..."
-          value={level}
-          onChange={(item) => setLevel(item.value)}
-          style={{
-            height: 35,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            paddingHorizontal: 12,
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-          activeColor="#E0E7FF"
-        />
-      </View>
-
-      {/* CONTACT NUMBERS */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Contact Numbers</Text>
-
-        {contactNumbers.map((num, index) => (
-          <View key={index} className="flex-row items-center mb-2">
-            <TextInput
-              value={num}
-              onChangeText={(val) => {
-                const newNumbers = [...contactNumbers];
-                newNumbers[index] = val;
-                setContactNumbers(newNumbers);
-              }}
-              placeholder="Enter contact number"
-              keyboardType="phone-pad"
-              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* ❌ Show only if more than 1 number */}
-            {contactNumbers.length > 1 && (
-              <TouchableOpacity
-                onPress={() => {
-                  const newNumbers = contactNumbers.filter(
-                    (_, i) => i !== index
-                  );
-                  setContactNumbers(newNumbers.length ? newNumbers : [""]);
-                }}
-                className="ml-2 bg-red-100 p-2 rounded-full"
-              >
-                <Icon name="x" size={18} color="#EF4444" />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-
-        <TouchableOpacity
-          onPress={() => setContactNumbers([...contactNumbers, ""])}
-          className="flex-row items-center justify-center mt-2 bg-indigo-100 px-4 py-2 rounded-full"
-        >
-          <Icon name="plus" size={18} color="#4F46E5" />
-          <Text className="ml-2 text-indigo-600 font-medium">Add Number</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* JOINING DATE */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Joining Date</Text>
-        <TouchableOpacity
-          onPress={() => setShowJoinPicker(true)}
-          className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-        >
-          <Icon name="calendar" size={18} color="#9CA3AF" />
-          <Text
-            className={`ml-2 ${
-              joiningDate ? "text-gray-800" : "text-gray-400"
-            }`}
-          >
-            {joiningDate ? joiningDate.toDateString() : "Select Joining date"}
-          </Text>
-        </TouchableOpacity>
-
-        {showJoinPicker && (
-          <DateTimePicker
-            value={joiningDate || new Date()} // fallback only for picker
-            mode="date"
-            display="default"
-            onChange={(event, date) => {
-              if (event.type === "set" && date) {
-                setJoiningDate(date);
-              }
-              setShowJoinPicker(false);
-            }}
-          />
-        )}
-      </View>
-
-      {/*STATUS*/}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Employment Status
-        </Text>
-        <Dropdown
-          style={{
-            height: 35,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            paddingHorizontal: 12,
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-          activeColor="#E0E7FF"
-          data={statusOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select status"
-          value={status}
-          onChange={(item) => {
-            setStatus(item.value);
-          }}
-        />
-      </View>
-
-      {/* AADHAR */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Aadhar Number</Text>
-        <TextInput
-          value={aadhar}
-          onChangeText={setAadhar}
-          placeholder="Enter aadhar number"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* PAN */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">PAN Number</Text>
-        <TextInput
-          value={pan}
-          onChangeText={setPan}
-          placeholder="Enter PAN number"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* BIRTH DATE */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Birth Date</Text>
-        <TouchableOpacity
-          onPress={() => setShowBirthPicker(true)}
-          className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
-        >
-          <Icon name="calendar" size={18} color="#9CA3AF" />
-          <Text
-            className={`ml-2 ${birthDate ? "text-gray-800" : "text-gray-400"}`}
-          >
-            {birthDate ? birthDate.toDateString() : "Select birth date"}
-          </Text>
-        </TouchableOpacity>
-        {showBirthPicker && (
-          <DateTimePicker
-            value={birthDate || new Date()} // picker must have a Date, but birthDate not set ye
-            mode="date"
-            display="default"
-            onChange={(event, date) => {
-              if (event.type === "set" && date) {
-                setBirthDate(date);
-              }
-              setShowBirthPicker(false);
-            }}
-          />
-        )}
-      </View>
-
-      {/* Address */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Home Address</Text>
-        <TextInput
-          value={homeAddress}
-          onChangeText={setHomeAddress}
-          placeholder="Enter Home Address"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Blood Group  */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Blood Group</Text>
-        <TextInput
-          value={bloodGroup}
-          onChangeText={setBloodGroup}
-          placeholder="Enter Blood Group"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Emergency Contact */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Emergency Contact
-        </Text>
-        <TextInput
-          value={emergencyContact}
-          onChangeText={setEmergencyContact}
-          placeholder="Enter emergency contact"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* FATHER NAME */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Father&#39;s Name
-        </Text>
-        <TextInput
-          value={fatherName}
-          onChangeText={setFatherName}
-          placeholder="Enter father's name"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* MOTHER NAME */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">
-          Mother&#39;s Name
-        </Text>
-        <TextInput
-          value={motherName}
-          onChangeText={setMotherName}
-          placeholder="Enter mother's name"
-          className="border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Marital Status */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Marital Status</Text>
-        <Dropdown
-          style={{
-            height: 35,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            paddingHorizontal: 12,
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-          activeColor="#E0E7FF"
-          data={maritalOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select status"
-          value={maritalStatus}
-          onChange={(item) => setMaritalStatus(item.value)}
-        />
-
-        {/* Conditional Field */}
-        {maritalStatus === "Married" && (
-          <View className="mt-4">
-            <Text className="text-gray-700 mb-2 font-medium">Spouse Name</Text>
-            <TextInput
-              placeholder="Enter spouse name"
-              value={spouseName}
-              onChangeText={setSpouseName}
-              className="border border-gray-300 rounded-xl px-3 py-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-        )}
-      </View>
-
-      {/* GENDER*/}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Gender</Text>
-        <Dropdown
-          style={{
-            height: 35,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: "#D1D5DB",
-            paddingHorizontal: 12,
-          }}
-          containerStyle={{
-            borderRadius: 12,
-            backgroundColor: "#fff",
-            elevation: 4,
-          }}
-          placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-          selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-          activeColor="#E0E7FF"
-          data={genderOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Select gender"
-          value={gender}
-          onChange={(item) => setGender(item.value)}
-        />
-      </View>
-
-      {/* EDUCATION  QUALIFICATION + COLLEGE + DATE OF PASSING */}
-      <View className="mb-6 bg-white rounded-2xl shadow-sm  p-4">
-        {/* Title inside box */}
-        <Text className="font-medium text-gray-800  mb-3">
-          Educational Qualifications
-        </Text>
-
-        {education.map((edu, index) => (
-          <View
-            key={index}
-            className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
-          >
-            {/* Remove Button (only if more than 1 item) */}
-            {education.length > 1 && (
-              <TouchableOpacity
-                onPress={() => {
-                  const newEdu = [...education];
-                  newEdu.splice(index, 1);
-                  setEducation(newEdu);
-                }}
-                className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
-              >
-                <Icon name="x" size={18} color="#EF4444" />
-              </TouchableOpacity>
-            )}
-
-            {/* Qualification */}
-            <TextInput
-              placeholder="Qualification"
-              value={edu.qualification}
-              onChangeText={(val) => {
-                const newEdu = [...education];
-                newEdu[index].qualification = val;
-                setEducation(newEdu);
-              }}
-              className="border border-gray-300 rounded-xl px-3 py-2 mt-2 mb-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* College */}
-            <TextInput
-              placeholder="College"
-              value={edu.college}
-              onChangeText={(val) => {
-                const newEdu = [...education];
-                newEdu[index].college = val;
-                setEducation(newEdu);
-              }}
-              className="border border-gray-300 rounded-xl px-3 py-2 mb-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* Graduation Year */}
-            <TextInput
-              placeholder="Year of Passing (e.g., 2025)"
-              keyboardType="numeric"
-              maxLength={4}
-              value={edu.graduationYear}
-              onChangeText={(val) => {
-                const newEdu = [...education];
-                newEdu[index].graduationYear = val;
-                setEducation(newEdu);
-              }}
-              className="border border-gray-300 rounded-xl px-3 py-2 mb-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-        ))}
-
-        {/* Add Button inside white box */}
-        <TouchableOpacity
-          onPress={() =>
-            setEducation([
-              ...education,
-              {
-                qualification: "",
-                college: "",
-                graduationYear: "",
-              },
-            ])
-          }
-          className="flex-row items-center justify-center mt-2 bg-indigo-100 px-4 py-2 rounded-full"
-        >
-          <Icon name="plus" size={18} color="#4F46E5" />
-          <Text className="ml-2 text-indigo-600 font-medium">
-            Add Qualification
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* PAST EXPERIENCE */}
-      <View className="mb-6 bg-white rounded-2xl shadow-sm  p-4">
-        {/* Title inside box */}
-        <Text className="font-semibold text-gray-800 text-base mb-3">
-          Past Experience
-        </Text>
-
-        {experience.map((exp, index) => (
-          <View
-            key={index}
-            className="mb-4 p-4 bg-white rounded-2xl border border-gray-200 relative"
-          >
-            {/* Remove Button */}
-            {experience.length > 1 && (
-              <TouchableOpacity
-                onPress={() => {
-                  const newExp = [...experience];
-                  newExp.splice(index, 1);
-                  setExperience(newExp);
-                }}
-                className="absolute top-1 right-1 bg-red-100 p-1 rounded-full"
-              >
-                <Icon name="x" size={18} color="#EF4444" />
-              </TouchableOpacity>
-            )}
-
-            {/* Company Name */}
-            <TextInput
-              placeholder="Company Name"
-              value={exp.company}
-              onChangeText={(val) => {
-                const newExp = [...experience];
-                newExp[index].company = val;
-                setExperience(newExp);
-              }}
-              className="border border-gray-300 rounded-xl px-3 py-2 mt-2 mb-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* Designation */}
-            <TextInput
-              placeholder="Designation"
-              value={exp.designation}
-              onChangeText={(val) => {
-                const newExp = [...experience];
-                newExp[index].designation = val;
-                setExperience(newExp);
-              }}
-              className="border border-gray-300 rounded-xl px-3 py-2 mb-3 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* Tenure */}
-            <View className="flex-row justify-between">
-              {/* From Date */}
-              <TouchableOpacity
-                onPress={() => {
-                  const newExp = [...experience];
-                  newExp[index].showFromPicker = true;
-                  setExperience(newExp);
-                }}
-                className="flex-1 flex-row items-center border border-gray-300 rounded-xl px-3 py-2 mr-2"
-              >
-                {/* <Icon name="calendar" size={18} color="#9CA3AF" /> */}
-                <Text
-                  className={` ${
-                    exp.fromDate ? "text-gray-800" : "text-gray-400"
-                  }`}
-                >
-                  {exp.fromDate
-                    ? new Date(exp.fromDate).toDateString()
-                    : "From date"}
-                </Text>
-              </TouchableOpacity>
-
-              {/* To Date */}
-              <TouchableOpacity
-                onPress={() => {
-                  const newExp = [...experience];
-                  newExp[index].showToPicker = true;
-                  setExperience(newExp);
-                }}
-                className="flex-1 flex-row items-center border border-gray-300 rounded-xl px-3 py-2 ml-2"
-              >
-                {/* <Icon name="calendar" size={18} color="#9CA3AF" /> */}
-                <Text
-                  className={` ${
-                    exp.toDate ? "text-gray-800" : "text-gray-400"
-                  }`}
-                >
-                  {exp.toDate ? new Date(exp.toDate).toDateString() : "To date"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Date Pickers */}
-            {exp.showFromPicker && (
-              <DateTimePicker
-                value={exp.fromDate ? new Date(exp.fromDate) : new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, date) => {
-                  const newExp = [...experience];
-                  newExp[index].showFromPicker = false;
-                  if (event.type === "set" && date) {
-                    newExp[index].fromDate = date.toISOString();
-                  }
-                  setExperience(newExp);
-                }}
-              />
-            )}
-
-            {exp.showToPicker && (
-              <DateTimePicker
-                value={exp.toDate ? new Date(exp.toDate) : new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, date) => {
-                  const newExp = [...experience];
-                  newExp[index].showToPicker = false;
-                  if (event.type === "set" && date) {
-                    newExp[index].toDate = date.toISOString();
-                  }
-                  setExperience(newExp);
-                }}
-              />
-            )}
-          </View>
-        ))}
-
-        {/* Add Button */}
-        <TouchableOpacity
-          onPress={() =>
-            setExperience([
-              ...experience,
-              {
-                company: "",
-                designation: "",
-                fromDate: "",
-                toDate: "",
-                showFromPicker: false,
-                showToPicker: false,
-              },
-            ])
-          }
-          className="flex-row items-center justify-center mt-2 bg-indigo-100 px-4 py-2 rounded-full"
-        >
-          <Icon name="plus" size={18} color="#4F46E5" />
-          <Text className="ml-2 text-indigo-600 font-medium">
-            Add Experience
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ADDITIONAL INFO */}
-      <View className="mb-5 bg-white p-4 rounded-2xl shadow-sm">
-        <Text className="text-gray-700 mb-2 font-medium">Additional Info</Text>
-
-        {additionalInfo.map((info, index) => (
-          <View key={index} className="flex-row items-center mb-2">
-            <TextInput
-              value={info}
-              onChangeText={(val) => {
-                const newInfo = [...additionalInfo];
-                newInfo[index] = val;
-                setAdditionalInfo(newInfo);
-              }}
-              placeholder="Enter additional info"
-              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            {/* ❌ Show only if more than 1 field */}
-            {additionalInfo.length > 1 && (
-              <TouchableOpacity
-                onPress={() => {
-                  const newInfo = additionalInfo.filter((_, i) => i !== index);
-                  setAdditionalInfo(newInfo.length ? newInfo : [""]);
-                }}
-                className="ml-2 bg-red-100 p-2 rounded-full"
-              >
-                <Icon name="x" size={18} color="#EF4444" />
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-
-        {/* ➕ Add More */}
-        <TouchableOpacity
-          onPress={() => setAdditionalInfo([...additionalInfo, ""])}
-          className="flex-row items-center justify-center mt-2 bg-indigo-100 px-4 py-2 rounded-full"
-        >
-          <Icon name="plus" size={18} color="#4F46E5" />
-          <Text className="ml-2 text-indigo-600 font-medium">Add Info</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* REGISTER BUTTON */}
-      <TouchableOpacity
-        onPress={handleRegister}
-        disabled={loading} // ✅ disable when loading
-        className={`py-3 rounded-2xl items-center shadow-md mb-14 ${
-          loading ? "bg-gray-400" : "bg-indigo-600"
-        }`}
+      <KeyboardAwareScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingBottom: 120,
+        }}
+        className="bg-white dark:bg-black"
+        enableOnAndroid
+        extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white text-lg font-bold">
-            {userId ? "Update" : "Register"}
+        {/* Full Name */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Full Name<Text className="text-red-500">*</Text>
           </Text>
+          <TextInput
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter Full Name"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* About Me (Username) */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            About
+          </Text>
+          <TextInput
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Give a brief description"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            multiline
+            numberOfLines={5}
+            textAlignVertical="top"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            style={{ minHeight: 100 }}
+          />
+        </View>
+
+        {/* Company */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Company<Text className="text-red-500">*</Text>
+          </Text>
+          <Dropdown
+            data={companyOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Company"
+            value={selectedCompany}
+            onChange={(item) => setSelectedCompany(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+        </View>
+
+        {/* Designation */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Designation<Text className="text-red-500">*</Text>
+          </Text>
+          <TextInput
+            value={designation}
+            onChangeText={setDesignation}
+            placeholder="e.g. Software Engineer"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Employee ID */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Employee ID<Text className="text-red-500">*</Text>
+          </Text>
+          <TextInput
+            value={employeeCode}
+            onChangeText={setEmployeeCode}
+            placeholder="Enter number"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            keyboardType="numeric"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Password */}
+        {!userId && (
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Password<Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter password"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              secureTextEntry
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
         )}
-      </TouchableOpacity>
-    </KeyboardAwareScrollView>
+
+        {/* Status */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Status <Text className="text-red-500">*</Text>
+          </Text>
+          <Dropdown
+            data={statusOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Status"
+            value={status}
+            onChange={(item) => setStatus(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+        </View>
+
+        {/* Level */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Level <Text className="text-red-500">*</Text>
+          </Text>
+          <Dropdown
+            data={levelOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Level"
+            value={level}
+            onChange={(item) => setLevel(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+        </View>
+
+        {/* Role */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Role <Text className="text-red-500">*</Text>
+          </Text>
+          <Dropdown
+            data={roleOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Role"
+            value={role}
+            onChange={(item) => setRole(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+        </View>
+
+        {/* Official Email */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Official Email <Text className="text-red-500">*</Text>
+          </Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter official email"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            keyboardType="email-address"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Personal Email */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Personal Email
+          </Text>
+          <TextInput
+            value={personalEmail}
+            onChangeText={setPersonalEmail}
+            placeholder="Enter personal email"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            keyboardType="email-address"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Contact Numbers */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Contact Numbers
+          </Text>
+          {contactNumbers.map((num, index) => (
+            <View key={index} className="flex-row items-center mb-2">
+              <TextInput
+                value={num}
+                onChangeText={(val) => {
+                  const newNumbers = [...contactNumbers];
+                  newNumbers[index] = val;
+                  setContactNumbers(newNumbers);
+                }}
+                placeholder="Enter contact number"
+                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                keyboardType="phone-pad"
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              />
+              {contactNumbers.length > 1 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    const newNumbers = contactNumbers.filter(
+                      (_, i) => i !== index,
+                    );
+                    setContactNumbers(newNumbers.length ? newNumbers : [""]);
+                  }}
+                  className="ml-2 bg-red-100 dark:bg-red-900/30 p-2 rounded-full"
+                >
+                  <Icon name="x" size={18} color="#EF4444" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => setContactNumbers([...contactNumbers, ""])}
+            className="flex-row items-center justify-center mt-2 bg-indigo-100 dark:bg-indigo-900/30 px-4 py-2 rounded-full"
+          >
+            <Icon name="plus" size={18} color="#4F46E5" />
+            <Text className="ml-2 text-indigo-600 dark:text-indigo-400 font-poppinsMedium">
+              Add Number
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Emergency Contact */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Emergency Contact
+          </Text>
+          <TextInput
+            value={emergencyContact}
+            onChangeText={setEmergencyContact}
+            placeholder="Enter emergency contact"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Joining Date */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Joining Date
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowJoinPicker(true)}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
+          >
+            <Icon
+              name="calendar"
+              size={18}
+              color={isDarkMode ? "#606060" : "#9CA3AF"}
+            />
+            <Text
+              className={`ml-2 font-poppins ${
+                joiningDate
+                  ? "text-black dark:text-white"
+                  : "text-[#9CA3AF] dark:text-[#606060]"
+              }`}
+            >
+              {joiningDate ? joiningDate.toDateString() : "Select Joining date"}
+            </Text>
+          </TouchableOpacity>
+          {showJoinPicker && (
+            <DateTimePicker
+              value={joiningDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                if (event.type === "set" && date) {
+                  setJoiningDate(date);
+                }
+                setShowJoinPicker(false);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Birth Date */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Birth Date
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowBirthPicker(true)}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
+          >
+            <Icon
+              name="calendar"
+              size={18}
+              color={isDarkMode ? "#606060" : "#9CA3AF"}
+            />
+            <Text
+              className={`ml-2 font-poppins ${
+                birthDate
+                  ? "text-black dark:text-white"
+                  : "text-[#9CA3AF] dark:text-[#606060]"
+              }`}
+            >
+              {birthDate ? birthDate.toDateString() : "Select birth date"}
+            </Text>
+          </TouchableOpacity>
+          {showBirthPicker && (
+            <DateTimePicker
+              value={birthDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                if (event.type === "set" && date) {
+                  setBirthDate(date);
+                }
+                setShowBirthPicker(false);
+              }}
+            />
+          )}
+        </View>
+
+        {/* Gender */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Gender
+          </Text>
+          <Dropdown
+            data={genderOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select gender"
+            value={gender}
+            onChange={(item) => setGender(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+        </View>
+
+        {/* Father's Name */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Father's Name
+          </Text>
+          <TextInput
+            value={fatherName}
+            onChangeText={setFatherName}
+            placeholder="Enter father's name"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Mother's Name */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Mother's Name
+          </Text>
+          <TextInput
+            value={motherName}
+            onChangeText={setMotherName}
+            placeholder="Enter mother's name"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Marital Status */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Marital Status
+          </Text>
+          <Dropdown
+            data={maritalOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select status"
+            value={maritalStatus}
+            onChange={(item) => setMaritalStatus(item.value)}
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#606060" : "#9CA3AF",
+              fontFamily: "Poppins_400Regular",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            containerStyle={{
+              borderRadius: 12,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+            }}
+            itemTextStyle={{
+              color: isDarkMode ? "#FFF" : "#000",
+              fontFamily: "Poppins_400Regular",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+          />
+          {maritalStatus === "Married" && (
+            <View className="mt-4">
+              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                Spouse Name
+              </Text>
+              <TextInput
+                placeholder="Enter spouse name"
+                value={spouseName}
+                onChangeText={setSpouseName}
+                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              />
+            </View>
+          )}
+        </View>
+
+        {/* Home Address */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Home Address
+          </Text>
+          <TextInput
+            value={homeAddress}
+            onChangeText={setHomeAddress}
+            placeholder="Enter Home Address"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Blood Group */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Blood Group
+          </Text>
+          <TextInput
+            value={bloodGroup}
+            onChangeText={setBloodGroup}
+            placeholder="Enter Blood Group"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Aadhar Number */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Aadhar Number
+          </Text>
+          <TextInput
+            value={aadhar}
+            onChangeText={setAadhar}
+            placeholder="Enter aadhar number"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* PAN Number */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            PAN Number
+          </Text>
+          <TextInput
+            value={pan}
+            onChangeText={setPan}
+            placeholder="Enter PAN number"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+          />
+        </View>
+
+        {/* Key Strength */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Key Strength
+          </Text>
+          <TextInput
+            value={keyStrengthInput}
+            onChangeText={setKeyStrengthInput}
+            placeholder="e.g. User Experience"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+            onSubmitEditing={() => {
+              if (keyStrengthInput.trim()) {
+                setKeyStrength([...keyStrength, keyStrengthInput.trim()]);
+                setKeyStrengthInput("");
+              }
+            }}
+            returnKeyType="done"
+            blurOnSubmit={false}
+          />
+          {keyStrength.length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {keyStrength.map((strength, index) => (
+                <View
+                  key={index}
+                  className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
+                >
+                  <Text className="text-sm font-poppins text-black dark:text-white mr-2">
+                    {strength}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setKeyStrength(keyStrength.filter((_, i) => i !== index));
+                    }}
+                  >
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      size={14}
+                      color={isDarkMode ? "#919191" : "#454545"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Language */}
+        <View className="mb-4">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Language
+          </Text>
+          <TextInput
+            value={languageInput}
+            onChangeText={setLanguageInput}
+            placeholder="e.g. English"
+            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+            onSubmitEditing={() => {
+              if (languageInput.trim()) {
+                setLanguages([...languages, languageInput.trim()]);
+                setLanguageInput("");
+              }
+            }}
+            returnKeyType="done"
+            blurOnSubmit={false}
+          />
+          {languages.length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {languages.map((lang, index) => (
+                <View
+                  key={index}
+                  className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
+                >
+                  <Text className="text-sm font-poppins text-black dark:text-white mr-2">
+                    {lang}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setLanguages(languages.filter((_, i) => i !== index));
+                    }}
+                  >
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      size={14}
+                      color={isDarkMode ? "#919191" : "#454545"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Education */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-poppinsMedium text-black dark:text-white">
+              Education
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                router.push({
+                  pathname: "/addEducation",
+                  params: {
+                    userId: userId as string,
+                    existingEducation: JSON.stringify(education),
+                  },
+                });
+              }}
+              className="flex-row items-center"
+            >
+              <HugeiconsIcon
+                icon={PlusSignCircleIcon}
+                size={16}
+                color="#0073CB"
+              />
+              <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
+                Add
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {education.map((edu, idx) => (
+            <View
+              key={idx}
+              className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+            >
+              <TouchableOpacity
+                onPress={() =>
+                  setExpandedEducation(expandedEducation === idx ? null : idx)
+                }
+                className="flex-row items-center justify-between p-4"
+              >
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                  {edu.college || "University/School"}
+                </Text>
+                <HugeiconsIcon
+                  icon={
+                    expandedEducation === idx ? ArrowUp01Icon : ArrowDown01Icon
+                  }
+                  size={20}
+                  color={isDarkMode ? "#FFF" : "#000"}
+                />
+              </TouchableOpacity>
+
+              {expandedEducation === idx && (
+                <View className="px-4 pb-4">
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="mb-4">
+                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                      Institute Name
+                    </Text>
+                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      {edu.college || "N/A"}
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="mb-4">
+                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                      Degree/ Diploma
+                    </Text>
+                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      {edu.qualification || "N/A"}
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="flex-row">
+                    <View className="flex-1">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        Specialization
+                      </Text>
+                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                        {edu.specialization || "N/A"}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        Date of completion
+                      </Text>
+                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                        {edu.graduationYear || "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Work Experience */}
+        <View className="mb-6">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-poppinsMedium text-black dark:text-white">
+              Work Experience
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                router.push({
+                  pathname: "/addWorkExperience",
+                  params: {
+                    userId: userId as string,
+                    existingExperience: JSON.stringify(experience),
+                  },
+                });
+              }}
+              className="flex-row items-center"
+            >
+              <HugeiconsIcon
+                icon={PlusSignCircleIcon}
+                size={16}
+                color="#0073CB"
+              />
+              <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
+                Add
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {experience.map((exp, idx) => (
+            <View
+              key={idx}
+              className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A] "
+            >
+              <TouchableOpacity
+                onPress={() =>
+                  setExpandedExperience(expandedExperience === idx ? null : idx)
+                }
+                className="flex-row items-center justify-between p-4"
+              >
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                  {exp.company || "Company"}
+                </Text>
+                <HugeiconsIcon
+                  icon={
+                    expandedExperience === idx ? ArrowUp01Icon : ArrowDown01Icon
+                  }
+                  size={20}
+                  color={isDarkMode ? "#FFF" : "#000"}
+                />
+              </TouchableOpacity>
+
+              {expandedExperience === idx && (
+                <View className="px-4 pb-4">
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="mb-4">
+                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                      Company
+                    </Text>
+                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      {exp.company || "N/A"}
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="mb-4">
+                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                      Job Title
+                    </Text>
+                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      {exp.designation || "N/A"}
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                  <View className="flex-row">
+                    <View className="flex-1">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        From Date
+                      </Text>
+                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                        {exp.fromDate
+                          ? new Date(exp.fromDate).toLocaleDateString()
+                          : "N/A"}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        To Date
+                      </Text>
+                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                        {exp.toDate
+                          ? new Date(exp.toDate).toLocaleDateString()
+                          : "N/A"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {exp.jobDescription && (
+                    <>
+                      <View className="h-[1px] bg-gray-200 dark:bg-[#252525] my-4" />
+                      <View>
+                        <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                          Description
+                        </Text>
+                        <Text className="text-sm font-poppins text-black dark:text-white leading-5">
+                          {exp.jobDescription}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Additional Info */}
+        {/* <View className="mb-6">
+          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+            Additional Info
+          </Text>
+          {additionalInfo.map((info, index) => (
+            <View key={index} className="flex-row items-center mb-2">
+              <TextInput
+                value={info}
+                onChangeText={(val) => {
+                  const newInfo = [...additionalInfo];
+                  newInfo[index] = val;
+                  setAdditionalInfo(newInfo);
+                }}
+                placeholder="Enter additional info"
+                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              />
+              {additionalInfo.length > 1 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    const newInfo = additionalInfo.filter(
+                      (_, i) => i !== index,
+                    );
+                    setAdditionalInfo(newInfo.length ? newInfo : [""]);
+                  }}
+                  className="ml-2 bg-red-100 dark:bg-red-900/30 p-2 rounded-full"
+                >
+                  <Icon name="x" size={18} color="#EF4444" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => setAdditionalInfo([...additionalInfo, ""])}
+            className="flex-row items-center justify-center mt-2 bg-indigo-100 dark:bg-indigo-900/30 px-4 py-2 rounded-full"
+          >
+            <Icon name="plus" size={18} color="#4F46E5" />
+            <Text className="ml-2 text-indigo-600 dark:text-indigo-400 font-poppinsMedium">
+              Add Info
+            </Text>
+          </TouchableOpacity>
+        </View> */}
+      </KeyboardAwareScrollView>
+      {/* Bottom Action Buttons */}
+      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 py-4 pb-12 flex-row gap-3">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-1 bg-transparent border border-[#BBB] dark:border-[#5F5F5F] rounded-xl py-4 items-center"
+        >
+          <Text className="text-[#777777] dark:text-[#919191] font-poppinsMedium text-base">
+            Cancel
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleRegister}
+          disabled={loading}
+          className="flex-1"
+        >
+          <LinearGradient
+            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            locations={[0, 0.5183, 1]}
+            className="rounded-xl py-4 items-center"
+            style={{ borderRadius: 12 }}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white font-poppinsMedium text-base">
+                {userId ? "Update" : "Register"}
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
