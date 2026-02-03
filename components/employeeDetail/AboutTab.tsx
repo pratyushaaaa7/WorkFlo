@@ -1,9 +1,15 @@
-import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import moment from "moment";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import GlobalAvatar from "../GlobalAvatar";
 
 interface AboutTabProps {
   userData: any;
@@ -20,6 +26,7 @@ const toProperCase = (name: any) => {
 
 const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const router = useRouter();
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   const renderInfoField = (
@@ -36,18 +43,58 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
     </View>
   );
 
-  const renderUserRefField = (label: string, user: any) => (
-    <View className="mb-4">
-      <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
-        {label}
-      </Text>
-      <Text className="text-black dark:text-white text-base font-dmMedium">
-        {typeof user === "object" && user?.fullName
-          ? `${user.fullName} (${user.role || "N/A"})`
-          : user || "N/A"}
-      </Text>
-    </View>
-  );
+  const renderUserRefField = (label: string, user: any) => {
+    if (!user) return null;
+
+    const isObject = typeof user === "object" && user !== null;
+    const displayName = isObject ? user.fullName : user;
+    const displayDesignation = isObject ? user.designation : "N/A";
+    const profileImage = isObject ? user.profileImage : null;
+
+    return (
+      <View className="mb-4">
+        <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-2">
+          {label}
+        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            if (isObject && user._id) {
+              router.push({
+                pathname: "/employeeDetail",
+                params: { userId: user._id },
+              });
+            }
+          }}
+          activeOpacity={0.7}
+          className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+        >
+          <GlobalAvatar
+            name={displayName || "User"}
+            fontSize={18}
+            // uri={profileImage}
+            size={48}
+            borderRadius={12}
+            className="mr-3"
+          />
+
+          <View className="flex-1">
+            <Text className="text-black dark:text-white text-base font-dmBold">
+              {displayName || "N/A"}
+            </Text>
+            <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
+              {displayDesignation}
+            </Text>
+          </View>
+
+          <HugeiconsIcon
+            icon={ArrowRight01Icon}
+            size={20}
+            color={isDarkMode ? "#919191" : "#606060"}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const Section = ({
     title,
@@ -109,11 +156,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           </View>
         )}
         {renderInfoField("Role", userData?.role)}
-        {renderUserRefField("Reporting To", userData?.reportingTo)}
-        {renderUserRefField(
-          "Secondary Reporting To",
-          userData?.secondaryReportingTo,
-        )}
+
         {renderInfoField("Status", userData?.status)}
         {renderInfoField("Company", userData?.company)}
         {renderInfoField(
@@ -149,6 +192,12 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           userData?.createdAt
             ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
             : undefined,
+        )}
+
+        {renderUserRefField("Reporting to", userData?.reportingTo)}
+        {renderUserRefField(
+          "Secondary Reporting to",
+          userData?.secondaryReportingTo,
         )}
       </Section>
 
