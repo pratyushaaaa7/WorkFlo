@@ -12,6 +12,8 @@ import React, {
 import {
   ActivityIndicator,
   Animated,
+  Modal,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
@@ -39,6 +41,8 @@ const ProfileScreen = () => {
   // Scroll Value for Animation
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const tabs = ["Profile", "Projects"];
 
@@ -62,12 +66,23 @@ const ProfileScreen = () => {
     }
   }, [user?._id, token]);
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchUser();
+    setTimeout(() => setRefreshing(false), 1000);
+  }, [fetchUser]);
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
     if (!logout) return;
+    setShowLogoutModal(false);
     await logout();
     Toast.show({
       type: "success",
@@ -76,20 +91,6 @@ const ProfileScreen = () => {
       position: "bottom",
     });
     router.replace("/login");
-  };
-
-  const handleSnap = (e: any) => {
-    const y = e.nativeEvent.contentOffset.y;
-    if (y > 0 && y < profileHeaderHeight) {
-      if (y < profileHeaderHeight / 2) {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      } else {
-        scrollViewRef.current?.scrollTo({
-          y: profileHeaderHeight,
-          animated: true,
-        });
-      }
-    }
   };
 
   if (loading) {
@@ -104,21 +105,34 @@ const ProfileScreen = () => {
   }
 
   // Header Animations
+  // Header Animations
   const headerTitleOpacity = scrollY.interpolate({
-    inputRange: [0, 40],
+    inputRange: [0, 60],
     outputRange: [1, 0],
     extrapolate: "clamp",
   });
 
   const headerNameOpacity = scrollY.interpolate({
-    inputRange: [60, 100],
+    inputRange: [140, 180],
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
   const headerNameTranslateY = scrollY.interpolate({
-    inputRange: [60, 100],
+    inputRange: [140, 180],
     outputRange: [10, 0],
+    extrapolate: "clamp",
+  });
+
+  const bodyOpacity = scrollY.interpolate({
+    inputRange: [0, 50],
+    outputRange: [1, 0.8],
+    extrapolate: "clamp",
+  });
+
+  const headerActionOpacity = scrollY.interpolate({
+    inputRange: [220, 260],
+    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
@@ -152,7 +166,7 @@ const ProfileScreen = () => {
                 right: 0,
               }}
             >
-              <Text className="text-xl font-dmBold text-black dark:text-white">
+              <Text className="text-xl font-dmBold text-black dark:text-white text-center">
                 My Profile
               </Text>
             </Animated.View>
@@ -165,48 +179,25 @@ const ProfileScreen = () => {
                 left: 0,
                 right: 0,
               }}
-              className="flex-row items-center justify-between"
+              className="flex-row items-center justify-center" // Centered name in header to match title
             >
-              <Text className="text-lg font-dmBold text-black dark:text-white mr-3">
+              <Text className="text-lg font-dmBold text-black dark:text-white">
                 {userData?.fullName}
               </Text>
-              <TouchableOpacity onPress={handleLogout}>
-                <HugeiconsIcon
-                  icon={LogoutCircle01Icon}
-                  size={24}
-                  color="#DF5B5B"
-                />
-              </TouchableOpacity>
             </Animated.View>
           </View>
 
           <Animated.View
-            style={{ opacity: headerTitleOpacity }}
-            className="flex-row items-center justify-end"
+            style={{ opacity: headerActionOpacity }}
+            className="w-10 items-end"
           >
-            <View className="flex-row gap-2">
-              {/* <TouchableOpacity>
-                <HugeiconsIcon
-                  icon={Share04Icon}
-                  size={24}
-                  color={isDarkMode ? "#FFF" : "#000"}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <HugeiconsIcon
-                  icon={PencilEdit02Icon}
-                  size={24}
-                  color={isDarkMode ? "#FFF" : "#000"}
-                />
-              </TouchableOpacity> */}
-              {/* <TouchableOpacity>
-                <HugeiconsIcon
-                  icon={LogoutCircle01Icon}
-                  size={24}
-                  color="#DF5B5B"
-                />
-              </TouchableOpacity> */}
-            </View>
+            <TouchableOpacity onPress={handleLogout}>
+              <HugeiconsIcon
+                icon={LogoutCircle01Icon}
+                size={24}
+                color="#DF5B5B"
+              />
+            </TouchableOpacity>
           </Animated.View>
         </View>
       </View>
@@ -219,15 +210,21 @@ const ProfileScreen = () => {
         )}
         scrollEventThrottle={16}
         stickyHeaderIndices={[1]}
-        style={{ marginTop: HEADER_HEIGHT }}
+        style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }}
         showsVerticalScrollIndicator={false}
-        onScrollEndDrag={handleSnap}
-        onMomentumScrollEnd={handleSnap}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4F46E5"
+            colors={["#4F46E5"]}
+          />
+        }
       >
         {/* Child 0: Profile Header */}
-        <View
-          onLayout={(e) => setProfileHeaderHeight(e.nativeEvent.layout.height)}
-          className="items-center px-4 pb-6 bg-white dark:bg-black pt-4"
+        <Animated.View
+          style={{ opacity: bodyOpacity }}
+          className="items-center px-4 pb-8 bg-white dark:bg-black pt-4"
         >
           <View className="relative">
             <GlobalAvatar
@@ -237,9 +234,6 @@ const ProfileScreen = () => {
               borderRadius={32}
               className="mb-4"
             />
-            {/* <TouchableOpacity className="absolute bottom-6 right-0 bg-[#5B4CCC] p-2 rounded-full border-4 border-white dark:border-black">
-              <HugeiconsIcon icon={Camera01Icon} size={16} color="white" />
-            </TouchableOpacity> */}
           </View>
 
           <Text className="text-2xl font-dmBold text-black dark:text-white mb-1 text-center">
@@ -249,7 +243,7 @@ const ProfileScreen = () => {
             {userData?.designation}
           </Text>
 
-          {/* Logout Button instead of contact icons */}
+          {/* Logout Button */}
           <View className="w-full px-4">
             <View className="bg-[#FED7DA] dark:bg-[#2B0104] rounded-full">
               <TouchableOpacity
@@ -267,7 +261,7 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Child 1: Tabs */}
         <View
@@ -312,6 +306,60 @@ const ProfileScreen = () => {
           <View className="h-24" />
         </View>
       </Animated.ScrollView>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowLogoutModal(false)}
+          className="flex-1 justify-center items-center px-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1A1A1A] w-full rounded-[24px] p-5 shadow-xl"
+          >
+            <View className="w-12 h-12 bg-[#FDE6E6] dark:bg-[#5E1010] rounded-full items-center justify-center mb-4">
+              <HugeiconsIcon
+                icon={LogoutCircle01Icon}
+                size={24}
+                color="#EF4444"
+              />
+            </View>
+
+            <Text className="text-xl font-dmBold text-black dark:text-white mb-2">
+              Logout
+            </Text>
+            <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] mb-6">
+              Are you sure you want to logout?
+            </Text>
+
+            <View className="flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => setShowLogoutModal(false)}
+                className="flex-1 border border-black dark:border-white rounded-xl py-3 items-center"
+              >
+                <Text className="text-black dark:text-white font-poppins text-lg">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmLogout}
+                className="flex-1 bg-[#DF5B5B] rounded-xl py-3 items-center"
+              >
+                <Text className="text-white font-poppins text-lg">Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
