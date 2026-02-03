@@ -166,7 +166,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         {renderInfoField("PAN Number", userData?.pan)}
       </Section>
 
-        {/* Key Strengths */}
+      {/* Key Strengths */}
       {userData?.keyStrength && userData.keyStrength.length > 0 && (
         <Section title="Key Strengths">
           <View className="flex-row flex-wrap gap-2">
@@ -187,7 +187,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       {/* Languages */}
       {userData?.languages && userData.languages.length > 0 && (
         <Section title="Languages">
-          <View className="flex-row flex-wrap gap-2">
+          <View className="flex-row flex-wrap gap-2 mb-4">
             {userData.languages.map((lang: string, index: number) => (
               <View
                 key={index}
@@ -202,13 +202,12 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         </Section>
       )}
 
-
       {/* Education */}
       <Section title="Education">
         {userData?.education && userData.education.length > 0 ? (
           userData.education.map((edu: any, index: number) => (
-            <View key={index} className="mb-4">
-              <Text className="text-[#606060] dark:text-[#919191]  font-dmSemiBold text-base mb-1">
+            <View key={index} className="mb-6">
+              <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-base mb-1">
                 {edu.qualification}{" "}
                 <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmMedium text-xs">
                   ({edu.graduationYear})
@@ -229,8 +228,6 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             No education records
           </Text>
         )}
-
-        
       </Section>
 
       {/* Experience */}
@@ -261,7 +258,6 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         )}
       </Section>
 
-    
       {/* Additional Information */}
       {userData?.additionalInfo && userData.additionalInfo.length > 0 && (
         <Section title="Additional Information">
