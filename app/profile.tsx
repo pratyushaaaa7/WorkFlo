@@ -245,7 +245,7 @@ const ProfileScreen = () => {
 
           {/* Logout Button */}
           <View className="w-full px-4">
-            <View className="bg-[#FED7DA] dark:bg-[#2B0104] rounded-full">
+            <View className="bg-[#FED7DA] dark:bg-[#2B0104] rounded-[12px]">
               <TouchableOpacity
                 onPress={handleLogout}
                 className="flex-row items-center justify-center py-4"
@@ -323,13 +323,13 @@ const ProfileScreen = () => {
           <TouchableOpacity
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-[#1A1A1A] w-full rounded-[24px] p-5 shadow-xl"
+            className="bg-white dark:bg-[#000000] w-full rounded-[24px] p-5 shadow-xl"
           >
-            <View className="w-12 h-12 bg-[#FDE6E6] dark:bg-[#5E1010] rounded-full items-center justify-center mb-4">
+            <View className="w-12 h-12 bg-[#FED7DA] dark:bg-[#2B0104] rounded-full items-center justify-center mb-4">
               <HugeiconsIcon
                 icon={LogoutCircle01Icon}
                 size={24}
-                color="#EF4444"
+                color="#DF5B5B"
               />
             </View>
 
