@@ -18,13 +18,29 @@ const toProperCase = (name: any) => {
 const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   const isDarkMode = useColorScheme() === "dark";
 
-  const renderInfoField = (label: string, value: string | undefined) => (
+  const renderInfoField = (
+    label: string,
+    value: string | number | undefined,
+  ) => (
     <View className="mb-4">
       <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
       <Text className="text-black dark:text-white text-base font-dmMedium">
         {value || "N/A"}
+      </Text>
+    </View>
+  );
+
+  const renderUserRefField = (label: string, user: any) => (
+    <View className="mb-4">
+      <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
+        {label}
+      </Text>
+      <Text className="text-black dark:text-white text-base font-dmMedium">
+        {typeof user === "object" && user?.fullName
+          ? `${user.fullName} (${user.role || "N/A"})`
+          : user || "N/A"}
       </Text>
     </View>
   );
@@ -50,9 +66,30 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Section title="About">
         {renderInfoField("Full Name", userData?.fullName)}
         {renderInfoField("Username", userData?.username)}
+        {userData?.about && (
+          <View className="mb-4">
+            <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
+              About
+            </Text>
+            <Text className="text-black dark:text-white text-sm font-poppins leading-5">
+              {userData.about}
+            </Text>
+          </View>
+        )}
         {renderInfoField("Role", userData?.role)}
+        {renderUserRefField("Reporting To", userData?.reportingTo)}
+        {renderUserRefField(
+          "Secondary Reporting To",
+          userData?.secondaryReportingTo,
+        )}
         {renderInfoField("Status", userData?.status)}
         {renderInfoField("Company", userData?.company)}
+        {renderInfoField(
+          "Total Experience",
+          userData?.totalExperience
+            ? `${userData.totalExperience} Years`
+            : undefined,
+        )}
         {renderInfoField(
           "Employee Code",
           userData?.employeeCode
@@ -129,19 +166,61 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         {renderInfoField("PAN Number", userData?.pan)}
       </Section>
 
+        {/* Key Strengths */}
+      {userData?.keyStrength && userData.keyStrength.length > 0 && (
+        <Section title="Key Strengths">
+          <View className="flex-row flex-wrap gap-2">
+            {userData.keyStrength.map((skill: string, index: number) => (
+              <View
+                key={index}
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-3 py-1.5 rounded-lg"
+              >
+                <Text className="text-black dark:text-white font-poppins text-xs">
+                  {skill}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+      )}
+
+      {/* Languages */}
+      {userData?.languages && userData.languages.length > 0 && (
+        <Section title="Languages">
+          <View className="flex-row flex-wrap gap-2">
+            {userData.languages.map((lang: string, index: number) => (
+              <View
+                key={index}
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] px-3 py-1.5 rounded-lg"
+              >
+                <Text className="text-black dark:text-white font-poppins text-xs">
+                  {lang}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Section>
+      )}
+
+
       {/* Education */}
       <Section title="Education">
         {userData?.education && userData.education.length > 0 ? (
           userData.education.map((edu: any, index: number) => (
             <View key={index} className="mb-4">
-              <Text className="text-black dark:text-white font-dmBold text-base mb-1">
-                {edu.qualification}
+              <Text className="text-[#606060] dark:text-[#919191]  font-dmSemiBold text-base mb-1">
+                {edu.qualification}{" "}
+                <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmMedium text-xs">
+                  ({edu.graduationYear})
+                </Text>
               </Text>
-              <Text className="text-[#606060] dark:text-[#919191] font-poppins text-sm mb-1">
+              {edu.specialization && (
+                <Text className="text-black dark:text-white font-poppins text-sm mb-1">
+                  {edu.specialization}
+                </Text>
+              )}
+              <Text className="text-black dark:text-white font-poppins text-sm mb-1">
                 {edu.college}
-              </Text>
-              <Text className="text-[#8E8E8E] dark:text-[#606060] font-poppins text-xs">
-                {edu.graduationYear}
               </Text>
             </View>
           ))
@@ -150,23 +229,29 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             No education records
           </Text>
         )}
+
+        
       </Section>
 
       {/* Experience */}
       <Section title="Work Experience">
         {userData?.experience && userData.experience.length > 0 ? (
           userData.experience.map((exp: any, index: number) => (
-            <View key={index} className="mb-4">
-              <Text className="text-black dark:text-white font-dmBold text-base mb-1">
-                {exp.company}
-              </Text>
-              <Text className="text-[#606060] dark:text-[#919191] font-poppins text-sm mb-1">
-                {exp.designation}
-              </Text>
-              <Text className="text-[#8E8E8E] dark:text-[#606060] font-poppins text-xs">
+            <View key={index} className="mb-6">
+              <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-sm mb-1">
+                {exp.company} (
                 {exp.fromDate ? moment(exp.fromDate).format("MMM YYYY") : "?"} -{" "}
                 {exp.toDate ? moment(exp.toDate).format("MMM YYYY") : "Present"}
+                )
               </Text>
+              <Text className="text-black dark:text-white font-poppins text-sm mb-1">
+                {exp.designation}
+              </Text>
+              {exp.jobDescription && (
+                <Text className="text-black dark:text-white font-poppins text-sm leading-5">
+                  {exp.jobDescription}
+                </Text>
+              )}
             </View>
           ))
         ) : (
@@ -176,6 +261,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         )}
       </Section>
 
+    
       {/* Additional Information */}
       {userData?.additionalInfo && userData.additionalInfo.length > 0 && (
         <Section title="Additional Information">
