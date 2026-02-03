@@ -145,23 +145,44 @@ const EmployeeDetail = () => {
     extrapolate: "clamp",
   });
 
-  const HEADER_HEIGHT = 90;
+  const HEADER_HEIGHT = 105; // Slightly increased for better breathability
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
       {/* Fixed Sticky Header Bar (Absolute) */}
       <View
+        pointerEvents="box-none" // 👈 ALLOW TOUCHES TO PASS THROUGH TO TABS BELOW
         style={{
           height: HEADER_HEIGHT,
-          backgroundColor: isDarkMode ? "#000" : "#FFF",
+          zIndex: 20,
         }}
-        className="absolute top-0 left-0 right-0 z-20 px-4 pt-14  "
+        className="absolute top-0 left-0 right-0 px-4 pt-14"
       >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: isDarkMode ? "#000" : "#FFF",
+            height: HEADER_HEIGHT,
+          }}
+          pointerEvents="none"
+        />
+
+        <View
+          className="flex-row items-center justify-between"
+          pointerEvents="box-none"
+        >
+          <View
+            className="flex-row items-center flex-1"
+            pointerEvents="box-none"
+          >
             <TouchableOpacity
               onPress={() => router.back()}
-              className=" items-center justify-center -ml-2"
+              className="items-center justify-center -ml-2 p-2"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <HugeiconsIcon
                 icon={ArrowLeft01Icon}
@@ -171,8 +192,7 @@ const EmployeeDetail = () => {
             </TouchableOpacity>
 
             {/* Left-aligned Title Area */}
-            <View className="ml-3  justify-center flex-1">
-              {/* Original 'Profile' Title */}
+            <View className="ml-3 justify-center flex-1" pointerEvents="none">
               <Animated.View
                 style={{
                   opacity: headerTitleOpacity,
@@ -185,7 +205,6 @@ const EmployeeDetail = () => {
                 </Text>
               </Animated.View>
 
-              {/* New 'Employee Name' Title */}
               <Animated.View
                 style={{
                   opacity: headerNameOpacity,
@@ -207,21 +226,27 @@ const EmployeeDetail = () => {
           >
             {user?.role === "admin" ? (
               <View className="flex-row gap-4">
-                <TouchableOpacity>
+                <TouchableOpacity
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                   <HugeiconsIcon
                     icon={Share04Icon}
                     size={24}
                     color={isDarkMode ? "#FFF" : "#000"}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                   <HugeiconsIcon
                     icon={Camera01Icon}
                     size={24}
                     color={isDarkMode ? "#FFF" : "#000"}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
                   <HugeiconsIcon
                     icon={PencilEdit02Icon}
                     size={24}
@@ -243,9 +268,9 @@ const EmployeeDetail = () => {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        scrollEventThrottle={1}
-        stickyHeaderIndices={[1]} // Index 1 is the Tabs View
-        style={{ marginTop: HEADER_HEIGHT }}
+        scrollEventThrottle={16}
+        stickyHeaderIndices={[1]}
+        style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }} // 👈 EXPLICIT LOWER Z-INDEX
         showsVerticalScrollIndicator={false}
       >
         {/* Child 0: Profile Info (Avatar, Name, Buttons) */}
