@@ -251,27 +251,35 @@ const RegisterUserScreen = () => {
           setKeyStrength(user.keyStrength?.length ? user.keyStrength : []);
           setLanguages(user.languages?.length ? user.languages : []);
 
-          if (!educationData && user.education?.length) {
-            setEducation(
-              user.education.map((edu: any) => ({
-                college: edu.college || "",
-                qualification: edu.qualification || "",
-                specialization: edu.specialization || "",
-                graduationYear: edu.graduationYear || "",
-              })),
-            );
+          if (!educationData) {
+            if (user.education?.length) {
+              setEducation(
+                user.education.map((edu: any) => ({
+                  college: edu.college || "",
+                  qualification: edu.qualification || "",
+                  specialization: edu.specialization || "",
+                  graduationYear: edu.graduationYear || "",
+                })),
+              );
+            } else {
+              setEducation([]);
+            }
           }
 
-          if (!experienceData && user.experience?.length) {
-            setExperience(
-              user.experience.map((exp: any) => ({
-                company: exp.company || exp.companyName || "",
-                designation: exp.designation || exp.jobTitle || "",
-                fromDate: exp.fromDate || null,
-                toDate: exp.toDate || null,
-                jobDescription: exp.jobDescription || "",
-              })),
-            );
+          if (!experienceData) {
+            if (user.experience?.length) {
+              setExperience(
+                user.experience.map((exp: any) => ({
+                  company: exp.company || exp.companyName || "",
+                  designation: exp.designation || exp.jobTitle || "",
+                  fromDate: exp.fromDate || null,
+                  toDate: exp.toDate || null,
+                  jobDescription: exp.jobDescription || "",
+                })),
+              );
+            } else {
+              setExperience([]);
+            }
           }
 
           setAdditionalInfo(
@@ -288,6 +296,41 @@ const RegisterUserScreen = () => {
         .finally(() => {
           setLoading(false);
         });
+    } else {
+      // RESET FORM FOR NEW USER REGISTRATION
+      setFullName("");
+      setUsername("");
+      setAbout("");
+      setPassword("");
+      setRole("user");
+      setEmail("");
+      setPersonalEmail("");
+      setEmployeeCode("");
+      setDesignation("");
+      setLevel("");
+      setSelectedCompany(null);
+      setStatus("");
+      setTotalExperience("");
+      setReportingTo(null);
+      setSecondaryReportingTo(null);
+      setContactNumbers([""]);
+      setEmergencyContact("");
+      setBirthDate(null);
+      setJoiningDate(null);
+      setGender("");
+      setFatherName("");
+      setMotherName("");
+      setMaritalStatus("");
+      setSpouseName("");
+      setHomeAddress("");
+      setBloodGroup("");
+      setAadhar("");
+      setPan("");
+      setKeyStrength([]);
+      setLanguages([]);
+      if (!educationData) setEducation([]);
+      if (!experienceData) setExperience([]);
+      setAdditionalInfo([]);
     }
   }, [userId, token, educationData, experienceData]);
 
@@ -368,7 +411,7 @@ const RegisterUserScreen = () => {
         if (userId) {
           router.push({
             pathname: "/employeeDetail" as any,
-            params: { userId },
+            params: { userId, refresh: Date.now().toString() },
           });
         } else {
           router.push("/centralEmployeeDirectory");
@@ -461,10 +504,7 @@ const RegisterUserScreen = () => {
       {/* Header */}
       <View className="pt-14 px-4 pb-4 bg-white dark:bg-black">
         <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={() => setShowCancelModal(true)}
-            className="mr-3"
-          >
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}

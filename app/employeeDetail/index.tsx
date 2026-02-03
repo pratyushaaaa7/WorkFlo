@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
   Animated,
   Linking,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
@@ -37,13 +38,14 @@ const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const { token, user } = useContext(AuthContext) || {};
-  const { userId } = useLocalSearchParams();
+  const { userId, refresh } = useLocalSearchParams();
   const router = useRouter();
 
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Profile");
   const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Scroll Value for Animation
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -51,25 +53,34 @@ const EmployeeDetail = () => {
 
   const tabs = ["Profile", "Projects", "Reviews"];
 
-  const fetchUser = useCallback(async () => {
-    if (!userId || !token) return;
-    try {
-      setLoading(true);
-      const res = await api.get(`/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserData(res.data);
-      // console.log(res.data);
-    } catch (err) {
-      console.error("Error fetching user:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, token]);
+  const fetchUser = useCallback(
+    async (isManualRefresh = false) => {
+      if (!userId || !token) return;
+      try {
+        if (!isManualRefresh) setLoading(true);
+        const res = await api.get(`/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserData(res.data);
+        // console.log(res.data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [userId, token],
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchUser(true);
+  }, [fetchUser]);
 
   useEffect(() => {
     fetchUser();
-  }, [fetchUser]);
+  }, [fetchUser, refresh]);
 
   const handleSMS = () => {
     if (userData?.contactNumbers?.[0]) {
@@ -278,6 +289,14 @@ const EmployeeDetail = () => {
         stickyHeaderIndices={[1]}
         style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }} // 👈 EXPLICIT LOWER Z-INDEX
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4F46E5"
+            colors={["#4F46E5"]} // Android
+          />
+        }
       >
         {/* Child 0: Profile Info (Avatar, Name, Buttons) */}
         <Animated.View

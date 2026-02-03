@@ -217,7 +217,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
                   }
                 }}
                 activeOpacity={0.7}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mb-3 rounded-2xl p-3 flex-row items-center"
               >
                 <GlobalAvatar
                   name={report.fullName || "User"}
