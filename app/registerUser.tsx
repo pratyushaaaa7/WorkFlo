@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   Text,
@@ -165,6 +166,8 @@ const RegisterUserScreen = () => {
   const [joiningDate, setJoiningDate] = useState<Date | null>(null);
   const [showJoinPicker, setShowJoinPicker] = useState(false);
 
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   useEffect(() => {
     if (educationData) {
       try {
@@ -225,9 +228,11 @@ const RegisterUserScreen = () => {
           setLevel(user.level || "");
           setSelectedCompany(user.company || null);
           setStatus(user.status || "");
-          setTotalExperience(user.totalExperience || "");
-          setReportingTo(user.reportingTo || null);
-          setSecondaryReportingTo(user.secondaryReportingTo || null);
+          setTotalExperience(user.totalExperience?.toString() || "");
+          setReportingTo(user.reportingTo?._id || user.reportingTo || null);
+          setSecondaryReportingTo(
+            user.secondaryReportingTo?._id || user.secondaryReportingTo || null,
+          );
           setContactNumbers(
             user.contactNumbers?.length ? user.contactNumbers : [""],
           );
@@ -360,8 +365,15 @@ const RegisterUserScreen = () => {
       });
 
       setTimeout(() => {
-        router.push("/centralEmployeeDirectory");
-      },200);
+        if (userId) {
+          router.push({
+            pathname: "/employeeDetail" as any,
+            params: { userId },
+          });
+        } else {
+          router.push("/centralEmployeeDirectory");
+        }
+      }, 200);
 
       if (!userId) {
         setFullName("");
@@ -409,12 +421,50 @@ const RegisterUserScreen = () => {
     }
   };
 
+  const handleDiscard = () => {
+    setFullName("");
+    setUsername("");
+    setPassword("");
+    setRole("");
+    setEmail("");
+    setPersonalEmail("");
+    setEmployeeCode("");
+    setDesignation("");
+    setLevel("");
+    setSelectedCompany(null);
+    setStatus("");
+    setContactNumbers([""]);
+    setEmergencyContact("");
+    setBirthDate(null);
+    setJoiningDate(null);
+    setGender("");
+    setFatherName("");
+    setMotherName("");
+    setMaritalStatus("");
+    setSpouseName("");
+    setHomeAddress("");
+    setBloodGroup("");
+    setAadhar("");
+    setPan("");
+    setEducation([]);
+    setExperience([]);
+    setAbout("");
+    setTotalExperience("");
+    setReportingTo(null);
+    setSecondaryReportingTo(null);
+    setShowCancelModal(false);
+    router.back();
+  };
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       {/* Header */}
       <View className="pt-14 px-4 pb-4 bg-white dark:bg-black">
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <TouchableOpacity
+            onPress={() => setShowCancelModal(true)}
+            className="mr-3"
+          >
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}
@@ -422,7 +472,7 @@ const RegisterUserScreen = () => {
             />
           </TouchableOpacity>
           <Text className="text-xl font-dmSemiBold text-black dark:text-white">
-            Register User
+            {userId ? "Update User" : "Register User"}
           </Text>
         </View>
       </View>
@@ -1544,7 +1594,7 @@ const RegisterUserScreen = () => {
       {/* Bottom Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 py-4 pb-12 flex-row gap-3">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => setShowCancelModal(true)}
           className="flex-1 bg-transparent border border-[#BBB] dark:border-[#5F5F5F] rounded-xl py-4 items-center"
         >
           <Text className="text-[#777777] dark:text-[#919191] font-poppinsMedium text-base">
@@ -1574,6 +1624,51 @@ const RegisterUserScreen = () => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* Discard Changes Modal */}
+      <Modal
+        visible={showCancelModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCancelModal(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowCancelModal(false)}
+          className="flex-1 justify-center items-center px-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()} // Prevent bubbling to background
+            className="bg-white dark:bg-[#1A1A1A] w-full rounded-[24px] p-6 shadow-xl"
+          >
+            <Text className="text-lg font-poppinsMedium text-black dark:text-white mb-8">
+              Are you sure you want to discard changes?
+            </Text>
+
+            <View className="flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => setShowCancelModal(false)}
+                className="flex-1 border border-black dark:border-white rounded-xl py-3 items-center"
+              >
+                <Text className="text-black dark:text-white  font-poppins  text-lg">
+                  Not Now
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDiscard}
+                className="flex-1 bg-[#DF5B5B] rounded-xl py-3 items-center"
+              >
+                <Text className="text-white font-poppins  text-lg">
+                  Yes I’m
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };

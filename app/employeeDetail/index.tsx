@@ -59,7 +59,7 @@ const EmployeeDetail = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserData(res.data);
-      console.log(res.data);
+      // console.log(res.data);
     } catch (err) {
       console.error("Error fetching user:", err);
     } finally {
@@ -245,6 +245,12 @@ const EmployeeDetail = () => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/registerUser",
+                      params: { userId: userData._id },
+                    })
+                  }
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <HugeiconsIcon
