@@ -361,7 +361,7 @@ const RegisterUserScreen = () => {
 
       setTimeout(() => {
         router.push("/centralEmployeeDirectory");
-      }, 800);
+      },200);
 
       if (!userId) {
         setFullName("");
@@ -471,7 +471,7 @@ const RegisterUserScreen = () => {
               numberOfLines={8}
               textAlignVertical="top"
               className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              style={{ minHeight: 100 }}
+              style={{ minHeight: 150 }}
             />
           </View>
 
@@ -576,7 +576,7 @@ const RegisterUserScreen = () => {
               placeholder="e.g. W001"
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
               className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              autoCapitalize="none"
+              // autoCapitalize="none"
             />
           </View>
 
@@ -591,7 +591,7 @@ const RegisterUserScreen = () => {
                 onChangeText={setPassword}
                 placeholder="Enter password"
                 placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                secureTextEntry
+                // secureTextEntry
                 className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
               />
             </View>
@@ -839,7 +839,10 @@ const RegisterUserScreen = () => {
           {/* Contact Numbers */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-              Contact Numbers
+              Contact Numbers{" "}
+              <Text className="text-gray-500 text-xs">
+                (Enter 10 digits number)
+              </Text>
             </Text>
             {contactNumbers.map((num, index) => (
               <View key={index} className="relative justify-center mb-2">
@@ -853,6 +856,7 @@ const RegisterUserScreen = () => {
                   placeholder="Enter contact number"
                   placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
                   keyboardType="phone-pad"
+                  maxLength={10}
                   className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 pr-12 py-3 text-black dark:text-white font-poppins"
                 />
                 {contactNumbers.length > 1 && (
@@ -888,10 +892,15 @@ const RegisterUserScreen = () => {
           {/* Emergency Contact */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-              Emergency Contact
+              Emergency Contact{" "}
+              <Text className="text-gray-500 text-xs">
+                (Enter 10 digits number)
+              </Text>
             </Text>
             <TextInput
               value={emergencyContact}
+              keyboardType="phone-pad"
+              maxLength={10}
               onChangeText={setEmergencyContact}
               placeholder="Enter emergency contact"
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
@@ -1139,6 +1148,8 @@ const RegisterUserScreen = () => {
             </Text>
             <TextInput
               value={aadhar}
+              keyboardType="phone-pad"
+              maxLength={12}
               onChangeText={setAadhar}
               placeholder="Enter aadhar number"
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
@@ -1296,7 +1307,7 @@ const RegisterUserScreen = () => {
                   }
                   className="flex-row items-center justify-between p-4"
                 >
-                  <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                  <Text className="text-sm font-poppinsMedium text-black dark:text-white flex-1 pr-4">
                     {edu.college || "University/School"}
                   </Text>
                   <HugeiconsIcon
@@ -1349,7 +1360,7 @@ const RegisterUserScreen = () => {
 
                     <View className="">
                       <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                        Date of completion
+                        Year of completion
                       </Text>
                       <Text className="text-sm font-poppinsMedium text-black dark:text-white">
                         {edu.graduationYear || "N/A"}
@@ -1403,7 +1414,7 @@ const RegisterUserScreen = () => {
                   }
                   className="flex-row items-center justify-between p-4"
                 >
-                  <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                  <Text className="text-sm font-poppinsMedium text-black dark:text-white flex-1 pr-4">
                     {exp.company || "Company"}
                   </Text>
                   <HugeiconsIcon
