@@ -49,20 +49,6 @@ const EmployeeDetail = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<any>(null);
 
-  const handleSnap = (e: any) => {
-    const y = e.nativeEvent.contentOffset.y;
-    if (y > 0 && y < profileHeaderHeight) {
-      if (y < profileHeaderHeight / 2) {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      } else {
-        scrollViewRef.current?.scrollTo({
-          y: profileHeaderHeight,
-          animated: true,
-        });
-      }
-    }
-  };
-
   const tabs = ["Profile", "Projects", "Reviews"];
 
   const fetchUser = useCallback(async () => {
@@ -130,80 +116,93 @@ const EmployeeDetail = () => {
 
   // Header Animations
   const headerTitleOpacity = scrollY.interpolate({
-    inputRange: [0, 40],
+    inputRange: [0, 60],
     outputRange: [1, 0],
     extrapolate: "clamp",
   });
 
   const headerNameOpacity = scrollY.interpolate({
-    inputRange: [60, 100],
+    inputRange: [140, 180],
     outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
   const headerNameTranslateY = scrollY.interpolate({
-    inputRange: [60, 100],
+    inputRange: [140, 180],
     outputRange: [10, 0],
     extrapolate: "clamp",
   });
 
-  const HEADER_HEIGHT = 100;
+  const headerActionOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+
+  const bodyOpacity = scrollY.interpolate({
+    inputRange: [0, 50],
+    outputRange: [1, 0.8],
+    extrapolate: "clamp",
+  });
+
+  const HEADER_HEIGHT = 90;
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
       {/* Fixed Sticky Header Bar (Absolute) */}
       <View
-        style={{ height: HEADER_HEIGHT }}
-        className="absolute top-0 left-0 right-0 z-20 bg-white dark:bg-black px-4 pt-14 pb-4 border-b border-transparent"
+        style={{
+          height: HEADER_HEIGHT,
+          backgroundColor: isDarkMode ? "#000" : "#FFF",
+        }}
+        className="absolute top-0 left-0 right-0 z-20 px-4 pt-14  "
       >
         <View className="flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => router.back()} className="w-10">
-            <HugeiconsIcon
-              icon={ArrowLeft01Icon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
-            />
-          </TouchableOpacity>
-
-          {/* Center Title Area */}
-          <View className="flex-1  h-8">
-            {/* Original 'Profile' Title */}
-            <Animated.View
-              style={{
-                opacity: headerTitleOpacity,
-                position: "absolute",
-                left: 0,
-                right: 0,
-              }}
+          <View className="flex-row items-center flex-1">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className=" items-center justify-center -ml-2"
             >
-              <View className="flex-row items-center">
-                <View>
-                  <Text className="text-xl font-dmBold text-black dark:text-white">
-                    Profile
-                  </Text>
-                </View>
-              </View>
-            </Animated.View>
+              <HugeiconsIcon
+                icon={ArrowLeft01Icon}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            </TouchableOpacity>
 
-            {/* New 'Employee Name' Title */}
-            <Animated.View
-              style={{
-                opacity: headerNameOpacity,
-                transform: [{ translateY: headerNameTranslateY }],
-                position: "absolute",
-                left: 0,
-                right: 0,
-                alignItems: "center",
-              }}
-            >
-              <Text className="text-lg font-dmBold text-black dark:text-white">
-                {userData?.fullName}
-              </Text>
-            </Animated.View>
+            {/* Left-aligned Title Area */}
+            <View className="ml-3  justify-center flex-1">
+              {/* Original 'Profile' Title */}
+              <Animated.View
+                style={{
+                  opacity: headerTitleOpacity,
+                  position: "absolute",
+                  left: 0,
+                }}
+              >
+                <Text className="text-xl font-dmBold text-black dark:text-white">
+                  Profile
+                </Text>
+              </Animated.View>
+
+              {/* New 'Employee Name' Title */}
+              <Animated.View
+                style={{
+                  opacity: headerNameOpacity,
+                  transform: [{ translateY: headerNameTranslateY }],
+                  position: "absolute",
+                  left: 0,
+                }}
+              >
+                <Text className="text-lg font-dmBold text-black dark:text-white">
+                  {userData?.fullName}
+                </Text>
+              </Animated.View>
+            </View>
           </View>
 
           <Animated.View
-            style={{ opacity: headerTitleOpacity }}
+            style={{ opacity: headerActionOpacity }}
             className="flex-row items-center justify-end"
           >
             {user?.role === "admin" ? (
@@ -244,17 +243,15 @@ const EmployeeDetail = () => {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        scrollEventThrottle={16}
+        scrollEventThrottle={1}
         stickyHeaderIndices={[1]} // Index 1 is the Tabs View
         style={{ marginTop: HEADER_HEIGHT }}
         showsVerticalScrollIndicator={false}
-        onScrollEndDrag={handleSnap}
-        onMomentumScrollEnd={handleSnap}
       >
-        {/* Child 0: Profile Info (Avatar, Name, Buttons) - Scrolls Away */}
-        <View
-          onLayout={(e) => setProfileHeaderHeight(e.nativeEvent.layout.height)}
-          className="items-center px-4 pb-6 bg-white dark:bg-black pt-4"
+        {/* Child 0: Profile Info (Avatar, Name, Buttons) */}
+        <Animated.View
+          style={{ opacity: bodyOpacity }}
+          className="items-center px-4 pb-8 bg-white dark:bg-black pt-4"
         >
           <GlobalAvatar
             name={userData?.fullName || ""}
@@ -271,7 +268,7 @@ const EmployeeDetail = () => {
           </Text>
 
           {/* Action Buttons */}
-          <View className="flex-row justify-center gap-4">
+          <View className="flex-row pb-6 justify-center gap-4">
             {userData?.contactNumbers?.[0] && (
               <>
                 <TouchableOpacity
@@ -328,7 +325,7 @@ const EmployeeDetail = () => {
               </TouchableOpacity>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Child 1: Tabs - Sticky Header */}
         <View
