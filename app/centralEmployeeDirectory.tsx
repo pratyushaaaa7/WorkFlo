@@ -8,9 +8,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
-import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -79,11 +79,11 @@ export default function CentralEmployeeDirectory() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (users.length === 0) {
       fetchUsers();
-    }, [token]),
-  );
+    }
+  }, [token]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -130,14 +130,18 @@ export default function CentralEmployeeDirectory() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      const { uri } = await downloadResumable.downloadAsync();
-      if (uri && (await Sharing.isAvailableAsync())) {
-        await Sharing.shareAsync(uri);
+      const downloadResult = await downloadResumable.downloadAsync();
+      if (
+        downloadResult &&
+        downloadResult.uri &&
+        (await Sharing.isAvailableAsync())
+      ) {
+        await Sharing.shareAsync(downloadResult.uri);
       } else {
         Toast.show({
           type: "success",
           text1: "Downloaded",
-          text2: "Excel saved at " + uri,
+          text2: "Excel saved at " + (downloadResult?.uri || "unknown"),
         });
       }
     } catch (error) {
@@ -172,7 +176,7 @@ export default function CentralEmployeeDirectory() {
       className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-4 shadow-sm overflow-hidden"
       onPress={() =>
         router.push({
-          pathname: "/employeeDetail",
+          pathname: "/employeeDetail" as any,
           params: { userId: item._id },
         })
       }

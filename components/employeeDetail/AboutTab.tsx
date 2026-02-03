@@ -60,7 +60,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           onPress={() => {
             if (isObject && user._id) {
               router.push({
-                pathname: "/employeeDetail",
+                pathname: "/employeeDetail" as any,
                 params: { userId: user._id },
               });
             }
@@ -200,6 +200,52 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           userData?.secondaryReportingTo,
         )}
       </Section>
+
+      {/* Direct Reports */}
+      {userData?.directReports && userData.directReports.length > 0 && (
+        <Section title="Direct Reports">
+          <View className="gap-y-3 mb-3">
+            {userData.directReports.map((report: any) => (
+              <TouchableOpacity
+                key={report._id}
+                onPress={() => {
+                  if (report._id) {
+                    router.push({
+                      pathname: "/employeeDetail" as any,
+                      params: { userId: report._id },
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+              >
+                <GlobalAvatar
+                  name={report.fullName || "User"}
+                  fontSize={18}
+                  size={48}
+                  borderRadius={12}
+                  className="mr-3"
+                />
+
+                <View className="flex-1">
+                  <Text className="text-black dark:text-white text-base font-dmBold">
+                    {report.fullName || "N/A"}
+                  </Text>
+                  <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
+                    {report.designation || "N/A"}
+                  </Text>
+                </View>
+
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={20}
+                  color={isDarkMode ? "#919191" : "#606060"}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Section>
+      )}
 
       {/* Personal Information */}
       <Section title="Personal Details">

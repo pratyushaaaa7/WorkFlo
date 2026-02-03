@@ -26,12 +26,12 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import GlobalAvatar from "../components/GlobalAvatar";
-import AboutTab from "../components/employeeDetail/AboutTab";
-import ProjectsTab from "../components/employeeDetail/ProjectsTab";
-import ReviewsTab from "../components/employeeDetail/ReviewsTab";
-import { AuthContext } from "../context/AuthContext";
-import api from "../lib/api";
+import GlobalAvatar from "../../components/GlobalAvatar";
+import AboutTab from "../../components/employeeDetail/AboutTab";
+import ProjectsTab from "../../components/employeeDetail/ProjectsTab";
+import ReviewsTab from "../../components/employeeDetail/ReviewsTab";
+import { AuthContext } from "../../context/AuthContext";
+import api from "../../lib/api";
 
 const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
@@ -73,6 +73,7 @@ const EmployeeDetail = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserData(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error("Error fetching user:", err);
     } finally {
