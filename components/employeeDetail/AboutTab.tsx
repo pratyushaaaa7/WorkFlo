@@ -33,7 +33,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
     label: string,
     value: string | number | undefined,
   ) => (
-    <View className="mb-4">
+    <View className="mb-2">
       <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
@@ -52,8 +52,8 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
     const profileImage = isObject ? user.profileImage : null;
 
     return (
-      <View className="mb-4">
-        <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-2">
+      <View className="mb-2">
+        <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
           {label}
         </Text>
         <TouchableOpacity
@@ -103,8 +103,8 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
     title: string;
     children: React.ReactNode;
   }) => (
-    <View className="mb-8">
-      <Text className="text-xl font-dmBold text-black dark:text-white mb-4">
+    <View className="mb-4">
+      <Text className="text-xl font-dmBold text-black dark:text-white mb-2">
         {title}
       </Text>
       {children}
@@ -118,7 +118,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         {renderInfoField("Full Name", userData?.fullName)}
         {renderInfoField("Username", userData?.username)}
         {userData?.about && (
-          <View className="mb-4">
+          <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
               About
             </Text>
@@ -178,7 +178,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             : undefined,
         )}
         {userData?.createdBy && (
-          <View className="mb-4">
+          <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
               Created By
             </Text>
@@ -204,7 +204,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       {/* Direct Reports */}
       {userData?.directReports && userData.directReports.length > 0 && (
         <Section title="Direct Reports">
-          <View className="gap-y-3 mb-3">
+          <View className="gap-y-2 mb-2">
             {userData.directReports.map((report: any) => (
               <TouchableOpacity
                 key={report._id}
@@ -270,7 +270,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         {renderInfoField("Official Email", userData?.email)}
         {renderInfoField("Personal Email", userData?.personalEmail)}
         {userData?.contactNumbers && userData.contactNumbers.length > 0 && (
-          <View className="mb-4">
+          <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
               Phone Numbers
             </Text>
@@ -314,7 +314,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       {/* Languages */}
       {userData?.languages && userData.languages.length > 0 && (
         <Section title="Languages">
-          <View className="flex-row flex-wrap gap-2 mb-4">
+          <View className="flex-row flex-wrap gap-2 mb-2">
             {userData.languages.map((lang: string, index: number) => (
               <View
                 key={index}
@@ -333,7 +333,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Section title="Education">
         {userData?.education && userData.education.length > 0 ? (
           userData.education.map((edu: any, index: number) => (
-            <View key={index} className="mb-6">
+            <View key={index} className="mb-3">
               <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-base mb-1">
                 {edu.qualification}{" "}
                 <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmMedium text-xs">
@@ -361,7 +361,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Section title="Work Experience">
         {userData?.experience && userData.experience.length > 0 ? (
           userData.experience.map((exp: any, index: number) => (
-            <View key={index} className="mb-6">
+            <View key={index} className="mb-3">
               <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-sm mb-1">
                 {exp.company} (
                 {exp.fromDate ? moment(exp.fromDate).format("MMM YYYY") : "?"} -{" "}
@@ -389,7 +389,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       {userData?.additionalInfo && userData.additionalInfo.length > 0 && (
         <Section title="Additional Information">
           {userData.additionalInfo.map((info: string, index: number) => (
-            <View key={index} className="mb-3">
+            <View key={index} className="mb-2">
               <Text className="text-black dark:text-white font-poppins text-sm">
                 {info}
               </Text>
