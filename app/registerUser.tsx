@@ -13,7 +13,9 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -21,7 +23,6 @@ import {
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather";
 import { AuthContext } from "../context/AuthContext";
@@ -56,6 +57,7 @@ const RegisterUserScreen = () => {
   // Basic Info
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  const [about, setAbout] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
 
@@ -68,6 +70,14 @@ const RegisterUserScreen = () => {
   const [designation, setDesignation] = useState("");
   const [level, setLevel] = useState("");
   const [status, setStatus] = useState<string>("");
+  const [totalExperience, setTotalExperience] = useState("");
+  const [reportingTo, setReportingTo] = useState<string | null>(null);
+  const [secondaryReportingTo, setSecondaryReportingTo] = useState<
+    string | null
+  >(null);
+  const [userList, setUserList] = useState<{ label: string; value: string }[]>(
+    [],
+  );
 
   // Contact
   const [contactNumbers, setContactNumbers] = useState([""]);
@@ -178,6 +188,25 @@ const RegisterUserScreen = () => {
   }, [experienceData]);
 
   useEffect(() => {
+    if (token) {
+      api
+        .get("/users/names", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const formatted = res.data.map((u: any) => ({
+            label: u.fullName,
+            value: u._id,
+          }));
+          setUserList(formatted);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch user names:", err);
+        });
+    }
+  }, [token]);
+
+  useEffect(() => {
     if (userId && userId !== "undefined") {
       setLoading(true);
       api
@@ -188,6 +217,7 @@ const RegisterUserScreen = () => {
           const user = res.data;
           setFullName(user.fullName || "");
           setUsername(user.username || "");
+          setAbout(user.about || "");
           setEmail(user.email || "");
           setPersonalEmail(user.personalEmail || "");
           setEmployeeCode(user.employeeCode?.toString() || "");
@@ -195,6 +225,9 @@ const RegisterUserScreen = () => {
           setLevel(user.level || "");
           setSelectedCompany(user.company || null);
           setStatus(user.status || "");
+          setTotalExperience(user.totalExperience || "");
+          setReportingTo(user.reportingTo || null);
+          setSecondaryReportingTo(user.secondaryReportingTo || null);
           setContactNumbers(
             user.contactNumbers?.length ? user.contactNumbers : [""],
           );
@@ -227,8 +260,8 @@ const RegisterUserScreen = () => {
           if (!experienceData && user.experience?.length) {
             setExperience(
               user.experience.map((exp: any) => ({
-                company: exp.company || "",
-                designation: exp.designation || "",
+                company: exp.company || exp.companyName || "",
+                designation: exp.designation || exp.jobTitle || "",
                 fromDate: exp.fromDate || null,
                 toDate: exp.toDate || null,
                 jobDescription: exp.jobDescription || "",
@@ -286,6 +319,10 @@ const RegisterUserScreen = () => {
         languages,
         education,
         experience,
+        about,
+        totalExperience,
+        reportingTo,
+        secondaryReportingTo,
         additionalInfo,
       };
 
@@ -353,6 +390,10 @@ const RegisterUserScreen = () => {
         setPan("");
         setEducation([]);
         setExperience([]);
+        setAbout("");
+        setTotalExperience("");
+        setReportingTo(null);
+        setSecondaryReportingTo(null);
         setAdditionalInfo([""]);
       }
     } catch (err: any) {
@@ -386,920 +427,1066 @@ const RegisterUserScreen = () => {
         </View>
       </View>
 
-      <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 120,
-        }}
-        className="bg-white dark:bg-black"
-        enableOnAndroid
-        extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        {/* Full Name */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Full Name<Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Enter Full Name"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* About Me (Username) */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            About
-          </Text>
-          <TextInput
-            value={username}
-            onChangeText={setUsername}
-            placeholder="Give a brief description"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-            style={{ minHeight: 100 }}
-          />
-        </View>
-
-        {/* Company */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Company<Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            data={companyOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Company"
-            value={selectedCompany}
-            onChange={(item) => setSelectedCompany(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-        </View>
-
-        {/* Designation */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Designation<Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            value={designation}
-            onChangeText={setDesignation}
-            placeholder="e.g. Software Engineer"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Employee ID */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Employee ID<Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            value={employeeCode}
-            onChangeText={setEmployeeCode}
-            placeholder="Enter number"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            keyboardType="numeric"
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Password */}
-        {!userId && (
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 16,
+            paddingTop: 20,
+            paddingBottom: 150,
+          }}
+          className="bg-white dark:bg-black"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Full Name */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-              Password<Text className="text-red-500">*</Text>
+              Full Name<Text className="text-red-500">*</Text>
             </Text>
             <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter password"
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter Full Name"
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              secureTextEntry
               className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
             />
           </View>
-        )}
 
-        {/* Status */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Status <Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            data={statusOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Status"
-            value={status}
-            onChange={(item) => setStatus(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-        </View>
-
-        {/* Level */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Level <Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            data={levelOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Level"
-            value={level}
-            onChange={(item) => setLevel(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-        </View>
-
-        {/* Role */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Role <Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            data={roleOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Role"
-            value={role}
-            onChange={(item) => setRole(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-        </View>
-
-        {/* Official Email */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Official Email <Text className="text-red-500">*</Text>
-          </Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter official email"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            keyboardType="email-address"
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Personal Email */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Personal Email
-          </Text>
-          <TextInput
-            value={personalEmail}
-            onChangeText={setPersonalEmail}
-            placeholder="Enter personal email"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            keyboardType="email-address"
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Contact Numbers */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Contact Numbers
-          </Text>
-          {contactNumbers.map((num, index) => (
-            <View key={index} className="flex-row items-center mb-2">
-              <TextInput
-                value={num}
-                onChangeText={(val) => {
-                  const newNumbers = [...contactNumbers];
-                  newNumbers[index] = val;
-                  setContactNumbers(newNumbers);
-                }}
-                placeholder="Enter contact number"
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                keyboardType="phone-pad"
-                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              />
-              {contactNumbers.length > 1 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    const newNumbers = contactNumbers.filter(
-                      (_, i) => i !== index,
-                    );
-                    setContactNumbers(newNumbers.length ? newNumbers : [""]);
-                  }}
-                  className="ml-2 bg-red-100 dark:bg-red-900/30 p-2 rounded-full"
-                >
-                  <Icon name="x" size={18} color="#EF4444" />
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-          <TouchableOpacity
-            onPress={() => setContactNumbers([...contactNumbers, ""])}
-            className="flex-row items-center justify-center mt-2 bg-indigo-100 dark:bg-indigo-900/30 px-4 py-2 rounded-full"
-          >
-            <Icon name="plus" size={18} color="#4F46E5" />
-            <Text className="ml-2 text-indigo-600 dark:text-indigo-400 font-poppinsMedium">
-              Add Number
+          {/* About */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              About
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Emergency Contact */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Emergency Contact
-          </Text>
-          <TextInput
-            value={emergencyContact}
-            onChangeText={setEmergencyContact}
-            placeholder="Enter emergency contact"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Joining Date */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Joining Date
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowJoinPicker(true)}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
-          >
-            <Icon
-              name="calendar"
-              size={18}
-              color={isDarkMode ? "#606060" : "#9CA3AF"}
+            <TextInput
+              value={about}
+              onChangeText={setAbout}
+              placeholder="Give a brief description"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              multiline
+              numberOfLines={8}
+              textAlignVertical="top"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              style={{ minHeight: 100 }}
             />
-            <Text
-              className={`ml-2 font-poppins ${
-                joiningDate
-                  ? "text-black dark:text-white"
-                  : "text-[#9CA3AF] dark:text-[#606060]"
-              }`}
-            >
-              {joiningDate ? joiningDate.toDateString() : "Select Joining date"}
+          </View>
+
+          {/* Company */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Company<Text className="text-red-500">*</Text>
             </Text>
-          </TouchableOpacity>
-          {showJoinPicker && (
-            <DateTimePicker
-              value={joiningDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                if (event.type === "set" && date) {
-                  setJoiningDate(date);
-                }
-                setShowJoinPicker(false);
+            <Dropdown
+              data={companyOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Company"
+              value={selectedCompany}
+              onChange={(item) => setSelectedCompany(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
               }}
-            />
-          )}
-        </View>
-
-        {/* Birth Date */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Birth Date
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowBirthPicker(true)}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
-          >
-            <Icon
-              name="calendar"
-              size={18}
-              color={isDarkMode ? "#606060" : "#9CA3AF"}
-            />
-            <Text
-              className={`ml-2 font-poppins ${
-                birthDate
-                  ? "text-black dark:text-white"
-                  : "text-[#9CA3AF] dark:text-[#606060]"
-              }`}
-            >
-              {birthDate ? birthDate.toDateString() : "Select birth date"}
-            </Text>
-          </TouchableOpacity>
-          {showBirthPicker && (
-            <DateTimePicker
-              value={birthDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                if (event.type === "set" && date) {
-                  setBirthDate(date);
-                }
-                setShowBirthPicker(false);
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
               }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
             />
-          )}
-        </View>
+          </View>
 
-        {/* Gender */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Gender
-          </Text>
-          <Dropdown
-            data={genderOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select gender"
-            value={gender}
-            onChange={(item) => setGender(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-        </View>
+          {/* Designation */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Designation<Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              value={designation}
+              onChangeText={setDesignation}
+              placeholder="e.g. Software Engineer"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
 
-        {/* Father's Name */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Father's Name
-          </Text>
-          <TextInput
-            value={fatherName}
-            onChangeText={setFatherName}
-            placeholder="Enter father's name"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
+          {/* Total Experience */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Total Experience{" "}
+              <Text className="text-gray-500 font-poppins text-xs">
+                (in years)
+              </Text>
+            </Text>
+            <TextInput
+              value={totalExperience}
+              onChangeText={(val) =>
+                setTotalExperience(val.replace(/[^0-9]/g, ""))
+              }
+              placeholder="e.g. 5"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              keyboardType="numeric"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
 
-        {/* Mother's Name */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Mother's Name
-          </Text>
-          <TextInput
-            value={motherName}
-            onChangeText={setMotherName}
-            placeholder="Enter mother's name"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
+          {/* Employee ID */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Employee ID<Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              value={employeeCode}
+              onChangeText={setEmployeeCode}
+              placeholder="Enter number"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              keyboardType="numeric"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
 
-        {/* Marital Status */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Marital Status
-          </Text>
-          <Dropdown
-            data={maritalOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select status"
-            value={maritalStatus}
-            onChange={(item) => setMaritalStatus(item.value)}
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#606060" : "#9CA3AF",
-              fontFamily: "Poppins_400Regular",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
-            }}
-            itemTextStyle={{
-              color: isDarkMode ? "#FFF" : "#000",
-              fontFamily: "Poppins_400Regular",
-            }}
-            activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-          />
-          {maritalStatus === "Married" && (
-            <View className="mt-4">
+          {/* Username */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Username<Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              value={username}
+              onChangeText={setUsername}
+              placeholder="e.g. W001"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              autoCapitalize="none"
+            />
+          </View>
+
+          {/* Password */}
+          {!userId && (
+            <View className="mb-4">
               <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                Spouse Name
+                Password<Text className="text-red-500">*</Text>
               </Text>
               <TextInput
-                placeholder="Enter spouse name"
-                value={spouseName}
-                onChangeText={setSpouseName}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter password"
                 placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                secureTextEntry
                 className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
               />
             </View>
           )}
-        </View>
 
-        {/* Home Address */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Home Address
-          </Text>
-          <TextInput
-            value={homeAddress}
-            onChangeText={setHomeAddress}
-            placeholder="Enter Home Address"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Blood Group */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Blood Group
-          </Text>
-          <TextInput
-            value={bloodGroup}
-            onChangeText={setBloodGroup}
-            placeholder="Enter Blood Group"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Aadhar Number */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Aadhar Number
-          </Text>
-          <TextInput
-            value={aadhar}
-            onChangeText={setAadhar}
-            placeholder="Enter aadhar number"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* PAN Number */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            PAN Number
-          </Text>
-          <TextInput
-            value={pan}
-            onChangeText={setPan}
-            placeholder="Enter PAN number"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-          />
-        </View>
-
-        {/* Key Strength */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Key Strength
-          </Text>
-          <TextInput
-            value={keyStrengthInput}
-            onChangeText={setKeyStrengthInput}
-            placeholder="e.g. User Experience"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
-            onSubmitEditing={() => {
-              if (keyStrengthInput.trim()) {
-                setKeyStrength([...keyStrength, keyStrengthInput.trim()]);
-                setKeyStrengthInput("");
-              }
-            }}
-            returnKeyType="done"
-            blurOnSubmit={false}
-          />
-          {keyStrength.length > 0 && (
-            <View className="flex-row flex-wrap gap-2">
-              {keyStrength.map((strength, index) => (
-                <View
-                  key={index}
-                  className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
-                >
-                  <Text className="text-sm font-poppins text-black dark:text-white mr-2">
-                    {strength}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setKeyStrength(keyStrength.filter((_, i) => i !== index));
-                    }}
-                  >
-                    <HugeiconsIcon
-                      icon={Cancel01Icon}
-                      size={14}
-                      color={isDarkMode ? "#919191" : "#454545"}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Language */}
-        <View className="mb-4">
-          <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-            Language
-          </Text>
-          <TextInput
-            value={languageInput}
-            onChangeText={setLanguageInput}
-            placeholder="e.g. English"
-            placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
-            onSubmitEditing={() => {
-              if (languageInput.trim()) {
-                setLanguages([...languages, languageInput.trim()]);
-                setLanguageInput("");
-              }
-            }}
-            returnKeyType="done"
-            blurOnSubmit={false}
-          />
-          {languages.length > 0 && (
-            <View className="flex-row flex-wrap gap-2">
-              {languages.map((lang, index) => (
-                <View
-                  key={index}
-                  className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
-                >
-                  <Text className="text-sm font-poppins text-black dark:text-white mr-2">
-                    {lang}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setLanguages(languages.filter((_, i) => i !== index));
-                    }}
-                  >
-                    <HugeiconsIcon
-                      icon={Cancel01Icon}
-                      size={14}
-                      color={isDarkMode ? "#919191" : "#454545"}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Education */}
-        <View className="mb-4">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-poppinsMedium text-black dark:text-white">
-              Education
+          {/* Status */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Status <Text className="text-red-500">*</Text>
             </Text>
-            <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: "/addEducation",
-                  params: {
-                    userId: userId as string,
-                    existingEducation: JSON.stringify(education),
-                  },
-                });
+            <Dropdown
+              data={statusOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Status"
+              value={status}
+              onChange={(item) => setStatus(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
               }}
-              className="flex-row items-center"
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Level */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Level <Text className="text-red-500">*</Text>
+            </Text>
+            <Dropdown
+              data={levelOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Level"
+              value={level}
+              onChange={(item) => setLevel(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Role */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Role <Text className="text-red-500">*</Text>
+            </Text>
+            <Dropdown
+              data={roleOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Role"
+              value={role}
+              onChange={(item) => setRole(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Reporting To */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Reporting To
+            </Text>
+            <Dropdown
+              data={userList}
+              labelField="label"
+              valueField="value"
+              search
+              searchPlaceholder="Search person..."
+              placeholder="Select Person"
+              value={reportingTo}
+              onChange={(item) => setReportingTo(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Secondary Reporting To */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Secondary Reporting To
+            </Text>
+            <Dropdown
+              data={userList}
+              labelField="label"
+              valueField="value"
+              search
+              searchPlaceholder="Search person..."
+              placeholder="Select Person"
+              value={secondaryReportingTo}
+              onChange={(item) => setSecondaryReportingTo(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Official Email */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Official Email <Text className="text-red-500">*</Text>
+            </Text>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter official email"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              keyboardType="email-address"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Personal Email */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Personal Email
+            </Text>
+            <TextInput
+              value={personalEmail}
+              onChangeText={setPersonalEmail}
+              placeholder="Enter personal email"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              keyboardType="email-address"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Contact Numbers */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Contact Numbers
+            </Text>
+            {contactNumbers.map((num, index) => (
+              <View key={index} className="relative justify-center mb-2">
+                <TextInput
+                  value={num}
+                  onChangeText={(val) => {
+                    const newNumbers = [...contactNumbers];
+                    newNumbers[index] = val;
+                    setContactNumbers(newNumbers);
+                  }}
+                  placeholder="Enter contact number"
+                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  keyboardType="phone-pad"
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 pr-12 py-3 text-black dark:text-white font-poppins"
+                />
+                {contactNumbers.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const newNumbers = contactNumbers.filter(
+                        (_, i) => i !== index,
+                      );
+                      setContactNumbers(newNumbers.length ? newNumbers : [""]);
+                    }}
+                    className="absolute right-3"
+                  >
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      size={18}
+                      color="#919191"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            <TouchableOpacity
+              onPress={() => setContactNumbers([...contactNumbers, ""])}
+              className="flex-row items-center justify-center mt-2 bg-indigo-100 dark:bg-indigo-900/30 px-4 py-2 rounded-full"
             >
-              <HugeiconsIcon
-                icon={PlusSignCircleIcon}
-                size={16}
-                color="#0073CB"
-              />
-              <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
-                Add
+              <Icon name="plus" size={18} color="#4F46E5" />
+              <Text className="ml-2 text-indigo-600 dark:text-indigo-400 font-poppinsMedium">
+                Add Number
               </Text>
             </TouchableOpacity>
           </View>
 
-          {education.map((edu, idx) => (
-            <View
-              key={idx}
-              className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+          {/* Emergency Contact */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Emergency Contact
+            </Text>
+            <TextInput
+              value={emergencyContact}
+              onChangeText={setEmergencyContact}
+              placeholder="Enter emergency contact"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Joining Date */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Joining Date
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowJoinPicker(true)}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
             >
-              <TouchableOpacity
-                onPress={() =>
-                  setExpandedEducation(expandedEducation === idx ? null : idx)
-                }
-                className="flex-row items-center justify-between p-4"
+              <Icon
+                name="calendar"
+                size={18}
+                color={isDarkMode ? "#606060" : "#9CA3AF"}
+              />
+              <Text
+                className={`ml-2 font-poppins ${
+                  joiningDate
+                    ? "text-black dark:text-white"
+                    : "text-[#9CA3AF] dark:text-[#606060]"
+                }`}
               >
-                <Text className="text-sm font-poppinsMedium text-black dark:text-white">
-                  {edu.college || "University/School"}
-                </Text>
-                <HugeiconsIcon
-                  icon={
-                    expandedEducation === idx ? ArrowUp01Icon : ArrowDown01Icon
+                {joiningDate
+                  ? joiningDate.toDateString()
+                  : "Select Joining date"}
+              </Text>
+            </TouchableOpacity>
+            {showJoinPicker && (
+              <DateTimePicker
+                value={joiningDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, date) => {
+                  if (event.type === "set" && date) {
+                    setJoiningDate(date);
                   }
-                  size={20}
-                  color={isDarkMode ? "#FFF" : "#000"}
+                  setShowJoinPicker(false);
+                }}
+              />
+            )}
+          </View>
+
+          {/* Birth Date */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Birth Date
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowBirthPicker(true)}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
+            >
+              <Icon
+                name="calendar"
+                size={18}
+                color={isDarkMode ? "#606060" : "#9CA3AF"}
+              />
+              <Text
+                className={`ml-2 font-poppins ${
+                  birthDate
+                    ? "text-black dark:text-white"
+                    : "text-[#9CA3AF] dark:text-[#606060]"
+                }`}
+              >
+                {birthDate ? birthDate.toDateString() : "Select birth date"}
+              </Text>
+            </TouchableOpacity>
+            {showBirthPicker && (
+              <DateTimePicker
+                value={birthDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, date) => {
+                  if (event.type === "set" && date) {
+                    setBirthDate(date);
+                  }
+                  setShowBirthPicker(false);
+                }}
+              />
+            )}
+          </View>
+
+          {/* Gender */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Gender
+            </Text>
+            <Dropdown
+              data={genderOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select gender"
+              value={gender}
+              onChange={(item) => setGender(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+          </View>
+
+          {/* Father's Name */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Father's Name
+            </Text>
+            <TextInput
+              value={fatherName}
+              onChangeText={setFatherName}
+              placeholder="Enter father's name"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Mother's Name */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Mother's Name
+            </Text>
+            <TextInput
+              value={motherName}
+              onChangeText={setMotherName}
+              placeholder="Enter mother's name"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Marital Status */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Marital Status
+            </Text>
+            <Dropdown
+              data={maritalOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select status"
+              value={maritalStatus}
+              onChange={(item) => setMaritalStatus(item.value)}
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#606060" : "#9CA3AF",
+                fontFamily: "Poppins_400Regular",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              containerStyle={{
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+              }}
+              itemTextStyle={{
+                color: isDarkMode ? "#FFF" : "#000",
+                fontFamily: "Poppins_400Regular",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
+              iconColor="#919191"
+            />
+            {maritalStatus === "Married" && (
+              <View className="mt-4">
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                  Spouse Name
+                </Text>
+                <TextInput
+                  placeholder="Enter spouse name"
+                  value={spouseName}
+                  onChangeText={setSpouseName}
+                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
                 />
+              </View>
+            )}
+          </View>
+
+          {/* Home Address */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Home Address
+            </Text>
+            <TextInput
+              value={homeAddress}
+              onChangeText={setHomeAddress}
+              multiline
+              placeholder="Enter Home Address"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Blood Group */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Blood Group
+            </Text>
+            <TextInput
+              value={bloodGroup}
+              onChangeText={setBloodGroup}
+              placeholder="Enter Blood Group"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Aadhar Number */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Aadhar Number
+            </Text>
+            <TextInput
+              value={aadhar}
+              onChangeText={setAadhar}
+              placeholder="Enter aadhar number"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* PAN Number */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              PAN Number
+            </Text>
+            <TextInput
+              value={pan}
+              onChangeText={setPan}
+              placeholder="Enter PAN number"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+            />
+          </View>
+
+          {/* Key Strength */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Key Strength
+            </Text>
+            <TextInput
+              value={keyStrengthInput}
+              onChangeText={setKeyStrengthInput}
+              placeholder="Add multiple strengths"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+              onSubmitEditing={() => {
+                if (keyStrengthInput.trim()) {
+                  setKeyStrength([...keyStrength, keyStrengthInput.trim()]);
+                  setKeyStrengthInput("");
+                }
+              }}
+              returnKeyType="done"
+              blurOnSubmit={false}
+            />
+            {keyStrength.length > 0 && (
+              <View className="flex-row flex-wrap gap-2">
+                {keyStrength.map((strength, index) => (
+                  <View
+                    key={index}
+                    className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
+                  >
+                    <Text className="text-sm font-poppins text-black dark:text-white mr-2">
+                      {strength}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setKeyStrength(
+                          keyStrength.filter((_, i) => i !== index),
+                        );
+                      }}
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={14}
+                        color={isDarkMode ? "#919191" : "#454545"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Language */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Language
+            </Text>
+            <TextInput
+              value={languageInput}
+              onChangeText={setLanguageInput}
+              placeholder="e.g. English"
+              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+              onSubmitEditing={() => {
+                if (languageInput.trim()) {
+                  setLanguages([...languages, languageInput.trim()]);
+                  setLanguageInput("");
+                }
+              }}
+              returnKeyType="done"
+              blurOnSubmit={false}
+            />
+            {languages.length > 0 && (
+              <View className="flex-row flex-wrap gap-2">
+                {languages.map((lang, index) => (
+                  <View
+                    key={index}
+                    className="flex-row items-center bg-white dark:bg-black border border-gray-300 dark:border-[#333] rounded-lg px-3 py-2"
+                  >
+                    <Text className="text-sm font-poppins text-black dark:text-white mr-2">
+                      {lang}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setLanguages(languages.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={14}
+                        color={isDarkMode ? "#919191" : "#454545"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Education */}
+          <View className="mb-4">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                Education
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: "/addEducation",
+                    params: {
+                      userId: userId as string,
+                      existingEducation: JSON.stringify(education),
+                    },
+                  });
+                }}
+                className="flex-row items-center"
+              >
+                <HugeiconsIcon
+                  icon={PlusSignCircleIcon}
+                  size={16}
+                  color="#0073CB"
+                />
+                <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
+                  Add
+                </Text>
               </TouchableOpacity>
+            </View>
 
-              {expandedEducation === idx && (
-                <View className="px-4 pb-4">
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+            {education.map((edu, idx) => (
+              <View
+                key={idx}
+                className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+              >
+                <TouchableOpacity
+                  onPress={() =>
+                    setExpandedEducation(expandedEducation === idx ? null : idx)
+                  }
+                  className="flex-row items-center justify-between p-4"
+                >
+                  <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                    {edu.college || "University/School"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={
+                      expandedEducation === idx
+                        ? ArrowUp01Icon
+                        : ArrowDown01Icon
+                    }
+                    size={20}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </TouchableOpacity>
 
-                  <View className="mb-4">
-                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                      Institute Name
-                    </Text>
-                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                      {edu.college || "N/A"}
-                    </Text>
-                  </View>
+                {expandedEducation === idx && (
+                  <View className="px-4 pb-4">
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
 
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+                    <View className="mb-4">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        Institute Name
+                      </Text>
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                        {edu.college || "N/A"}
+                      </Text>
+                    </View>
 
-                  <View className="mb-4">
-                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                      Degree/ Diploma
-                    </Text>
-                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                      {edu.qualification || "N/A"}
-                    </Text>
-                  </View>
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
 
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+                    <View className="mb-4">
+                      <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                        Degree/ Diploma
+                      </Text>
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                        {edu.qualification || "N/A"}
+                      </Text>
+                    </View>
 
-                  <View className="flex-row">
-                    <View className="flex-1">
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                    <View className="mb-4">
                       <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
                         Specialization
                       </Text>
-                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
                         {edu.specialization || "N/A"}
                       </Text>
                     </View>
-                    <View className="flex-1">
+
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                    <View className="">
                       <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
                         Date of completion
                       </Text>
-                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
                         {edu.graduationYear || "N/A"}
                       </Text>
                     </View>
                   </View>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
-
-        {/* Work Experience */}
-        <View className="mb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-poppinsMedium text-black dark:text-white">
-              Work Experience
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: "/addWorkExperience",
-                  params: {
-                    userId: userId as string,
-                    existingExperience: JSON.stringify(experience),
-                  },
-                });
-              }}
-              className="flex-row items-center"
-            >
-              <HugeiconsIcon
-                icon={PlusSignCircleIcon}
-                size={16}
-                color="#0073CB"
-              />
-              <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
-                Add
-              </Text>
-            </TouchableOpacity>
+                )}
+              </View>
+            ))}
           </View>
 
-          {experience.map((exp, idx) => (
-            <View
-              key={idx}
-              className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A] "
-            >
+          {/* Work Experience */}
+          <View className="mb-6">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-base font-poppinsMedium text-black dark:text-white">
+                Work Experience
+              </Text>
               <TouchableOpacity
-                onPress={() =>
-                  setExpandedExperience(expandedExperience === idx ? null : idx)
-                }
-                className="flex-row items-center justify-between p-4"
+                onPress={() => {
+                  router.push({
+                    pathname: "/addWorkExperience",
+                    params: {
+                      userId: userId as string,
+                      existingExperience: JSON.stringify(experience),
+                    },
+                  });
+                }}
+                className="flex-row items-center"
               >
-                <Text className="text-sm font-poppinsMedium text-black dark:text-white">
-                  {exp.company || "Company"}
-                </Text>
                 <HugeiconsIcon
-                  icon={
-                    expandedExperience === idx ? ArrowUp01Icon : ArrowDown01Icon
-                  }
-                  size={20}
-                  color={isDarkMode ? "#FFF" : "#000"}
+                  icon={PlusSignCircleIcon}
+                  size={16}
+                  color="#0073CB"
                 />
+                <Text className="ml-2 text-[#0073CB] font-poppinsMedium">
+                  Add
+                </Text>
               </TouchableOpacity>
+            </View>
 
-              {expandedExperience === idx && (
-                <View className="px-4 pb-4">
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+            {experience.map((exp, idx) => (
+              <View
+                key={idx}
+                className="mb-4 overflow-hidden rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+              >
+                <TouchableOpacity
+                  onPress={() =>
+                    setExpandedExperience(
+                      expandedExperience === idx ? null : idx,
+                    )
+                  }
+                  className="flex-row items-center justify-between p-4"
+                >
+                  <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                    {exp.company || "Company"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={
+                      expandedExperience === idx
+                        ? ArrowUp01Icon
+                        : ArrowDown01Icon
+                    }
+                    size={20}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                </TouchableOpacity>
 
-                  <View className="mb-4">
-                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                      Company
-                    </Text>
-                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                      {exp.company || "N/A"}
-                    </Text>
-                  </View>
+                {expandedExperience === idx && (
+                  <View className="px-4 pb-4">
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
 
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
-
-                  <View className="mb-4">
-                    <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                      Job Title
-                    </Text>
-                    <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                      {exp.designation || "N/A"}
-                    </Text>
-                  </View>
-
-                  <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
-
-                  <View className="flex-row">
-                    <View className="flex-1">
+                    <View className="mb-4">
                       <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                        From Date
+                        Company Name
                       </Text>
-                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                        {exp.fromDate
-                          ? new Date(exp.fromDate).toLocaleDateString()
-                          : "N/A"}
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                        {exp.company || "N/A"}
                       </Text>
                     </View>
-                    <View className="flex-1">
+
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                    <View className="mb-4">
                       <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                        To Date
+                        Designation
                       </Text>
-                      <Text className="text-base font-poppinsMedium text-black dark:text-white">
-                        {exp.toDate
-                          ? new Date(exp.toDate).toLocaleDateString()
-                          : "N/A"}
+                      <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                        {exp.designation || "N/A"}
                       </Text>
                     </View>
-                  </View>
 
-                  {exp.jobDescription && (
-                    <>
-                      <View className="h-[1px] bg-gray-200 dark:bg-[#252525] my-4" />
-                      <View>
+                    <View className="h-[1px] bg-gray-200 dark:bg-[#252525] mb-4" />
+
+                    <View className="flex-row">
+                      <View className="flex-1">
                         <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
-                          Description
+                          From Date
                         </Text>
-                        <Text className="text-sm font-poppins text-black dark:text-white leading-5">
-                          {exp.jobDescription}
+                        <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                          {exp.fromDate
+                            ? new Date(exp.fromDate).toLocaleDateString()
+                            : "N/A"}
                         </Text>
                       </View>
-                    </>
-                  )}
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
+                      <View className="flex-1">
+                        <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                          To Date
+                        </Text>
+                        <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                          {exp.toDate
+                            ? new Date(exp.toDate).toLocaleDateString()
+                            : "N/A"}
+                        </Text>
+                      </View>
+                    </View>
 
-        {/* Additional Info */}
-        {/* <View className="mb-6">
+                    {exp.jobDescription ? (
+                      <>
+                        <View className="h-[1px] bg-gray-200 dark:bg-[#252525] my-4" />
+                        <View>
+                          <Text className="text-xs font-poppinsMedium text-gray-500 dark:text-gray-400 mb-1">
+                            Job Description
+                          </Text>
+                          <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                            {exp.jobDescription}
+                          </Text>
+                        </View>
+                      </>
+                    ) : null}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Additional Info */}
+          {/* <View className="mb-6">
           <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
             Additional Info
           </Text>
@@ -1341,7 +1528,8 @@ const RegisterUserScreen = () => {
             </Text>
           </TouchableOpacity>
         </View> */}
-      </KeyboardAwareScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
       {/* Bottom Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 py-4 pb-12 flex-row gap-3">
         <TouchableOpacity

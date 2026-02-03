@@ -10,15 +10,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
   useColorScheme,
+  View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import Toast from "react-native-toast-message";
 
 interface WorkExperience {
   company: string;
@@ -56,6 +56,8 @@ const AddWorkExperience = () => {
           setExperiences(
             parsed.map((exp: any) => ({
               ...exp,
+              company: exp.company || exp.companyName || "",
+              designation: exp.designation || exp.jobTitle || "",
               fromDate: exp.fromDate ? new Date(exp.fromDate) : null,
               toDate: exp.toDate ? new Date(exp.toDate) : null,
               showFromPicker: false,
@@ -91,36 +93,32 @@ const AddWorkExperience = () => {
 
   const updateExperience = (
     index: number,
-    field: keyof WorkExperience,
-    value: any,
+    updates: Partial<WorkExperience>,
   ) => {
-    const newExperiences = [...experiences];
-    newExperiences[index] = { ...newExperiences[index], [field]: value };
-    setExperiences(newExperiences);
+    setExperiences((prev) => {
+      const newExperiences = [...prev];
+      newExperiences[index] = { ...newExperiences[index], ...updates };
+      return newExperiences;
+    });
   };
 
   const handleSave = () => {
-    // Validate at least one entry has required fields
-    const hasValidEntry = experiences.some(
-      (exp) => exp.company.trim() && exp.designation.trim(),
+    // Only send entries that have at least one field filled
+    const validExperiences = experiences.filter(
+      (exp) =>
+        exp.company.trim() ||
+        exp.designation.trim() ||
+        exp.fromDate ||
+        exp.toDate ||
+        exp.jobDescription.trim(),
     );
-
-    if (!hasValidEntry) {
-      Toast.show({
-        type: "error",
-        text1: "Validation Error",
-        text2: "Please fill in at least one complete work experience",
-        position: "bottom",
-      });
-      return;
-    }
 
     // Navigate back with data
     router.push({
       pathname: "/registerUser",
       params: {
         userId: userId as string,
-        experienceData: JSON.stringify(experiences),
+        experienceData: JSON.stringify(validExperiences),
       },
     });
   };
@@ -143,184 +141,208 @@ const AddWorkExperience = () => {
         </View>
       </View>
 
-      <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 100,
-        }}
-        className="bg-white dark:bg-black"
-        enableOnAndroid
-        extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        {experiences.map((experience, index) => (
-          <View
-            key={index}
-            className="mb-6  border-b border-gray-200 dark:border-[#252525]"
-          >
-            {/* Company Name */}
-            <View className="mb-4">
-              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                Company Name
-              </Text>
-              <TextInput
-                value={experience.company}
-                onChangeText={(val) => updateExperience(index, "company", val)}
-                placeholder="Company Name"
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              />
-            </View>
-
-            {/* Job Title */}
-            <View className="mb-4">
-              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                Job Title
-              </Text>
-              <TextInput
-                value={experience.designation}
-                onChangeText={(val) =>
-                  updateExperience(index, "designation", val)
-                }
-                placeholder="e.g. UX/UI Designer"
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              />
-            </View>
-
-            {/* From Date */}
-            <View className="mb-4">
-              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                Form Date
-              </Text>
-              <TouchableOpacity
-                onPress={() => updateExperience(index, "showFromPicker", true)}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center justify-between"
-              >
-                <Text
-                  className={`font-poppins ${
-                    experience.fromDate
-                      ? "text-black dark:text-white"
-                      : "text-[#9CA3AF] dark:text-[#606060]"
-                  }`}
-                >
-                  {experience.fromDate
-                    ? experience.fromDate.toDateString()
-                    : "Select Date"}
-                </Text>
-                <HugeiconsIcon
-                  icon={Calendar03Icon}
-                  size={20}
-                  color={isDarkMode ? "#606060" : "#9CA3AF"}
-                />
-              </TouchableOpacity>
-              {experience.showFromPicker && (
-                <DateTimePicker
-                  value={experience.fromDate || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
-                    updateExperience(index, "showFromPicker", false);
-                    if (event.type === "set" && date) {
-                      updateExperience(index, "fromDate", date);
-                    }
-                  }}
-                />
-              )}
-            </View>
-
-            {/* To Date */}
-            <View className="mb-4">
-              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                To Date
-              </Text>
-              <TouchableOpacity
-                onPress={() => updateExperience(index, "showToPicker", true)}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center justify-between"
-              >
-                <Text
-                  className={`font-poppins ${
-                    experience.toDate
-                      ? "text-black dark:text-white"
-                      : "text-[#9CA3AF] dark:text-[#606060]"
-                  }`}
-                >
-                  {experience.toDate
-                    ? experience.toDate.toDateString()
-                    : "Select Date"}
-                </Text>
-                <HugeiconsIcon
-                  icon={Calendar03Icon}
-                  size={20}
-                  color={isDarkMode ? "#606060" : "#9CA3AF"}
-                />
-              </TouchableOpacity>
-              {experience.showToPicker && (
-                <DateTimePicker
-                  value={experience.toDate || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={(event, date) => {
-                    updateExperience(index, "showToPicker", false);
-                    if (event.type === "set" && date) {
-                      updateExperience(index, "toDate", date);
-                    }
-                  }}
-                />
-              )}
-            </View>
-
-            {/* Job Description */}
-            <View className="mb-4">
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-sm font-poppinsMedium text-black dark:text-white">
-                  Job Description
-                </Text>
-              </View>
-              <TextInput
-                value={experience.jobDescription}
-                onChangeText={(val) =>
-                  updateExperience(index, "jobDescription", val)
-                }
-                placeholder="Add a brief description"
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-                style={{ minHeight: 120 }}
-              />
-            </View>
-
-            {/*Remove button*/}
-            {index > 0 && (
-              <View className="items-end mb-4">
-                <TouchableOpacity
-                  onPress={() => handleRemoveExperience(index)}
-                  className="w-6 h-6 bg-[#DF5B5B] rounded-full items-center justify-center"
-                >
-                  <HugeiconsIcon icon={MinusSignIcon} size={16} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
-
-        {/* Add Button */}
-        <TouchableOpacity
-          onPress={handleAddExperience}
-          className="flex-row items-center mb-6"
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 16,
+            paddingTop: 20,
+            paddingBottom: 150,
+          }}
+          className="bg-white dark:bg-black"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <HugeiconsIcon icon={PlusSignCircleIcon} size={14} color="#0073CB" />
-          <Text className="text-[#0073CB] font-poppinsMedium text-sm">
-            {" "}
-            Add
-          </Text>
-        </TouchableOpacity>
-      </KeyboardAwareScrollView>
+          {experiences.map((experience, index) => (
+            <View
+              key={index}
+              className="mb-6  border-b border-gray-200 dark:border-[#252525]"
+            >
+              {/* Company Name */}
+              <View className="mb-4">
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                  Company
+                </Text>
+                <TextInput
+                  value={experience.company}
+                  onChangeText={(val) =>
+                    updateExperience(index, { company: val })
+                  }
+                  placeholder="Company Name"
+                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+                />
+              </View>
+
+              {/* Job Title */}
+              <View className="mb-4">
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                  Designation
+                </Text>
+                <TextInput
+                  value={experience.designation}
+                  onChangeText={(val) =>
+                    updateExperience(index, { designation: val })
+                  }
+                  placeholder="e.g. UX/UI Designer"
+                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+                />
+              </View>
+
+              {/* From Date */}
+              <View className="mb-4">
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                  From Date
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    updateExperience(index, { showFromPicker: true })
+                  }
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center justify-between"
+                >
+                  <Text
+                    className={`font-poppins ${
+                      experience.fromDate
+                        ? "text-black dark:text-white"
+                        : "text-[#9CA3AF] dark:text-[#606060]"
+                    }`}
+                  >
+                    {experience.fromDate
+                      ? experience.fromDate.toDateString()
+                      : "Select Date"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={20}
+                    color={isDarkMode ? "#606060" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+                {experience.showFromPicker && (
+                  <DateTimePicker
+                    value={experience.fromDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, date) => {
+                      const updates: Partial<WorkExperience> = {
+                        showFromPicker: false,
+                      };
+                      if (event.type === "set" && date) {
+                        updates.fromDate = date;
+                      }
+                      updateExperience(index, updates);
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* To Date */}
+              <View className="mb-4">
+                <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                  To Date
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    updateExperience(index, { showToPicker: true })
+                  }
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center justify-between"
+                >
+                  <Text
+                    className={`font-poppins ${
+                      experience.toDate
+                        ? "text-black dark:text-white"
+                        : "text-[#9CA3AF] dark:text-[#606060]"
+                    }`}
+                  >
+                    {experience.toDate
+                      ? experience.toDate.toDateString()
+                      : "Select Date"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={20}
+                    color={isDarkMode ? "#606060" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+                {experience.showToPicker && (
+                  <DateTimePicker
+                    value={experience.toDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, date) => {
+                      const updates: Partial<WorkExperience> = {
+                        showToPicker: false,
+                      };
+                      if (event.type === "set" && date) {
+                        updates.toDate = date;
+                      }
+                      updateExperience(index, updates);
+                    }}
+                  />
+                )}
+              </View>
+
+              {/* Job Description */}
+              <View className="mb-4">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="text-sm font-poppinsMedium text-black dark:text-white">
+                    Job Description
+                  </Text>
+                </View>
+                <TextInput
+                  value={experience.jobDescription}
+                  onChangeText={(val) =>
+                    updateExperience(index, { jobDescription: val })
+                  }
+                  placeholder="Add a brief description"
+                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  multiline
+                  numberOfLines={6}
+                  textAlignVertical="top"
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+                  style={{ minHeight: 120 }}
+                />
+              </View>
+
+              {/*Remove button*/}
+              {index > 0 && (
+                <View className="items-end mb-4">
+                  <TouchableOpacity
+                    onPress={() => handleRemoveExperience(index)}
+                    className="w-6 h-6 bg-[#DF5B5B] rounded-full items-center justify-center"
+                  >
+                    <HugeiconsIcon
+                      icon={MinusSignIcon}
+                      size={16}
+                      color="#FFF"
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ))}
+
+          {/* Add Button */}
+          <TouchableOpacity
+            onPress={handleAddExperience}
+            className="flex-row items-center mb-6"
+          >
+            <HugeiconsIcon
+              icon={PlusSignCircleIcon}
+              size={14}
+              color="#0073CB"
+            />
+            <Text className="text-[#0073CB] font-poppinsMedium text-sm">
+              {" "}
+              Add
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Bottom Action Buttons */}
       <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black  px-4 py-4 pb-12 flex-row gap-3">
