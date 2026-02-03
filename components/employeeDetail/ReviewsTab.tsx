@@ -132,8 +132,8 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
             <View className="flex-row items-start mb-5">
               <View className="w-[30%] items-start border-r border-[#E0E5EB] dark:border-[#413E47] pr-4">
-                <Text className="text-5xl font-dmBold text-black dark:text-white">
-                  {averageRating ? averageRating.toFixed(1) : "0.0"}
+                <Text className="text-4xl font-dmBold text-black dark:text-white">
+                  {averageRating ? averageRating.toFixed(1) : "N/A"}
                 </Text>
                 <Text className="text-gray-500 text-xs mt-1">Out of 5</Text>
               </View>
