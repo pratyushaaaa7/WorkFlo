@@ -1,6 +1,9 @@
+import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import moment from "moment";
-import React from "react";
-import { Text, View, useColorScheme } from "react-native";
+import React, { useState } from "react";
+import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
 
 interface AboutTabProps {
   userData: any;
@@ -17,6 +20,7 @@ const toProperCase = (name: any) => {
 
 const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   const renderInfoField = (
     label: string,
@@ -71,9 +75,37 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
               About
             </Text>
-            <Text className="text-black dark:text-white text-sm font-poppins leading-5">
-              {userData.about}
-            </Text>
+            <TouchableOpacity
+              onPress={() => setIsAboutExpanded(!isAboutExpanded)}
+              activeOpacity={0.7}
+              className="relative"
+            >
+              <View className="flex-row items-start">
+                <Text
+                  numberOfLines={isAboutExpanded ? undefined : 3}
+                  className="flex-1 text-black dark:text-white text-base font-dmMedium leading-6 mr-2"
+                >
+                  {userData.about}
+                </Text>
+                <View className="pt-1">
+                  <HugeiconsIcon
+                    icon={isAboutExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                    size={18}
+                    color={isDarkMode ? "#919191" : "#606060"}
+                  />
+                </View>
+              </View>
+              {!isAboutExpanded && (
+                <LinearGradient
+                  colors={[
+                    "transparent",
+                    isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
+                  ]}
+                  className="absolute bottom-0 left-0 right-0 h-10"
+                  pointerEvents="none"
+                />
+              )}
+            </TouchableOpacity>
           </View>
         )}
         {renderInfoField("Role", userData?.role)}
