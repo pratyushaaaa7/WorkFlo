@@ -82,7 +82,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             >
               <View className="flex-row items-start">
                 <Text
-                  numberOfLines={isAboutExpanded ? undefined : 3}
+                  numberOfLines={isAboutExpanded ? undefined : 2}
                   className="flex-1 text-black dark:text-white text-base font-dmMedium leading-6 mr-2"
                 >
                   {userData.about}
