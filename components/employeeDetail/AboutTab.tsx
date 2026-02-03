@@ -336,7 +336,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
             <View key={index} className="mb-3">
               <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-base mb-1">
                 {edu.qualification}{" "}
-                <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmMedium text-xs">
+                <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmSemiBold text-xs">
                   ({edu.graduationYear})
                 </Text>
               </Text>
@@ -363,10 +363,10 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           userData.experience.map((exp: any, index: number) => (
             <View key={index} className="mb-3">
               <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-sm mb-1">
-                {exp.company} (
+                {exp.company} <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmSemiBold text-xs">(
                 {exp.fromDate ? moment(exp.fromDate).format("MMM YYYY") : "?"} -{" "}
                 {exp.toDate ? moment(exp.toDate).format("MMM YYYY") : "Present"}
-                )
+                )</Text>
               </Text>
               <Text className="text-black dark:text-white font-poppins text-sm mb-1">
                 {exp.designation}
