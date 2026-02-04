@@ -178,7 +178,7 @@ const ProjectDetails = () => {
     rightValues?: string[];
   }) => (
     <View>
-      <View className="flex-row justify-between py-4">
+      <View className="flex-row justify-between py-[14px]">
         <View className="flex-1">
           <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
             {leftLabel}
@@ -219,7 +219,7 @@ const ProjectDetails = () => {
             ))
           ) : (
             <Text
-              className={`text-[14px] ${isRightBold ? "font-poppinsBold" : "font-poppinsSemiBold"} text-black dark:text-white text-right`}
+              className={`text-[14px] font-poppinsMedium text-black dark:text-white text-right`}
               style={rightStyle}
             >
               {rightValue || "-"}
