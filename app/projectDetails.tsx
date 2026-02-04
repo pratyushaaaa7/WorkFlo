@@ -232,7 +232,7 @@ const ProjectDetails = () => {
   );
 
   return (
-    <View className="flex-1 bg-white dark:bg-[#0D0D0D]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000000]">
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -489,35 +489,34 @@ const ProjectDetails = () => {
         </View>
 
         {/* Add Note Section */}
-     
-          <View
-            className=" p-4 rounded-[24px] border border-t"
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
-              borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
-            }}
-          >
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              placeholder="Write a remark..."
-              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-              className="text-black dark:text-white font-poppins text-sm min-h-[50px]"
-              multiline
-              textAlignVertical="top"
-            />
-            {note.trim() ? (
-              <TouchableOpacity
-                onPress={addNote}
-                className="mt-2 self-end bg-[#5B4CCC] px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white font-poppinsSemiBold text-xs">
-                  Post Remark
-                </Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-    
+
+        <View
+          className="p-4 rounded-t-[24px] border-t"
+          style={{
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+            borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
+          }}
+        >
+          <TextInput
+            value={note}
+            onChangeText={setNote}
+            placeholder="Write a remark..."
+            placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+            className="text-black dark:text-white font-poppins text-sm min-h-[50px]"
+            multiline
+            textAlignVertical="top"
+          />
+          {note.trim() ? (
+            <TouchableOpacity
+              onPress={addNote}
+              className="mt-2 self-end bg-[#5B4CCC] px-4 py-2 rounded-lg"
+            >
+              <Text className="text-white font-poppinsSemiBold text-xs">
+                Post Remark
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </ScrollView>
     </View>
   );
