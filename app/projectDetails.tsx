@@ -213,7 +213,7 @@ const ProjectDetails = () => {
               <Text
                 key={i}
                 className="text-[14px] font-poppinsMedium text-black dark:text-white text-right"
-              > 
+              >
                 {v}
               </Text>
             ))
@@ -261,14 +261,14 @@ const ProjectDetails = () => {
 
         {/* Main Content Card */}
         <View
-          className="-mt-10 flex-1 bg-white dark:bg-[#121212] rounded-t-[16px] px-4 pt-6"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 10,
-            elevation: 10,
-          }}
+          className="-mt-10 flex-1 bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-t-[16px] px-4 pt-6"
+          // style={{
+          //   shadowColor: "#000",
+          //   shadowOffset: { width: 0, height: -4 },
+          //   shadowOpacity: 0.1,
+          //   shadowRadius: 10,
+          //   elevation: 10,
+          // }}
         >
           {/* Title and More */}
           <View className="flex-row items-center justify-between mb-2">
@@ -376,9 +376,11 @@ const ProjectDetails = () => {
               </Text>
             </View>
           </View>
+        </View>
 
+        <View className="bg-[#FBFCFD] dark:bg-[#000000] px-4">
           {/* Activity Log */}
-          <View className="pt-8 pb-4">
+          <View className="pt-8 pb-4 ">
             <Text className="text-xl font-dmBold text-black dark:text-white mb-6">
               Activity Log
             </Text>
