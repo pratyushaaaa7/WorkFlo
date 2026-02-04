@@ -486,38 +486,38 @@ const ProjectDetails = () => {
               </View>
             )}
           </View>
-
-          {/* Add Note Section */}
-          <View className="pb-12">
-            <View
-              className="rounded-2xl p-4 border"
-              style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F7F8FA",
-                borderColor: isDarkMode ? "#333" : "#E8EAED",
-              }}
-            >
-              <TextInput
-                value={note}
-                onChangeText={setNote}
-                placeholder="Write a remark..."
-                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-                className="text-black dark:text-white font-poppins text-sm min-h-[50px]"
-                multiline
-                textAlignVertical="top"
-              />
-              {note.trim() ? (
-                <TouchableOpacity
-                  onPress={addNote}
-                  className="mt-2 self-end bg-[#5B4CCC] px-4 py-2 rounded-lg"
-                >
-                  <Text className="text-white font-poppinsSemiBold text-xs">
-                    Post Remark
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          </View>
         </View>
+
+        {/* Add Note Section */}
+     
+          <View
+            className=" p-4 rounded-[24px] border border-t"
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
+            }}
+          >
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Write a remark..."
+              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              className="text-black dark:text-white font-poppins text-sm min-h-[50px]"
+              multiline
+              textAlignVertical="top"
+            />
+            {note.trim() ? (
+              <TouchableOpacity
+                onPress={addNote}
+                className="mt-2 self-end bg-[#5B4CCC] px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-poppinsSemiBold text-xs">
+                  Post Remark
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+    
       </ScrollView>
     </View>
   );
