@@ -491,10 +491,11 @@ const ProjectDetails = () => {
         {/* Add Note Section */}
 
         <View
-          className="p-4 rounded-t-[24px] border-t"
+          className="p-4 rounded-t-[24px] border-x border-t"
           style={{
             backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
             borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
+            borderBottomWidth: 0,
           }}
         >
           <TextInput
