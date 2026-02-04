@@ -421,7 +421,8 @@ function AppLayout() {
                 item.name === "usage" ||
                 item.name === "appSupport" ||
                 item.name === "centralUserDirectory" ||
-                item.name === "centralEmployeeDirectory"
+                item.name === "centralEmployeeDirectory" ||
+                item.name === "masterProjectList"
                   ? false
                   : true,
               title: item.label,
