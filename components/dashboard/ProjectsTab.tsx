@@ -11,6 +11,7 @@ import React, { memo, useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Text,
   TouchableOpacity,
   useColorScheme,
@@ -405,10 +406,23 @@ const ProjectsTab = () => {
           ))}
         </View>
       ) : (
-        <View className="flex-1 items-center justify-center pt-20">
-          <Text className="text-gray-400 font-poppinsMedium">
-            No {activeStatusFilter === "ALL" ? "" : activeStatusFilter} projects
-            found for {activeSubTab}
+        <View className="flex-1 items-center justify-center -mt-20">
+          <Image
+            source={
+              isDarkMode
+                ? require("../../assets/images/ghostDarkMode.png")
+                : require("../../assets/images/ghostLightMode.png")
+            }
+            style={{ width: 300, height: 220 }}
+            resizeMode="contain"
+          />
+          <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
+          <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
+            {activeStatusFilter === "ALL"
+              ? `You don't have any project in ${getCompanyValue(activeSubTab)}`
+              : `You don't have any ${
+                  statusFilters.find((f) => f.key === activeStatusFilter)?.label
+                } project in ${getCompanyValue(activeSubTab)}`}
           </Text>
         </View>
       )}

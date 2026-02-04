@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Platform,
   StatusBar,
   Text,
@@ -601,10 +602,44 @@ const MasterProjectList = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View className="flex-1 justify-center items-center mt-20">
-              <Ionicons name="folder-open-outline" size={48} color="#9CA3AF" />
-              <Text className="text-gray-500 text-lg mt-2">
-                No projects found.
+            <View className="flex-1 justify-center items-center mt-20 px-8">
+              <Image
+                source={
+                  isDarkMode
+                    ? require("../assets/images/ghostDarkMode.png")
+                    : require("../assets/images/ghostLightMode.png")
+                }
+                style={{ width: 300, height: 220 }}
+                resizeMode="contain"
+              />
+               <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
+              <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center mt-2">
+                {selectedStatus === "ALL"
+                  ? `You don't have any project in ${
+                      activeTab === "ALL"
+                        ? "any company"
+                        : activeTab === "WP"
+                          ? "WP"
+                          : activeTab === "WALL"
+                            ? "WAL"
+                            : "WCorp"
+                    }`
+                  : `You don't have any ${
+                      selectedStatus === "BD"
+                        ? "B.D"
+                        : selectedStatus === "INACTIVE"
+                          ? "In-Active"
+                          : selectedStatus.charAt(0).toUpperCase() +
+                            selectedStatus.slice(1).toLowerCase()
+                    } project in ${
+                      activeTab === "ALL"
+                        ? "any company"
+                        : activeTab === "WP"
+                          ? "WP"
+                          : activeTab === "WALL"
+                            ? "WALL"
+                            : "WCorp"
+                    }`}
               </Text>
             </View>
           }
