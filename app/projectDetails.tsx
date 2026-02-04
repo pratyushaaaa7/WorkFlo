@@ -241,7 +241,7 @@ const ProjectDetails = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
         {/* Project Image Header */}
-        <View className="relative w-full h-[380px]">
+        <View className="relative w-full h-[340px]">
           <Image
             source={require("../assets/images/projectDefaultImage.jpg")}
             className="w-full h-full"
