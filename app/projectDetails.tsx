@@ -2,6 +2,7 @@ import {
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
   DashedLineCircleIcon,
+  Delete03Icon,
   Edit02Icon,
   MoreHorizontalIcon,
   Progress03Icon,
@@ -17,6 +18,7 @@ import {
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
   ScrollView,
   StatusBar,
   Text,
@@ -60,6 +62,7 @@ const ProjectDetails = () => {
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const scrollY = useSharedValue(0);
 
@@ -145,6 +148,24 @@ const ProjectDetails = () => {
     } catch (err) {
       console.error("Error adding note:", err);
       Toast.show({ type: "error", text1: "Failed to add note" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete Project
+  const handleDeleteProject = async () => {
+    try {
+      setMenuVisible(false);
+      setLoading(true);
+      await api.delete(`/projects/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Toast.show({ type: "success", text1: "Project deleted successfully" });
+      router.replace("/masterProjectList");
+    } catch (err) {
+      console.error("Error deleting project:", err);
+      Toast.show({ type: "error", text1: "Failed to delete project" });
     } finally {
       setLoading(false);
     }
@@ -291,7 +312,7 @@ const ProjectDetails = () => {
   );
 
   return (
-    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000000]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -300,11 +321,11 @@ const ProjectDetails = () => {
 
       {/* STICKY HEADER (SPOTIFY STYLE) */}
       <Animated.View
-        className="absolute top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 flex-row items-center justify-between border-b"
+        className="absolute  top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 flex-row items-center justify-between "
         style={[
           {
-            backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
-            borderColor: isDarkMode ? "#1A1A1A" : "#E0E5EB",
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#FBFCFD",
+            // borderColor: isDarkMode ? "#1A1A1A" : "#E0E5EB",
           },
           headerAnimatedStyle,
         ]}
@@ -328,7 +349,11 @@ const ProjectDetails = () => {
             {project.projectName}
           </Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7} className="ml-2">
+        <TouchableOpacity
+          onPress={() => setMenuVisible(true)}
+          activeOpacity={0.7}
+          className="ml-2"
+        >
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
             size={24}
@@ -336,6 +361,71 @@ const ProjectDetails = () => {
           />
         </TouchableOpacity>
       </Animated.View>
+
+      {/* FAST MENU OVERLAY */}
+      {menuVisible && (
+        <View
+          className="absolute top-0 left-0 right-0 bottom-0 z-[100]"
+          pointerEvents="box-none"
+        >
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setMenuVisible(false)}
+          />
+          <View
+            className="absolute top-16 right-4 bg-white dark:bg-[#1A1A1A] rounded-2xl p-1 shadow-2xl border border-[transparent] dark:border-[#2A2A2A]"
+           style={{
+                elevation: 25,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
+                minWidth: 170,
+              }}
+          >
+            {/* Triangle Pointer */}
+            <View
+              className="absolute right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45 border-l border-t border-[#E0E5EB] dark:border-[#2A2A2A]"
+              style={{ zIndex: -1 }}
+            />
+
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                router.push({
+                  pathname: "/createProject",
+                  params: { projectId: id },
+                });
+              }}
+              className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+            >
+              <HugeiconsIcon
+                icon={Edit02Icon}
+                size={20}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+              <Text className="ml-3 text-base font-dmMedium text-black dark:text-white">
+                Edit
+              </Text>
+            </TouchableOpacity>
+
+            <View className="h-[1px] bg-[#F2F2F2] dark:bg-[#2A2A2A] mx-2" />
+
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                handleDeleteProject();
+              }}
+              className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+            >
+              <HugeiconsIcon icon={Delete03Icon} size={20} color="#DF5B5B" />
+              <Text className="ml-3 text-base font-dmBold text-[#DF5B5B]">
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -405,7 +495,10 @@ const ProjectDetails = () => {
             <Text className="text-[20px] font-dmSemiBold text-black dark:text-white flex-1 mr-4">
               {project.projectName}
             </Text>
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() => setMenuVisible(true)}
+              activeOpacity={0.7}
+            >
               <HugeiconsIcon
                 icon={MoreHorizontalIcon}
                 size={24}

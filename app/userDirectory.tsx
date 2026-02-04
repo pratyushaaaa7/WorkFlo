@@ -500,32 +500,32 @@ const UserList = () => {
         )}
       </AnimatePresence>
 
-      {/* Export Menu Modal */}
-      <Modal
-        transparent={true}
-        visible={exportMenuVisible}
-        animationType="fade"
-        onRequestClose={() => setExportMenuVisible(false)}
-      >
-        <Pressable
-          className="flex-1"
-          onPress={() => setExportMenuVisible(false)}
+      {/* Export Menu (Fast Overlay) */}
+      {exportMenuVisible && (
+        <View
+          className="absolute top-0 left-0 right-0 bottom-0 z-[100]"
+          pointerEvents="box-none"
         >
-          <View className="absolute top-[50px] right-3">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setExportMenuVisible(false)}
+          />
+          <View className="absolute top-[100px] right-3">
             {/* Menu Container */}
             <View
-              className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-2 shadow"
+              className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
               style={{
-                elevation: 15,
+                elevation: 25,
                 shadowColor: "#000",
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.1,
-                shadowRadius: 20,
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
+                minWidth: 170,
               }}
             >
-              {/* Triangle Pointer (Merged) */}
+              {/* Triangle Pointer */}
               <View
-                className="absolute right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rounded rotate-45"
+                className="absolute rounded-md right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45 "
                 style={{
                   zIndex: -1,
                 }}
@@ -533,7 +533,7 @@ const UserList = () => {
 
               <TouchableOpacity
                 onPress={handleDownloadPDF}
-                className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                className="flex-row items-center  p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
               >
                 <HugeiconsIcon
                   icon={Pdf01Icon}
@@ -562,8 +562,8 @@ const UserList = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </Pressable>
-      </Modal>
+        </View>
+      )}
 
       {/* Filter Chips */}
       <View className="py-4">
