@@ -34,6 +34,7 @@ type Project = {
   teamMembers: { _id: string; username?: string; fullName?: string }[];
   description: string;
   clientName?: string;
+  partnerInCharge?: string;
   siteArea?: string;
   designedArea?: string;
   status: "active" | "inactive" | "closed" | "BD";
@@ -45,4 +46,4 @@ type Project = {
   updatedAt: string;
 };
 
-export type { Project, Note, Activity };
+export type { Activity, Note, Project };

@@ -13,7 +13,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useContext, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StatusBar,
   Text,
@@ -22,10 +25,25 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { Project } from "../types/Project";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const PROJECT_IMAGES = [
+  require("../assets/images/projectDefaultImage.jpg"),
+  require("../assets/images/projectImage1.jpg"),
+  require("../assets/images/projectImage2.jpg"),
+];
 
 const ProjectDetails = () => {
   const { project: projectParam, id } = useLocalSearchParams();
@@ -41,6 +59,47 @@ const ProjectDetails = () => {
   const [note, setNote] = useState("");
   const [activities, setActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const scrollY = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const hScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const slide = Math.ceil(
+      event.nativeEvent.contentOffset.x /
+        event.nativeEvent.layoutMeasurement.width,
+    );
+    if (slide !== activeImageIndex) {
+      setActiveImageIndex(slide);
+    }
+  };
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [150, 250],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      opacity,
+      transform: [
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [150, 250],
+            [-10, 0],
+            Extrapolation.CLAMP,
+          ),
+        },
+      ],
+    };
+  });
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
@@ -239,14 +298,79 @@ const ProjectDetails = () => {
         barStyle="light-content"
       />
 
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-        {/* Project Image Header */}
-        <View className="relative w-full h-[340px]">
-          <Image
-            source={require("../assets/images/projectDefaultImage.jpg")}
-            className="w-full h-full"
-            resizeMode="cover"
+      {/* STICKY HEADER (SPOTIFY STYLE) */}
+      <Animated.View
+        className="absolute top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 flex-row items-center justify-between border-b"
+        style={[
+          {
+            backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+            borderColor: isDarkMode ? "#1A1A1A" : "#E0E5EB",
+          },
+          headerAnimatedStyle,
+        ]}
+      >
+        <View className="flex-row items-center flex-1">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-3"
+            activeOpacity={0.7}
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <Text
+            className="text-lg font-dmSemiBold text-black dark:text-white flex-1"
+            numberOfLines={1}
+          >
+            {project.projectName}
+          </Text>
+        </View>
+        <TouchableOpacity activeOpacity={0.7} className="ml-2">
+          <HugeiconsIcon
+            icon={MoreHorizontalIcon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
           />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+      >
+        {/* Project Image Header Carousel */}
+        <View className="relative w-full h-[340px]">
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={hScrollHandler}
+            scrollEventThrottle={16}
+          >
+            {PROJECT_IMAGES.map((img, index) => (
+              <Image
+                key={index}
+                source={img}
+                style={{ width: SCREEN_WIDTH, height: 340 }}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+
+          {/* Indicator Dots */}
+          <View className="absolute bottom-14 w-full flex-row justify-center space-x-2 gap-2">
+            {PROJECT_IMAGES.map((_, index) => (
+              <View
+                key={index}
+                className={`h-2 w-2 rounded-full ${index === activeImageIndex ? "bg-white" : "bg-white/40"}`}
+              />
+            ))}
+          </View>
 
           {/* Overlay Back Button */}
           <TouchableOpacity
@@ -518,7 +642,7 @@ const ProjectDetails = () => {
             </TouchableOpacity>
           ) : null}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 };
