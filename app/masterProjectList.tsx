@@ -182,19 +182,35 @@ const MasterProjectList = () => {
   };
 
   // Filter Logic
+  // Filter Logic
   const filteredProjects = useMemo(() => {
     let result = projects;
 
-    // Tab Filter
+    // Tab Filter - Check if it's a status filter or company filter
     if (activeTab !== "ALL") {
-      const tabMap: Record<string, string> = {
+      // Status filters
+      const statusMap: Record<string, string> = {
+        ACTIVE: "active",
+        CLOSED: "closed",
+        BD: "bd",
+        INACTIVE: "inactive",
+      };
+
+      // Company filters
+      const companyMap: Record<string, string> = {
         WP: "WP",
         WALL: "WAL",
         WCORP: "WCorp",
       };
 
-      const targetCompany = tabMap[activeTab];
-      if (targetCompany) {
+      // Check if it's a status filter
+      if (statusMap[activeTab]) {
+        const targetStatus = statusMap[activeTab];
+        result = result.filter((p) => p.status?.toLowerCase() === targetStatus);
+      }
+      // Otherwise check if it's a company filter
+      else if (companyMap[activeTab]) {
+        const targetCompany = companyMap[activeTab];
         result = result.filter(
           (p) => p.company?.includes(targetCompany) || p.company === activeTab,
         );
@@ -221,7 +237,7 @@ const MasterProjectList = () => {
     switch (s) {
       case "active":
         return {
-          bg: "bg-[#D7DEF2] dark:[#282446]",
+          bg: "bg-[#D7DEF2] dark:bg-[#282446]",
           text: "text-[#5B4CCC] dark:text-[#5B4CCC]",
           iconColor: "#5B4CCC",
           icon: DashedLineCircleIcon,
@@ -338,7 +354,7 @@ const MasterProjectList = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* 🔹 CUSTOM HEADER */}
@@ -440,13 +456,115 @@ const MasterProjectList = () => {
       </View>
 
       {/* Project Count */}
-      <View className="px-4 py-4">
+      <View className="px-4 pt-4 pb-2">
         <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
           Projects{" "}
           <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
             ({filteredProjects.length})
           </Text>
         </Text>
+      </View>
+
+      {/* 🔹 STATUS FILTERS */}
+      <View className="py-3">
+        <FlatList
+          horizontal
+          data={[
+            {
+              key: "active",
+              label: "Active",
+              icon: DashedLineCircleIcon,
+              color: "#5B4CCC",
+              bg: "#D7DEF2",
+              darkBg: "#282446",
+            },
+            {
+              key: "closed",
+              label: "Closed",
+              icon: CheckmarkCircle02Icon,
+              color: "#1AA45B",
+              bg: "#E8F9ED",
+              darkBg: "#122E25",
+            },
+            {
+              key: "bd",
+              label: "B.D",
+              icon: Progress03Icon,
+              color: "#2F76E6",
+              bg: "#E8F0FF",
+              darkBg: "#101F40",
+            },
+            {
+              key: "inactive",
+              label: "In-Active",
+              icon: UnavailableIcon,
+              color: "#E6762F",
+              bg: "#FFEFE5",
+              darkBg: "#3A1E11",
+            },
+          ]}
+          keyExtractor={(item) => item.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          renderItem={({ item }) => {
+            const isActive =
+              activeTab === "ALL"
+                ? false
+                : item.key === activeTab.toLowerCase();
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  // Toggle filter: if clicking the same one, reset to ALL
+                  if (activeTab === item.key.toUpperCase()) {
+                    setActiveTab("ALL");
+                  } else {
+                    setActiveTab(
+                      item.key.toUpperCase() === "BD"
+                        ? "BD"
+                        : item.key === "inactive"
+                          ? "INACTIVE"
+                          : item.key.toUpperCase(),
+                    );
+                  }
+                }}
+                style={{
+                  backgroundColor: isActive
+                    ? isDarkMode
+                      ? item.darkBg
+                      : item.bg
+                    : "transparent",
+                  borderColor: isActive
+                    ? item.color
+                    : isDarkMode
+                      ? "#413E47"
+                      : "#E0E5EB",
+                  borderWidth: 1,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                  marginRight: 10,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <HugeiconsIcon icon={item.icon} size={18} color={item.color} />
+                <Text
+                  className="font-poppinsMedium text-sm"
+                  style={{
+                    color: isActive
+                      ? item.color
+                      : isDarkMode
+                        ? "#F5F5F5"
+                        : "#454545",
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
 
       {/* List */}
