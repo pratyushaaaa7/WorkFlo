@@ -303,7 +303,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
 
     // Convert map to array and sort by Project Name
     return Object.values(projectGroups).sort((a: any, b: any) =>
-      a.projectName.localeCompare(b.projectName)
+      a.projectName.localeCompare(b.projectName),
     );
   }, [activeSubTab, responsibleItems]);
 
@@ -318,19 +318,14 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row  border-b border-[#E0E5EB]  dark:border-[#252525] ">
+      <View className="flex-row ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveSubTab(tab)}
-              className="flex-1 items-center pt-4 pb-3"
-              style={
-                isActive
-                  ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
-                  : {}
-              }
+              className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
             >
               <Text
                 numberOfLines={1}
@@ -338,7 +333,7 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
                 className={`text-sm font-poppinsMedium ${
                   isActive
                     ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
-                    : "text-gray-400 dark:text-[#606060]"
+                    : "text-[#454545] dark:text-[#BBBBBB]"
                 }`}
               >
                 {tab}

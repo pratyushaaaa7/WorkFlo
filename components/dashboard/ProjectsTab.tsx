@@ -296,19 +296,14 @@ const ProjectsTab = () => {
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#63615F]">
+      <View className="flex-row ">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveSubTab(tab)}
-              className="flex-1 items-center pt-4 pb-3"
-              style={
-                isActive
-                  ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
-                  : {}
-              }
+              className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
             >
               <Text
                 className={`text-sm font-poppinsMedium ${
