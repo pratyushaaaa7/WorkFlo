@@ -50,7 +50,8 @@ const MasterProjectList = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("ALL");
+  const [activeTab, setActiveTab] = useState("ALL"); // Company filter
+  const [selectedStatus, setSelectedStatus] = useState("ALL"); // Status filter
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -184,13 +185,27 @@ const MasterProjectList = () => {
   };
 
   // Filter Logic
-  // Filter Logic
   const filteredProjects = useMemo(() => {
     let result = projects;
 
-    // Tab Filter - Check if it's a status filter or company filter
+    // Company Filter
     if (activeTab !== "ALL") {
-      // Status filters
+      const companyMap: Record<string, string> = {
+        WP: "WP",
+        WALL: "WAL",
+        WCORP: "WCorp",
+      };
+
+      const targetCompany = companyMap[activeTab];
+      if (targetCompany) {
+        result = result.filter(
+          (p) => p.company?.includes(targetCompany) || p.company === activeTab,
+        );
+      }
+    }
+
+    // Status Filter
+    if (selectedStatus !== "ALL") {
       const statusMap: Record<string, string> = {
         ACTIVE: "active",
         CLOSED: "closed",
@@ -198,24 +213,9 @@ const MasterProjectList = () => {
         INACTIVE: "inactive",
       };
 
-      // Company filters
-      const companyMap: Record<string, string> = {
-        WP: "WP",
-        WALL: "WAL",
-        WCORP: "WCorp",
-      };
-
-      // Check if it's a status filter
-      if (statusMap[activeTab]) {
-        const targetStatus = statusMap[activeTab];
+      const targetStatus = statusMap[selectedStatus];
+      if (targetStatus) {
         result = result.filter((p) => p.status?.toLowerCase() === targetStatus);
-      }
-      // Otherwise check if it's a company filter
-      else if (companyMap[activeTab]) {
-        const targetCompany = companyMap[activeTab];
-        result = result.filter(
-          (p) => p.company?.includes(targetCompany) || p.company === activeTab,
-        );
       }
     }
 
@@ -231,7 +231,7 @@ const MasterProjectList = () => {
     }
 
     return result;
-  }, [projects, activeTab, searchQuery]);
+  }, [projects, activeTab, selectedStatus, searchQuery]);
 
   // Helper for Status Styles
   const getStatusStyles = (status: string) => {
@@ -240,8 +240,8 @@ const MasterProjectList = () => {
       case "active":
         return {
           bg: "bg-[#D7DEF2] dark:bg-[#282446]",
-          text: "text-[#5B4CCC] dark:text-[#5B4CCC]",
-          iconColor: "#5B4CCC",
+          text: "text-[#5B4CCC] dark:text-[#9486FB]",
+          iconColor: isDarkMode ? "#9486FB" : "#5B4CCC",
           icon: DashedLineCircleIcon,
           label: "Active",
         };
@@ -484,7 +484,7 @@ const MasterProjectList = () => {
               key: "active",
               label: "Active",
               icon: DashedLineCircleIcon,
-              color: isDarkMode ? "#5B4CCC" : "#9486FB",
+              color: isDarkMode ? "#9486FB" : "#5B4CCC",
               // color: "#5B4CCC",
               bg: "#D7DEF2",
               darkBg: "#282446",
@@ -521,22 +521,16 @@ const MasterProjectList = () => {
           renderItem={({ item }) => {
             const isActive =
               item.key === "all"
-                ? activeTab === "ALL"
-                : item.key === activeTab.toLowerCase();
-
-            // // Dynamic color for active state based on dark mode
-            // const displayColor =
-            //   isActive && isDarkMode ? "#9486FB" : item.color;
+                ? selectedStatus === "ALL"
+                : item.key === selectedStatus.toLowerCase();
 
             return (
               <TouchableOpacity
                 onPress={() => {
                   if (item.key === "all") {
-                    setActiveTab("ALL");
-                  } else if (activeTab === item.key.toUpperCase()) {
-                    setActiveTab("ALL");
+                    setSelectedStatus("ALL");
                   } else {
-                    setActiveTab(
+                    setSelectedStatus(
                       item.key.toUpperCase() === "BD"
                         ? "BD"
                         : item.key === "inactive"
