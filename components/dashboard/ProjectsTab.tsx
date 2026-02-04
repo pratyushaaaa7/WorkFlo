@@ -1,9 +1,16 @@
-import { Calendar03Icon } from "@hugeicons/core-free-icons";
+import {
+  Calendar03Icon,
+  CheckmarkCircle02Icon,
+  DashedLineCircleIcon,
+  Progress03Icon,
+  UnavailableIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
 import React, { memo, useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Text,
   TouchableOpacity,
   useColorScheme,
@@ -30,48 +37,49 @@ const ProjectCard = memo(
       });
     };
 
-    const getStatusColor = (status: string) => {
-      switch (status?.toLowerCase()) {
+    const getStatusStyles = (status: string) => {
+      const s = status?.toLowerCase();
+      switch (s) {
         case "active":
           return {
-            bg: "bg-indigo-100 dark:bg-indigo-900/30",
-            text: "text-indigo-600 dark:text-[#8E87F1]",
-            border: "border-indigo-600 dark:border-[#5B4CCC]",
-            dot: "bg-indigo-600 dark:bg-[#5B4CCC]",
+            bg: isDarkMode ? "#282446" : "#D7DEF2",
+            text: isDarkMode ? "#9486FB" : "#5B4CCC",
+            icon: DashedLineCircleIcon,
+            label: "Active",
           };
         case "bd":
           return {
-            bg: "bg-[#B8D4FF] dark:bg-[#06163D]",
-            text: "text-[#0073CB] dark:text-[#0073CB]",
-            border: "border-[#0073CB] dark:border-[#0073CB]",
-            dot: "bg-[#0073CB] dark:bg-[#0073CB]",
-          };
-        case "closed":
-          return {
-            bg: "bg-[#BFF2D0] dark:bg-[#062B1F]",
-            text: "text-[#1AA45B] dark:text-[#F5F5F5]",
-            border: "border-[#1AA45B] dark:border-[#1AA45B]",
-            dot: "bg-[#1AA45B] dark:bg-[#1AA45B]",
+            bg: isDarkMode ? "#101F40" : "#E8F0FF",
+            text: "#2F76E6",
+            icon: Progress03Icon,
+            label: "B.D",
           };
         case "inactive":
         case "in-active":
           return {
-            bg: "bg-[#FFEFCC] dark:bg-[#422D0A]",
-            text: "text-[#C98F26] dark:text-[#FFC366]",
-            border: "border-[#C98F26] dark:border-[#F59E0B]",
-            dot: "bg-[#C98F26] dark:bg-[#F59E0B]",
+            bg: isDarkMode ? "#3A1E11" : "#FFEFE5",
+            text: "#E6762F",
+            icon: UnavailableIcon,
+            label: "In-Active",
+          };
+        case "closed":
+          return {
+            bg: isDarkMode ? "#122E25" : "#E8F9ED",
+            text: "#1AA45B",
+            icon: CheckmarkCircle02Icon,
+            label: "Closed",
           };
         default:
           return {
-            bg: "bg-gray-100 dark:bg-[#252525]",
-            text: "text-gray-500 dark:text-[#919191]",
-            border: "border-gray-400 dark:border-[#606060]",
-            dot: "bg-gray-400 dark:bg-[#606060]",
+            bg: isDarkMode ? "#1F1F1F" : "#F3F4F6",
+            text: "#6B7280",
+            icon: UnavailableIcon,
+            label: status || "Unknown",
           };
       }
     };
 
-    const colors = getStatusColor(project.status || "");
+    const statusStyle = getStatusStyles(project.status || "");
     const team = [
       ...(project.teamLeaders || []),
       ...(project.teamMembers || []),
@@ -81,52 +89,57 @@ const ProjectCard = memo(
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
-        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-3xl p-5 mb-4 border border-gray-100 dark:border-[#252525]"
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-gray-100 dark:border-zinc-800"
       >
         {/* Header Row */}
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2">
+            {/* Status Badge - Updated to match MasterProjectList */}
             <View
-              className={`${colors.bg} px-3 py-1.5 rounded-full flex-row items-center`}
+              className="flex-row items-center px-2 py-1 rounded-full"
+              style={{ backgroundColor: statusStyle.bg }}
             >
-              <View
-                className={`w-4 h-4 rounded-full border-2 ${colors.border} items-center justify-center mr-1.5 overflow-hidden flex-row`}
-              >
-                {project.status?.toLowerCase() === "active" ? (
-                  <>
-                    <View className={`flex-1 h-full ${colors.dot}`} />
-                    <View className="flex-1 h-full bg-transparent" />
-                  </>
-                ) : (
-                  <View className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-                )}
-              </View>
+              <HugeiconsIcon
+                icon={statusStyle.icon}
+                size={14}
+                color={statusStyle.text}
+              />
               <Text
-                className={`${colors.text} text-[10px] font-poppinsMedium capitalize`}
+                className="text-xs font-poppinsMedium ml-1"
+                style={{ color: statusStyle.text }}
               >
-                {project.status || "N/A"}
+                {statusStyle.label}
               </Text>
             </View>
-            <View className="bg-[#EBEFF2] dark:bg-[#252525] px-3 py-1.5 rounded-full">
-              <Text className="text-[#454545] dark:text-[#919191] text-[10px] font-poppinsMedium">
+
+            {/* File Number Badge */}
+            <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-2 py-1 rounded-full">
+              <Text className="text-[#454545] dark:text-[#BBBBBB] text-xs font-poppinsMedium">
                 File No:{" "}
                 {project.fileNumber || project.fileNumberNumeric || "—"}
               </Text>
             </View>
           </View>
-          {/* <View className="bg-indigo-50 dark:bg-[#252525] px-3 py-1.5 rounded-full">
-            <Text className="text-indigo-500 dark:text-[#8E87F1] text-[10px] font-poppinsMedium">
-              {project.projectCode || "No Codee"}
-            </Text>
-          </View> */}
+          {/* Deadline/Start Date */}
+          {project.startDate && (
+            <View className="flex-row items-center">
+              <HugeiconsIcon icon={Calendar03Icon} size={13} color="#DF5B5B" />
+              <Text className="text-[#DF5B5B] text-[11px] font-poppins ml-1.5 mt-0.5">
+                {new Date(project.startDate).toLocaleDateString()}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Content */}
-        <View className="mb-5">
-          <Text className="text-gray-900 dark:text-[#F5F5F5] text-lg font-poppinsSemiBold mb-2">
+        <View className="mb-4">
+          <Text className="text-black dark:text-white text-lg font-dmMedium mb-1 leading-6">
             {project.projectName}
           </Text>
-          <Text className="text-gray-500 dark:text-[#919191] text-xs font-poppins leading-5">
+          <Text
+            className="text-[#454545] dark:text-[#919191] text-sm font-poppins leading-5"
+            numberOfLines={2}
+          >
             {project.description || "No Description"}
           </Text>
         </View>
@@ -147,22 +160,10 @@ const ProjectCard = memo(
                 />
               ))
             ) : (
-              <Text className="text-gray-400 text-[12px] font-poppins">
+              <Text className="text-gray-400 text-xs font-poppins">
                 No team assigned
               </Text>
             )}
-          </View>
-
-          {/* Deadline/Start Date */}
-          <View className="flex-row items-center ">
-            <HugeiconsIcon icon={Calendar03Icon} size={14} color="#DF5B5B" />
-            <Text
-              className={`text-[#DF5B5B] text-[10px] font-poppinsMedium ml-1.5 mt-0.5`}
-            >
-              {project.startDate
-                ? new Date(project.startDate).toLocaleDateString()
-                : "No Date"}
-            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -175,7 +176,7 @@ const ProjectCard = memo(
 
 const ProjectsTab = () => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
-  const [activeStatusFilter, setActiveStatusFilter] = useState("active");
+  const [activeStatusFilter, setActiveStatusFilter] = useState("ALL");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(5);
@@ -185,38 +186,61 @@ const ProjectsTab = () => {
 
   const subTabs = ["WALL", "WP", "WCORP"];
 
-  // Status filter options with colors
+  // Status filter options with updated styling to match MasterProjectList
   const statusFilters = [
+    {
+      key: "ALL",
+      label: "All",
+      icon: null,
+      color: "#566FEC",
+      bg: "#DAE0FA",
+      darkBg: "#1C213A",
+    },
     {
       key: "active",
       label: "Active",
-      color: "#6366F1",
-      borderColor: "#6366F1",
+      icon: DashedLineCircleIcon,
+      color: isDarkMode ? "#9486FB" : "#5B4CCC",
+      bg: "#D7DEF2",
+      darkBg: "#282446",
     },
     {
       key: "closed",
       label: "Closed",
-      color: "#22C55E",
-      borderColor: "#22C55E",
+      icon: CheckmarkCircle02Icon,
+      color: "#1AA45B",
+      bg: "#E8F9ED",
+      darkBg: "#122E25",
     },
-    { key: "bd", label: "B.D", color: "#3B82F6", borderColor: "#3B82F6" },
+    {
+      key: "bd",
+      label: "B.D",
+      icon: Progress03Icon,
+      color: "#2F76E6",
+      bg: "#E8F0FF",
+      darkBg: "#101F40",
+    },
     {
       key: "inactive",
       label: "In-Active",
-      color: "#F59E0B",
-      borderColor: "#F59E0B",
+      icon: UnavailableIcon,
+      color: "#E6762F",
+      bg: "#FFEFE5",
+      darkBg: "#3A1E11",
     },
   ];
 
   // Filter projects by status - Memoized for performance
   const filteredProjects = useMemo(() => {
+    if (activeStatusFilter === "ALL") {
+      return projects;
+    }
     return projects.filter((project) => {
       return project.status?.toLowerCase() === activeStatusFilter;
     });
   }, [projects, activeStatusFilter]);
 
   const handleStatusPress = (status: string) => {
-    if (status === activeStatusFilter) return;
     setVisibleCount(5);
     setActiveStatusFilter(status);
   };
@@ -270,9 +294,9 @@ const ProjectsTab = () => {
   }, [visibleCount, filteredProjects]);
 
   return (
-    <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525]  ">
+      <View className="flex-row border-b border-[#E0E5EB] dark:border-[#63615F]">
         {subTabs.map((tab) => {
           const isActive = activeSubTab === tab;
           return (
@@ -287,10 +311,10 @@ const ProjectsTab = () => {
               }
             >
               <Text
-                className={`text-sm  font-poppinsMedium ${
+                className={`text-sm font-poppinsMedium ${
                   isActive
                     ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
-                    : "text-gray-400 dark:text-[#606060]"
+                    : "text-[#454545] dark:text-[#BBBBBB]"
                 }`}
               >
                 {tab}
@@ -301,69 +325,74 @@ const ProjectsTab = () => {
       </View>
 
       {/* List Header */}
-      <View className="px-5 pt-5 pb-3">
-        <Text className="text-lg font-poppinsSemiBold text-gray-900 dark:text-white">
+      <View className="px-4 pt-4 pb-2">
+        <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
           Projects{" "}
-          <Text className="text-gray-400 dark:text-[#606060] font-poppins">
+          <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
             ({filteredProjects.length})
           </Text>
         </Text>
       </View>
 
-      {/* Status Filter Pills */}
-      <View className="flex-row px-5 pb-4 gap-2 flex-wrap">
-        {statusFilters.map((filter) => {
-          const isActive = activeStatusFilter === filter.key;
-          return (
-            <TouchableOpacity
-              key={filter.key}
-              onPress={() => handleStatusPress(filter.key)}
-              className={`px-2 py-2 rounded-full flex-row items-center gap-2 border ${
-                isActive ? "bg-white dark:bg-[#1A1A1A]" : "bg-transparent"
-              }`}
-              style={{
-                borderColor: isActive
-                  ? filter.borderColor
-                  : isDarkMode
-                    ? "#252525"
-                    : "#E5E7EB",
-              }}
-            >
-              <View
-                className="w-4 h-4 rounded-full border-2 items-center justify-center overflow-hidden flex-row"
-                style={{ borderColor: filter.color }}
-              >
-                {isActive &&
-                  (filter.key === "active" ? (
-                    <>
-                      <View
-                        className="flex-1 h-full"
-                        style={{ backgroundColor: filter.color }}
-                      />
-                      <View className="flex-1 h-full bg-transparent" />
-                    </>
-                  ) : (
-                    <View
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: filter.color }}
-                    />
-                  ))}
-              </View>
-              <Text
-                className="text-xs font-poppinsMedium"
+      {/* Status Filter Pills - Updated to match MasterProjectList */}
+      <View className="py-3">
+        <FlatList
+          horizontal
+          data={statusFilters}
+          keyExtractor={(item) => item.key}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          renderItem={({ item }) => {
+            const isActive = activeStatusFilter === item.key;
+            return (
+              <TouchableOpacity
+                onPress={() => handleStatusPress(item.key)}
                 style={{
-                  color: isActive
-                    ? filter.color
+                  backgroundColor: isActive
+                    ? isDarkMode
+                      ? item.darkBg
+                      : item.bg
                     : isDarkMode
-                      ? "#919191"
-                      : "#6B7280",
+                      ? "#1A1A1A"
+                      : "#F0F3F7",
+                  borderColor: isActive
+                    ? "transparent"
+                    : isDarkMode
+                      ? "#1A1A1A"
+                      : "#E0E5EB",
+                  borderWidth: 1,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                  marginRight: 10,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+                {item.icon && (
+                  <HugeiconsIcon
+                    icon={item.icon}
+                    size={18}
+                    color={item.color}
+                  />
+                )}
+                <Text
+                  className="font-poppinsMedium text-sm"
+                  style={{
+                    color: isActive
+                      ? item.color
+                      : isDarkMode
+                        ? "#FFFFFF"
+                        : "#000000",
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
 
       {/* Project List */}
@@ -375,7 +404,7 @@ const ProjectsTab = () => {
           </Text>
         </View>
       ) : filteredProjects.length > 0 ? (
-        <View className="px-5 pb-20">
+        <View className="px-4 pb-20">
           {filteredProjects.slice(0, visibleCount).map((project: Project) => (
             <ProjectCard key={project._id} project={project} />
           ))}
@@ -383,7 +412,8 @@ const ProjectsTab = () => {
       ) : (
         <View className="flex-1 items-center justify-center pt-20">
           <Text className="text-gray-400 font-poppinsMedium">
-            No {activeStatusFilter} projects found for {activeSubTab}
+            No {activeStatusFilter === "ALL" ? "" : activeStatusFilter} projects
+            found for {activeSubTab}
           </Text>
         </View>
       )}
