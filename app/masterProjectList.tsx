@@ -76,8 +76,10 @@ const MasterProjectList = () => {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, [token]);
+    if (token) {
+      fetchProjects();
+    }
+  }, []);
 
   // Handle Delete
   const handleDelete = (id: string) => {
@@ -471,6 +473,14 @@ const MasterProjectList = () => {
           horizontal
           data={[
             {
+              key: "all",
+              label: "All",
+              icon: null,
+              color: "#566FEC",
+              bg: "#DAE0FA",
+              darkBg: "#1C213A",
+            },
+            {
               key: "active",
               label: "Active",
               icon: DashedLineCircleIcon,
@@ -478,14 +488,7 @@ const MasterProjectList = () => {
               bg: "#D7DEF2",
               darkBg: "#282446",
             },
-            {
-              key: "closed",
-              label: "Closed",
-              icon: CheckmarkCircle02Icon,
-              color: "#1AA45B",
-              bg: "#E8F9ED",
-              darkBg: "#122E25",
-            },
+
             {
               key: "bd",
               label: "B.D",
@@ -502,20 +505,34 @@ const MasterProjectList = () => {
               bg: "#FFEFE5",
               darkBg: "#3A1E11",
             },
+            {
+              key: "closed",
+              label: "Closed",
+              icon: CheckmarkCircle02Icon,
+              color: "#1AA45B",
+              bg: "#E8F9ED",
+              darkBg: "#122E25",
+            },
           ]}
           keyExtractor={(item) => item.key}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           renderItem={({ item }) => {
             const isActive =
-              activeTab === "ALL"
-                ? false
+              item.key === "all"
+                ? activeTab === "ALL"
                 : item.key === activeTab.toLowerCase();
+
+            // // Dynamic color for active state based on dark mode
+            // const displayColor =
+            //   isActive && isDarkMode ? "#9486FB" : item.color;
+
             return (
               <TouchableOpacity
                 onPress={() => {
-                  // Toggle filter: if clicking the same one, reset to ALL
-                  if (activeTab === item.key.toUpperCase()) {
+                  if (item.key === "all") {
+                    setActiveTab("ALL");
+                  } else if (activeTab === item.key.toUpperCase()) {
                     setActiveTab("ALL");
                   } else {
                     setActiveTab(
@@ -532,11 +549,14 @@ const MasterProjectList = () => {
                     ? isDarkMode
                       ? item.darkBg
                       : item.bg
-                    : "transparent",
-                  borderColor: isActive
-                    ? item.color
                     : isDarkMode
-                      ? "#413E47"
+                      ? "#1A1A1A"
+                      : "#F0F3F7",
+                  borderColor: isActive
+                    ? // ? item.color
+                      "transparent"
+                    : isDarkMode
+                      ? "#1A1A1A"
                       : "#E0E5EB",
                   borderWidth: 1,
                   paddingHorizontal: 16,
@@ -548,15 +568,21 @@ const MasterProjectList = () => {
                   gap: 6,
                 }}
               >
-                <HugeiconsIcon icon={item.icon} size={18} color={item.color} />
+                {item.icon && (
+                  <HugeiconsIcon
+                    icon={item.icon}
+                    size={18}
+                    color={item.color}
+                  />
+                )}
                 <Text
                   className="font-poppinsMedium text-sm"
                   style={{
                     color: isActive
                       ? item.color
                       : isDarkMode
-                        ? "#F5F5F5"
-                        : "#454545",
+                        ? "#FFFFFF"
+                        : "#000000",
                   }}
                 >
                   {item.label}
