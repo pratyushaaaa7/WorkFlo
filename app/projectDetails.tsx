@@ -367,7 +367,13 @@ const ProjectDetails = () => {
             {PROJECT_IMAGES.map((_, index) => (
               <View
                 key={index}
-                className={`h-2 w-2 rounded-full ${index === activeImageIndex ? "bg-white" : "bg-white/40"}`}
+                className={`h-2 w-2 rounded-full ${
+                  index === activeImageIndex
+                    ? isDarkMode
+                      ? "bg-black"
+                      : "bg-white"
+                    : "bg-[#9CA3AF]"
+                }`}
               />
             ))}
           </View>
