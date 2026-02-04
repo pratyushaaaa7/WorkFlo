@@ -202,7 +202,7 @@ const Dashboard = () => {
             <TouchableOpacity onPress={() => router.push("/profile")}>
               <GlobalAvatar
                 name={user?.fullName || user?.username || "User"}
-                size={36}
+                size={40}
                 fontSize={16}
                 borderRadius={20}
               />
