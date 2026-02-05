@@ -159,7 +159,11 @@ const ProjectDetails = () => {
       Toast.show({ type: "success", text1: "Note added", position: "bottom" });
     } catch (err) {
       console.error("Error adding note:", err);
-      Toast.show({ type: "error", text1: "Failed to add note", position: "bottom" });
+      Toast.show({
+        type: "error",
+        text1: "Failed to add note",
+        position: "bottom",
+      });
     } finally {
       setLoading(false);
     }
@@ -173,11 +177,19 @@ const ProjectDetails = () => {
       await api.delete(`/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      Toast.show({ type: "success", text1: "Project deleted successfully", position: "bottom" });
+      Toast.show({
+        type: "success",
+        text1: "Project deleted successfully",
+        position: "bottom",
+      });
       router.replace("/masterProjectList");
     } catch (err) {
       console.error("Error deleting project:", err);
-      Toast.show({ type: "error", text1: "Failed to delete project", position: "bottom" });
+      Toast.show({
+        type: "error",
+        text1: "Failed to delete project",
+        position: "bottom",
+      });
     } finally {
       setLoading(false);
     }
@@ -511,10 +523,13 @@ const ProjectDetails = () => {
             onScroll={hScrollHandler}
             scrollEventThrottle={16}
           >
-            {PROJECT_IMAGES.map((img, index) => (
+            {(project.projectImages && project.projectImages.length > 0
+              ? project.projectImages
+              : PROJECT_IMAGES
+            ).map((img, index) => (
               <Image
                 key={index}
-                source={img}
+                source={typeof img === "string" ? { uri: img } : img}
                 style={{ width: SCREEN_WIDTH, height: 340 }}
                 resizeMode="cover"
               />
@@ -523,7 +538,10 @@ const ProjectDetails = () => {
 
           {/* Indicator Dots */}
           <View className="absolute bottom-14 w-full flex-row justify-center space-x-2 gap-2">
-            {PROJECT_IMAGES.map((_, index) => (
+            {(project.projectImages && project.projectImages.length > 0
+              ? project.projectImages
+              : PROJECT_IMAGES
+            ).map((_, index) => (
               <View
                 key={index}
                 className={`h-2 w-2 rounded-full ${
@@ -576,9 +594,9 @@ const ProjectDetails = () => {
             </TouchableOpacity>
           </View>
 
-          {project.description && (
+          {project.projectDescription && (
             <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#F5F5F5] ">
-              {project.description}
+              {project.projectDescription}
             </Text>
           )}
 
@@ -622,8 +640,15 @@ const ProjectDetails = () => {
               leftValue={
                 project.startDate ? formatDate(project.startDate) : "N/A"
               }
-              rightLabel="Serial No."
-              rightValue={project.fileNumberNumeric?.toString() || "N/A"}
+              rightLabel="Company Serial No."
+              rightValue={project.companySerialNumber || "N/A"}
+            />
+
+            <ModernDataRow
+              leftLabel="Serial No. (Numeric)"
+              leftValue={project.fileNumberNumeric?.toString() || "N/A"}
+              rightLabel="Web Name"
+              rightValue={project.webName || "N/A"}
             />
 
             <ModernDataRow
@@ -635,7 +660,11 @@ const ProjectDetails = () => {
 
             <ModernDataRow
               leftLabel="Partner In charge"
-              leftValue={project.partnerInCharge || "N/A"}
+              leftValues={
+                project.partnerInCharge && project.partnerInCharge.length > 0
+                  ? project.partnerInCharge.map((p) => p.fullName || "N/A")
+                  : ["N/A"]
+              }
               rightLabel="Team Leader"
               rightValue={
                 project.teamLeaders && project.teamLeaders.length > 0
@@ -661,10 +690,10 @@ const ProjectDetails = () => {
 
             <View className="py-4">
               <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191] mb-1">
-                Web Name
+                Project Description
               </Text>
               <Text className="text-[14px] font-poppinsMedium text-black dark:text-white">
-                {project.webName || "-"}
+                {project.projectDescription || "-"}
               </Text>
             </View>
           </View>

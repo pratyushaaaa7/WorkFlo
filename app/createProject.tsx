@@ -71,6 +71,15 @@ const CreateProjectScreen = () => {
         setSelectedLeaders(p.teamLeaders?.map((u: any) => u._id) || []);
         setSelectedMembers(p.teamMembers?.map((u: any) => u._id) || []);
         setStartDate(p.startDate ? new Date(p.startDate) : null);
+        setPartnerInCharge(
+          p.partnerInCharge?.map((u: any) => u._id || u) || [],
+        );
+        // Strip prefix (WP, WALL, WCORP) from serial number for display
+        setCompanySerialNumber(
+          p.companySerialNumber?.replace(/^(WP|WALL|WCORP)/i, "") || "",
+        );
+        setProjectDescription(p.projectDescription || "");
+        setProjectImages(p.projectImages || []);
       } catch (err) {
         console.error("Failed to fetch project:", err);
         Toast.show({
@@ -109,7 +118,7 @@ const CreateProjectScreen = () => {
   const [status, setStatus] = useState("active");
 
   // 🔹 New fields requested by user
-  const [projectIncharge, setProjectIncharge] = useState<string | null>(null);
+  const [partnerInCharge, setPartnerInCharge] = useState<string[]>([]);
   const [companySerialNumber, setCompanySerialNumber] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectImages, setProjectImages] = useState<string[]>([]);
@@ -131,7 +140,7 @@ const CreateProjectScreen = () => {
     setSelectedScopes([]);
     setStartDate(null);
     setStatus("active");
-    setProjectIncharge(null);
+    setPartnerInCharge([]);
     setCompanySerialNumber("");
     setProjectDescription("");
     setProjectImages([]);
@@ -173,7 +182,7 @@ const CreateProjectScreen = () => {
 
   const companyOptions = [
     { label: "WP", value: "WP" },
-    { label: "WAL+L", value: "WAL" },
+    { label: "WALL", value: "WAL" },
     { label: "WCorp", value: "WCorp" },
   ];
 
@@ -228,6 +237,14 @@ const CreateProjectScreen = () => {
 
       { label: "Post Construction Audit", value: "Post Construction Audit" },
     ],
+    WCorp: [
+      { label: "Design Management", value: "Design Management" },
+      { label: "Project Management", value: "Project Management" },
+      { label: "Construction Management", value: "Construction Management" },
+      { label: "Master Planning", value: "Master Planning" },
+      { label: "Architecture", value: "Architecture" },
+      { label: "Interior Design", value: "Interior Design" },
+    ],
   };
 
   // 2. Use dynamic scope options based on selected company
@@ -263,6 +280,18 @@ const CreateProjectScreen = () => {
         }));
 
         setAllUsers(dropdownUsers);
+
+        // 🔹 Auto-select "Apul Tandon" as Partner in Charge for NEW projects
+        if (!isEditing) {
+          const defaultPartner = dropdownUsers.find(
+            (u: any) =>
+              u.label.toLowerCase().includes("apul") ||
+              u.label.toLowerCase().includes("apul tandon"),
+          );
+          if (defaultPartner) {
+            setPartnerInCharge([defaultPartner.value]);
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch users:", err);
         Toast.show({
@@ -295,25 +324,67 @@ const CreateProjectScreen = () => {
       return;
     }
 
-    const payload = {
-      company: companyName,
-      projectName,
-      projectCode,
-      location: projectLocation,
-      teamLeaders: selectedLeaders,
-      teamMembers: selectedMembers,
-      startDate: startDate?.toISOString(),
-      typology: projectTypology,
-      scopes: selectedScopes,
-      clientName,
-      siteArea,
-      designedArea,
-      status, // ✅ send status to backend
-      fileNumber, // ✅ new field
-      webName, // ✅ new field
-    };
-
     try {
+      // 🔹 Upload images if any
+      const uploadedImagesUrls: string[] = [];
+      for (const imgUri of projectImages) {
+        if (imgUri.startsWith("http")) {
+          uploadedImagesUrls.push(imgUri);
+          continue;
+        }
+        try {
+          const formData = new FormData();
+          const filename = imgUri.split("/").pop() || "image.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+          // @ts-ignore
+          formData.append("file", {
+            uri:
+              Platform.OS === "android"
+                ? imgUri
+                : imgUri.replace("file://", ""),
+            name: filename,
+            type,
+          });
+          formData.append("module", "project");
+
+          const uploadRes = await api.post("/upload", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (uploadRes.data?.file?.url) {
+            uploadedImagesUrls.push(uploadRes.data.file.url);
+          }
+        } catch (uploadErr) {
+          console.error("Failed to upload image:", imgUri, uploadErr);
+        }
+      }
+
+      const payload = {
+        company: companyName,
+        projectName,
+        projectCode,
+        location: projectLocation,
+        teamLeaders: selectedLeaders,
+        teamMembers: selectedMembers,
+        startDate: startDate?.toISOString(),
+        typology: projectTypology,
+        scopes: selectedScopes,
+        clientName,
+        siteArea,
+        designedArea,
+        status, // ✅ send status to backend
+        fileNumber, // ✅ new field
+        webName, // ✅ new field
+        partnerInCharge, // ✅ new field
+        companySerialNumber, // ✅ new field
+        projectDescription, // ✅ new field
+        projectImages: uploadedImagesUrls, // ✅ Use uploaded URLs
+      };
+
       if (isEditing) {
         //  UPDATE PROJECT
         // ✅ UPDATE
@@ -613,11 +684,11 @@ const CreateProjectScreen = () => {
         {/* Project Incharge Dropdown */}
         <View className="mb-5" style={{ zIndex: 1250 }}>
           <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
-            Project Incharge
+            Partner In Charge
           </Text>
-          <Dropdown
+          <MultiSelect
             style={{
-              height: 52,
+              minHeight: 52,
               borderRadius: 16,
               paddingHorizontal: 16,
               backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
@@ -632,16 +703,25 @@ const CreateProjectScreen = () => {
               fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
-            itemTextStyle={{
-              fontSize: 14,
-              fontFamily: "Poppins_400Regular",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
+            selectedStyle={{
+              borderRadius: 10,
+              backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              marginRight: 4,
+              marginTop: 4,
+              borderWidth: 0,
             }}
             containerStyle={{
               borderRadius: 16,
               backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
               borderWidth: 0,
               marginTop: 4,
+            }}
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins_400Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={allUsers}
@@ -650,8 +730,8 @@ const CreateProjectScreen = () => {
             placeholder="Select Incharge"
             search
             searchPlaceholder="Search users..."
-            value={projectIncharge}
-            onChange={(item) => setProjectIncharge(item.value)}
+            value={partnerInCharge}
+            onChange={(items) => setPartnerInCharge(items)}
             renderRightIcon={() => (
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
             )}
@@ -851,6 +931,16 @@ const CreateProjectScreen = () => {
             valueField="value"
             placeholder="Select scopes"
             value={selectedScopes}
+            onFocus={() => {
+              if (!companyName) {
+                Toast.show({
+                  type: "info",
+                  text1: "Company Required",
+                  text2: "Please select a company first to see scopes.",
+                  position: "bottom",
+                });
+              }
+            }}
             onChange={(items) => setSelectedScopes(items)}
             renderRightIcon={() => (
               <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
@@ -927,22 +1017,22 @@ const CreateProjectScreen = () => {
           <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Description
           </Text>
-          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] p-4 min-h-[120px]">
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] p-2 min-h-[120px]">
             <TextInput
               className="text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
               style={{ textAlignVertical: "top" }}
-              placeholder="e.g. Lorem ipsum dolor sit amet consecte. Scelerisque vestibulum nunc adipiscing"
+              placeholder="Give a brief description of the project"
               placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={projectDescription}
               onChangeText={setProjectDescription}
               multiline
-              numberOfLines={4}
+              maxLength={200}
+              numberOfLines={5}
             />
             <View className="absolute bottom-2 right-2">
-              <View
-                className="w-3 h-3 border-r border-b"
-                style={{ borderColor: isDarkMode ? "#444" : "#CCC" }}
-              />
+              <Text className="text-right text-xs text-gray-400 font-poppins mt-1">
+                {projectDescription.length}/200
+              </Text>
             </View>
           </View>
         </View>
