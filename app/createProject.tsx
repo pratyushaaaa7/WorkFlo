@@ -400,17 +400,17 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             containerStyle={{
@@ -460,17 +460,17 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             containerStyle={{
@@ -506,12 +506,12 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             selectedStyle={{
@@ -531,7 +531,7 @@ const CreateProjectScreen = () => {
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
@@ -563,12 +563,12 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             selectedStyle={{
@@ -588,7 +588,7 @@ const CreateProjectScreen = () => {
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
@@ -620,17 +620,17 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             containerStyle={{
@@ -668,17 +668,17 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             containerStyle={{
@@ -808,12 +808,12 @@ const CreateProjectScreen = () => {
             }}
             placeholderStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             selectedStyle={{
@@ -833,7 +833,7 @@ const CreateProjectScreen = () => {
             }}
             itemTextStyle={{
               fontSize: 14,
-              fontFamily: "Poppins-Regular",
+              fontFamily: "Poppins_400Regular",
               color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
