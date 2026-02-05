@@ -1,6 +1,7 @@
 import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
+  Calendar04Icon,
   Cancel01Icon,
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
@@ -385,6 +386,7 @@ const CreateProjectScreen = () => {
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={100}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Company Dropdown */}
         <View className="mb-5" style={{ zIndex: 3000 }}>
@@ -764,7 +766,7 @@ const CreateProjectScreen = () => {
           </Text>
           <Pressable
             onPress={() => setShowStartPicker(true)}
-            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] justify-center"
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
           >
             <Text
               className="text-[14px] font-poppins"
@@ -780,6 +782,11 @@ const CreateProjectScreen = () => {
             >
               {startDate ? startDate.toDateString() : "Select start date"}
             </Text>
+            <HugeiconsIcon
+              icon={Calendar04Icon}
+              size={20}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
           </Pressable>
           {showStartPicker && (
             <DateTimePicker
@@ -1009,8 +1016,11 @@ const CreateProjectScreen = () => {
             </View>
           )}
         </View>
+      </KeyboardAwareScrollView>
 
-        <View className="flex-row items-center justify-between mb-20 gap-x-4">
+      {/* Fixed Bottom Buttons */}
+      <View className="absolute bottom-0 left-0 right-0 p-4 bg-[#FBFCFD] dark:bg-[#000000] ">
+        <View className="flex-row items-center justify-between gap-x-4">
           <TouchableOpacity
             onPress={() => setShowCancelModal(true)}
             className="flex-1 h-14 rounded-xl border-[1.5px] items-center justify-center bg-white dark:bg-black border-[#BBBBBB] dark:border-[#5F5F5F]"
@@ -1023,18 +1033,10 @@ const CreateProjectScreen = () => {
           <TouchableOpacity
             disabled={saving}
             onPress={handleSaveProject}
-            style={{
-              flex: 1,
-              // height: 56,
-              borderRadius: 12,
-              overflow: "hidden", // Important for gradient borderRadius
-            }}
-            // className="flex-1 h-14 rounded-xl overflow-hidden items-center justify-center border-0 dark:border dark:border-[#333]"
+            className="flex-1 h-14 rounded-xl overflow-hidden"
             activeOpacity={0.8}
           >
             <LinearGradient
-              // 94.25deg roughly translates to start(0,0.5) end(1,0.6) or similar
-              // We'll use a standard left-to-right start {x:0, y:0} end {x:1, y:0} for consistency
               colors={
                 saving
                   ? ["#9CA3AF", "#9CA3AF"]
@@ -1058,7 +1060,7 @@ const CreateProjectScreen = () => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </KeyboardAwareScrollView>
+      </View>
 
       {/* Discard Changes Modal */}
       <Modal
