@@ -1,6 +1,7 @@
 import {
   // AlignLeft01Icon,
   ArrowLeft01Icon,
+  ArrowRight01Icon,
   CheckmarkCircle02Icon,
   DashedLineCircleIcon,
   Delete03Icon,
@@ -18,9 +19,11 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -729,8 +732,8 @@ const ProjectDetails = () => {
                       {/* Content Area */}
                       <View className="flex-1">
                         <Text
-                          className="text-[14px] font-poppinsMedium text-[black] dark:text-white "
-                          // style={{ color: textColor }}
+                          className="text-[14px] font-poppinsMedium"
+                          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
                         >
                           {isNote
                             ? "Note Added"
@@ -784,15 +787,19 @@ const ProjectDetails = () => {
             )}
           </View>
         </View>
+      </Animated.ScrollView>
 
-        {/* Add Note Section */}
-
+      {/* Add Note Section - Fixed bottom footer */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+      >
         <View
-          className="p-4 rounded-t-[24px] border-x border-t"
+          className="p-4 rounded-t-[32px] border-x border-t flex-row items-center"
           style={{
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
-            borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
-            borderBottomWidth: 0,
+            backgroundColor: isDarkMode ? "#121212" : "#FFFFFF",
+            borderColor: isDarkMode ? "#222" : "#E0E5EB",
+            paddingBottom: Platform.OS === "ios" ? 34 : 16,
           }}
         >
           <TextInput
@@ -800,22 +807,25 @@ const ProjectDetails = () => {
             onChangeText={setNote}
             placeholder="Write a remark..."
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-            className="text-black dark:text-white font-poppins text-sm min-h-[50px]"
+            className="flex-1 text-black dark:text-white font-poppins text-[15px] min-h-[45px] max-h-[120px] mr-3"
             multiline
-            textAlignVertical="top"
+            textAlignVertical="center"
           />
           {note.trim() ? (
             <TouchableOpacity
               onPress={addNote}
-              className="mt-2 self-end bg-[#5B4CCC] px-4 py-2 rounded-lg"
+              className="w-11 h-11 rounded-full bg-[#5B4CCC] items-center justify-center shadow-lg"
+              activeOpacity={0.8}
             >
-              <Text className="text-white font-poppinsSemiBold text-xs">
-                Post Remark
-              </Text>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={22}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
           ) : null}
         </View>
-      </Animated.ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
