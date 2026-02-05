@@ -156,10 +156,10 @@ const ProjectDetails = () => {
       setProject(res.data);
       setNote("");
       await fetchProject();
-      Toast.show({ type: "success", text1: "Note added" });
+      Toast.show({ type: "success", text1: "Note added", position: "bottom" });
     } catch (err) {
       console.error("Error adding note:", err);
-      Toast.show({ type: "error", text1: "Failed to add note" });
+      Toast.show({ type: "error", text1: "Failed to add note", position: "bottom" });
     } finally {
       setLoading(false);
     }
@@ -173,11 +173,11 @@ const ProjectDetails = () => {
       await api.delete(`/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      Toast.show({ type: "success", text1: "Project deleted successfully" });
+      Toast.show({ type: "success", text1: "Project deleted successfully", position: "bottom" });
       router.replace("/masterProjectList");
     } catch (err) {
       console.error("Error deleting project:", err);
-      Toast.show({ type: "error", text1: "Failed to delete project" });
+      Toast.show({ type: "error", text1: "Failed to delete project", position: "bottom" });
     } finally {
       setLoading(false);
     }
@@ -721,7 +721,7 @@ const ProjectDetails = () => {
                       style={{ backgroundColor: cardBg }}
                     >
                       {/* Icon */}
-                      <View className="mr-3 mt-1">
+                      <View className="mr-3 ">
                         <HugeiconsIcon
                           icon={isNote ? Note01Icon : Edit02Icon}
                           size={20}
@@ -753,7 +753,7 @@ const ProjectDetails = () => {
                           <View className="mb-2">
                             {act.previousValue !== undefined && (
                               <Text
-                                className="text-[12px] font-poppins mb-1"
+                                className="text-[12px] font-poppins "
                                 style={{ color: labelColor }}
                               >
                                 <Text className="font-poppins">From : </Text>
