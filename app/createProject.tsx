@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  Modal,
   Platform,
   Pressable,
   StatusBar,
@@ -109,6 +110,35 @@ const CreateProjectScreen = () => {
   const [companySerialNumber, setCompanySerialNumber] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectImages, setProjectImages] = useState<string[]>([]);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const resetForm = () => {
+    setProjectName("");
+    setProjectCode("");
+    setProjectLocation("");
+    setClientName("");
+    setSiteArea("");
+    setFileNumber("");
+    setWebName("");
+    setDesignedArea("");
+    setSelectedLeaders([]);
+    setSelectedMembers([]);
+    setCompanyName(null);
+    setProjectTypology(null);
+    setSelectedScopes([]);
+    setStartDate(null);
+    setStatus("active");
+    setProjectIncharge(null);
+    setCompanySerialNumber("");
+    setProjectDescription("");
+    setProjectImages([]);
+  };
+
+  const handleDiscard = () => {
+    resetForm();
+    setShowCancelModal(false);
+    router.back();
+  };
 
   const pickImages = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -308,6 +338,7 @@ const CreateProjectScreen = () => {
         });
       }
 
+      resetForm();
       setTimeout(() => router.push({ pathname: "/masterProjectList" }), 800);
     } catch (err) {
       console.error("Error creating project:", err);
@@ -981,7 +1012,7 @@ const CreateProjectScreen = () => {
 
         <View className="flex-row items-center justify-between mb-20 gap-x-4">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => setShowCancelModal(true)}
             className="flex-1 h-14 rounded-xl border-[1.5px] items-center justify-center bg-white dark:bg-black border-[#BBBBBB] dark:border-[#5F5F5F]"
           >
             <Text className="font-poppins text-[16px] text-[#777777] dark:text-[#919191]">
@@ -992,12 +1023,11 @@ const CreateProjectScreen = () => {
           <TouchableOpacity
             disabled={saving}
             onPress={handleSaveProject}
-              style={{
+            style={{
               flex: 1,
               // height: 56,
               borderRadius: 12,
               overflow: "hidden", // Important for gradient borderRadius
-          
             }}
             // className="flex-1 h-14 rounded-xl overflow-hidden items-center justify-center border-0 dark:border dark:border-[#333]"
             activeOpacity={0.8}
@@ -1029,6 +1059,48 @@ const CreateProjectScreen = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
+
+      {/* Discard Changes Modal */}
+      <Modal
+        visible={showCancelModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCancelModal(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowCancelModal(false)}
+          className="flex-1 justify-center items-center px-6 bg-black/50"
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1A1A1A] w-full rounded-[24px] p-6 shadow-xl"
+          >
+            <Text className="text-lg font-poppinsMedium text-black dark:text-white mb-8">
+              Are you sure you want to discard changes?
+            </Text>
+
+            <View className="flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => setShowCancelModal(false)}
+                className="flex-1 border border-black dark:border-white rounded-xl py-3 items-center"
+              >
+                <Text className="text-black dark:text-white font-poppins text-lg">
+                  Not Now
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDiscard}
+                className="flex-1 bg-[#DF5B5B] rounded-xl py-3 items-center"
+              >
+                <Text className="text-white font-poppins text-lg">Yes I’m</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
