@@ -373,19 +373,19 @@ const ProjectDetails = () => {
             onPress={() => setMenuVisible(false)}
           />
           <View
-            className="absolute top-16 right-4 bg-white dark:bg-[#1A1A1A] rounded-2xl p-1 shadow-2xl border border-[transparent] dark:border-[#2A2A2A]"
-           style={{
-                elevation: 25,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 12 },
-                shadowOpacity: 0.2,
-                shadowRadius: 16,
-                minWidth: 170,
-              }}
+            className="absolute top-16 right-4 bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+            style={{
+              elevation: 25,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              minWidth: 170,
+            }}
           >
             {/* Triangle Pointer */}
             <View
-              className="absolute right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45 border-l border-t border-[#E0E5EB] dark:border-[#2A2A2A]"
+              className="absolute rounded-md right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45"
               style={{ zIndex: -1 }}
             />
 
