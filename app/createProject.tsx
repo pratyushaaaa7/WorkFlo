@@ -27,6 +27,7 @@ import {
 } from "react-native";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -37,6 +38,7 @@ const CreateProjectScreen = () => {
   const token = auth?.token;
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const { bottom } = useSafeAreaInsets();
 
   const { projectId } = useLocalSearchParams();
   const isEditing = Boolean(projectId);
@@ -1019,7 +1021,10 @@ const CreateProjectScreen = () => {
       </KeyboardAwareScrollView>
 
       {/* Fixed Bottom Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-[#FBFCFD] dark:bg-[#000000] ">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-[#FBFCFD] dark:bg-[#000000]"
+        style={{ padding: 16, paddingBottom: bottom + 16 }}
+      >
         <View className="flex-row items-center justify-between gap-x-4">
           <TouchableOpacity
             onPress={() => setShowCancelModal(true)}
