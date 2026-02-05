@@ -323,10 +323,7 @@ const CreateProjectScreen = () => {
   };
 
   return (
-    <View
-      className="flex-1"
-      style={{ backgroundColor: isDarkMode ? "#000000" : "#FBFCFD" }}
-    >
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000000]">
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor="transparent"
@@ -334,13 +331,7 @@ const CreateProjectScreen = () => {
       />
 
       {/* Header */}
-      <View
-        className="pt-14 pb-4 px-4 flex-row items-center"
-        style={{
-          backgroundColor: isDarkMode ? "#000000" : "#FBFCFD",
-          // borderColor: isDarkMode ? "#1A1A1A" : "#F3F4F6",
-        }}
-      >
+      <View className="pt-14 pb-4 px-4 flex-row items-center bg-[#FBFCFD] dark:bg-[#000000]">
         <TouchableOpacity
           onPress={() => router.back()}
           className="mr-4"
@@ -352,10 +343,7 @@ const CreateProjectScreen = () => {
             color={isDarkMode ? "#FFFFFF" : "#000000"}
           />
         </TouchableOpacity>
-        <Text
-          className="text-[20px] font-dmSemiBold"
-          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-        >
+        <Text className="text-[20px] font-dmSemiBold text-[#000000] dark:text-[#FFFFFF]">
           Create project
         </Text>
       </View>
@@ -369,10 +357,7 @@ const CreateProjectScreen = () => {
       >
         {/* Company Dropdown */}
         <View className="mb-5" style={{ zIndex: 3000 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Company Name<Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
@@ -418,22 +403,11 @@ const CreateProjectScreen = () => {
 
         {/* Project Name */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Name<Text className="text-red-500">*</Text>
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="e.g. Muthoot Hospital"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectName}
@@ -443,10 +417,7 @@ const CreateProjectScreen = () => {
 
         {/* Typology Dropdown */}
         <View className="mb-5" style={{ zIndex: 2500 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Typology<Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
@@ -492,10 +463,7 @@ const CreateProjectScreen = () => {
 
         {/* Team Leader MultiSelect */}
         <View className="mb-5" style={{ zIndex: 2000 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Team Leader(s)<Text className="text-red-500">*</Text>
           </Text>
           <MultiSelect
@@ -552,10 +520,7 @@ const CreateProjectScreen = () => {
 
         {/* Team Members MultiSelect */}
         <View className="mb-5" style={{ zIndex: 1500 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Team Member(s)<Text className="text-red-500">*</Text>
           </Text>
           <MultiSelect
@@ -612,10 +577,7 @@ const CreateProjectScreen = () => {
 
         {/* Project Incharge Dropdown */}
         <View className="mb-5" style={{ zIndex: 1250 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Incharge
           </Text>
           <Dropdown
@@ -663,10 +625,7 @@ const CreateProjectScreen = () => {
 
         {/* Status Dropdown */}
         <View className="mb-5" style={{ zIndex: 1000 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Status<Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
@@ -712,22 +671,11 @@ const CreateProjectScreen = () => {
 
         {/* Client Name */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Client Name
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter client name"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={clientName}
@@ -737,22 +685,11 @@ const CreateProjectScreen = () => {
 
         {/* Project Internal Code */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Internal Code
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter project code"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectCode}
@@ -762,22 +699,11 @@ const CreateProjectScreen = () => {
 
         {/* Company Serial Number */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Company Serial Number
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter serial number"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={companySerialNumber}
@@ -788,22 +714,11 @@ const CreateProjectScreen = () => {
 
         {/* Project Location */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Location
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter project location"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectLocation}
@@ -813,26 +728,16 @@ const CreateProjectScreen = () => {
 
         {/* Start Date Picker */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Start Date
           </Text>
           <Pressable
             onPress={() => setShowStartPicker(true)}
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              justifyContent: "center",
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] justify-center"
           >
             <Text
+              className="text-[14px] font-poppins"
               style={{
-                fontSize: 14,
-                fontFamily: "Poppins-Regular",
                 color: startDate
                   ? isDarkMode
                     ? "#FFFFFF"
@@ -860,10 +765,7 @@ const CreateProjectScreen = () => {
 
         {/* Scope Dropdown */}
         <View className="mb-5" style={{ zIndex: 500 }}>
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Scope Description
           </Text>
           <MultiSelect
@@ -918,22 +820,11 @@ const CreateProjectScreen = () => {
 
         {/* Web Name */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Web Name
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter web name"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={webName}
@@ -950,15 +841,7 @@ const CreateProjectScreen = () => {
             File Number
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter file number"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={fileNumber}
@@ -975,15 +858,7 @@ const CreateProjectScreen = () => {
             Site Area
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter site area (in acres)"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={siteArea}
@@ -1000,15 +875,7 @@ const CreateProjectScreen = () => {
             Designed Area
           </Text>
           <TextInput
-            style={{
-              height: 52,
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              color: isDarkMode ? "#FFFFFF" : "#000000",
-              fontFamily: "Poppins-Regular",
-              fontSize: 14,
-            }}
+            className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
             placeholder="Enter designed area (in sqft)"
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={designedArea}
@@ -1016,29 +883,14 @@ const CreateProjectScreen = () => {
           />
         </View>
 
-        {/* Project Description */}
         <View className="mb-5">
-          <Text
-            className="text-[14px] font-poppinsMedium mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+          <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Project Description
           </Text>
-          <View
-            style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-              borderRadius: 16,
-              padding: 16,
-              minHeight: 120,
-            }}
-          >
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] p-4 min-h-[120px]">
             <TextInput
-              style={{
-                color: isDarkMode ? "#FFFFFF" : "#000000",
-                fontFamily: "Poppins-Regular",
-                fontSize: 14,
-                textAlignVertical: "top",
-              }}
+              className="text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
+              style={{ textAlignVertical: "top" }}
               placeholder="e.g. Lorem ipsum dolor sit amet consecte. Scelerisque vestibulum nunc adipiscing"
               placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={projectDescription}
@@ -1046,48 +898,21 @@ const CreateProjectScreen = () => {
               multiline
               numberOfLines={4}
             />
-            <View style={{ position: "absolute", bottom: 8, right: 8 }}>
+            <View className="absolute bottom-2 right-2">
               <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  borderColor: isDarkMode ? "#444" : "#CCC",
-                }}
+                className="w-3 h-3 border-r border-b"
+                style={{ borderColor: isDarkMode ? "#444" : "#CCC" }}
               />
             </View>
           </View>
         </View>
 
         {/* Images Option */}
-        <View
-          className="mb-10"
-          style={{
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-            borderRadius: 20,
-            padding: 12,
-            // borderWidth: 1,
-            // borderColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-
-            justifyContent: "center",
-          }}
-        >
-          <Text
-            className="text-[14px] font-poppinsMedium text-left mb-2"
-            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-          >
+        <View className="mb-10 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[20px] p-3 justify-center">
+          <Text className="text-[14px] font-poppinsMedium text-left mb-2 text-[#000000] dark:text-[#FFFFFF]">
             Images
           </Text>
-          <View
-            style={{
-              backgroundColor: isDarkMode ? "#0D0D0D" : "#FFFFFF",
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              alignItems: "center",
-            }}
-          >
+          <View className="bg-white dark:bg-[#0D0D0D] rounded-[16px] p-6 w-full items-center">
             <TouchableOpacity
               onPress={pickImages}
               className="bg-black py-3 px-8 rounded-xl flex-row items-center mb-3"
@@ -1154,20 +979,10 @@ const CreateProjectScreen = () => {
           )}
         </View>
 
-        {/* Buttons Row */}
         <View className="flex-row items-center justify-between mb-20 gap-x-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              flex: 1,
-              height: 56,
-              borderRadius: 12,
-              borderWidth: 1.5,
-              borderColor: isDarkMode ? "#5F5F5F" : "#BBBBBB",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: isDarkMode ? "#000" : "#FFF",
-            }}
+            className="flex-1 h-14 rounded-xl border-[1.5px] items-center justify-center bg-white dark:bg-black border-[#BBBBBB] dark:border-[#5F5F5F]"
           >
             <Text className="font-poppins text-[16px] text-[#777777] dark:text-[#919191]">
               Cancel
@@ -1177,14 +992,14 @@ const CreateProjectScreen = () => {
           <TouchableOpacity
             disabled={saving}
             onPress={handleSaveProject}
-            style={{
+              style={{
               flex: 1,
-              height: 56,
+              // height: 56,
               borderRadius: 12,
               overflow: "hidden", // Important for gradient borderRadius
-              borderWidth: isDarkMode ? 1 : 0,
-              borderColor: isDarkMode ? "#333" : "transparent",
+          
             }}
+            // className="flex-1 h-14 rounded-xl overflow-hidden items-center justify-center border-0 dark:border dark:border-[#333]"
             activeOpacity={0.8}
           >
             <LinearGradient
