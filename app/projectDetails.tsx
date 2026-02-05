@@ -1,10 +1,12 @@
 import {
+  // AlignLeft01Icon,
   ArrowLeft01Icon,
   CheckmarkCircle02Icon,
   DashedLineCircleIcon,
   Delete03Icon,
   Edit02Icon,
   MoreHorizontalIcon,
+  Note01Icon,
   Progress03Icon,
   UnavailableIcon,
 } from "@hugeicons/core-free-icons";
@@ -56,8 +58,10 @@ const ProjectDetails = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
-  const initialProject: Project = JSON.parse(projectParam as string);
-  const [project, setProject] = useState<Project>(initialProject);
+  const initialProject: Project = projectParam
+    ? JSON.parse(projectParam as string)
+    : null;
+  const [project, setProject] = useState<Project | null>(initialProject);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState("");
   const [activities, setActivities] = useState<any[]>([]);
@@ -123,8 +127,11 @@ const ProjectDetails = () => {
       const res = await api.get(`/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProject(res.data.project);
-      setActivities(res.data.project.activities || []);
+      if (res.data?.project) {
+        setProject(res.data.project);
+        setActivities(res.data.project.activities || []);
+      }
+      console.log(res.data.project.activities);
     } catch (err) {
       console.error("Failed to fetch project:", err);
     } finally {
@@ -265,7 +272,7 @@ const ProjectDetails = () => {
           <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
             {leftLabel}
           </Text>
-          {leftValues ? (
+          {Array.isArray(leftValues) ? (
             leftValues.map((v, i) => (
               <Text
                 key={i}
@@ -290,7 +297,7 @@ const ProjectDetails = () => {
           <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
             {rightLabel}
           </Text>
-          {rightValues ? (
+          {Array.isArray(rightValues) ? (
             rightValues.map((v, i) => (
               <Text
                 key={i}
@@ -669,91 +676,99 @@ const ProjectDetails = () => {
 
             {activitiesLoading ? (
               <ActivityIndicator size="large" color="#5B4CCC" />
-            ) : activities.length === 0 ? (
+            ) : !Array.isArray(activities) || activities.length === 0 ? (
               <Text className="text-[#8E8E8E] text-sm font-poppins">
                 No activities yet.
               </Text>
             ) : (
               <View>
                 {activities.map((act) => {
+                  if (!act) return null;
                   const isNote = act.fieldChanged === "note";
-                  const isUpdate = act.action === "updated";
+
+                  // Themed colors based on action type
+                  const cardBg = isNote
+                    ? isDarkMode
+                      ? "#0A4230"
+                      : "#E3F8EB"
+                    : isDarkMode
+                      ? "#09225A"
+                      : "#E9F1FF";
+                  const textColor = isDarkMode
+                    ? isNote
+                      ? "#CAF5DF"
+                      : "#BFD6FF"
+                    : isNote
+                      ? "#454545"
+                      : "#000000";
+                  const labelColor = textColor;
+                  const themeColor = isNote ? "#239F62" : "#6D9EFF";
+
+                  const renderValue = (val: any) => {
+                    if (val === undefined || val === null) return "-";
+                    if (Array.isArray(val)) return val.join(", ");
+                    if (typeof val === "object") return JSON.stringify(val);
+                    return String(val);
+                  };
 
                   return (
-                    <View key={act._id} className="mb-6 flex-row">
+                    <View
+                      key={act._id}
+                      className="mb-2 p-3 rounded-2xl flex-row items-start"
+                      style={{ backgroundColor: cardBg }}
+                    >
                       {/* Icon */}
-                      <View
-                        className="w-10 h-10 rounded-full items-center justify-center mr-4"
-                        style={{
-                          backgroundColor: isNote
-                            ? isDarkMode
-                              ? "#122E25"
-                              : "#E8F9ED"
-                            : isUpdate
-                              ? isDarkMode
-                                ? "#101F40"
-                                : "#E8F0FF"
-                              : isDarkMode
-                                ? "#1F1F1F"
-                                : "#F3F4F6",
-                        }}
-                      >
+                      <View className="mr-3 mt-1">
                         <HugeiconsIcon
-                          icon={
-                            isNote
-                              ? Edit02Icon
-                              : isUpdate
-                                ? Progress03Icon
-                                : CheckmarkCircle02Icon
-                          }
+                          icon={isNote ? Note01Icon : Edit02Icon}
                           size={20}
-                          color={
-                            isNote
-                              ? "#1AA45B"
-                              : isUpdate
-                                ? "#2F76E6"
-                                : "#6B7280"
-                          }
+                          color={themeColor}
                         />
                       </View>
 
-                      {/* Content */}
+                      {/* Content Area */}
                       <View className="flex-1">
-                        <Text className="text-sm font-poppinsSemiBold text-black dark:text-white mb-1">
+                        <Text
+                          className="text-[14px] font-poppinsMedium text-[black] dark:text-white "
+                          // style={{ color: textColor }}
+                        >
                           {isNote
                             ? "Note Added"
-                            : `${act.fieldChanged} ${act.action}`}
+                            : `${act.fieldChanged || "Detail"} Update`}
                         </Text>
 
-                        {/* Note content */}
-                        {isNote && (
-                          <Text className="text-sm font-poppins text-[#454545] dark:text-[#919191] mb-2">
-                            {act.newValue}
+                        {/* Note/Update Content */}
+                        {isNote ? (
+                          <Text
+                            className="text-[14px] font-poppins mb-2"
+                            style={{ color: labelColor }}
+                          >
+                            <Text className="font-poppins">Note : </Text>
+                            {renderValue(act.newValue)}
                           </Text>
+                        ) : (
+                          <View className="mb-2">
+                            {act.previousValue !== undefined && (
+                              <Text
+                                className="text-[12px] font-poppins mb-1"
+                                style={{ color: labelColor }}
+                              >
+                                <Text className="font-poppins">From : </Text>
+                                {renderValue(act.previousValue)}
+                              </Text>
+                            )}
+                            <Text
+                              className="text-[12px] font-poppins"
+                              style={{ color: labelColor }}
+                            >
+                              <Text className="font-poppins">To : </Text>
+                              {renderValue(act.newValue)}
+                            </Text>
+                          </View>
                         )}
 
-                        {/* Update details */}
-                        {!isNote &&
-                          act.previousValue !== undefined &&
-                          act.newValue !== undefined && (
-                            <Text className="text-xs font-poppins text-[#8E8E8E] dark:text-[#8E8E8E] mb-2">
-                              From:{" "}
-                              <Text className="font-poppinsMedium">
-                                {Array.isArray(act.previousValue)
-                                  ? act.previousValue.join(", ")
-                                  : act.previousValue || "-"}
-                              </Text>
-                              {" → To: "}
-                              <Text className="font-poppinsMedium">
-                                {Array.isArray(act.newValue)
-                                  ? act.newValue.join(", ")
-                                  : act.newValue || "-"}
-                              </Text>
-                            </Text>
-                          )}
-
                         {/* Metadata */}
-                        <Text className="text-xs font-poppins text-[#8E8E8E] dark:text-[#8E8E8E]">
+                        <Text className="text-[12px] font-poppins text-[#454545] dark:text-[#CCCCCC]">
                           By {act.performedBy?.fullName || "Unknown"} •{" "}
                           {formatDate(act.createdAt)} -{" "}
                           {new Date(act.createdAt).toLocaleTimeString([], {
