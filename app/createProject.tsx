@@ -1,10 +1,18 @@
-import { ArrowDown01Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  Cancel01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Keyboard,
   Platform,
   Pressable,
@@ -94,8 +102,41 @@ const CreateProjectScreen = () => {
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
 
   const [startDate, setStartDate] = useState<Date | null>(null);
-  // status state
   const [status, setStatus] = useState("active");
+
+  // 🔹 New fields requested by user
+  const [projectIncharge, setProjectIncharge] = useState<string | null>(null);
+  const [companySerialNumber, setCompanySerialNumber] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectImages, setProjectImages] = useState<string[]>([]);
+
+  const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Toast.show({
+        type: "error",
+        text1: "Permission Denied",
+        position: "bottom",
+        text2: "We need access to your gallery to upload images.",
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const selectedUris = result.assets.map((asset: any) => asset.uri);
+      setProjectImages((prev) => [...prev, ...selectedUris]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setProjectImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const companyOptions = [
     { label: "WP", value: "WP" },
@@ -569,6 +610,57 @@ const CreateProjectScreen = () => {
           />
         </View>
 
+        {/* Project Incharge Dropdown */}
+        <View className="mb-5" style={{ zIndex: 1250 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Incharge
+          </Text>
+          <Dropdown
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            containerStyle={{
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
+            }}
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+            data={allUsers}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Incharge"
+            search
+            searchPlaceholder="Search users..."
+            value={projectIncharge}
+            onChange={(item) => setProjectIncharge(item.value)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
+          />
+        </View>
+
         {/* Status Dropdown */}
         <View className="mb-5" style={{ zIndex: 1000 }}>
           <Text
@@ -665,6 +757,32 @@ const CreateProjectScreen = () => {
             placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectCode}
             onChangeText={setProjectCode}
+          />
+        </View>
+
+        {/* Company Serial Number */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Company Serial Number
+          </Text>
+          <TextInput
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
+            placeholder="Enter serial number"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+            value={companySerialNumber}
+            onChangeText={setCompanySerialNumber}
+            keyboardType="numeric"
           />
         </View>
 
@@ -898,29 +1016,203 @@ const CreateProjectScreen = () => {
           />
         </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          disabled={saving}
-          onPress={handleSaveProject}
+        {/* Project Description */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Description
+          </Text>
+          <View
+            style={{
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              borderRadius: 16,
+              padding: 16,
+              minHeight: 120,
+            }}
+          >
+            <TextInput
+              style={{
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+                fontFamily: "Poppins-Regular",
+                fontSize: 14,
+                textAlignVertical: "top",
+              }}
+              placeholder="e.g. Lorem ipsum dolor sit amet consecte. Scelerisque vestibulum nunc adipiscing"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              value={projectDescription}
+              onChangeText={setProjectDescription}
+              multiline
+              numberOfLines={4}
+            />
+            <View style={{ position: "absolute", bottom: 8, right: 8 }}>
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  borderColor: isDarkMode ? "#444" : "#CCC",
+                }}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Images Option */}
+        <View
+          className="mb-10"
           style={{
-            height: 56,
-            borderRadius: 16,
-            backgroundColor: saving ? "#9CA3AF" : "#5B4CCC",
-            alignItems: "center",
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            borderRadius: 20,
+            padding: 12,
+            // borderWidth: 1,
+            // borderColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+
             justifyContent: "center",
-            marginTop: 20,
-            marginBottom: 100,
           }}
-          activeOpacity={0.8}
         >
-          {saving ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text className="text-white font-dmBold text-lg">
-              {isEditing ? "Update Project" : "Create Project"}
+          <Text
+            className="text-[14px] font-poppinsMedium text-left mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Images
+          </Text>
+          <View
+            style={{
+              backgroundColor: isDarkMode ? "#0D0D0D" : "#FFFFFF",
+              borderRadius: 16,
+              padding: 24,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity
+              onPress={pickImages}
+              className="bg-black py-3 px-8 rounded-xl flex-row items-center mb-3"
+              activeOpacity={0.8}
+            >
+              <HugeiconsIcon icon={Upload01Icon} size={20} color="#FFF" />
+              <Text className="text-white font-poppinsMedium ml-2 text-[14px]">
+                Upload
+              </Text>
+            </TouchableOpacity>
+            <Text className="font-poppins text-[14px] text-center text-[#454545] dark:text-[#919191]">
+              Choose Image
             </Text>
+          </View>
+
+          {/* Selected Images Preview */}
+          {projectImages.length > 0 && (
+            <View className="flex-row flex-wrap mt-4 gap-4">
+              {projectImages.map((uri, index) => (
+                <View
+                  key={index}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    position: "relative",
+                  }}
+                >
+                  <Image
+                    source={{ uri }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: 20,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() => removeImage(index)}
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -6,
+                      backgroundColor: "#FF3B30",
+                      borderRadius: 12,
+                      width: 24,
+                      height: 24,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 2,
+                      borderColor: isDarkMode ? "#000" : "#FFF",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 4,
+                      elevation: 3,
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
           )}
-        </TouchableOpacity>
+        </View>
+
+        {/* Buttons Row */}
+        <View className="flex-row items-center justify-between mb-20 gap-x-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{
+              flex: 1,
+              height: 56,
+              borderRadius: 12,
+              borderWidth: 1.5,
+              borderColor: isDarkMode ? "#5F5F5F" : "#BBBBBB",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: isDarkMode ? "#000" : "#FFF",
+            }}
+          >
+            <Text className="font-poppins text-[16px] text-[#777777] dark:text-[#919191]">
+              Cancel
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            disabled={saving}
+            onPress={handleSaveProject}
+            style={{
+              flex: 1,
+              height: 56,
+              borderRadius: 12,
+              overflow: "hidden", // Important for gradient borderRadius
+              borderWidth: isDarkMode ? 1 : 0,
+              borderColor: isDarkMode ? "#333" : "transparent",
+            }}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              // 94.25deg roughly translates to start(0,0.5) end(1,0.6) or similar
+              // We'll use a standard left-to-right start {x:0, y:0} end {x:1, y:0} for consistency
+              colors={
+                saving
+                  ? ["#9CA3AF", "#9CA3AF"]
+                  : ["#5B4CCC", "#6347C2", "#8056D1"]
+              }
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text className="font-poppins text-[16px] text-[#FFF]">
+                  Save
+                </Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </KeyboardAwareScrollView>
     </View>
   );
