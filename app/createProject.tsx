@@ -1,32 +1,34 @@
-import React, { useState, useEffect, useContext } from "react";
+import { ArrowDown01Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Keyboard,
+  Platform,
+  Pressable,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
-  Platform,
-  Keyboard,
-  ActivityIndicator,
+  useColorScheme,
+  View,
 } from "react-native";
-import Toast from "react-native-toast-message";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
-import { LinearGradient } from "expo-linear-gradient";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 const CreateProjectScreen = () => {
   const router = useRouter();
   const auth = useContext(AuthContext);
   const token = auth?.token;
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
-  const { projectId } = useLocalSearchParams(); // <-- get project from params
-  // console.log("hello", projectId);
-  // const existingProject = project ? JSON.parse(project as string) : null;
+  const { projectId } = useLocalSearchParams();
   const isEditing = Boolean(projectId);
 
   useEffect(() => {
@@ -167,7 +169,7 @@ const CreateProjectScreen = () => {
   }, [companyName]);
 
   const [allUsers, setAllUsers] = useState<{ label: string; value: string }[]>(
-    []
+    [],
   );
 
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -248,7 +250,7 @@ const CreateProjectScreen = () => {
         Toast.show({
           type: "success",
           text1: "Success",
-          text2:  "Project updated successfully!",
+          text2: "Project updated successfully!",
           position: "bottom",
         });
       } else {
@@ -280,322 +282,449 @@ const CreateProjectScreen = () => {
   };
 
   return (
-    <View className="flex-1  bg-white">
+    <View
+      className="flex-1"
+      style={{ backgroundColor: isDarkMode ? "#000000" : "#FBFCFD" }}
+    >
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-            zIndex: 10,
-          }}
+      <View
+        className="pt-14 pb-4 px-4 flex-row items-center"
+        style={{
+          backgroundColor: isDarkMode ? "#000000" : "#FBFCFD",
+          // borderColor: isDarkMode ? "#1A1A1A" : "#F3F4F6",
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mr-4"
+          activeOpacity={0.7}
         >
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/masterProjectList",
-              })
-            }
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {" "}
-              Create Project
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
+        <Text
+          className="text-[20px] font-dmSemiBold"
+          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+        >
+          Create project
+        </Text>
+      </View>
 
       <KeyboardAwareScrollView
-        className="flex-1 px-4 py-6  bg-white"
+        className="flex-1 px-4 pt-6"
         enableOnAndroid
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={80}
+        extraScrollHeight={100}
+        showsVerticalScrollIndicator={false}
       >
         {/* Company Dropdown */}
-        <View className="mb-4" style={{ zIndex: 2500 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Company Name <Text className="text-red-500">*</Text>
+        <View className="mb-5" style={{ zIndex: 3000 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Company Name<Text className="text-red-500">*</Text>
           </Text>
-
           <Dropdown
             style={{
-              height: 35,
-              borderColor: "#000", // Aqua border to match theme
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
             placeholderStyle={{
               fontSize: 14,
-              color: "#9CA3AF",
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
               fontSize: 14,
-              color: "#111827",
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff", // Soft aqua dropdown background
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
             }}
-            activeColor="#E0E7FF" // Medium aqua for active highlight
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={companyOptions}
             labelField="label"
             valueField="value"
-            placeholder="Select company..."
+            placeholder="Select Company"
             value={companyName}
             onChange={(item) => setCompanyName(item.value)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
           />
         </View>
 
-        {/* Typology Dropdown */}
-        <View className="mb-4" style={{ zIndex: 2000 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Typology <Text className="text-red-500">*</Text>
-          </Text>
-          <Dropdown
-            style={{
-              height: 35,
-              borderColor: "#000", // Aqua border to match theme
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
-            }}
-            placeholderStyle={{
-              fontSize: 14,
-              color: "#9CA3AF",
-            }}
-            selectedTextStyle={{
-              fontSize: 14,
-              color: "#111827",
-            }}
-            containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff", // Soft aqua dropdown background
-            }}
-            activeColor="#E0E7FF" // Medium aqua for active highlight
-            data={typologyOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select typology..."
-            value={projectTypology}
-            onChange={(item) => setProjectTypology(item.value)}
-          />
-        </View>
-
-        {/* Text Inputs */}
-
-        {/*Project Name*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Name <Text className="text-red-500">*</Text>
+        {/* Project Name */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Name<Text className="text-red-500">*</Text>
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter project name"
-            placeholderTextColor="#999"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
+            placeholder="e.g. Muthoot Hospital"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectName}
             onChangeText={setProjectName}
           />
         </View>
 
-        {/* Team Leader Dropdown */}
-        <View className="mb-4" style={{ zIndex: 1500 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Team Leader(s) <Text className="text-red-500">*</Text>
+        {/* Typology Dropdown */}
+        <View className="mb-5" style={{ zIndex: 2500 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Typology<Text className="text-red-500">*</Text>
           </Text>
-          <MultiSelect
+          <Dropdown
             style={{
-              height: 35,
-              borderColor: "#000", // Aqua border to match theme
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff", // Keep white for good contrast
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
             placeholderStyle={{
               fontSize: 14,
-              color: "#9CA3AF",
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
             }}
             selectedTextStyle={{
-              fontSize: 10,
-              color: "#111827",
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            containerStyle={{
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
+            }}
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+            data={typologyOptions}
+            labelField="label"
+            valueField="value"
+            placeholder="Select typology"
+            value={projectTypology}
+            onChange={(item) => setProjectTypology(item.value)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
+          />
+        </View>
+
+        {/* Team Leader MultiSelect */}
+        <View className="mb-5" style={{ zIndex: 2000 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Team Leader(s)<Text className="text-red-500">*</Text>
+          </Text>
+          <MultiSelect
+            style={{
+              minHeight: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            }}
+            placeholderStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             selectedStyle={{
               borderRadius: 10,
-              // backgroundColor: "#b9EBF1", // Light aqua (cool & clean)
-              backgroundColor: "#E0E7FF",
-              padding: 5,
+              backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              marginRight: 4,
+              marginTop: 4,
+              borderWidth: 0,
             }}
             containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff", // Very soft aqua for dropdown
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
             }}
-            activeColor="#E0E7FF" // Medium aqua for active selection
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={allUsers}
             labelField="label"
             valueField="value"
-            placeholder="Select Leader(s)..."
+            placeholder="Select Leader(s)"
             search
             searchPlaceholder="Search users..."
             value={selectedLeaders}
             onChange={(items) => setSelectedLeaders(items)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
           />
         </View>
 
-        {/* Project Team Members Dropdown */}
-        <View className="mb-4" style={{ zIndex: 1400 }}>
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Team Member(s) <Text className="text-red-500">*</Text>
+        {/* Team Members MultiSelect */}
+        <View className="mb-5" style={{ zIndex: 1500 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Team Member(s)<Text className="text-red-500">*</Text>
           </Text>
           <MultiSelect
             style={{
-              height: 35,
-              borderColor: "#000",
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              minHeight: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-            selectedTextStyle={{ fontSize: 10, color: "#111827" }}
+            placeholderStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#E0E7FF",
-              padding: 5,
+              backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              marginRight: 4,
+              marginTop: 4,
+              borderWidth: 0,
             }}
             containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff",
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
             }}
-            activeColor="#E0E7FF"
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={allUsers}
             labelField="label"
             valueField="value"
-            placeholder="Select members..."
+            placeholder="Select Member(s)"
             search
             searchPlaceholder="Search users..."
             value={selectedMembers}
             onChange={(items) => setSelectedMembers(items)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
           />
         </View>
 
         {/* Status Dropdown */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Status <Text className="text-red-500">*</Text>
+        <View className="mb-5" style={{ zIndex: 1000 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
+            Project Status<Text className="text-red-500">*</Text>
           </Text>
           <Dropdown
             style={{
-              height: 35,
-              borderColor: "#000",
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 10,
-              backgroundColor: "#fff",
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
-            selectedTextStyle={{ fontSize: 14, color: "#111827" }}
+            placeholderStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
+            }}
+            selectedTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
             containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff",
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
             }}
-            activeColor="#E0E7FF"
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={statusOptions}
             labelField="label"
             valueField="value"
-            placeholder="Select status..."
+            placeholder="Select status"
             value={status}
             onChange={(item) => setStatus(item.value)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
           />
         </View>
 
         {/* Client Name */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Client Name
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
             placeholder="Enter client name"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={clientName}
             onChangeText={setClientName}
           />
         </View>
 
-        {/*Project Code*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        {/* Project Internal Code */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Project Internal Code
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
             placeholder="Enter project code"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectCode}
             onChangeText={setProjectCode}
           />
         </View>
 
-        {/*Project Location*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        {/* Project Location */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Project Location
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
             placeholder="Enter project location"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={projectLocation}
             onChangeText={setProjectLocation}
           />
         </View>
 
-        {/*Project area*/}
-        {/* <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
-            Project Area <Text className="text-gray-400">(in sqft)</Text>
-          </Text>
-          <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Enter project area"
-            placeholderTextColor="#999"
-            value={projectArea}
-            onChangeText={setProjectArea}
-            keyboardType="numeric"
-          />
-        </View> */}
-
         {/* Start Date Picker */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Start Date
           </Text>
           <Pressable
             onPress={() => setShowStartPicker(true)}
-            className="border border-black rounded-lg py-2 px-4 bg-white"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              justifyContent: "center",
+            }}
           >
             <Text
-              className={`text-base ${
-                startDate ? "text-black" : "text-[#999]"
-              }`}
+              style={{
+                fontSize: 14,
+                fontFamily: "Poppins-Regular",
+                color: startDate
+                  ? isDarkMode
+                    ? "#FFFFFF"
+                    : "#000000"
+                  : isDarkMode
+                    ? "#919191"
+                    : "#454545",
+              }}
             >
-              {startDate ? startDate.toDateString() : "Enter start date"}
+              {startDate ? startDate.toDateString() : "Select start date"}
             </Text>
           </Pressable>
           {showStartPicker && (
@@ -612,95 +741,158 @@ const CreateProjectScreen = () => {
         </View>
 
         {/* Scope Dropdown */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        <View className="mb-5" style={{ zIndex: 500 }}>
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Scope Description
           </Text>
           <MultiSelect
             style={{
-              height: 35,
-              borderColor: "#000",
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              backgroundColor: "#Fff",
+              minHeight: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#9CA3AF" }}
+            placeholderStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#919191" : "#454545",
+            }}
             selectedTextStyle={{
-              fontSize: 10,
-              color: "#111827",
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
             }}
             selectedStyle={{
               borderRadius: 10,
-              backgroundColor: "#E0E7FF",
-              padding: 5,
+              backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              marginRight: 4,
+              marginTop: 4,
+              borderWidth: 0,
             }}
             containerStyle={{
-              borderRadius: 12,
-              overflow: "hidden",
-              backgroundColor: "#fff", // Very soft aqua for the dropdown
+              borderRadius: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+              borderWidth: 0,
+              marginTop: 4,
             }}
-            activeColor="#E0E7FF"
+            itemTextStyle={{
+              fontSize: 14,
+              fontFamily: "Poppins-Regular",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+            }}
+            activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
             data={scopeOptions}
             labelField="label"
             valueField="value"
-            placeholder="Select scopes..."
+            placeholder="Select scopes"
             value={selectedScopes}
             onChange={(items) => setSelectedScopes(items)}
+            renderRightIcon={() => (
+              <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />
+            )}
           />
         </View>
 
-        {/*web name*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        {/* Web Name */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Web Name
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="Web Name"
-            placeholderTextColor="#999"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
+            placeholder="Enter web name"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={webName}
             onChangeText={setWebName}
           />
         </View>
 
-        {/*file number*/}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        {/* File Number */}
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             File Number
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
-            placeholder="File Number"
-            placeholderTextColor="#999"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
+            placeholder="Enter file number"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={fileNumber}
             onChangeText={setFileNumber}
           />
         </View>
 
         {/* Site Area */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Site Area
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
             placeholder="Enter site area (in acres)"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={siteArea}
             onChangeText={setSiteArea}
           />
         </View>
 
         {/* Designed Area */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-gray-700 mb-2">
+        <View className="mb-5">
+          <Text
+            className="text-[14px] font-poppinsMedium mb-2"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+          >
             Designed Area
           </Text>
           <TextInput
-            className="border border-gray-600 rounded-lg px-4 py-2 text-black"
+            style={{
+              height: 52,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Poppins-Regular",
+              fontSize: 14,
+            }}
             placeholder="Enter designed area (in sqft)"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={designedArea}
             onChangeText={setDesignedArea}
           />
@@ -710,13 +902,21 @@ const CreateProjectScreen = () => {
         <TouchableOpacity
           disabled={saving}
           onPress={handleSaveProject}
-          className={`mt-6 mb-40 py-3 rounded-lg items-center 
-    ${saving ? "bg-gray-400" : "bg-indigo-600"}`}
+          style={{
+            height: 56,
+            borderRadius: 16,
+            backgroundColor: saving ? "#9CA3AF" : "#5B4CCC",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 20,
+            marginBottom: 100,
+          }}
+          activeOpacity={0.8}
         >
           {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text className="text-white font-bold text-base">
+            <Text className="text-white font-dmBold text-lg">
               {isEditing ? "Update Project" : "Create Project"}
             </Text>
           )}
