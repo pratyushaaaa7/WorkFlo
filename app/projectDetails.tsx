@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -63,6 +64,7 @@ const ProjectDetails = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const scrollY = useSharedValue(0);
 
@@ -156,7 +158,7 @@ const ProjectDetails = () => {
   // Delete Project
   const handleDeleteProject = async () => {
     try {
-      setMenuVisible(false);
+      setShowDeleteModal(false);
       setLoading(true);
       await api.delete(`/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -414,7 +416,7 @@ const ProjectDetails = () => {
             <TouchableOpacity
               onPress={() => {
                 setMenuVisible(false);
-                handleDeleteProject();
+                setShowDeleteModal(true);
               }}
               className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
             >
@@ -426,6 +428,63 @@ const ProjectDetails = () => {
           </View>
         </View>
       )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View className="flex-1 justify-center items-center px-4">
+          <View className="absolute inset-0 bg-black/50" />
+
+          <TouchableOpacity
+            className="absolute inset-0"
+            activeOpacity={1}
+            onPress={() => setShowDeleteModal(false)}
+          />
+
+          <View
+            className="w-full bg-white dark:bg-[#111111] rounded-[32px] p-4 shadow-2xl"
+            style={{ elevation: 20 }}
+          >
+            {/* Red Icon Header */}
+            <View
+              className="w-14 h-14 rounded-full items-center justify-center mb-4"
+              style={{ backgroundColor: isDarkMode ? "#3D1A1A" : "#FEE2E2" }}
+            >
+              <HugeiconsIcon icon={Delete03Icon} size={24} color="#EF4444" />
+            </View>
+
+            <Text className="text-[18px] font-dmSemiBold text-black dark:text-white mb-2">
+              Delete this Project
+            </Text>
+            <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191] mb-5 leading-6">
+              Are you sure you want to delete this project?{"\n"}This action is
+              final.
+            </Text>
+
+            <View className="flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 h-[56px] items-center justify-center rounded-2xl border border-[#E5E7EB] dark:border-[#333333]"
+              >
+                <Text className="text-lg font-dmBold text-black dark:text-white">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteProject}
+                className="flex-1 h-[56px] items-center justify-center rounded-2xl bg-[#DF5B5B]"
+              >
+                <Text className="text-lg font-dmBold text-white">Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -508,13 +567,13 @@ const ProjectDetails = () => {
           </View>
 
           {project.description && (
-            <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#F5F5F5]  mb-2">
+            <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#F5F5F5] ">
               {project.description}
             </Text>
           )}
 
           {/* Divider */}
-          <View className="h-[1px] bg-[#F2F2F2] dark:bg-[#2A2A2A]" />
+          <View className="h-[1px] mt-2 bg-[#E0E5EB] dark:bg-[#413E47]" />
 
           {/* Project Details Grid */}
           <View>
