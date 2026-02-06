@@ -19,7 +19,6 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
-  KeyboardAvoidingView,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -33,6 +32,10 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -40,6 +43,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -60,6 +64,12 @@ const ProjectDetails = () => {
   const token = authContext?.token;
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const { bottom } = useSafeAreaInsets();
+
+  /*
+   * Removed NavigationBar logic to prevent native module crash.
+   * Background color space is handled by pure CSS layout now.
+   */
 
   const initialProject: Project = projectParam
     ? JSON.parse(projectParam as string)
@@ -336,7 +346,7 @@ const ProjectDetails = () => {
   );
 
   return (
-    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000000]">
       <StatusBar
         translucent
         backgroundColor="transparent"
@@ -508,9 +518,11 @@ const ProjectDetails = () => {
         </View>
       </Modal>
 
-      <Animated.ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={10}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        bounces={false}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
@@ -565,19 +577,18 @@ const ProjectDetails = () => {
             <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFF" />
           </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setMenuVisible(true)}
-              
-              activeOpacity={0.7}
-              className="absolute top-12 right-4 w-11 h-11 rounded-full z-50 items-center justify-center"
-              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-            >
-              <HugeiconsIcon
-                icon={MoreHorizontalIcon}
-                size={24}
-                color={isDarkMode ? "#FFF" : "#000"}
-              />
-            </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setMenuVisible(true)}
+            activeOpacity={0.7}
+            className="absolute top-12 right-4 w-11 h-11 rounded-full z-50 items-center justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+          >
+            <HugeiconsIcon
+              icon={MoreHorizontalIcon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Main Content Card */}
@@ -596,7 +607,6 @@ const ProjectDetails = () => {
             <Text className="text-[20px] font-dmSemiBold text-black dark:text-white flex-1 mr-4">
               {project.projectName}
             </Text>
-          
           </View>
 
           {project.projectDescription && (
@@ -706,7 +716,7 @@ const ProjectDetails = () => {
 
         <View className="bg-[#FBFCFD] dark:bg-[#000000] px-4">
           {/* Activity Log */}
-          <View className="pt-8 pb-4 ">
+          <View className="pt-8 pb-12 ">
             <Text className="text-xl font-dmBold text-black dark:text-white mb-6">
               Activity Log
             </Text>
@@ -767,7 +777,9 @@ const ProjectDetails = () => {
                       <View className="flex-1">
                         <Text
                           className="text-[14px] font-poppinsMedium"
-                          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+                          style={{
+                            color: isDarkMode ? "#FFFFFF" : "#000000",
+                          }}
                         >
                           {isNote
                             ? "Note Added"
@@ -821,45 +833,54 @@ const ProjectDetails = () => {
             )}
           </View>
         </View>
-      </Animated.ScrollView>
 
-      {/* Add Note Section - Fixed bottom footer */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        {/* Add Note Section - Direct WhatsApp style */}
+      </KeyboardAwareScrollView>
+
+      {/* Add Note Section - KeyboardStickyView */}
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: 0 }} // adjust if needed
       >
         <View
-          className="p-4 rounded-t-[32px] border-x border-t flex-row items-center"
+          className="px-3 py-2 rounded-t-[24px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
           style={{
-            backgroundColor: isDarkMode ? "#121212" : "#FFFFFF",
-            borderColor: isDarkMode ? "#222" : "#E0E5EB",
-            paddingBottom: Platform.OS === "ios" ? 34 : 16,
+            borderTopColor: isDarkMode ? "#222" : "#E0E5EB",
+            paddingBottom: bottom > 0 ? bottom : 0,
           }}
         >
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            placeholder="Write a remark..."
-            placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-            className="flex-1 text-black dark:text-white font-poppins text-[15px] min-h-[45px] max-h-[120px] mr-3"
-            multiline
-            textAlignVertical="center"
-          />
-          {note.trim() ? (
-            <TouchableOpacity
-              onPress={addNote}
-              className="w-11 h-11 rounded-full bg-[#5B4CCC] items-center justify-center shadow-lg"
-              activeOpacity={0.8}
-            >
+          <View className="flex-1 rounded-2xl flex-row items-end   bg-[#F0F3F7] dark:bg-[#1A1A1A]">
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Write a Note..."
+              placeholderTextColor={isDarkMode ? "#9CA3AF" : "#6B7280"}
+              className="flex-1 text-black dark:text-white font-poppins text-[15px]  max-h-[120px]"
+              multiline
+              style={{ paddingBottom: Platform.OS === "ios" ? 4 : 0 }}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={addNote}
+            disabled={!note.trim() || loading}
+            className={`ml-3 w-11 h-11 rounded-full items-center justify-center shadow-lg ${
+              note.trim() ? "bg-[#5B4CCC]" : "bg-[#9CA3AF]"
+            }`}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
               <HugeiconsIcon
                 icon={ArrowRight01Icon}
-                size={22}
+                size={20}
                 color="#FFFFFF"
               />
-            </TouchableOpacity>
-          ) : null}
+            )}
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
+      {/* </KeyboardAvoidingView> was removed */}
     </View>
   );
 };

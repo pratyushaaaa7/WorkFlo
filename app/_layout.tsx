@@ -42,6 +42,7 @@ import {
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import GlobalAvatar from "../components/GlobalAvatar";
@@ -51,10 +52,12 @@ import { useUsageTracking } from "../hooks/useUsageTracking";
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <AppLayout />
-      <Toast config={toastConfig} />
-    </AuthProvider>
+    <KeyboardProvider>
+      <AuthProvider>
+        <AppLayout />
+        <Toast config={toastConfig} />
+      </AuthProvider>
+    </KeyboardProvider>
   );
 }
 
