@@ -81,6 +81,9 @@ const CreateProjectScreen = () => {
         );
         setProjectDescription(p.projectDescription || "");
         setProjectImages(p.projectImages || []);
+        setAssociatedProject(
+          p.associatedProject?._id || p.associatedProject || null,
+        );
       } catch (err) {
         console.error("Failed to fetch project:", err);
         Toast.show({
@@ -123,6 +126,12 @@ const CreateProjectScreen = () => {
   const [companySerialNumber, setCompanySerialNumber] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectImages, setProjectImages] = useState<string[]>([]);
+  const [associatedProject, setAssociatedProject] = useState<string | null>(
+    null,
+  );
+  const [allProjects, setAllProjects] = useState<
+    { label: string; value: string; company: string }[]
+  >([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
@@ -146,6 +155,7 @@ const CreateProjectScreen = () => {
     setCompanySerialNumber("");
     setProjectDescription("");
     setProjectImages([]);
+    setAssociatedProject(null);
   };
 
   const handleDiscard = () => {
@@ -306,6 +316,25 @@ const CreateProjectScreen = () => {
     };
 
     fetchUsers();
+
+    const fetchAllProjects = async () => {
+      if (!token) return;
+      try {
+        const res = await api.get("/projects/list-all", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const projects = res.data.projects.map((p: any) => ({
+          label: p.projectName,
+          value: p._id,
+          company: p.company || "-",
+        }));
+        setAllProjects(projects);
+      } catch (err) {
+        console.error("Failed to fetch projects list:", err);
+      }
+    };
+    fetchAllProjects();
   }, [token]);
 
   const [saving, setSaving] = useState(false);
@@ -392,6 +421,7 @@ const CreateProjectScreen = () => {
         companySerialNumber, // ✅ new field
         projectDescription, // ✅ new field
         projectImages: finalImageUrls, // ✅ Final clean list
+        associatedProject,
       };
 
       if (isEditing) {
@@ -635,6 +665,13 @@ const CreateProjectScreen = () => {
               placeholder="Select Leader(s)"
               search
               searchPlaceholder="Search users..."
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
               value={selectedLeaders}
               onChange={(items) => setSelectedLeaders(items)}
               renderRightIcon={() => (
@@ -696,6 +733,13 @@ const CreateProjectScreen = () => {
               placeholder="Select Member(s)"
               search
               searchPlaceholder="Search users..."
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
               value={selectedMembers}
               onChange={(items) => setSelectedMembers(items)}
               renderRightIcon={() => (
@@ -757,6 +801,13 @@ const CreateProjectScreen = () => {
               placeholder="Select Incharge"
               search
               searchPlaceholder="Search users..."
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
               value={partnerInCharge}
               onChange={(items) => setPartnerInCharge(items)}
               renderRightIcon={() => (
@@ -987,6 +1038,75 @@ const CreateProjectScreen = () => {
             />
           </View>
 
+          {/* Associated Project Dropdown */}
+          <View className="mb-5" style={{ zIndex: 2800 }}>
+            <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
+              Associated Project
+            </Text>
+            <Dropdown
+              style={{
+                height: 52,
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              }}
+              placeholderStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              itemTextStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              data={allProjects}
+              labelField="label"
+              valueField="value"
+              placeholder="Select associated project"
+              search
+              searchPlaceholder="Search projects..."
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              value={associatedProject}
+              onChange={(item) => setAssociatedProject(item.value)}
+              renderItem={(item) => (
+                <View className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                  <Text className="text-[14px] font-poppins text-black dark:text-white">
+                    {item.label}
+                  </Text>
+                  <Text className="text-[11px] font-poppinsRegular text-gray-500">
+                    {item.company}
+                  </Text>
+                </View>
+              )}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
+            />
+          </View>
+
           {/* Web Name */}
           <View className="mb-5">
             <Text className="text-[14px] font-poppinsMedium mb-2 text-[#000000] dark:text-[#FFFFFF]">
@@ -1104,8 +1224,8 @@ const CreateProjectScreen = () => {
                   <View
                     key={index}
                     style={{
-                      width: 100,
-                      height: 100,
+                      width: 90,
+                      height: 90,
                       position: "relative",
                     }}
                   >
@@ -1122,28 +1242,22 @@ const CreateProjectScreen = () => {
                       onPress={() => removeImage(index)}
                       style={{
                         position: "absolute",
-                        top: -6,
-                        right: -6,
-                        backgroundColor: "#FF3B30",
-                        borderRadius: 12,
-                        width: 24,
-                        height: 24,
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "rgba(255, 255, 255, 0.7)",
+                        borderRadius: 14,
+                        width: 22,
+                        height: 22,
                         alignItems: "center",
                         justifyContent: "center",
-                        borderWidth: 2,
-                        borderColor: isDarkMode ? "#000" : "#FFF",
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 4,
-                        elevation: 3,
                       }}
                       activeOpacity={0.8}
                     >
                       <HugeiconsIcon
                         icon={Cancel01Icon}
-                        size={14}
-                        color="#FFF"
+                        size={16}
+                        strokeWidth={3}
+                        color="#000000"
                       />
                     </TouchableOpacity>
                   </View>
