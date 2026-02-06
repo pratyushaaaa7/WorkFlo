@@ -848,7 +848,7 @@ const ProjectDetails = () => {
             paddingBottom: bottom > 0 ? bottom : 0,
           }}
         >
-          <View className="flex-1 rounded-2xl flex-row items-end   bg-[#F0F3F7] dark:bg-[#1A1A1A]">
+          <View className="flex-1 pb-3 rounded-2xl flex-row items-end   bg-[#F0F3F7] dark:bg-[#1A1A1A]">
             <TextInput
               value={note}
               onChangeText={setNote}
@@ -863,7 +863,7 @@ const ProjectDetails = () => {
           <TouchableOpacity
             onPress={addNote}
             disabled={!note.trim() || loading}
-            className={`ml-3 w-11 h-11 rounded-full items-center justify-center shadow-lg ${
+            className={`ml-3 w-11 h-11 mb-2 rounded-full items-center justify-center shadow-lg ${
               note.trim() ? "bg-[#5B4CCC]" : "bg-[#9CA3AF]"
             }`}
             activeOpacity={0.8}
