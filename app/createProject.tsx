@@ -123,6 +123,7 @@ const CreateProjectScreen = () => {
   const [projectDescription, setProjectDescription] = useState("");
   const [projectImages, setProjectImages] = useState<string[]>([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   const resetForm = () => {
     setProjectName("");
@@ -325,13 +326,17 @@ const CreateProjectScreen = () => {
     }
 
     try {
-      // 🔹 Upload images if any
-      const uploadedImagesUrls: string[] = [];
+      setIsUploadingImages(true);
+      const finalImageUrls: string[] = [];
+
       for (const imgUri of projectImages) {
+        // 🔹 If it's already an http link, it's already on cloud (Editing mode)
         if (imgUri.startsWith("http")) {
-          uploadedImagesUrls.push(imgUri);
+          finalImageUrls.push(imgUri);
           continue;
         }
+
+        // 🔹 Upload local file to cloud
         try {
           const formData = new FormData();
           const filename = imgUri.split("/").pop() || "image.jpg";
@@ -348,6 +353,7 @@ const CreateProjectScreen = () => {
             type,
           });
           formData.append("module", "project");
+          if (isEditing) formData.append("referenceId", projectId as string);
 
           const uploadRes = await api.post("/upload", formData, {
             headers: {
@@ -355,13 +361,15 @@ const CreateProjectScreen = () => {
               Authorization: `Bearer ${token}`,
             },
           });
+
           if (uploadRes.data?.file?.url) {
-            uploadedImagesUrls.push(uploadRes.data.file.url);
+            finalImageUrls.push(uploadRes.data.file.url);
           }
-        } catch (uploadErr) {
-          console.error("Failed to upload image:", imgUri, uploadErr);
+        } catch (err) {
+          console.error("Failed to upload image:", imgUri, err);
         }
       }
+      setIsUploadingImages(false);
 
       const payload = {
         company: companyName,
@@ -382,7 +390,7 @@ const CreateProjectScreen = () => {
         partnerInCharge, // ✅ new field
         companySerialNumber, // ✅ new field
         projectDescription, // ✅ new field
-        projectImages: uploadedImagesUrls, // ✅ Use uploaded URLs
+        projectImages: finalImageUrls, // ✅ Final clean list
       };
 
       if (isEditing) {
@@ -1133,7 +1141,7 @@ const CreateProjectScreen = () => {
           >
             <LinearGradient
               colors={
-                saving
+                saving || isUploadingImages
                   ? ["#9CA3AF", "#9CA3AF"]
                   : ["#5B4CCC", "#6347C2", "#8056D1"]
               }
@@ -1145,11 +1153,16 @@ const CreateProjectScreen = () => {
                 justifyContent: "center",
               }}
             >
-              {saving ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+              {saving || isUploadingImages ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text className="text-white font-poppinsMedium text-[16px] ml-2">
+                    {isUploadingImages ? "Uploading..." : "Saving..."}
+                  </Text>
+                </View>
               ) : (
                 <Text className="font-poppins text-[16px] text-[#FFF]">
-                  Save
+                  {isEditing ? "Update Project" : "Create Project"}
                 </Text>
               )}
             </LinearGradient>

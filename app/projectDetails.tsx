@@ -345,7 +345,7 @@ const ProjectDetails = () => {
 
       {/* STICKY HEADER (SPOTIFY STYLE) */}
       <Animated.View
-        className="absolute  top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 flex-row items-center justify-between "
+        className="absolute  top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 pr-5 flex-row items-center justify-between "
         style={[
           {
             backgroundColor: isDarkMode ? "#0D0D0D" : "#FBFCFD",
@@ -376,7 +376,7 @@ const ProjectDetails = () => {
         <TouchableOpacity
           onPress={() => setMenuVisible(true)}
           activeOpacity={0.7}
-          className="ml-2"
+          className="ml-4"
         >
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
@@ -389,7 +389,7 @@ const ProjectDetails = () => {
       {/* FAST MENU OVERLAY */}
       {menuVisible && (
         <View
-          className="absolute top-0 left-0 right-0 bottom-0 z-[100]"
+          className="absolute top-8 left-0 right-0 bottom-0 z-[100]"
           pointerEvents="box-none"
         >
           <Pressable
@@ -397,7 +397,7 @@ const ProjectDetails = () => {
             onPress={() => setMenuVisible(false)}
           />
           <View
-            className="absolute top-16 right-4 bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+            className="absolute top-16 right-3 bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
             style={{
               elevation: 25,
               shadowColor: "#000",
@@ -558,12 +558,26 @@ const ProjectDetails = () => {
           {/* Overlay Back Button */}
           <TouchableOpacity
             onPress={() => router.back()}
-            className="absolute top-12 left-5 w-11 h-11 rounded-full items-center justify-center"
+            className="absolute top-12 left-4 w-11 h-11 rounded-full items-center justify-center"
             style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
             activeOpacity={0.8}
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFF" />
           </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setMenuVisible(true)}
+              
+              activeOpacity={0.7}
+              className="absolute top-12 right-4 w-11 h-11 rounded-full z-50 items-center justify-center"
+              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+            >
+              <HugeiconsIcon
+                icon={MoreHorizontalIcon}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            </TouchableOpacity>
         </View>
 
         {/* Main Content Card */}
@@ -582,16 +596,7 @@ const ProjectDetails = () => {
             <Text className="text-[20px] font-dmSemiBold text-black dark:text-white flex-1 mr-4">
               {project.projectName}
             </Text>
-            <TouchableOpacity
-              onPress={() => setMenuVisible(true)}
-              activeOpacity={0.7}
-            >
-              <HugeiconsIcon
-                icon={MoreHorizontalIcon}
-                size={24}
-                color={isDarkMode ? "#FFF" : "#000"}
-              />
-            </TouchableOpacity>
+          
           </View>
 
           {project.projectDescription && (
