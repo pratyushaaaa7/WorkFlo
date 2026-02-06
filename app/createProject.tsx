@@ -184,7 +184,25 @@ const CreateProjectScreen = () => {
 
     if (!result.canceled) {
       const selectedUris = result.assets.map((asset: any) => asset.uri);
-      setProjectImages((prev) => [...prev, ...selectedUris]);
+      const totalImages = projectImages.length + selectedUris.length;
+
+      if (totalImages > 5) {
+        Toast.show({
+          type: "error",
+          text1: "Limit Exceeded",
+          text2: "You can only upload up to 5 images.",
+          position: "bottom",
+        });
+
+        // Optionally add only up to the limit
+        const remainingSlots = 5 - projectImages.length;
+        if (remainingSlots > 0) {
+          const allowedUris = selectedUris.slice(0, remainingSlots);
+          setProjectImages((prev) => [...prev, ...allowedUris]);
+        }
+      } else {
+        setProjectImages((prev) => [...prev, ...selectedUris]);
+      }
     }
   };
 
@@ -1198,9 +1216,14 @@ const CreateProjectScreen = () => {
 
           {/* Images Option */}
           <View className="mb-10 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[20px] p-3 justify-center">
-            <Text className="text-[14px] font-poppinsMedium text-left mb-2 text-[#000000] dark:text-[#FFFFFF]">
-              Images
-            </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-[14px] font-poppinsMedium text-[#000000] dark:text-[#FFFFFF]">
+                Images
+              </Text>
+              <Text className="text-[11px] font-poppins text-gray-500 dark:text-gray-400">
+                (Max 5 images)
+              </Text>
+            </View>
             <View className="bg-white dark:bg-[#0D0D0D] rounded-[16px] p-6 w-full items-center">
               <TouchableOpacity
                 onPress={pickImages}
