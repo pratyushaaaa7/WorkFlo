@@ -29,6 +29,8 @@ import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
+const TABS = ["ALL", "WP", "WALL", "WCORP"];
+
 const ProjectsScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
@@ -41,6 +43,7 @@ const ProjectsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [activeTab, setActiveTab] = useState("ALL");
 
   const fetchAssignedProjects = async () => {
     try {
@@ -67,8 +70,21 @@ const ProjectsScreen = () => {
   useEffect(() => {
     if (token) {
       fetchAssignedProjects();
+      // Pre-select tab based on user company from stored user object
+      const userCompany = auth?.user?.company?.toUpperCase();
+      if (userCompany === "WP" || userCompany === "WProjects") {
+        setActiveTab("WP");
+      } else if (userCompany === "WAL+L" || userCompany === "WALL") {
+        setActiveTab("WALL");
+      }
+      else if (userCompany === "WCORP" || userCompany === "WCorp") {
+        setActiveTab("WCORP");
+      }
+       else if (userCompany && TABS.includes(userCompany)) {
+        setActiveTab(userCompany);
+      }
     }
-  }, [token]);
+  }, [token, auth?.user]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -76,53 +92,81 @@ const ProjectsScreen = () => {
   };
 
   const filteredProjects = useMemo(() => {
-    if (!searchQuery.trim()) return projects;
-    const query = searchQuery.toLowerCase();
-    return projects.filter((p) => {
-      const nameMatch = p.projectName?.toLowerCase().includes(query);
-      const fileMatch = String(p.fileNumber || "")
-        .toLowerCase()
-        .includes(query);
-      return nameMatch || fileMatch;
-    });
-  }, [projects, searchQuery]);
+    let list = projects;
+
+    // Filter by Company Tab
+    if (activeTab !== "ALL") {
+      list = list.filter((p) => {
+        const pCompany = p.company?.toUpperCase();
+        if (activeTab === "WALL") {
+          return pCompany === "WALL" || pCompany === "WAL+L";
+        }
+        if (activeTab === "WP") {
+          return pCompany === "WP" || pCompany === "WPROJECTS";
+        }
+        return pCompany === activeTab;
+      });
+    }
+
+    // Filter by Search Query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      list = list.filter((p) => {
+        const nameMatch = p.projectName?.toLowerCase().includes(query);
+        const fileMatch = String(p.fileNumber || "")
+          .toLowerCase()
+          .includes(query);
+        const descMatch = (p.description || p.projectDescription || "")
+          .toLowerCase()
+          .includes(query);
+        return nameMatch || fileMatch || descMatch;
+      });
+    }
+
+    return list;
+  }, [projects, searchQuery, activeTab]);
 
   const getStatusStyles = (status: string) => {
     const s = status?.toLowerCase();
     switch (s) {
       case "active":
         return {
-          bg: isDarkMode ? "#282446" : "#D7DEF2",
-          text: isDarkMode ? "#9486FB" : "#5B4CCC",
+          bg: isDarkMode ? "bg-[#282446]" : "bg-[#D7DEF2]",
+          text: isDarkMode ? "text-[#9486FB]" : "text-[#5B4CCC]",
+          iconColor: isDarkMode ? "#9486FB" : "#5B4CCC",
           icon: DashedLineCircleIcon,
           label: "Active",
         };
       case "bd":
         return {
-          bg: isDarkMode ? "#101F40" : "#E8F0FF",
-          text: "#2F76E6",
+          bg: isDarkMode ? "bg-[#101F40]" : "bg-[#E8F0FF]",
+          text: "text-[#2F76E6]",
+          iconColor: "#2F76E6",
           icon: Progress03Icon,
           label: "B.D",
         };
       case "inactive":
       case "in-active":
         return {
-          bg: isDarkMode ? "#3A1E11" : "#FFEFE5",
-          text: "#E6762F",
+          bg: isDarkMode ? "bg-[#3A1E11]" : "bg-[#FFEFE5]",
+          text: "text-[#E6762F]",
+          iconColor: "#E6762F",
           icon: UnavailableIcon,
           label: "In-Active",
         };
       case "closed":
         return {
-          bg: isDarkMode ? "#122E25" : "#E8F9ED",
-          text: "#1AA45B",
+          bg: isDarkMode ? "bg-[#122E25]" : "bg-[#E8F9ED]",
+          text: "text-[#1AA45B]",
+          iconColor: "#1AA45B",
           icon: CheckmarkCircle02Icon,
           label: "Closed",
         };
       default:
         return {
-          bg: isDarkMode ? "#1F1F1F" : "#F3F4F6",
-          text: "#6B7280",
+          bg: isDarkMode ? "bg-[#1F1F1F]" : "bg-[#F3F4F6]",
+          text: "text-[#6B7280]",
+          iconColor: "#6B7280",
           icon: UnavailableIcon,
           label: status || "Unknown",
         };
@@ -157,24 +201,22 @@ const ProjectsScreen = () => {
           })
         }
         activeOpacity={0.7}
-        className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-3 mb-4 shadow-sm border border-gray-100 dark:border-zinc-800 mx-4"
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-zinc-800 mx-4"
       >
         {/* Card Header: Badges & Date */}
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2">
             {/* Status Badge */}
             <View
-              className="flex-row items-center px-2 py-1 rounded-full"
-              style={{ backgroundColor: statusStyle.bg }}
+              className={`flex-row items-center px-2 py-1 rounded-full ${statusStyle.bg}`}
             >
               <HugeiconsIcon
                 icon={statusStyle.icon}
                 size={14}
-                color={statusStyle.text}
+                color={statusStyle.iconColor}
               />
               <Text
-                className="text-[10px] font-poppinsMedium ml-1 uppercase"
-                style={{ color: statusStyle.text }}
+                className={`text-[11px] font-poppinsMedium ml-1 uppercase ${statusStyle.text}`}
               >
                 {statusStyle.label}
               </Text>
@@ -182,7 +224,7 @@ const ProjectsScreen = () => {
 
             {/* File Number Badge */}
             <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-2 py-1 rounded-full">
-              <Text className="text-[#454545] dark:text-[#BBBBBB] text-[10px] font-poppinsMedium">
+              <Text className="text-[#454545] dark:text-[#BBBBBB] text-[11px] font-poppinsMedium">
                 File No: {item.fileNumber || "—"}
               </Text>
             </View>
@@ -200,7 +242,7 @@ const ProjectsScreen = () => {
         </View>
 
         {/* Project Name & Description */}
-        <Text className="text-black dark:text-white text-lg font-poppinsSemiBold mb-1 leading-6">
+        <Text className="text-black dark:text-white text-lg font-dmMedium mb-1 leading-6">
           {item.projectName}
         </Text>
         <Text
@@ -221,13 +263,13 @@ const ProjectsScreen = () => {
               index={index}
               size={34}
               fontSize={11}
-              className={`border-2 border-white dark:border-[#1A1A1A] ${
+              className={`border-2 border-[#F0F3F7] dark:border-[#1A1A1A] ${
                 index > 0 ? "-ml-3" : ""
               }`}
             />
           ))}
           {item.teamLeaders?.length + item.teamMembers?.length > 6 && (
-            <View className="bg-gray-100 dark:bg-zinc-800 rounded-full w-[34px] h-[34px] items-center justify-center border-2 border-white dark:border-[#1A1A1A] -ml-3">
+            <View className="bg-gray-100 dark:bg-zinc-800 rounded-full w-[34px] h-[34px] items-center justify-center border-2 border-[#F0F3F7] dark:border-[#1A1A1A] -ml-3">
               <Text className="text-[10px] text-gray-500 font-poppinsMedium">
                 +
                 {(item.teamLeaders?.length || 0) +
@@ -250,31 +292,27 @@ const ProjectsScreen = () => {
       />
 
       {/* FIXED TOP HEADER */}
-      <View className="pt-16 px-4 pb-4 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => (navigation as any).openDrawer()}>
-              <HugeiconsIcon
-                icon={Menu02Icon}
-                size={24}
-                color={isDarkMode ? "#FFFFFF" : "#454545"}
-              />
-            </TouchableOpacity>
-            <Text className="text-gray-900 dark:text-white text-xl font-bold ml-4">
-              My Projects{" "}
-              <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
-                ({projects.length})
-              </Text>
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+      <View className="flex-row items-center justify-between px-4 pb-3 pt-16 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => (navigation as any).openDrawer()}>
             <HugeiconsIcon
-              icon={showSearch ? Cancel01Icon : Search01Icon}
+              icon={Menu02Icon}
               size={24}
-              color={isDarkMode ? "#FFFFFF" : "#454545"}
+              color={isDarkMode ? "#FFFFFF" : "#000000"}
             />
           </TouchableOpacity>
+          <Text className="text-xl font-dmBold text-black dark:text-white ml-4">
+            My Projects
+          </Text>
         </View>
+
+        <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+          <HugeiconsIcon
+            icon={showSearch ? Cancel01Icon : Search01Icon}
+            size={24}
+            color={isDarkMode ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* ANIMATED SEARCH BAR */}
@@ -285,9 +323,9 @@ const ProjectsScreen = () => {
             animate={{ opacity: 1, translateY: 0 }}
             exit={{ opacity: 0, translateY: -10 }}
             transition={{ type: "timing", duration: 250 }}
-            className="px-4 pb-4"
+            className="px-4 pb-2"
           >
-            <View className="flex-row items-center bg-white dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333] ">
+            <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333] ">
               <HugeiconsIcon
                 icon={Search01Icon}
                 size={18}
@@ -314,6 +352,44 @@ const ProjectsScreen = () => {
           </MotiView>
         )}
       </AnimatePresence>
+
+      {/* COMPANY TABS */}
+      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#333]">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              className={`py-2 px-2 border-b-2 flex-1 items-center ${
+                isActive ? "border-[#5B4CCC]" : "border-transparent"
+              }`}
+            >
+              <Text
+                className={`font-poppinsMedium text-sm ${
+                  isActive
+                    ? "text-[#5B4CCC]"
+                    : isDarkMode
+                      ? "text-[#BBBBBB]"
+                      : "text-[#454545]"
+                }`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Project Count */}
+      <View className="px-4 pt-4 pb-2">
+        <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
+          Projects{" "}
+          <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
+            ({filteredProjects.length})
+          </Text>
+        </Text>
+      </View>
 
       <FlatList
         data={filteredProjects}

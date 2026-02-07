@@ -48,6 +48,7 @@ export default function LoginScreen() {
       //   JSON.stringify(response.data.user, null, 2)
       // ); // 🔍 Detailed user inspection
       const { token, user } = response.data;
+      // console.log("User object from API:", JSON.stringify(user, null, 2));
       await login(token, user);
 
       Toast.show({

@@ -16,6 +16,7 @@ type User = {
   role: string;
   fullName: string;
   employeeCode?: number;
+  company?: string;
   designation?: string;
 };
 
