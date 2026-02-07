@@ -12,9 +12,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { AnimatePresence, MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   RefreshControl,
@@ -30,6 +30,74 @@ import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
 const TABS = ["ALL", "WP", "WALL", "WCORP"];
+
+const ProjectSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-zinc-800 mx-4"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row items-center gap-2">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={60}
+          height={20}
+          radius="round"
+        />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={80}
+          height={20}
+          radius="round"
+        />
+      </View>
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={70}
+        height={16}
+        radius={4}
+      />
+    </View>
+    <View className="mb-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="70%"
+        height={24}
+        radius={8}
+      />
+    </View>
+    <View className="mb-4">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="100%"
+        height={16}
+        radius={4}
+      />
+      <View className="mt-1">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="60%"
+          height={16}
+          radius={4}
+        />
+      </View>
+    </View>
+    <View className="flex-row items-center">
+      <View className="flex-row">
+        {[1, 2, 3].map((i) => (
+          <View key={i} style={{ marginLeft: i > 1 ? -12 : 0 }}>
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={34}
+              height={34}
+              radius="round"
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  </View>
+);
 
 const ProjectsScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
@@ -76,11 +144,9 @@ const ProjectsScreen = () => {
         setActiveTab("WP");
       } else if (userCompany === "WAL+L" || userCompany === "WALL") {
         setActiveTab("WALL");
-      }
-      else if (userCompany === "WCORP" || userCompany === "WCorp") {
+      } else if (userCompany === "WCORP" || userCompany === "WCorp") {
         setActiveTab("WCORP");
-      }
-       else if (userCompany && TABS.includes(userCompany)) {
+      } else if (userCompany && TABS.includes(userCompany)) {
         setActiveTab(userCompany);
       }
     }
@@ -435,11 +501,10 @@ const ProjectsScreen = () => {
               </Text>
             </View>
           ) : (
-            <View className="flex-1 items-center justify-center pt-20">
-              <ActivityIndicator size="large" color="#5B4CCC" />
-              <Text className="mt-4 text-gray-500 font-poppinsMedium">
-                Loading projects...
-              </Text>
+            <View className="pt-2">
+              {[1, 2, 3].map((i) => (
+                <ProjectSkeleton key={i} isDarkMode={isDarkMode} />
+              ))}
             </View>
           )
         }
