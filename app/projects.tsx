@@ -420,15 +420,17 @@ const ProjectsScreen = () => {
       </AnimatePresence>
 
       {/* COMPANY TABS */}
-      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#333]">
+      <View className="flex-row items-center pt-1 justify-between pb-0">
         {TABS.map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveTab(tab)}
-              className={`py-2 px-2 border-b-2 flex-1 items-center ${
-                isActive ? "border-[#5B4CCC]" : "border-transparent"
+              className={`py-2 px-2 border-b flex-1 items-center ${
+                isActive
+                  ? "border-[#5B4CCC] dark:border-[#5B4CCC]"
+                  : "border-[#E0E5EE] dark:border-[#63615F]"
               }`}
             >
               <Text
