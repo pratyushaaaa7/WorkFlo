@@ -99,7 +99,7 @@ function AppLayout() {
       },
       {
         name: "projects",
-        label: "Projects",
+        label: "My Projects",
         icon: ({ color, size }: any) => (
           <HugeiconsIcon icon={File02Icon} size={size} color={color} />
         ),
@@ -424,6 +424,7 @@ function AppLayout() {
                 item.name === "usage" ||
                 item.name === "appSupport" ||
                 item.name === "centralUserDirectory" ||
+                item.name === "projects" ||
                 item.name === "centralEmployeeDirectory" ||
                 item.name === "masterProjectList"
                   ? false
