@@ -179,7 +179,7 @@ function AppLayout() {
     const inAuthGroup = segments[0] === "(auth)";
 
     if (isAuthenticated && inAuthGroup) {
-      router.replace("/projects");
+      router.replace("/dashboard");
     }
   }, [authLoading, isAuthenticated, segments]);
 
