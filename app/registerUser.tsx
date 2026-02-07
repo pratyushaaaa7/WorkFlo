@@ -2,6 +2,7 @@ import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowUp01Icon,
+  Calendar04Icon,
   Cancel01Icon,
   PlusSignCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -24,6 +25,7 @@ import {
   View,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather";
 import { AuthContext } from "../context/AuthContext";
@@ -49,6 +51,7 @@ const RegisterUserScreen = () => {
   const isDarkMode = colorScheme === "dark";
   const authContext = useContext(AuthContext);
   const token = authContext?.token;
+  const { bottom } = useSafeAreaInsets();
 
   const { userId, educationData, experienceData } = useLocalSearchParams();
   const router = useRouter();
@@ -139,7 +142,7 @@ const RegisterUserScreen = () => {
   ];
 
   const companyOptions = [
-    { label: "WAL+L", value: "WAL+L" },
+    { label: "WALL", value: "WAL+L" },
     { label: "WProjects", value: "WP" },
     { label: "WCorp", value: "WCorp" },
   ];
@@ -542,8 +545,8 @@ const RegisterUserScreen = () => {
               value={fullName}
               onChangeText={setFullName}
               placeholder="Enter Full Name"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -556,11 +559,11 @@ const RegisterUserScreen = () => {
               value={about}
               onChangeText={setAbout}
               placeholder="Give a brief description"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               multiline
               numberOfLines={8}
               textAlignVertical="top"
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] px-4 py-3 text-black dark:text-white font-poppins text-[14px]"
               style={{ minHeight: 150 }}
             />
           </View>
@@ -578,31 +581,40 @@ const RegisterUserScreen = () => {
               value={selectedCompany}
               onChange={(item) => setSelectedCompany(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -615,8 +627,8 @@ const RegisterUserScreen = () => {
               value={designation}
               onChangeText={setDesignation}
               placeholder="e.g. Software Engineer"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -634,9 +646,9 @@ const RegisterUserScreen = () => {
                 setTotalExperience(val.replace(/[^0-9]/g, ""))
               }
               placeholder="e.g. 5"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               keyboardType="numeric"
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -649,9 +661,9 @@ const RegisterUserScreen = () => {
               value={employeeCode}
               onChangeText={setEmployeeCode}
               placeholder="Enter number"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               keyboardType="numeric"
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -664,9 +676,8 @@ const RegisterUserScreen = () => {
               value={username}
               onChangeText={setUsername}
               placeholder="e.g. W001"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
-              // autoCapitalize="none"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -680,9 +691,8 @@ const RegisterUserScreen = () => {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter password"
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                // secureTextEntry
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+                placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
               />
             </View>
           )}
@@ -700,31 +710,40 @@ const RegisterUserScreen = () => {
               value={status}
               onChange={(item) => setStatus(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -741,31 +760,40 @@ const RegisterUserScreen = () => {
               value={level}
               onChange={(item) => setLevel(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -782,31 +810,40 @@ const RegisterUserScreen = () => {
               value={role}
               onChange={(item) => setRole(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -825,31 +862,47 @@ const RegisterUserScreen = () => {
               value={reportingTo}
               onChange={(item) => setReportingTo(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -868,31 +921,47 @@ const RegisterUserScreen = () => {
               value={secondaryReportingTo}
               onChange={(item) => setSecondaryReportingTo(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -905,9 +974,9 @@ const RegisterUserScreen = () => {
               value={email}
               onChangeText={setEmail}
               placeholder="Enter official email"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               keyboardType="email-address"
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -920,9 +989,9 @@ const RegisterUserScreen = () => {
               value={personalEmail}
               onChangeText={setPersonalEmail}
               placeholder="Enter personal email"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               keyboardType="email-address"
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -944,10 +1013,10 @@ const RegisterUserScreen = () => {
                     setContactNumbers(newNumbers);
                   }}
                   placeholder="Enter contact number"
-                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                  placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                   keyboardType="phone-pad"
                   maxLength={10}
-                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 pr-12 py-3 text-black dark:text-white font-poppins"
+                  className="h-[52px] rounded-[16px] px-4 pr-12 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
                 />
                 {contactNumbers.length > 1 && (
                   <TouchableOpacity
@@ -993,8 +1062,8 @@ const RegisterUserScreen = () => {
               maxLength={10}
               onChangeText={setEmergencyContact}
               placeholder="Enter emergency contact"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1005,24 +1074,30 @@ const RegisterUserScreen = () => {
             </Text>
             <TouchableOpacity
               onPress={() => setShowJoinPicker(true)}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
+              activeOpacity={0.7}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
             >
-              <Icon
-                name="calendar"
-                size={18}
-                color={isDarkMode ? "#606060" : "#9CA3AF"}
-              />
               <Text
-                className={`ml-2 font-poppins ${
-                  joiningDate
-                    ? "text-black dark:text-white"
-                    : "text-[#9CA3AF] dark:text-[#606060]"
-                }`}
+                className="font-poppins text-[14px]"
+                style={{
+                  color: joiningDate
+                    ? isDarkMode
+                      ? "#FFFFFF"
+                      : "#000000"
+                    : isDarkMode
+                      ? "#919191"
+                      : "#454545",
+                }}
               >
                 {joiningDate
                   ? joiningDate.toDateString()
                   : "Select Joining date"}
               </Text>
+              <HugeiconsIcon
+                icon={Calendar04Icon}
+                size={20}
+                color={isDarkMode ? "#919191" : "#454545"}
+              />
             </TouchableOpacity>
             {showJoinPicker && (
               <DateTimePicker
@@ -1046,22 +1121,28 @@ const RegisterUserScreen = () => {
             </Text>
             <TouchableOpacity
               onPress={() => setShowBirthPicker(true)}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 flex-row items-center"
+              activeOpacity={0.7}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
             >
-              <Icon
-                name="calendar"
-                size={18}
-                color={isDarkMode ? "#606060" : "#9CA3AF"}
-              />
               <Text
-                className={`ml-2 font-poppins ${
-                  birthDate
-                    ? "text-black dark:text-white"
-                    : "text-[#9CA3AF] dark:text-[#606060]"
-                }`}
+                className="font-poppins text-[14px]"
+                style={{
+                  color: birthDate
+                    ? isDarkMode
+                      ? "#FFFFFF"
+                      : "#000000"
+                    : isDarkMode
+                      ? "#919191"
+                      : "#454545",
+                }}
               >
                 {birthDate ? birthDate.toDateString() : "Select birth date"}
               </Text>
+              <HugeiconsIcon
+                icon={Calendar04Icon}
+                size={20}
+                color={isDarkMode ? "#919191" : "#454545"}
+              />
             </TouchableOpacity>
             {showBirthPicker && (
               <DateTimePicker
@@ -1091,31 +1172,40 @@ const RegisterUserScreen = () => {
               value={gender}
               onChange={(item) => setGender(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
           </View>
 
@@ -1128,8 +1218,8 @@ const RegisterUserScreen = () => {
               value={fatherName}
               onChangeText={setFatherName}
               placeholder="Enter father's name"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1142,8 +1232,8 @@ const RegisterUserScreen = () => {
               value={motherName}
               onChangeText={setMotherName}
               placeholder="Enter mother's name"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1160,31 +1250,40 @@ const RegisterUserScreen = () => {
               value={maritalStatus}
               onChange={(item) => setMaritalStatus(item.value)}
               style={{
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
-                paddingVertical: 12,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#606060" : "#9CA3AF",
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#FFF" : "#000",
                 fontFamily: "Poppins_400Regular",
-              }}
-              containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#fff",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               itemTextStyle={{
-                color: isDarkMode ? "#FFF" : "#000",
+                fontSize: 14,
                 fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              activeColor={isDarkMode ? "#252525" : "#E0E7FF"}
-              iconColor="#919191"
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              )}
             />
             {maritalStatus === "Married" && (
               <View className="mt-4">
@@ -1195,8 +1294,8 @@ const RegisterUserScreen = () => {
                   placeholder="Enter spouse name"
                   value={spouseName}
                   onChangeText={setSpouseName}
-                  placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+                  placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                  className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
                 />
               </View>
             )}
@@ -1212,8 +1311,8 @@ const RegisterUserScreen = () => {
               onChangeText={setHomeAddress}
               multiline
               placeholder="Enter Home Address"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] px-4 py-3 text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1226,8 +1325,8 @@ const RegisterUserScreen = () => {
               value={bloodGroup}
               onChangeText={setBloodGroup}
               placeholder="Enter Blood Group"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1242,8 +1341,8 @@ const RegisterUserScreen = () => {
               maxLength={12}
               onChangeText={setAadhar}
               placeholder="Enter aadhar number"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1256,8 +1355,8 @@ const RegisterUserScreen = () => {
               value={pan}
               onChangeText={setPan}
               placeholder="Enter PAN number"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
             />
           </View>
 
@@ -1270,8 +1369,8 @@ const RegisterUserScreen = () => {
               value={keyStrengthInput}
               onChangeText={setKeyStrengthInput}
               placeholder="Add multiple strengths"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px] mb-3"
               onSubmitEditing={() => {
                 if (keyStrengthInput.trim()) {
                   setKeyStrength([...keyStrength, keyStrengthInput.trim()]);
@@ -1319,8 +1418,8 @@ const RegisterUserScreen = () => {
               value={languageInput}
               onChangeText={setLanguageInput}
               placeholder="e.g. English"
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-3 text-black dark:text-white font-poppins mb-3"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px] mb-3"
               onSubmitEditing={() => {
                 if (languageInput.trim()) {
                   setLanguages([...languages, languageInput.trim()]);
@@ -1632,10 +1731,13 @@ const RegisterUserScreen = () => {
         </ScrollView>
       </KeyboardAvoidingView>
       {/* Bottom Action Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 py-4 pb-12 flex-row gap-3">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 pt-4 flex-row gap-3 border-t border-gray-100 dark:border-[#252525]"
+        style={{ paddingBottom: Math.max(bottom, 20) }}
+      >
         <TouchableOpacity
           onPress={() => setShowCancelModal(true)}
-          className="flex-1 bg-transparent border border-[#BBB] dark:border-[#5F5F5F] rounded-xl py-4 items-center"
+          className="flex-1 bg-transparent border border-[#BBB] dark:border-[#333] rounded-xl py-4 items-center"
         >
           <Text className="text-[#777777] dark:text-[#919191] font-poppinsMedium text-base">
             Cancel
@@ -1644,20 +1746,19 @@ const RegisterUserScreen = () => {
         <TouchableOpacity
           onPress={handleRegister}
           disabled={loading}
-          className="flex-1"
+          className="flex-1 rounded-xl"
+          // style={{ borderRadius: 20 }}
         >
           <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+            colors={["#5B4CCC", "#4539A0"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            locations={[0, 0.5183, 1]}
-            className="rounded-xl py-4 items-center"
-            style={{ borderRadius: 12 }}
+            className=" py-4 items-center shadow-lg"
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white font-poppinsMedium text-base">
+              <Text className="text-white font-poppinsSemiBold text-base">
                 {userId ? "Update" : "Register"}
               </Text>
             )}
