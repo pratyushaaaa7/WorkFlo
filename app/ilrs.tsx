@@ -1,57 +1,73 @@
-import React, { useEffect, useState, useContext } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  TextInput,
-  Platform,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
-import { LinearGradient } from "expo-linear-gradient";
-// import Toast from "react-native-toast-message";
-import Activity from "@/types/ILRActivity";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import * as FileSystem from "expo-file-system"; // for mobile download
-import * as Sharing from "expo-sharing";
 import { useILRFilterStore } from "@/store/ilrFilterStore";
-
-// import { exportILRsToExcel } from "../utils/ilrExcel";
+import Activity from "@/types/ILRActivity";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  Calendar03Icon,
+  MoreHorizontalIcon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { AnimatePresence, MotiView } from "moti";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  SectionList,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 type ILR = {
   _id: string;
-  ilrNumber: number; // 👈 add here
+  ilrNumber: number;
   description: string;
   targetDate: string;
   remarks: string;
-  activities?: Activity[]; // 👈 add this
-  responsibility: {
+  activities?: Activity[];
+  responsibility?: {
     _id: string;
     individualName: string;
     designation: string;
     firmName: string;
     name: string;
   }[];
-
-  status: "Open" | "Closed";
-  createdBy: { _id: string; username: string; fullName: string }; // 👈 add this
-  createdAt: string; // 👈 add this
-  updatedAt: string; // 👈 add this
-  delayDays?: number; // 👈 add this
+  status: "Open" | "Closed" | "In Progress";
+  createdBy?: { _id: string; username: string; fullName: string };
+  createdAt: string;
+  updatedAt: string;
+  delayDays?: number;
+  overdueDays?: number;
 };
 
 const ILRs = () => {
   const router = useRouter();
-  const { projectId, projectName, company } = useLocalSearchParams();
+  const { projectId, projectName } = useLocalSearchParams();
   const auth = useContext(AuthContext);
   const token = auth?.token;
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   const [ilrs, setIlrs] = useState<ILR[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+
+  const {
+    filter,
+    searchQuery,
+    startDate,
+    endDate,
+    setFilter,
+    setSearchQuery,
+    reset,
+  } = useILRFilterStore();
 
   useEffect(() => {
     const fetchILRs = async () => {
@@ -62,8 +78,6 @@ const ILRs = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIlrs(res.data);
-        // console.log(res.data)
-        // console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -74,548 +88,373 @@ const ILRs = () => {
     fetchILRs();
   }, [token, projectId]);
 
-  const handleDownloadExcel = async () => {
-    if (!parsedILRs || parsedILRs.length === 0) return;
+  const sections = useMemo(() => {
+    const filtered = ilrs.filter((ilr) => {
+      if (filter !== "  All  " && ilr.status !== filter) return false;
 
-    try {
-      setIsDownloadingExcel(true);
+      const target = new Date(ilr.targetDate);
+      if (startDate && target < new Date(startDate)) return false;
+      if (endDate && target > new Date(endDate)) return false;
 
-      const payload = {
-        // ilrs: parsedILRs,
-        ilrs: ilrsToDownload, // 👈 CHANGED
-        projectName,
-        accountName: auth?.user?.fullName,
-        company,
-      };
-
-      const response = await api.post("/ilrs/ilrs-download", payload, {
-        responseType: "blob",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const fileName = `ILRs_${projectName}.xlsx`;
-
-      if (Platform.OS === "web") {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else {
-        const blobToBase64 = (blob: Blob) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () =>
-              resolve(reader.result?.toString().split(",")[1] || "");
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-
-        const base64data = await blobToBase64(response.data);
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        await Sharing.shareAsync(fileUri, {
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          dialogTitle: "Share ILRs Excel",
-          UTI: "com.microsoft.excel.xlsx",
-        });
-      }
-    } catch (err) {
-      console.error("Failed to download Excel:", err);
-      alert("Failed to download Excel");
-    } finally {
-      setIsDownloadingExcel(false);
-    }
-  };
-
-  // Inside your ILRs component
-
-  // const [filter, setFilter] = useState<"All" | "Open" | "Closed">("All"); // 👈 filter state
-  // const [searchQuery, setSearchQuery] = useState("");
-  // const [startDate, setStartDate] = useState<Date | null>(null);
-  // const [endDate, setEndDate] = useState<Date | null>(null);
-
-  const {
-    filter,
-    searchQuery,
-    startDate,
-    endDate,
-    setFilter,
-    setSearchQuery,
-    setStartDate,
-    setEndDate,
-    reset,
-  } = useILRFilterStore();
-
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-
-  const [reviewDate, setReviewDate] = useState<Date | null>(null);
-  const [showReviewPicker, setShowReviewPicker] = useState(false);
-
-  const filteredILRs = ilrs.filter((ilr) => {
-    // 1 Filter by status
-    if (filter !== "All" && ilr.status !== filter) return false;
-
-    // 2 Review Date (UPDATED ON)
-    if (reviewDate) {
-      const updated = new Date(ilr.updatedAt);
-      if (updated.toDateString() !== reviewDate.toDateString()) return false;
-    }
-
-    // 3 Filter by date range
-    const target = new Date(ilr.targetDate);
-    if (startDate && target < startDate) return false;
-    if (endDate && target > endDate) return false;
-
-    // 4 Filter by search query
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const responsibilityMatch = ilr.responsibility.some((r) =>
-        (r.name || "").toLowerCase().includes(q)
-      );
-      const descriptionMatch = ilr.description.toLowerCase().includes(q);
-      // Add more fields if needed, like ilrNumber
-      const ilrNumberMatch = ilr.ilrNumber.toString().includes(q);
-
-      if (!responsibilityMatch && !descriptionMatch && !ilrNumberMatch)
-        return false;
-    }
-
-    return true; // keep this ILR
-  });
-
-  const parsedILRs = filteredILRs.map((ilr) => ({
-    ...ilr,
-    responsibility: ilr.responsibility.map((r) => ({
-      ...r,
-      individualName: r.name || "", // 👈 map "name" into "individualName"
-    })),
-    activities:
-      typeof ilr.activities === "string"
-        ? JSON.parse(ilr.activities)
-        : ilr.activities || [],
-  }));
-
-  // State to track PDF download
-  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
-  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false);
-
-  const handleDownloadILRsPDF = async () => {
-    if (!ilrs || ilrs.length === 0) return;
-
-    try {
-      setIsDownloadingPDF(true);
-
-      const payload = {
-        // ilrs: parsedILRs,
-        ilrs: ilrsToDownload, // 👈 CHANGED
-        projectName,
-        accountName: auth?.user?.fullName ?? "Unknown",
-        company,
-      };
-
-      const response = await api.post("/ilrs/ilrs-download/pdf", payload, {
-        responseType: "blob",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const fileName = `ILRs_${projectName}.pdf`;
-
-      if (Platform.OS === "web") {
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: "application/pdf" })
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const descMatch = ilr.description?.toLowerCase().includes(q);
+        const numMatch = String(ilr.ilrNumber).includes(q);
+        const responsibilityMatch = (ilr.responsibility || []).some((r) =>
+          (r.name || r.individualName || "").toLowerCase().includes(q),
         );
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else {
-        const blobToBase64 = (blob: Blob) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () =>
-              resolve(reader.result?.toString().split(",")[1] || "");
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-
-        const base64data = await blobToBase64(response.data);
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        await Sharing.shareAsync(fileUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Share ILRs PDF",
-          UTI: "com.adobe.pdf",
-        });
+        if (!descMatch && !numMatch && !responsibilityMatch) return false;
       }
-    } catch (err) {
-      console.error("Failed to download ILRs PDF:", err);
-      alert("Failed to download ILRs PDF");
-    } finally {
-      setIsDownloadingPDF(false);
+      return true;
+    });
+
+    const sorted = [...filtered].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    const groups: { [key: string]: ILR[] } = {};
+    sorted.forEach((item) => {
+      const date = new Date(item.createdAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(item);
+    });
+
+    return Object.keys(groups).map((date) => ({
+      title: date,
+      data: groups[date],
+    }));
+  }, [ilrs, filter, searchQuery, startDate, endDate]);
+
+  const getStatusConfig = (status: string) => {
+    const s = status?.toLowerCase();
+    switch (s) {
+      case "open":
+        return {
+          bg: isDarkMode ? "bg-[#25254A]" : "bg-[#E0E7FF]",
+          text: "text-[#4F46E5] dark:text-[#A5B4FC]",
+          dot: "bg-[#4F46E5] dark:bg-[#A5B4FC]",
+        };
+      case "in progress":
+        return {
+          bg: isDarkMode ? "bg-[#121A21]" : "bg-[#E0F2FE]",
+          text: "text-blue-600 dark:text-blue-400",
+          dot: "bg-blue-600 dark:bg-blue-400",
+        };
+      case "closed":
+        return {
+          bg: isDarkMode ? "bg-[#11221A]" : "bg-[#DCFCE7]",
+          text: "text-green-600 dark:text-green-400",
+          dot: "bg-green-600 dark:bg-green-400",
+        };
+      default:
+        return {
+          bg: "bg-gray-100 dark:bg-gray-800",
+          text: "text-gray-600 dark:text-gray-400",
+          dot: "bg-gray-600 dark:bg-gray-400",
+        };
     }
   };
 
-  //selection
-  const [selectedILRs, setSelectedILRs] = useState<Set<string>>(new Set());
-  const [selectionMode, setSelectionMode] = useState(false);
+  const getDueIndicator = (item: ILR) => {
+    if (item.status === "Closed") {
+      const dateStr = new Date(item.updatedAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      return {
+        text: dateStr,
+        color: "text-green-600 dark:text-green-400",
+        icon: Calendar03Icon,
+      };
+    }
 
-  const toggleSelection = (id: string) => {
-    setSelectedILRs((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      setSelectionMode(newSet.size > 0);
-      return newSet;
-    });
+    if (item.overdueDays && item.overdueDays > 0) {
+      return {
+        text: `Delay - ${item.overdueDays}`,
+        color: "text-red-500",
+        icon: Calendar03Icon,
+      };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(item.targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    if (today.getTime() === target.getTime()) {
+      return {
+        text: "Today",
+        color: "text-[#4F46E5] dark:text-[#A5B4FC]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    return {
+      text: target.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      color: "text-gray-500 dark:text-gray-400",
+      icon: Calendar03Icon,
+    };
   };
 
-  const clearSelection = () => {
-    setSelectedILRs(new Set());
-    setSelectionMode(false);
-  };
-
-  const ilrsToDownload =
-    selectedILRs.size > 0
-      ? parsedILRs.filter((ilr) => selectedILRs.has(ilr._id))
-      : parsedILRs;
-
-  const renderCard = ({ item }: { item: ILR }) => {
-    const isSelected = selectedILRs.has(item._id);
-    const statusClasses = item.status === "Open" ? "bg-red-500" : "bg-gray-600";
+  const renderItem = ({ item }: { item: ILR }) => {
+    const statusCfg = getStatusConfig(item.status);
+    const dueInfo = getDueIndicator(item);
 
     return (
       <TouchableOpacity
-        onLongPress={() => toggleSelection(item._id)}
         onPress={() => {
-          if (selectionMode) {
-            toggleSelection(item._id);
-          } else {
-            router.push({
-              pathname: `/ilrActivities`,
-              params: {
-                ilrId: item._id,
-                projectName,
-                description: item.description,
-                targetDate: item.targetDate,
-                remarks: item.remarks,
-                responsibility: JSON.stringify(item.responsibility),
-                status: item.status,
-                createdBy: item.createdBy?.fullName,
-                createdAt: item.createdAt,
-                ilrNumber: item.ilrNumber,
-              },
-            });
-          }
+          router.push({
+            pathname: "/ilrActivities",
+            params: {
+              ilrId: item._id,
+              projectName,
+              description: item.description,
+              targetDate: item.targetDate,
+              remarks: item.remarks,
+              responsibility: JSON.stringify(item.responsibility || []),
+              status: item.status,
+              createdBy: item.createdBy?.fullName || "System",
+              createdAt: item.createdAt,
+              ilrNumber: item.ilrNumber,
+            },
+          });
         }}
-        activeOpacity={0.85}
-        className={`flex-row items-start rounded-2xl mb-3 border ${
-          isSelected
-            ? "bg-indigo-50 border-indigo-500"
-            : "bg-white border-gray-200"
-        }`}
+        activeOpacity={0.7}
+        className="bg-[#F8FAFC] dark:bg-[#1A1A1A] rounded-[24px] p-5 mb-4 border border-[#F1F5F9] dark:border-zinc-800/50 shadow-sm"
       >
-        {/* LEFT SELECTION COLUMN */}
-        {selectionMode && (
-          <View className="pl-3 pt-4">
-            <Ionicons
-              name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-              size={22}
-              color={isSelected ? "#4F46E5" : "#9CA3AF"}
+        <Text className="text-[17px] font-dmBold text-black dark:text-white mb-1.5 leading-[22px]">
+          {item.ilrNumber}. {item.description}
+        </Text>
+        <Text
+          numberOfLines={2}
+          className="text-[14px] font-poppins text-gray-500 dark:text-gray-400 mb-4 leading-[20px]"
+        >
+          {item.remarks || "No additional details provided for this issue."}
+        </Text>
+
+        <View className="flex-row items-center justify-between">
+          <View
+            className={`flex-row items-center px-3 py-1.5 rounded-full ${statusCfg.bg}`}
+          >
+            <View
+              className={`w-1.5 h-1.5 rounded-full mr-2 ${statusCfg.dot}`}
             />
-          </View>
-        )}
-
-        {/* MAIN CONTENT */}
-        <View className="flex-1 px-4 py-4">
-          {/* Top Row */}
-          <View className="flex-row justify-between items-start">
             <Text
-              className="font-semibold text-gray-900 text-base flex-1 mr-3"
-              numberOfLines={2}
+              className={`text-[12px] font-poppinsSemiBold ${statusCfg.text}`}
             >
-              {item.ilrNumber}. {item.description}
+              {item.status}
             </Text>
-
-            <View className={`px-3 py-1 rounded-full ${statusClasses}`}>
-              <Text className="text-white text-xs font-semibold">
-                {item.status}
-              </Text>
-            </View>
           </View>
 
-          {/* Optional Meta Row (future-ready) */}
-          {/* 
-        <Text className="text-xs text-gray-500 mt-2">
-          Created by {item.createdBy?.fullName}
-        </Text> 
-        */}
+          <View className="flex-row items-center">
+            <HugeiconsIcon
+              icon={dueInfo.icon}
+              size={16}
+              color={
+                dueInfo.color === "text-red-500"
+                  ? "#EF4444"
+                  : dueInfo.color.includes("green")
+                    ? "#10B981"
+                    : isDarkMode
+                      ? "#7C95FF"
+                      : "#5B4CCC"
+              }
+            />
+            <Text
+              className={`text-[13px] font-poppinsMedium ml-1.5 ${dueInfo.color}`}
+            >
+              {dueInfo.text}
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white dark:bg-black">
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md"
-          // style={{
-          //   shadowColor: "#000",
-          //   shadowOffset: { width: 0, height: 3 },
-          //   shadowOpacity: 0.25,
-          //   shadowRadius: 4,
-          //   elevation: 6,
-          //   zIndex: 10,
-          // }}
-        >
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {" "}
-              {/* {projectName} */}
-              ILRs
-            </Text>
+      <View className="pt-14 px-4 pb-4 flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#2D3436"}
+            />
           </TouchableOpacity>
-
-          {selectionMode && (
-            <Text className="text-white text-sm ml-2">
-              {selectedILRs.size} selected
-            </Text>
-          )}
-
-          {/* Download Excel */}
-          <TouchableOpacity
-            disabled={isDownloadingExcel}
-            className="px-2 mr-2 rounded-full bg-white/20"
-            onPress={handleDownloadExcel}
-          >
-            {isDownloadingExcel ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <MaterialCommunityIcons
-                name="microsoft-excel"
-                size={24}
-                color="white"
-              />
-            )}
-          </TouchableOpacity>
-
-          {/* Download PDF */}
-          <TouchableOpacity
-            disabled={isDownloadingPDF}
-            className="px-2 mr-2 rounded-full bg-white/20"
-            onPress={handleDownloadILRsPDF}
-          >
-            {isDownloadingPDF ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <MaterialCommunityIcons
-                name="file-pdf-box"
-                size={26}
-                color="white"
-              />
-            )}
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      {/* Status filter pills */}
-      <View className="px-4 mt-3 gap-2">
-        {/* Top Row: Status Pills + Reset Button */}
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row gap-3">
-            {["All", "Open", "Closed"].map((f) => (
-              <TouchableOpacity
-                key={f}
-                onPress={() => setFilter(f as "All" | "Open" | "Closed")}
-                className={`px-4 py-2 rounded-full  ${
-                  filter === f
-                    ? "bg-indigo-600"
-                    : "bg-white border border-gray-300"
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    filter === f ? "text-white" : "text-gray-800"
-                  }`}
-                >
-                  {f}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Reset Button */}
-          <TouchableOpacity
-            onPress={() => {
-              reset(); // resets ALL filters
-              setReviewDate(null);   
-              clearSelection(); // if you have selection mode
-            }}
-            className="px-3 py-2 bg-blue-100 rounded-xl flex-row items-center shadow-sm"
-          >
-            <Ionicons name="refresh" size={18} color="blue" />
-            <Text className="ml-1 text-blue-600 font-medium text-sm">
-              Reset
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Date Range Pickers */}
-        <View className="flex-row justify-between gap-3">
-          <TouchableOpacity
-            className="flex-1 bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-300 flex-row items-center justify-between"
-            onPress={() => setShowStartPicker(true)}
-          >
-            <Text className={`text-gray-600`}>
-              {startDate ? startDate.toLocaleDateString() : "Start Date"}
-            </Text>
-            <Ionicons name="calendar-outline" size={20} color="#4B5563" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-1 bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-300 flex-row items-center justify-between"
-            onPress={() => setShowEndPicker(true)}
-          >
-            <Text className={`text-gray-600`}>
-              {endDate ? endDate.toLocaleDateString() : "End Date"}
-            </Text>
-            <Ionicons name="calendar-outline" size={20} color="#4B5563" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Review Date Picker */}
-        <TouchableOpacity
-          className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-300 flex-row items-center justify-between"
-          onPress={() => setShowReviewPicker(true)}
-        >
-          <Text className="text-gray-600">
-            {reviewDate
-              ? `Review on: ${reviewDate.toLocaleDateString()}`
-              : "Filter by Review Date"}
+          <Text className="text-[20px] font-dmBold text-[#2D3436] dark:text-white">
+            ILRs
           </Text>
-          <Ionicons name="calendar-outline" size={20} color="#4B5563" />
-        </TouchableOpacity>
-
-        <DateTimePickerModal
-          isVisible={showReviewPicker}
-          mode="date"
-          onConfirm={(date) => {
-            setReviewDate(date);
-            setShowReviewPicker(false);
-          }}
-          onCancel={() => setShowReviewPicker(false)}
-        />
-
-        {/* Search Bar */}
-        <View className="bg-white rounded-xl shadow-sm border border-gray-300 flex-row items-center px-3 ">
-          <Ionicons name="search" size={20} color="#9CA3AF" />
-          <TextInput
-            placeholder="Search by issue subject or responsibility..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="flex-1 ml-2 text-gray-700"
-            placeholderTextColor="#9CA3AF"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
         </View>
 
-        {/* Date Pickers Modals */}
-        <DateTimePickerModal
-          isVisible={showStartPicker}
-          mode="date"
-          onConfirm={(date) => {
-            setStartDate(date);
-            setShowStartPicker(false);
-          }}
-          onCancel={() => setShowStartPicker(false)}
-        />
-
-        <DateTimePickerModal
-          isVisible={showEndPicker}
-          mode="date"
-          onConfirm={(date) => {
-            setEndDate(date);
-            setShowEndPicker(false);
-          }}
-          onCancel={() => setShowEndPicker(false)}
-        />
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#2D3436"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <HugeiconsIcon
+              icon={MoreHorizontalIcon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#2D3436"}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View className="px-4 pt-5 flex-1">
-        {/* <Text className="text-xl font-bold text-gray-800 mb-4 text-center">
-          {projectName}&#39;s Issue Log Register
-        </Text> */}
+      {/* Filter Chips Bar */}
+      <View className="pb-3">
+        <View className="flex-row items-center gap-2 pl-4">
+          {/* Date Picker Button */}
+          <TouchableOpacity className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-3 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800">
+            <Text className="text-[14px] font-poppinsMedium text-gray-700 dark:text-gray-300 mr-2">
+              Date
+            </Text>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={16}
+              color={isDarkMode ? "#94A3B8" : "#64748B"}
+            />
+          </TouchableOpacity>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#2563EB" />
-        ) : filteredILRs.length === 0 ? (
-          <Text className="text-center text-gray-500 mt-10">
-            No ILRs found.
-          </Text>
-        ) : (
+          {/* Status Pills */}
           <FlatList
-            data={filteredILRs}
+            horizontal
+            className="flex-1"
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingRight: 16 }}
+            data={["  All  ", "Open", "Closed"]}
+            keyExtractor={(item: string) => item}
+            renderItem={({ item: f }: { item: string }) => {
+              const isActive = filter === f;
+              return (
+                <TouchableOpacity
+                  onPress={() => setFilter(f as any)}
+                  style={{
+                    backgroundColor: isActive
+                      ? isDarkMode
+                        ? "#27215880"
+                        : "#DAE0FA"
+                      : "transparent",
+                    borderColor: isActive
+                      ? "#566FEC"
+                      : isDarkMode
+                        ? "#333"
+                        : "#E0E5EB",
+                    borderWidth: 1,
+                    paddingHorizontal: 24,
+                    paddingVertical: 8,
+                    borderRadius: 50,
+                  }}
+                >
+                  <Text
+                    className="font-poppins text-[14px]"
+                    style={{
+                      color: isActive
+                        ? "#566FEC"
+                        : isDarkMode
+                          ? "#fff"
+                          : "#000",
+                    }}
+                  >
+                    {f}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+
+        <AnimatePresence>
+          {showSearch && (
+            <MotiView
+              from={{ opacity: 0, scaleY: 0.8 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              exit={{ opacity: 0, scaleY: 0.8 }}
+              className="mt-3 origin-top"
+            >
+              <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
+                <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
+                <TextInput
+                  placeholder="Search issues, responsibility..."
+                  placeholderTextColor="#94A3B8"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
+                />
+              </View>
+            </MotiView>
+          )}
+        </AnimatePresence>
+      </View>
+
+      {/* Main List content */}
+      <View className="flex-1 px-4">
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#5B4CCC" />
+          </View>
+        ) : (
+          <SectionList
+            sections={sections}
             keyExtractor={(item) => item._id}
-            renderItem={renderCard}
-            extraData={selectedILRs} // 👈 ADD THIS
+            renderItem={renderItem}
+            renderSectionHeader={({ section: { title } }) => (
+              <View className="bg-white dark:bg-black pt-4 pb-4">
+                <Text className="text-[17px] font-dmBold text-black dark:text-white">
+                  {title}
+                </Text>
+              </View>
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={() => (
+              <View className="flex-1 items-center justify-center pt-20">
+                <Text className="text-gray-500 font-poppinsMedium text-[15px]">
+                  No issues found matching your filters
+                </Text>
+              </View>
+            )}
           />
         )}
       </View>
 
-      {/* Floating + Button */}
+      {/* Floating Action Button */}
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/ilrForm?projectId=${projectId}&projectName=${projectName}`
+            `/ilrForm?projectId=${projectId}&projectName=${projectName}`,
           )
         }
-        className="bg-indigo-600"
-        disabled={selectionMode}
+        activeOpacity={0.8}
+        className="absolute bottom-10 right-6 w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center shadow-lg"
         style={{
-          position: "absolute",
-          bottom: 44,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          alignItems: "center",
-          justifyContent: "center",
+          shadowColor: "#5B4CCC",
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
           elevation: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3,
-          opacity: selectionMode ? 0 : 1,
         }}
       >
-        <Ionicons name="add" size={30} color="white" />
+        <Text className="text-white text-[32px] leading-[40px] font-dmBold">
+          +
+        </Text>
       </TouchableOpacity>
     </View>
   );

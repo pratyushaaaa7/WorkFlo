@@ -126,7 +126,7 @@ const ProjectsScreen = () => {
         setProjects(res.data.projects);
       }
 
-      console.log("My projects data:", res.data);
+      // console.log("My projects data:", res.data);
     } catch (error) {
       console.error("Error fetching assigned projects:", error);
     } finally {
