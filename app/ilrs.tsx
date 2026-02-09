@@ -65,6 +65,7 @@ const ILRs = () => {
 
   const [ilrs, setIlrs] = useState<ILR[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [exportMenuVisible, setExportMenuVisible] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -80,25 +81,33 @@ const ILRs = () => {
     reset,
   } = useILRFilterStore();
 
-  useEffect(() => {
-    const fetchILRs = async () => {
-      if (!token || !projectId) return;
-      try {
-        setLoading(true);
-        const res = await api.get(`/ilrs/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setIlrs(res.data);
+  const fetchILRs = async () => {
+    if (!token || !projectId) return;
+    try {
+      const res = await api.get(`/ilrs/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setIlrs(res.data);
         console.log(res.data);
-      } catch (err) {
-        console.error("Error fetching ILRs:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (err) {
+      console.error("Error fetching ILRs:", err);
+    }
+  };
 
-    fetchILRs();
+  useEffect(() => {
+    const loadInitial = async () => {
+      setLoading(true);
+      await fetchILRs();
+      setLoading(false);
+    };
+    loadInitial();
   }, [token, projectId]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchILRs();
+    setRefreshing(false);
+  };
 
   const handleDownloadExcel = async () => {
     setExportMenuVisible(false);
@@ -158,6 +167,8 @@ const ILRs = () => {
     );
 
     const groups: { [key: string]: ILR[] } = {};
+    const sectionKeys: string[] = [];
+
     sorted.forEach((item) => {
       const rawDate = item.createdAt || item.targetDate;
       let date = "Unknown Date";
@@ -173,11 +184,14 @@ const ILRs = () => {
         }
       }
 
-      if (!groups[date]) groups[date] = [];
+      if (!groups[date]) {
+        groups[date] = [];
+        sectionKeys.push(date);
+      }
       groups[date].push(item);
     });
 
-    return Object.keys(groups).map((date) => ({
+    return sectionKeys.map((date) => ({
       key: date,
       title: date,
       data: groups[date],
@@ -584,7 +598,7 @@ const ILRs = () => {
               const isActive = filter === displayFilter;
               return (
                 <TouchableOpacity
-                  onPress={() => setFilter(f as any)}
+                  onPress={() => setFilter(displayFilter as any)}
                   style={{
                     backgroundColor: isActive
                       ? isDarkMode
@@ -663,6 +677,8 @@ const ILRs = () => {
           </View>
         ) : (
           <SectionList
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             sections={sections}
             keyExtractor={(item, index) => `${item._id || "item"}-${index}`}
             renderItem={renderItem}
