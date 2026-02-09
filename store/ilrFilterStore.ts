@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
 type ILRFilterStore = {
- filter: "All" | "Open" | "Closed";
+  filter: "  All  " | "Open" | "Closed";
   searchQuery: string;
   startDate: Date | null;
   endDate: Date | null;
 
-  setFilter: (v: "All" | "Open" | "Closed") => void;
+  setFilter: (v: "  All  " | "Open" | "Closed") => void;
   setSearchQuery: (q: string) => void;
   setStartDate: (d: Date | null) => void;
   setEndDate: (d: Date | null) => void;
@@ -14,7 +14,7 @@ type ILRFilterStore = {
 };
 
 export const useILRFilterStore = create<ILRFilterStore>((set) => ({
-  filter: "All",
+  filter: "  All  ",
   searchQuery: "",
   startDate: null,
   endDate: null,
@@ -26,7 +26,7 @@ export const useILRFilterStore = create<ILRFilterStore>((set) => ({
 
   reset: () =>
     set({
-      filter: "All",
+      filter: "  All  ",
       searchQuery: "",
       startDate: null,
       endDate: null,

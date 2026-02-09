@@ -1,9 +1,12 @@
 import { useILRFilterStore } from "@/store/ilrFilterStore";
 import Activity from "@/types/ILRActivity";
+import { Ionicons } from "@expo/vector-icons";
 import {
+  Add01Icon,
   ArrowDown01Icon,
   ArrowLeft01Icon,
   Calendar03Icon,
+  Cancel01Icon,
   MoreHorizontalIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
@@ -78,6 +81,7 @@ const ILRs = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIlrs(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -115,11 +119,20 @@ const ILRs = () => {
 
     const groups: { [key: string]: ILR[] } = {};
     sorted.forEach((item) => {
-      const date = new Date(item.createdAt).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      const rawDate = item.createdAt || item.targetDate;
+      let date = "Unknown Date";
+
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          date = d.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+        }
+      }
+
       if (!groups[date]) groups[date] = [];
       groups[date].push(item);
     });
@@ -135,21 +148,21 @@ const ILRs = () => {
     switch (s) {
       case "open":
         return {
-          bg: isDarkMode ? "bg-[#25254A]" : "bg-[#E0E7FF]",
-          text: "text-[#4F46E5] dark:text-[#A5B4FC]",
-          dot: "bg-[#4F46E5] dark:bg-[#A5B4FC]",
+          bg: isDarkMode ? "bg-[#282446]" : "bg-[#D7DEF2]",
+          text: "text-[#5B4CCC] dark:text-[#9486FB]",
+          dot: "bg-[#5B4CCC] dark:bg-[#9486FB]",
         };
-      case "in progress":
-        return {
-          bg: isDarkMode ? "bg-[#121A21]" : "bg-[#E0F2FE]",
-          text: "text-blue-600 dark:text-blue-400",
-          dot: "bg-blue-600 dark:bg-blue-400",
-        };
+      // case "in progress":
+      //   return {
+      //     bg: isDarkMode ? "bg-[#121A21]" : "bg-[#E0F2FE]",
+      //     text: "text-blue-600 dark:text-blue-400",
+      //     dot: "bg-blue-600 dark:bg-blue-400",
+      //   };
       case "closed":
         return {
-          bg: isDarkMode ? "bg-[#11221A]" : "bg-[#DCFCE7]",
-          text: "text-green-600 dark:text-green-400",
-          dot: "bg-green-600 dark:bg-green-400",
+          bg: isDarkMode ? "bg-[#0A4230]" : "bg-[#E8F9ED]",
+          text: "text-[#1AA45B] dark:text-[#10B981]",
+          dot: "bg-[#1AA45B] dark:bg-[#10B981]",
         };
       default:
         return {
@@ -162,11 +175,19 @@ const ILRs = () => {
 
   const getDueIndicator = (item: ILR) => {
     if (item.status === "Closed") {
-      const dateStr = new Date(item.updatedAt).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+      const rawDate = item.updatedAt || item.targetDate;
+      let dateStr = "N/A";
+
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          dateStr = d.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+        }
+      }
       return {
         text: dateStr,
         color: "text-green-600 dark:text-green-400",
@@ -196,93 +217,118 @@ const ILRs = () => {
     }
 
     return {
-      text: target.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
+      text: !isNaN(target.getTime())
+        ? target.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "N/A",
       color: "text-gray-500 dark:text-gray-400",
       icon: Calendar03Icon,
     };
   };
 
-  const renderItem = ({ item }: { item: ILR }) => {
+  const renderItem = ({
+    item,
+    index,
+    section,
+  }: {
+    item: ILR;
+    index: number;
+    section: any;
+  }) => {
     const statusCfg = getStatusConfig(item.status);
     const dueInfo = getDueIndicator(item);
+    const isFirst = index === 0;
+    const isLast = index === section.data.length - 1;
 
     return (
-      <TouchableOpacity
-        onPress={() => {
-          router.push({
-            pathname: "/ilrActivities",
-            params: {
-              ilrId: item._id,
-              projectName,
-              description: item.description,
-              targetDate: item.targetDate,
-              remarks: item.remarks,
-              responsibility: JSON.stringify(item.responsibility || []),
-              status: item.status,
-              createdBy: item.createdBy?.fullName || "System",
-              createdAt: item.createdAt,
-              ilrNumber: item.ilrNumber,
-            },
-          });
-        }}
-        activeOpacity={0.7}
-        className="bg-[#F8FAFC] dark:bg-[#1A1A1A] rounded-[24px] p-5 mb-4 border border-[#F1F5F9] dark:border-zinc-800/50 shadow-sm"
+      <View
+        className={`bg-[#F6F8FA] dark:bg-[#1A1A1A] border-x border-[#F1F5F9] dark:border-zinc-800/50 
+          ${isFirst ? "rounded-t-[16px] border-t" : ""} 
+          ${isLast ? "rounded-b-[16px] border-b mb-2" : "border-b border-b-gray-200/50 dark:border-b-zinc-800/20"}`}
       >
-        <Text className="text-[17px] font-dmBold text-black dark:text-white mb-1.5 leading-[22px]">
-          {item.ilrNumber}. {item.description}
-        </Text>
-        <Text
-          numberOfLines={2}
-          className="text-[14px] font-poppins text-gray-500 dark:text-gray-400 mb-4 leading-[20px]"
+        {isFirst && (
+          <View className="px-4 py-3 bg-[#F0F3F7] dark:bg-white/5 border-b border-b-gray-200/30 dark:border-b-zinc-800/20 rounded-t-[16px]">
+            <Text className="text-[15px] font-dmMedium text-[#000] dark:text-[#FFF]">
+              {section.title}
+            </Text>
+          </View>
+        )}
+        <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/ilrActivities",
+              params: {
+                ilrId: item._id,
+                projectName,
+                description: item.description,
+                targetDate: item.targetDate,
+                remarks: item.remarks,
+                responsibility: JSON.stringify(item.responsibility || []),
+                status: item.status,
+                createdBy: item.createdBy?.fullName || "System",
+                createdAt: item.createdAt,
+                ilrNumber: item.ilrNumber,
+              },
+            });
+          }}
+          activeOpacity={0.7}
+          className="p-3"
         >
-          {item.remarks || "No additional details provided for this issue."}
-        </Text>
-
-        <View className="flex-row items-center justify-between">
-          <View
-            className={`flex-row items-center px-3 py-1.5 rounded-full ${statusCfg.bg}`}
+          <Text className="text-[16px] font-dmMedium text-black dark:text-white mb-1.5 leading-[18px]">
+            {item.ilrNumber}. {item.description}
+          </Text>
+          <Text
+            numberOfLines={2}
+            className="text-[13px] font-poppins text-gray-500 dark:text-gray-400 mb-4 leading-[20px]"
           >
-            <View
-              className={`w-1.5 h-1.5 rounded-full mr-2 ${statusCfg.dot}`}
-            />
-            <Text
-              className={`text-[12px] font-poppinsSemiBold ${statusCfg.text}`}
-            >
-              {item.status}
-            </Text>
-          </View>
+            {item.remarks || "No additional details provided for this issue."}
+          </Text>
 
-          <View className="flex-row items-center">
-            <HugeiconsIcon
-              icon={dueInfo.icon}
-              size={16}
-              color={
-                dueInfo.color === "text-red-500"
-                  ? "#EF4444"
-                  : dueInfo.color.includes("green")
-                    ? "#10B981"
-                    : isDarkMode
-                      ? "#7C95FF"
-                      : "#5B4CCC"
-              }
-            />
-            <Text
-              className={`text-[13px] font-poppinsMedium ml-1.5 ${dueInfo.color}`}
+          <View className="flex-row items-center justify-between">
+            <View
+              className={`flex-row items-center px-2 py-1 rounded-lg ${statusCfg.bg}`}
             >
-              {dueInfo.text}
-            </Text>
+              <View
+                className={`w-1.5 h-1.5 rounded-full mr-2 ${statusCfg.dot}`}
+              />
+              <Text
+                className={`text-[12px] font-poppinsMedium ${statusCfg.text}`}
+              >
+                {item.status}
+              </Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <HugeiconsIcon
+                icon={dueInfo.icon}
+                size={14}
+                color={
+                  dueInfo.color === "text-red-500"
+                    ? "#EF4444"
+                    : dueInfo.color.includes("green")
+                      ? "#10B981"
+                      : isDarkMode
+                        ? "#7C95FF"
+                        : "#5B4CCC"
+                }
+              />
+              <Text
+                className={`text-[12px] font-poppinsMedium ml-1.5 ${dueInfo.color}`}
+              >
+                {dueInfo.text}
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-black">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
       {/* Header */}
@@ -301,9 +347,14 @@ const ILRs = () => {
         </View>
 
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+          <TouchableOpacity
+            onPress={() => {
+              if (showSearch) setSearchQuery("");
+              setShowSearch(!showSearch);
+            }}
+          >
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={showSearch ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "#FFF" : "#2D3436"}
             />
@@ -322,8 +373,8 @@ const ILRs = () => {
       <View className="pb-3">
         <View className="flex-row items-center gap-2 pl-4">
           {/* Date Picker Button */}
-          <TouchableOpacity className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-3 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800">
-            <Text className="text-[14px] font-poppinsMedium text-gray-700 dark:text-gray-300 mr-2">
+          <TouchableOpacity className="flex-row items-center bg-[#F5F5F5] dark:bg-[#1A1A1A] px-4 py-2 rounded-[8px] border border-[#F1F5F9] dark:border-zinc-800">
+            <Text className="text-[14px] font-poppinsMedium text-black dark:text-white mr-2">
               Date
             </Text>
             <HugeiconsIcon
@@ -359,7 +410,7 @@ const ILRs = () => {
                         : "#E0E5EB",
                     borderWidth: 1,
                     paddingHorizontal: 24,
-                    paddingVertical: 8,
+                    paddingVertical: 6,
                     borderRadius: 50,
                   }}
                 >
@@ -384,20 +435,31 @@ const ILRs = () => {
         <AnimatePresence>
           {showSearch && (
             <MotiView
-              from={{ opacity: 0, scaleY: 0.8 }}
-              animate={{ opacity: 1, scaleY: 1 }}
-              exit={{ opacity: 0, scaleY: 0.8 }}
-              className="mt-3 origin-top"
+              from={{ opacity: 0, translateY: -10 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              exit={{ opacity: 0, translateY: -10 }}
+              transition={{ type: "timing", duration: 250 }}
+              className="mt-3"
             >
               <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
                 <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
                 <TextInput
-                  placeholder="Search issues, responsibility..."
+                  placeholder="Search by subject & responsibility"
                   placeholderTextColor="#94A3B8"
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
+                  autoFocus
                 />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery("")}>
+                    <Ionicons
+                      name="close-circle"
+                      size={20}
+                      color={isDarkMode ? "#6B7280" : "#94A3B8"}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             </MotiView>
           )}
@@ -415,13 +477,7 @@ const ILRs = () => {
             sections={sections}
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
-            renderSectionHeader={({ section: { title } }) => (
-              <View className="bg-white dark:bg-black pt-4 pb-4">
-                <Text className="text-[17px] font-dmBold text-black dark:text-white">
-                  {title}
-                </Text>
-              </View>
-            )}
+            renderSectionHeader={() => <View className="h-2" />}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={() => (
@@ -442,19 +498,25 @@ const ILRs = () => {
             `/ilrForm?projectId=${projectId}&projectName=${projectName}`,
           )
         }
-        activeOpacity={0.8}
-        className="absolute bottom-10 right-6 w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center shadow-lg"
+        activeOpacity={0.9}
         style={{
+          position: "absolute",
+          bottom: 45,
+          right: 24,
+          width: 50,
+          height: 50,
+          borderRadius: 32,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#5B4CCC",
           shadowColor: "#5B4CCC",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 10,
-          elevation: 10,
+          shadowOffset: { width: 0, height: 15 },
+          shadowOpacity: 0.5,
+          shadowRadius: 20,
+          elevation: 20,
         }}
       >
-        <Text className="text-white text-[32px] leading-[40px] font-dmBold">
-          +
-        </Text>
+        <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
       </TouchableOpacity>
     </View>
   );
