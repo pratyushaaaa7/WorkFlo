@@ -1,6 +1,6 @@
 import Activity from "@/types/ILRActivity";
 import { Ionicons } from "@expo/vector-icons";
-import { Delete03Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeftIcon, Delete03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -294,25 +295,33 @@ const IlrActivities = () => {
   return (
     <View className={`flex-1 ${isDark ? "bg-black" : "bg-white"}`}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-12 pb-2">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            color={isDark ? "white" : "black"}
-          />
-        </TouchableOpacity>
-        <Text
-          className={`text-lg text-left font-dmSemiBold ${isDark ? "text-white" : "text-black"}`}
-        >
-          ILR Activities
-        </Text>
-        {auth?.user?.role === "admin" ? (
-          <TouchableOpacity onPress={handleDelete} className="p-2 -mr-2">
-            <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+      <View className="flex-row items-center justify-between px-4 pt-14 pb-2">
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="p-2 -ml-2 mr-1"
+          >
+            <HugeiconsIcon
+              icon={ArrowLeftIcon}
+              size={22}
+              color={isDark ? "white" : "black"}
+            />
           </TouchableOpacity>
-        ) : (
-          <View className="w-10" />
+          <Text
+            className={`text-[18px] font-dmSemiBold ${isDark ? "text-white" : "text-black"}`}
+          >
+            ILR Activities
+          </Text>
+        </View>
+
+        {auth?.user?.role === "admin" && (
+          <TouchableOpacity onPress={handleDelete} className="p-2 -mr-2">
+            <HugeiconsIcon
+              icon={Delete03Icon}
+              size={22}
+              color={isDark ? "#D2D2D2" : "#454545"}
+            />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -711,15 +720,19 @@ const IlrActivities = () => {
         visible={deleteModalVisible}
         onRequestClose={() => setDeleteModalVisible(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black/50 px-4">
-          <View
+        <Pressable
+          className="flex-1 justify-center items-center bg-black/50 px-4"
+          onPress={() => setDeleteModalVisible(false)}
+        >
+          <Pressable
             className={`w-full max-w-sm p-6 rounded-3xl ${isDark ? "bg-[#000000]" : "bg-white"}`}
+            onPress={(e) => e.stopPropagation()}
           >
             {/* Icon */}
             <View
-              className={`w-12 h-12 rounded-full items-center justify-center mb-4 ${isDark ? "bg-red-900/30" : "bg-red-50"}`}
+              className={`w-12 h-12 rounded-full items-center justify-center mb-4 ${isDark ? "bg-[#5E1010]" : "bg-[#FDE6E6]"}`}
             >
-              <HugeiconsIcon icon={Delete03Icon} size={24} color="#EF4444" />
+              <HugeiconsIcon icon={Delete03Icon} size={24} color="#DF5B5B" />
             </View>
 
             {/* Content */}
@@ -729,19 +742,20 @@ const IlrActivities = () => {
               Delete this item
             </Text>
             <Text
-              className={`text-base mb-6 ${isDark ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[14px] font-poppins mb-6 ${isDark ? "#919191" : "#454545"}`}
             >
-              Are you sure you want to delete this element? This action is final
+              Are you sure you want to delete this element? This action is
+              final.
             </Text>
 
             {/* Buttons */}
             <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setDeleteModalVisible(false)}
-                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-gray-600" : "border-gray-300"}`}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
                 <Text
-                  className={`text-center font-semibold ${isDark ? "text-white" : "text-black"}`}
+                  className={`text-center text-lg font-poppins ${isDark ? "text-white" : "text-black"}`}
                 >
                   Cancel
                 </Text>
@@ -749,16 +763,16 @@ const IlrActivities = () => {
 
               <TouchableOpacity
                 onPress={confirmDelete}
-                className="flex-1 py-3 rounded-xl bg-red-500"
+                className="flex-1 py-3 rounded-xl bg-[#DF5B5B]"
               >
-                <Text className="text-center font-semibold text-white">
+                <Text className="text-center text-lg font-poppins text-white">
                   Confirm
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>  
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
