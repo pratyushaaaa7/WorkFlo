@@ -402,7 +402,7 @@ const ILRs = () => {
                 }
               />
               <Text
-                className={`text-[12px] font-poppinsMedium ml-1.5 ${dueInfo.color}`}
+                className={`text-[12px] font-poppins ml-1.5 ${dueInfo.color}`}
               >
                 {dueInfo.text}
               </Text>
