@@ -7,8 +7,12 @@ import {
   ArrowLeft01Icon,
   Calendar03Icon,
   Cancel01Icon,
+  CheckmarkCircle02Icon,
   MoreHorizontalIcon,
+  Pdf01Icon,
+  PrinterIcon,
   Search01Icon,
+  Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -17,6 +21,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   SectionList,
   StatusBar,
   Text,
@@ -27,6 +32,7 @@ import {
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
+import { exportILRsToExcel } from "../utils/ilrExcel";
 
 type ILR = {
   _id: string;
@@ -61,6 +67,9 @@ const ILRs = () => {
   const [ilrs, setIlrs] = useState<ILR[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const {
     filter,
@@ -91,6 +100,21 @@ const ILRs = () => {
 
     fetchILRs();
   }, [token, projectId]);
+
+  const handleDownloadExcel = async () => {
+    setExportMenuVisible(false);
+    await exportILRsToExcel(
+      ilrs as any,
+      projectName as string,
+      auth?.user?.fullName || auth?.user?.username || "Self",
+      auth?.user?.company || "WP",
+    );
+  };
+
+  const handleDownloadPDF = () => {
+    setExportMenuVisible(false);
+    console.log("PDF Export triggered");
+  };
 
   const sections = useMemo(() => {
     const filtered = ilrs.filter((ilr) => {
@@ -242,12 +266,26 @@ const ILRs = () => {
     const dueInfo = getDueIndicator(item);
     const isFirst = index === 0;
     const isLast = index === section.data.length - 1;
+    const isSelected = selectedIds.has(item._id);
+
+    const toggleSelection = (id: string) => {
+      const newSelected = new Set(selectedIds);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      setSelectedIds(newSelected);
+      if (newSelected.size === 0) setSelectionMode(false);
+    };
 
     return (
       <View
-        className={`bg-[#F6F8FA] dark:bg-[#1A1A1A] border-x border-[#F1F5F9] dark:border-zinc-800/50 
+        className={`border-x bg-[#F6F8FA] dark:bg-[#1A1A1A]
+          ${isSelected ? "z-10" : "border-[#F1F5F9] dark:border-zinc-800/50"}
           ${isFirst ? "rounded-t-[16px] border-t" : ""} 
-          ${isLast ? "rounded-b-[16px] border-b mb-2" : "border-b border-b-gray-200/50 dark:border-b-zinc-800/20"}`}
+          ${isLast ? "rounded-b-[16px] border-b mb-2" : isSelected ? "" : "border-b border-b-gray-200/50 dark:border-b-zinc-800/20"}`}
+        style={isSelected ? { borderWidth: 1.5, borderColor: "#566FEC" } : {}}
       >
         {isFirst && (
           <View className="px-4 py-3 bg-[#F0F3F7] dark:bg-white/5 border-b border-b-gray-200/30 dark:border-b-zinc-800/20 rounded-t-[16px]">
@@ -258,28 +296,52 @@ const ILRs = () => {
         )}
         <TouchableOpacity
           onPress={() => {
-            router.push({
-              pathname: "/ilrActivities",
-              params: {
-                ilrId: item._id,
-                projectName,
-                description: item.description,
-                targetDate: item.targetDate,
-                remarks: item.remarks,
-                responsibility: JSON.stringify(item.responsibility || []),
-                status: item.status,
-                createdBy: item.createdBy?.fullName || "System",
-                createdAt: item.createdAt,
-                ilrNumber: item.ilrNumber,
-              },
-            });
+            if (selectionMode) {
+              toggleSelection(item._id);
+            } else {
+              router.push({
+                pathname: "/ilrActivities",
+                params: {
+                  ilrId: item._id,
+                  projectName,
+                  description: item.description,
+                  targetDate: item.targetDate,
+                  remarks: item.remarks,
+                  responsibility: JSON.stringify(item.responsibility || []),
+                  status: item.status,
+                  createdBy: item.createdBy?.fullName || "System",
+                  createdAt: item.createdAt,
+                  ilrNumber: item.ilrNumber,
+                },
+              });
+            }
+          }}
+          onLongPress={() => {
+            if (!selectionMode) {
+              setSelectionMode(true);
+              const newSelected = new Set(selectedIds);
+              newSelected.add(item._id);
+              setSelectedIds(newSelected);
+            }
           }}
           activeOpacity={0.7}
           className="p-3"
         >
-          <Text className="text-[16px] font-dmMedium text-black dark:text-white mb-1.5 leading-[18px]">
-            {item.ilrNumber}. {item.description}
-          </Text>
+          <View className="flex-row items-center mb-1.5 ">
+            <View className="flex-1 mr-2">
+              <Text className="text-[16px] font-dmMedium text-black dark:text-white leading-[18px]">
+                {item.ilrNumber}. {item.description}
+              </Text>
+            </View>
+            {selectionMode && (
+              <HugeiconsIcon
+                icon={CheckmarkCircle02Icon}
+                size={20}
+                color={isSelected ? "#4F46E5" : "#94A3B8"}
+                variant={isSelected ? "solid" : "stroke"}
+              />
+            )}
+          </View>
           <Text
             numberOfLines={2}
             className="text-[13px] font-poppins text-gray-500 dark:text-gray-400 mb-4 leading-[20px]"
@@ -333,41 +395,141 @@ const ILRs = () => {
 
       {/* Header */}
       <View className="pt-14 px-4 pb-4 flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <HugeiconsIcon
-              icon={ArrowLeft01Icon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#2D3436"}
-            />
-          </TouchableOpacity>
-          <Text className="text-[20px] font-dmBold text-[#2D3436] dark:text-white">
-            ILRs
-          </Text>
-        </View>
+        {selectionMode ? (
+          <View className="flex-row items-center justify-between flex-1">
+            <View className="flex-row items-center">
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectionMode(false);
+                  setSelectedIds(new Set());
+                }}
+                className="mr-4"
+              >
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#2D3436"}
+                />
+              </TouchableOpacity>
+              <Text className="text-[18px] font-dmBold text-[#2D3436] dark:text-white">
+                {selectedIds.size} Selected
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                // Handle printing logic here
+                console.log("Printing selected ILRs:", Array.from(selectedIds));
+              }}
+              className="bg-[#4F46E5] px-4 py-2 rounded-lg flex-row items-center"
+            >
+              <HugeiconsIcon icon={PrinterIcon} size={18} color="white" />
+              <Text className="text-white font-poppinsMedium ml-2">Print</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View className="flex-row items-center">
+              <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                <HugeiconsIcon
+                  icon={ArrowLeft01Icon}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#2D3436"}
+                />
+              </TouchableOpacity>
+              <Text className="text-[20px] font-dmBold text-[#2D3436] dark:text-white">
+                ILRs
+              </Text>
+            </View>
 
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity
-            onPress={() => {
-              if (showSearch) setSearchQuery("");
-              setShowSearch(!showSearch);
-            }}
-          >
-            <HugeiconsIcon
-              icon={showSearch ? Cancel01Icon : Search01Icon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#2D3436"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <HugeiconsIcon
-              icon={MoreHorizontalIcon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#2D3436"}
-            />
-          </TouchableOpacity>
-        </View>
+            <View className="flex-row items-center gap-4">
+              <TouchableOpacity
+                onPress={() => {
+                  if (showSearch) setSearchQuery("");
+                  setShowSearch(!showSearch);
+                }}
+              >
+                <HugeiconsIcon
+                  icon={showSearch ? Cancel01Icon : Search01Icon}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#2D3436"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
+                <HugeiconsIcon
+                  icon={MoreHorizontalIcon}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#2D3436"}
+                />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </View>
+
+      {/* Export Menu (Fast Overlay) */}
+      {exportMenuVisible && (
+        <View
+          className="absolute top-[-12] left-0 right-0 bottom-0 z-[50]"
+          pointerEvents="box-none"
+        >
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setExportMenuVisible(false)}
+          />
+          <View className="absolute top-[100px] right-1">
+            {/* Menu Container */}
+            <View
+              className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+              style={{
+                elevation: 25,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
+                minWidth: 170,
+              }}
+            >
+              {/* Triangle Pointer */}
+              <View
+                className="absolute rounded-md right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45 "
+                style={{
+                  zIndex: -1,
+                }}
+              />
+
+              <TouchableOpacity
+                onPress={handleDownloadPDF}
+                className="flex-row items-center  p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+              >
+                <HugeiconsIcon
+                  icon={Pdf01Icon}
+                  size={24}
+                  color={isDarkMode ? "#D2D2D2" : "#454545"}
+                />
+                <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                  Export PDF
+                </Text>
+              </TouchableOpacity>
+
+              <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2" />
+
+              <TouchableOpacity
+                onPress={handleDownloadExcel}
+                className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+              >
+                <HugeiconsIcon
+                  icon={Xsl01Icon}
+                  size={24}
+                  color={isDarkMode ? "#D2D2D2" : "#454545"}
+                />
+                <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                  Export Excel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Filter Chips Bar */}
       <View className="pb-3">
