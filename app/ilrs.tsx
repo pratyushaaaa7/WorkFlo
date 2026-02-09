@@ -7,11 +7,10 @@ import {
   ArrowLeft01Icon,
   Calendar03Icon,
   Cancel01Icon,
-  CheckmarkCircle02Icon,
   MoreHorizontalIcon,
   Pdf01Icon,
-  PrinterIcon,
   Search01Icon,
+  Tick02Icon,
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -103,8 +102,17 @@ const ILRs = () => {
 
   const handleDownloadExcel = async () => {
     setExportMenuVisible(false);
+    const dataToExport = selectionMode
+      ? ilrs.filter((i) => selectedIds.has(i._id))
+      : ilrs;
+
+    if (dataToExport.length === 0) {
+      alert("No ILRs selected to export");
+      return;
+    }
+
     await exportILRsToExcel(
-      ilrs as any,
+      dataToExport as any,
       projectName as string,
       auth?.user?.fullName || auth?.user?.username || "Self",
       auth?.user?.company || "WP",
@@ -113,7 +121,15 @@ const ILRs = () => {
 
   const handleDownloadPDF = () => {
     setExportMenuVisible(false);
-    console.log("PDF Export triggered");
+    const dataToExport = selectionMode
+      ? ilrs.filter((i) => selectedIds.has(i._id))
+      : ilrs;
+
+    if (dataToExport.length === 0) {
+      alert("No ILRs selected to export");
+      return;
+    }
+    console.log("PDF Export triggered for:", dataToExport.length, "items");
   };
 
   const sections = useMemo(() => {
@@ -162,6 +178,7 @@ const ILRs = () => {
     });
 
     return Object.keys(groups).map((date) => ({
+      key: date,
       title: date,
       data: groups[date],
     }));
@@ -280,13 +297,7 @@ const ILRs = () => {
     };
 
     return (
-      <View
-        className={`border-x bg-[#F6F8FA] dark:bg-[#1A1A1A]
-          ${isSelected ? "z-10" : "border-[#F1F5F9] dark:border-zinc-800/50"}
-          ${isFirst ? "rounded-t-[16px] border-t" : ""} 
-          ${isLast ? "rounded-b-[16px] border-b mb-2" : isSelected ? "" : "border-b border-b-gray-200/50 dark:border-b-zinc-800/20"}`}
-        style={isSelected ? { borderWidth: 1.5, borderColor: "#566FEC" } : {}}
-      >
+      <View className={`${isLast ? "mb-2" : ""}`}>
         {isFirst && (
           <View className="px-4 py-3 bg-[#F0F3F7] dark:bg-white/5 border-b border-b-gray-200/30 dark:border-b-zinc-800/20 rounded-t-[16px]">
             <Text className="text-[15px] font-dmMedium text-[#000] dark:text-[#FFF]">
@@ -325,7 +336,14 @@ const ILRs = () => {
             }
           }}
           activeOpacity={0.7}
-          className="p-3"
+          className={`p-3 
+            ${
+              isSelected
+                ? "bg-[#EEF2FF] dark:bg-[#1B1F3B]"
+                : "bg-[#F6F8FA] dark:bg-[#1A1A1A]"
+            }
+            ${isLast ? "rounded-b-[16px]" : ""}
+          `}
         >
           <View className="flex-row items-center mb-1.5 ">
             <View className="flex-1 mr-2">
@@ -334,12 +352,18 @@ const ILRs = () => {
               </Text>
             </View>
             {selectionMode && (
-              <HugeiconsIcon
-                icon={CheckmarkCircle02Icon}
-                size={20}
-                color={isSelected ? "#4F46E5" : "#94A3B8"}
-                variant={isSelected ? "solid" : "stroke"}
-              />
+              <View
+                className={`w-5 h-5 rounded-md items-center justify-center border
+                  ${
+                    isSelected
+                      ? "bg-[#4F46E5] border-[#4F46E5]"
+                      : "border-gray-300 dark:border-zinc-700"
+                  }`}
+              >
+                {isSelected && (
+                  <HugeiconsIcon icon={Tick02Icon} size={12} color="white" />
+                )}
+              </View>
             )}
           </View>
           <Text
@@ -415,19 +439,19 @@ const ILRs = () => {
                 {selectedIds.size} Selected
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={() => {
-                // Handle printing logic here
-                console.log("Printing selected ILRs:", Array.from(selectedIds));
-              }}
-              className="bg-[#4F46E5] px-4 py-2 rounded-lg flex-row items-center"
-            >
-              <HugeiconsIcon icon={PrinterIcon} size={18} color="white" />
-              <Text className="text-white font-poppinsMedium ml-2">Print</Text>
+            <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
+              <HugeiconsIcon
+                icon={MoreHorizontalIcon}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#2D3436"}
+              />
             </TouchableOpacity>
           </View>
         ) : (
-          <>
+          <View
+            key="standard-header"
+            className="flex-row items-center justify-between flex-1"
+          >
             <View className="flex-row items-center">
               <TouchableOpacity onPress={() => router.back()} className="mr-4">
                 <HugeiconsIcon
@@ -462,13 +486,14 @@ const ILRs = () => {
                 />
               </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
       </View>
 
       {/* Export Menu (Fast Overlay) */}
       {exportMenuVisible && (
         <View
+          key="export-menu-overlay"
           className="absolute top-[-12] left-0 right-0 bottom-0 z-[50]"
           pointerEvents="box-none"
         >
@@ -552,10 +577,11 @@ const ILRs = () => {
             className="flex-1"
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, paddingRight: 16 }}
-            data={["  All  ", "Open", "Closed"]}
-            keyExtractor={(item: string) => item}
+            data={["All", "Open", "Closed"]}
+            keyExtractor={(item) => `pill-${item}`}
             renderItem={({ item: f }: { item: string }) => {
-              const isActive = filter === f;
+              const displayFilter = f === "All" ? "  All  " : f;
+              const isActive = filter === displayFilter;
               return (
                 <TouchableOpacity
                   onPress={() => setFilter(f as any)}
@@ -583,10 +609,10 @@ const ILRs = () => {
                         ? "#566FEC"
                         : isDarkMode
                           ? "#fff"
-                          : "#000",
+                          : "#64748B",
                     }}
                   >
-                    {f}
+                    {displayFilter}
                   </Text>
                 </TouchableOpacity>
               );
@@ -597,6 +623,7 @@ const ILRs = () => {
         <AnimatePresence>
           {showSearch && (
             <MotiView
+              key="search-bar-moti"
               from={{ opacity: 0, translateY: -10 }}
               animate={{ opacity: 1, translateY: 0 }}
               exit={{ opacity: 0, translateY: -10 }}
@@ -637,9 +664,11 @@ const ILRs = () => {
         ) : (
           <SectionList
             sections={sections}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, index) => `${item._id || "item"}-${index}`}
             renderItem={renderItem}
-            renderSectionHeader={() => <View className="h-2" />}
+            renderSectionHeader={({ section: { title } }) => (
+              <View key={`header-${title}`} className="h-2" />
+            )}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={() => (
