@@ -373,7 +373,7 @@ const ProjectDetails = () => {
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
+              color={isDarkMode ? "#FFF" : "#000000"}
             />
           </TouchableOpacity>
           <Text
@@ -842,13 +842,13 @@ const ProjectDetails = () => {
         offset={{ closed: 0, opened: 0 }} // adjust if needed
       >
         <View
-          className="px-3 py-2 rounded-t-[24px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
+          className="px-3 py-2 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
           style={{
             borderTopColor: isDarkMode ? "#222" : "#E0E5EB",
             paddingBottom: bottom > 0 ? bottom : 0,
           }}
         >
-          <View className="flex-1 pb-3 rounded-2xl flex-row items-end   bg-[#F0F3F7] dark:bg-[#1A1A1A]">
+          <View className="flex-1 pb-4 flex-row items-end   ">
             <TextInput
               value={note}
               onChangeText={setNote}

@@ -7,6 +7,7 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Modal,
   Platform,
   Pressable,
@@ -14,6 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  UIManager,
   useColorScheme,
   View,
 } from "react-native";
@@ -79,6 +81,21 @@ const IlrActivities = () => {
   const [showRemarkInput, setShowRemarkInput] = useState(false);
   const [newRemark, setNewRemark] = useState(ilr.remarks);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  useEffect(() => {
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental
+    ) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsExpanded(!isExpanded);
+  };
 
   const mapActivityType = (
     action: string | undefined,
@@ -335,245 +352,261 @@ const IlrActivities = () => {
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* Top Info */}
-          <View className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-4">
+          <TouchableOpacity
+            onPress={toggleExpand}
+            activeOpacity={0.7}
+            className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2"
+          >
             <Text
-              className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-sm font-poppins ${isDark ? "[#919191]" : "[#454545]"}`}
             >
-              IRL ID :{" "}
-              <Text className={isDark ? "text-white" : "text-black"}>
+              ILR ID :{" "}
+              <Text
+                className={`${isDark ? "text-white" : "text-black"} font-poppins`}
+              >
                 {ilr.ilrNumber}
               </Text>
             </Text>
             <View className="flex-row items-center">
               <Text
-                className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"} mr-1`}
+                className={`text-xs ${isDark ? "" : "text-gray-500"} mr-1 font-poppinsMedium`}
               >
                 Created by {ilr.ilrCreatedBy} -{" "}
                 {new Date(ilr.ilrCreatedAt).toLocaleDateString()}
               </Text>
               <Ionicons
-                name="chevron-down"
-                size={12}
-                color={isDark ? "#9CA3AF" : "#6B7280"}
+                name={isExpanded ? "chevron-up" : "chevron-down"}
+                size={16}
+                color={isDark ? "#FFFFFF" : "#000000"}
               />
             </View>
-          </View>
+          </TouchableOpacity>
 
-          {/* Title */}
-          <Text
-            className={`text-xl font-semibold mt-4 mb-6 ${isDark ? "text-white" : "text-black"}`}
-          >
-            {ilr.description}
-          </Text>
-
-          {/* Status Row */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={toggleStatus}
-            className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
-          >
-            <View className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full mr-3">
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={20}
-                color="#16A34A"
-              />
-            </View>
-            <View className="flex-1">
+          {isExpanded && (
+            <View>
+              {/* Title */}
               <Text
-                className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                className={`text-xl font-semibold mt-4 mb-6 ${isDark ? "text-white" : "text-black"}`}
               >
-                Status & Type
+                {ilr.description}
               </Text>
-              <Text
-                className={`text-sm font-medium ${ilr.status === "Closed" ? (isDark ? "text-green-400" : "text-green-600") : isDark ? "text-red-400" : "text-red-600"}`}
-              >
-                {ilr.status}
-              </Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
-          </TouchableOpacity>
 
-          {/* Assignee Row */}
-          <TouchableOpacity className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800">
-            <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={isDark ? "#D1D5DB" : "#374151"}
-              />
-            </View>
-            <View className="flex-1 flex-row justify-between items-center pr-2">
-              <Text
-                className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}
-              >
-                Assignee
-              </Text>
-              <View className="flex-row">
-                {ilr.responsibility.length > 0 ? (
-                  ilr.responsibility.slice(0, 3).map((r, i) => (
-                    <View
-                      key={r._id || i}
-                      className={`w-8 h-8 rounded-full justify-center items-center -ml-2 border-2 ${isDark ? "border-black" : "border-white"}`}
-                      style={{
-                        backgroundColor: ["#3B82F6", "#F97316", "#10B981"][
-                          i % 3
-                        ],
-                      }}
-                    >
-                      <Text className="text-white text-xs font-bold">
-                        {r.name.substring(0, 2).toUpperCase()}
-                      </Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text className="text-xs text-gray-400">Unassigned</Text>
-                )}
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
-          </TouchableOpacity>
-
-          {/* Target Date Row */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setShowDatePicker(true)}
-            className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
-          >
-            <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={isDark ? "#D1D5DB" : "#374151"}
-              />
-            </View>
-            <View className="flex-1 flex-row justify-between items-center pr-2">
-              <View>
-                <Text
-                  className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
-                >
-                  Target date
-                </Text>
-                <Text
-                  className={`text-sm font-medium ${isDark ? "text-white" : "text-black"}`}
-                >
-                  {ilr.targetDate
-                    ? new Date(ilr.targetDate).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "Set Date"}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text
-                  className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
-                >
-                  {daysLeft.label}
-                </Text>
-                <Text
-                  className={`text-sm font-bold ${daysLeft.isOverdue ? "text-red-500" : "text-green-500"}`}
-                >
-                  {daysLeft.count}
-                </Text>
-              </View>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
-          </TouchableOpacity>
-
-          {/* Description Row */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setShowRemarkInput(!showRemarkInput)}
-            className="flex-row items-center justify-between py-4"
-          >
-            <Text
-              className={`text-base font-medium ${isDark ? "text-white" : "text-black"}`}
-            >
-              Description
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
-          </TouchableOpacity>
-
-          {showRemarkInput ? (
-            <View className="mb-4">
-              <TextInput
-                value={newRemark}
-                onChangeText={setNewRemark}
-                multiline
-                className={`p-3 rounded-lg border ${isDark ? "text-white border-gray-700 bg-gray-900" : "text-black border-gray-300 bg-gray-50"}`}
-                placeholder="Update description..."
-                placeholderTextColor="#9CA3AF"
-              />
+              {/* Status Row */}
               <TouchableOpacity
-                onPress={saveRemark}
-                className="mt-2 bg-blue-600 p-2 rounded-lg items-center"
+                activeOpacity={0.7}
+                onPress={toggleStatus}
+                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
               >
-                <Text className="text-white font-medium">Save Description</Text>
+                <View className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full mr-3">
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={20}
+                    color="#16A34A"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                  >
+                    Status
+                  </Text>
+                  <Text
+                    className={`text-sm font-medium ${ilr.status === "Closed" ? "text-[#1AA45B]" : "text-[#DF5B5B]"}`}
+                  >
+                    {ilr.status}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                />
               </TouchableOpacity>
-            </View>
-          ) : (
-            <Text
-              className={`text-sm leading-5 mb-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}
-            >
-              {ilr.remarks || "No additional description."}
-            </Text>
-          )}
 
-          {/* Attachments Section */}
-          <View className="mb-6">
-            <Text
-              className={`text-base font-medium mb-3 ${isDark ? "text-white" : "text-black"}`}
-            >
-              Attachments
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="flex-row"
-            >
-              {/* Mock Attachments */}
-              {[1, 2, 3].map((item) => (
-                <View
-                  key={item}
-                  className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
-                  style={{ width: 140 }}
-                >
-                  <View className="h-24 bg-gray-300 w-full items-center justify-center">
-                    <Ionicons name="image-outline" size={30} color="#6B7280" />
-                  </View>
-                  <View className="p-2">
-                    <Text
-                      className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
-                    >
-                      image-1254785
-                    </Text>
-                    <Text className="text-xs text-gray-500">Jan 24</Text>
+              {/* Assignee Row */}
+              <TouchableOpacity className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color={isDark ? "#D1D5DB" : "#374151"}
+                  />
+                </View>
+                <View className="flex-1 flex-row justify-between items-center pr-2">
+                  <Text
+                    className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}
+                  >
+                    Assignee
+                  </Text>
+                  <View className="flex-row">
+                    {ilr.responsibility.length > 0 ? (
+                      ilr.responsibility.slice(0, 3).map((r, i) => (
+                        <View
+                          key={r._id || i}
+                          className={`w-8 h-8 rounded-full justify-center items-center -ml-2 border-2 ${isDark ? "border-black" : "border-white"}`}
+                          style={{
+                            backgroundColor: ["#3B82F6", "#F97316", "#10B981"][
+                              i % 3
+                            ],
+                          }}
+                        >
+                          <Text className="text-white text-xs font-bold">
+                            {r.name.substring(0, 2).toUpperCase()}
+                          </Text>
+                        </View>
+                      ))
+                    ) : (
+                      <Text className="text-xs text-gray-400">Unassigned</Text>
+                    )}
                   </View>
                 </View>
-              ))}
-            </ScrollView>
-          </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                />
+              </TouchableOpacity>
+
+              {/* Target Date Row */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setShowDatePicker(true)}
+                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
+              >
+                <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color={isDark ? "#D1D5DB" : "#374151"}
+                  />
+                </View>
+                <View className="flex-1 flex-row justify-between items-center pr-2">
+                  <View>
+                    <Text
+                      className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                    >
+                      Target date
+                    </Text>
+                    <Text
+                      className={`text-sm font-medium ${isDark ? "text-white" : "text-black"}`}
+                    >
+                      {ilr.targetDate
+                        ? new Date(ilr.targetDate).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "Set Date"}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text
+                      className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                    >
+                      {daysLeft.label}
+                    </Text>
+                    <Text
+                      className={`text-sm font-bold ${daysLeft.isOverdue ? "text-red-500" : "text-green-500"}`}
+                    >
+                      {daysLeft.count}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                />
+              </TouchableOpacity>
+
+              {/* Description Row */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setShowRemarkInput(!showRemarkInput)}
+                className="flex-row items-center justify-between py-4"
+              >
+                <Text
+                  className={`text-base font-medium ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Description
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                />
+              </TouchableOpacity>
+
+              {showRemarkInput ? (
+                <View className="mb-4">
+                  <TextInput
+                    value={newRemark}
+                    onChangeText={setNewRemark}
+                    multiline
+                    className={`p-3 rounded-lg border ${isDark ? "text-white border-gray-700 bg-gray-900" : "text-black border-gray-300 bg-gray-50"}`}
+                    placeholder="Update description..."
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <TouchableOpacity
+                    onPress={saveRemark}
+                    className="mt-2 bg-blue-600 p-2 rounded-lg items-center"
+                  >
+                    <Text className="text-white font-medium">
+                      Save Description
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <Text
+                  className={`text-sm leading-5 mb-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}
+                >
+                  {ilr.remarks || "No additional description."}
+                </Text>
+              )}
+
+              {/* Attachments Section */}
+              <View className="mb-6">
+                <Text
+                  className={`text-base font-medium mb-3 ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Attachments
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="flex-row"
+                >
+                  {/* Mock Attachments */}
+                  {[1, 2, 3].map((item) => (
+                    <View
+                      key={item}
+                      className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
+                      style={{ width: 140 }}
+                    >
+                      <View className="h-24 bg-gray-300 w-full items-center justify-center">
+                        <Ionicons
+                          name="image-outline"
+                          size={30}
+                          color="#6B7280"
+                        />
+                      </View>
+                      <View className="p-2">
+                        <Text
+                          className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
+                        >
+                          image-1254785
+                        </Text>
+                        <Text className="text-xs text-gray-500">Jan 24</Text>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
 
           {/* Note Input Area */}
-          <View className="flex-row items-center mb-6">
+          <View className="flex-row items-center mb-6 pt-4">
             <TextInput
               value={newNote}
               onChangeText={setNewNote}
