@@ -388,7 +388,7 @@ const IlrActivities = () => {
             <View>
               {/* Title */}
               <Text
-                className={`text-xl font-semibold mt-4 mb-6 ${isDark ? "text-white" : "text-black"}`}
+                className={`text-xl font-dmMedium mt-4 mb-2 ${isDark ? "text-white" : "text-black"}`}
               >
                 {ilr.description}
               </Text>
