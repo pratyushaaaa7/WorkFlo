@@ -1,12 +1,15 @@
 import Activity from "@/types/ILRActivity";
 import { Ionicons } from "@expo/vector-icons";
-import { ArrowLeftIcon, Delete03Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeftIcon,
+  ArrowRight01Icon,
+  Delete03Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   LayoutAnimation,
   Modal,
   Platform,
@@ -19,7 +22,9 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -54,6 +59,7 @@ const IlrActivities = () => {
   const isDark = colorScheme === "dark";
 
   const token = auth?.token;
+  const { bottom } = useSafeAreaInsets();
 
   // ILR data from params
   const [ilr, setIlr] = useState({
@@ -342,13 +348,9 @@ const IlrActivities = () => {
         )}
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
+      <View className="flex-1">
         <ScrollView
-          className="flex-1 px-4"
+          className="px-4"
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* Top Info */}
@@ -605,24 +607,6 @@ const IlrActivities = () => {
             </View>
           )}
 
-          {/* Note Input Area */}
-          <View className="flex-row items-center mb-6 pt-4">
-            <TextInput
-              value={newNote}
-              onChangeText={setNewNote}
-              placeholder="Add a activity note..."
-              placeholderTextColor="#9CA3AF"
-              className={`flex-1 p-3 rounded-xl mr-2 border ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-black"}`}
-            />
-            <TouchableOpacity
-              onPress={addNote}
-              disabled={!newNote.trim()}
-              className={`p-3 rounded-xl justify-center items-center ${newNote.trim() ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-700"}`}
-            >
-              <Ionicons name="paper-plane-outline" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-
           {/* Activity Log */}
           <Text
             className={`text-lg font-bold mb-4 ${isDark ? "text-white" : "text-black"}`}
@@ -733,7 +717,42 @@ const IlrActivities = () => {
             </View>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
+
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: 0 }} // adjust if needed
+      >
+        <View
+          className="px-3 py-2 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
+          style={{
+            borderTopColor: isDark ? "#222" : "#E0E5EB",
+            paddingBottom: bottom > 0 ? bottom : 0,
+          }}
+        >
+          <View className="flex-1 pb-4 flex-row items-end   ">
+            <TextInput
+              value={newNote}
+              onChangeText={setNewNote}
+              placeholder="Write a Note..."
+              placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+              className="flex-1 text-black dark:text-white font-poppins text-[15px]  max-h-[120px]"
+              multiline
+              style={{ paddingBottom: Platform.OS === "ios" ? 4 : 0 }}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={addNote}
+            disabled={!newNote.trim()}
+            className={`ml-3 w-11 h-11 mb-2 rounded-full items-center justify-center shadow-lg ${
+              newNote.trim() ? "bg-[#5B4CCC]" : "bg-[#9CA3AF]"
+            }`}
+            activeOpacity={0.8}
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardStickyView>
 
       <DateTimePickerModal
         isVisible={showDatePicker}
