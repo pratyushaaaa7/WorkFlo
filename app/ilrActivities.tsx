@@ -5,10 +5,15 @@ import {
   ArrowLeftIcon,
   ArrowRight01Icon,
   Calendar02Icon,
+  Calendar03Icon,
   CheckmarkCircle02Icon,
+  CircleIcon,
   DashedLineCircleIcon,
   Delete03Icon,
+  Menu05Icon,
+  Note03Icon,
   UserCircleIcon,
+  UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -272,50 +277,50 @@ const IlrActivities = () => {
     switch (type) {
       case "date":
         return {
-          bg: isDark ? "bg-red-900/40" : "bg-red-50",
-          text: isDark ? "text-red-300" : "text-red-900", // Darker text for readability
-          iconColor: isDark ? "#FCA5A5" : "#DC2626",
-          icon: "calendar-outline" as keyof typeof Ionicons.glyphMap,
+          bg: isDark ? "bg-[#420A0A]" : "bg-[#FFEBEB]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#DC2626" : "#DC2626",
+          icon: Calendar03Icon,
           title: "Target Date Change",
         };
       case "status":
         return {
-          bg: isDark ? "bg-gray-800" : "bg-white border border-gray-200",
-          text: isDark ? "text-gray-300" : "text-gray-800",
-          iconColor: isDark ? "#D1D5DB" : "#4B5563",
-          icon: "checkmark-circle-outline" as keyof typeof Ionicons.glyphMap,
-          title: "Status Update",
+          bg: isDark ? "bg-[#1A1A1A]" : "bg-[#F5F5F5]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#D2D2D2" : "#7F7F7F",
+          icon: CircleIcon,
+          title: "Status Updated",
         };
       case "remark":
         return {
-          bg: isDark ? "bg-blue-900/40" : "bg-blue-50",
-          text: isDark ? "text-blue-300" : "text-blue-900",
-          iconColor: isDark ? "#93C5FD" : "#2563EB",
-          icon: "document-text-outline" as keyof typeof Ionicons.glyphMap,
-          title: "Description Update",
+          bg: isDark ? "bg-[#09225A]" : "bg-[#E9F1FF]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#6D9EFF" : "#335EB3",
+          icon: Menu05Icon,
+          title: "Description Updated",
         };
       case "assignee":
         return {
-          bg: isDark ? "bg-orange-900/40" : "bg-orange-50",
-          text: isDark ? "text-orange-300" : "text-orange-900",
-          iconColor: isDark ? "#FDBA74" : "#EA580C",
-          icon: "person-outline" as keyof typeof Ionicons.glyphMap,
-          title: "Assignee Change",
+          bg: isDark ? "bg-[#5A2209]" : "bg-[#FFECE3]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#F97316" : "#EA580C",
+          icon: UserIcon,
+          title: "Assignee Updated",
         };
       case "note":
       default:
         return {
-          bg: isDark ? "bg-green-900/40" : "bg-green-50",
-          text: isDark ? "text-green-300" : "text-green-900",
-          iconColor: isDark ? "#86EFAC" : "#16A34A",
-          icon: "chatbubble-ellipses-outline" as keyof typeof Ionicons.glyphMap,
+          bg: isDark ? "bg-[#0A4230]" : "bg-[#E3F8EB]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#2DC77B" : "#239F62",
+          icon: Note03Icon,
           title: "Note Added",
         };
     }
   };
 
   return (
-    <View className={`flex-1 ${isDark ? "bg-black" : "bg-white"}`}>
+    <View className={`flex-1 ${isDark ? "bg-black" : "bg-[#FBFCFD]"}`}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-14 pb-2">
         <View className="flex-row items-center">
@@ -359,18 +364,18 @@ const IlrActivities = () => {
             className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2 -mx-4 px-4"
           >
             <Text
-              className={`text-sm font-poppins ${isDark ? "[#919191]" : "[#454545]"}`}
+              className={`text-sm font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
             >
               ILR ID :{" "}
               <Text
-                className={`${isDark ? "text-white" : "text-black"} font-poppins`}
+                className={`${isDark ? "text-[#919191]" : "text-[#454545]"} font-poppins`}
               >
                 {ilr.ilrNumber}
               </Text>
             </Text>
             <View className="flex-row items-center">
               <Text
-                className={`text-xs ${isDark ? "" : "text-gray-500"} mr-1 font-poppinsMedium`}
+                className={`text-xs ${isDark ? "text-[#919191]" : "text-[#454545]"} mr-1 font-poppinsMedium`}
               >
                 Created by {ilr.ilrCreatedBy} -{" "}
                 {new Date(ilr.ilrCreatedAt).toLocaleDateString()}
@@ -378,7 +383,7 @@ const IlrActivities = () => {
               <Ionicons
                 name={isExpanded ? "chevron-up" : "chevron-down"}
                 size={16}
-                color={isDark ? "#FFFFFF" : "#000000"}
+                color={isDark ? "#919191" : "#454545"}
               />
             </View>
           </TouchableOpacity>
@@ -635,42 +640,43 @@ const IlrActivities = () => {
           {activitiesLoading ? (
             <ActivityIndicator size="small" color="#3B82F6" />
           ) : (
-            <View className="pl-4 ml-2">
+            <View>
               {activities.map((act) => {
                 const style = getActivityStyles(act.type);
                 return (
-                  <View key={act._id} className="mb-6">
+                  <View key={act._id} className="mb-3">
                     {/* Activity Card */}
-                    <View
-                      className={`p-4 rounded-xl ${style.bg} ${act.type === "status" ? (isDark ? "border border-gray-700" : "border border-gray-100 shadow-sm") : ""}`}
-                    >
-                      <View className="flex-row items-start mb-1">
-                        <Ionicons
-                          name={style.icon}
-                          size={18}
-                          color={style.iconColor}
-                          style={{ marginTop: 2, marginRight: 8 }}
-                        />
+                    <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
+                      <View className="flex-row items-start">
+                        <View className="mr-3 mt-0.5">
+                          <HugeiconsIcon
+                            icon={style.icon}
+                            size={20}
+                            color={style.iconColor}
+                          />
+                        </View>
                         <View className="flex-1">
-                          <Text className={`font-bold text-sm ${style.text}`}>
+                          <Text
+                            className={`font-poppinsMedium text-[14px] ${style.text} `}
+                          >
                             {style.title}
                           </Text>
 
                           {/* Details */}
                           {act.type === "status" && act.newValue && (
-                            <View className="flex-row items-center mt-1">
-                              <View className="bg-blue-100 rounded px-2 py-0.5 mr-2">
-                                <Text className="text-blue-700 text-xs">
+                            <View className="flex-row items-center mt-1 mb-2">
+                              <View className="bg-[#DBEAFE] rounded-md px-2.5 py-1 mr-2">
+                                <Text className="text-[#1E40AF] text-xs font-poppinsMedium">
                                   {act.oldValue || "Open"}
                                 </Text>
                               </View>
                               <Ionicons
                                 name="arrow-forward"
-                                size={12}
-                                color={isDark ? "gray" : "gray"}
+                                size={14}
+                                color={isDark ? "#9CA3AF" : "#6B7280"}
                               />
-                              <View className="bg-green-100 rounded px-2 py-0.5 ml-2">
-                                <Text className="text-green-700 text-xs">
+                              <View className="bg-[#D1FAE5] rounded-md px-2.5 py-1 ml-2">
+                                <Text className="text-[#065F46] text-xs font-poppinsMedium">
                                   {act.newValue}
                                 </Text>
                               </View>
@@ -679,44 +685,60 @@ const IlrActivities = () => {
 
                           {act.type === "date" && act.newValue && (
                             <Text
-                              className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
+                              className={`text-[13px] font-poppins mt-1 mb-1 ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
                             >
                               From : {act.oldValue} - To : {act.newValue}
                             </Text>
                           )}
 
                           {act.type === "remark" && (
-                            <View className="mt-1">
+                            <View className="mt-1 mb-2">
                               <Text
-                                className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}
+                                className={`text-[13px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
                               >
-                                Updated description content.
+                                From : {act.oldValue || "No description"}
                               </Text>
-                              {isDark ? null : (
-                                <Text
-                                  className="text-xs text-gray-500 italic mt-1 line-clamp-2"
-                                  numberOfLines={2}
-                                >
-                                  {act.newValue}
-                                </Text>
-                              )}
+                              <Text
+                                className={`text-[13px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
+                              >
+                                To : {act.newValue || "No description"}
+                              </Text>
                             </View>
+                          )}
+
+                          {act.type === "assignee" && (
+                            <Text
+                              className={`text-[13px] font-poppins mt-1 mb-1 ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
+                            >
+                              From : {act.oldValue} - To : {act.newValue}
+                            </Text>
                           )}
 
                           {act.type === "note" && act.note && (
                             <Text
-                              className={`text-sm mt-1 italic ${isDark ? "text-gray-300" : "text-gray-700"}`}
+                              className={`text-[13px] font-poppins mt-1 mb-1 ${isDark ? "text-[#CAF5DF]" : "text-[#454545]"}`}
                             >
-                              "{act.note}"
+                              Note : {act.note}
                             </Text>
                           )}
 
                           {/* Footer */}
                           <Text
-                            className={`text-xs mt-2 ${isDark ? "text-gray-500" : "text-gray-400"}`}
+                            className={`text-[12px] font-poppins ${isDark ? "text-[#CCCCCC]" : "text-[#454545]"}`}
                           >
                             By {act.createdBy} •{" "}
-                            {new Date(act.createdAt).toLocaleString()}
+                            {new Date(act.createdAt).toLocaleDateString(
+                              "en-GB",
+                            )}{" "}
+                            -{" "}
+                            {new Date(act.createdAt).toLocaleTimeString(
+                              "en-US",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )}
                           </Text>
                         </View>
                       </View>
