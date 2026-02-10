@@ -64,6 +64,22 @@ const getDaysLeft = (targetDate: string) => {
   };
 };
 
+// Helper to safely extract ID
+const getSafeId = (user: any): string => {
+  if (!user) return "";
+  const idInfo = user._id || user.id; // Handle possible id variations
+
+  if (typeof idInfo === "string") return idInfo;
+
+  // If it's an object, try to extract nested _id
+  if (idInfo && typeof idInfo === "object") {
+    if (idInfo._id) return getSafeId(idInfo); // Recursive if needed
+    return idInfo.toString();
+  }
+
+  return String(idInfo || Math.random());
+};
+
 const IlrActivities = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -129,9 +145,9 @@ const IlrActivities = () => {
     const a = action.toLowerCase();
     if (a.includes("status")) return "status";
     if (a.includes("remark") || a.includes("description")) return "remark";
-    if (a.includes("date")) return "date";
     if (a.includes("assignee") || a.includes("responsibility"))
       return "assignee";
+    if (a.includes("date") || a.includes("target date")) return "date";
     return "note";
   };
 
@@ -165,8 +181,10 @@ const IlrActivities = () => {
       const mappedActivities = (ilrData.activities || [])
         .map((act: any) => {
           const isDateChange =
-            act.action?.toLowerCase().includes("date") ||
-            act.title?.toLowerCase().includes("date");
+            (act.action?.toLowerCase().includes("date") ||
+              act.title?.toLowerCase().includes("date")) &&
+            !act.action?.toLowerCase().includes("assignee") &&
+            !act.action?.toLowerCase().includes("responsibility");
           return {
             _id: act._id,
             title: act.action || act.title,
@@ -537,16 +555,17 @@ const IlrActivities = () => {
                   </Text>
                   <View className="flex-row">
                     {ilr.responsibility.length > 0 ? (
-                      ilr.responsibility
-                        .slice(0, 3)
-                        .map((r, i) => (
+                      ilr.responsibility.slice(0, 3).map((r, i) => {
+                        const rId = getSafeId(r);
+                        return (
                           <GlobalAvatar
-                            key={r._id || i}
+                            key={rId || i}
                             name={r.name}
                             size={32}
                             className="-ml-2 border-2 border-white dark:border-black"
                           />
-                        ))
+                        );
+                      })
                     ) : (
                       <Text className="text-xs text-gray-400">Unassigned</Text>
                     )}
@@ -1077,12 +1096,12 @@ const IlrActivities = () => {
             <Text
               className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
             >
-              Assignees
+              Change Assignees
             </Text>
 
             {/* Search Bar */}
             <View
-              className={`flex-row items-center px-4 py-2 rounded-xl mb-6 ${isDark ? "bg-[#2A2A2A] border border-gray-700" : "bg-[#F5F5F5] border border-gray-200"}`}
+              className={`flex-row items-center px-4 py-1 rounded-xl mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
             >
               <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
               <TextInput
@@ -1103,36 +1122,39 @@ const IlrActivities = () => {
                   >
                     Assignees
                   </Text>
-                  {tempAssignees.map((user) => (
-                    <View
-                      key={user._id}
-                      className="flex-row items-center justify-between mb-4"
-                    >
-                      <View className="flex-row items-center">
-                        <GlobalAvatar name={user.name} size={40} />
-                        <Text
-                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                        >
-                          {user.name === auth?.user?.fullName
-                            ? "Me"
-                            : user.name}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setTempAssignees((prev) =>
-                            prev.filter((u) => u._id !== user._id),
-                          );
-                        }}
+                  {tempAssignees.map((user) => {
+                    const userId = getSafeId(user);
+                    return (
+                      <View
+                        key={userId}
+                        className="flex-row items-center justify-between mb-4"
                       >
-                        <HugeiconsIcon
-                          icon={Cancel01Icon}
-                          size={20}
-                          color="#919191"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
+                        <View className="flex-row items-center">
+                          <GlobalAvatar name={user.name} size={40} />
+                          <Text
+                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                          >
+                            {user.name === auth?.user?.fullName
+                              ? "Me"
+                              : user.name}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setTempAssignees((prev) =>
+                              prev.filter((u) => getSafeId(u) !== userId),
+                            );
+                          }}
+                        >
+                          <HugeiconsIcon
+                            icon={Cancel01Icon}
+                            size={20}
+                            color="#919191"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
                 </View>
               )}
 
@@ -1147,31 +1169,36 @@ const IlrActivities = () => {
                   <ActivityIndicator size="small" color="#5B4CCC" />
                 ) : (
                   projectUsers
-                    .filter(
-                      (u) =>
-                        u.name
-                          .toLowerCase()
-                          .includes(assigneeSearchQuery.toLowerCase()) &&
-                        !tempAssignees.find((ta) => ta._id === u._id),
-                    )
-                    .map((user) => (
-                      <TouchableOpacity
-                        key={user._id}
-                        onPress={() => {
-                          setTempAssignees((prev) => [...prev, user]);
-                        }}
-                        className="flex-row items-center mb-4"
-                      >
-                        <GlobalAvatar name={user.name} size={40} />
-                        <Text
-                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                    .filter((u) => {
+                      const isMatch = u.name
+                        .toLowerCase()
+                        .includes(assigneeSearchQuery.toLowerCase());
+                      const isAlreadyIn = tempAssignees.some((ta) => {
+                        return getSafeId(ta) === getSafeId(u);
+                      });
+                      return isMatch && !isAlreadyIn;
+                    })
+                    .map((user) => {
+                      const userId = getSafeId(user);
+                      return (
+                        <TouchableOpacity
+                          key={userId}
+                          onPress={() => {
+                            setTempAssignees((prev) => [...prev, user]);
+                          }}
+                          className="flex-row items-center mb-4"
                         >
-                          {user.name === auth?.user?.fullName
-                            ? "Me"
-                            : user.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))
+                          <GlobalAvatar name={user.name} size={40} />
+                          <Text
+                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                          >
+                            {user.name === auth?.user?.fullName
+                              ? "Me"
+                              : user.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })
                 )}
               </View>
             </ScrollView>
@@ -1189,18 +1216,37 @@ const IlrActivities = () => {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={saveAssigneeChange} className="flex-1">
-                <LinearGradient
-                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ borderRadius: 12 }}
-                  className="py-3 items-center justify-center"
-                >
-                  <Text className="text-[16px] font-poppins text-white">
-                    Save
-                  </Text>
-                </LinearGradient>
+              <TouchableOpacity
+                onPress={saveAssigneeChange}
+                disabled={tempAssignees.length === 0}
+                className="flex-1"
+              >
+                {tempAssignees.length === 0 ? (
+                  <View
+                    style={{ backgroundColor: isDark ? "#333" : "#BDBDBD" }}
+                    className="py-3 rounded-xl items-center justify-center"
+                  >
+                    <Text
+                      className={`text-[16px] font-poppins ${
+                        isDark ? "text-[#666]" : "text-[#757575]"
+                      }`}
+                    >
+                      Save
+                    </Text>
+                  </View>
+                ) : (
+                  <LinearGradient
+                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ borderRadius: 12 }}
+                    className="py-3 items-center justify-center"
+                  >
+                    <Text className="text-[16px] font-poppins text-white">
+                      Save
+                    </Text>
+                  </LinearGradient>
+                )}
               </TouchableOpacity>
             </View>
           </View>
