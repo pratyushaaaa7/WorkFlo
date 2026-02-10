@@ -644,7 +644,7 @@ const IlrActivities = () => {
               {activities.map((act) => {
                 const style = getActivityStyles(act.type);
                 return (
-                  <View key={act._id} className="mb-3">
+                  <View key={act._id} className="mb-2">
                     {/* Activity Card */}
                     <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
                       <View className="flex-row items-start">
