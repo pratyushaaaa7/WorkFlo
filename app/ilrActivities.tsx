@@ -99,9 +99,13 @@ const IlrActivities = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRemarkModal, setShowRemarkModal] = useState(false);
   const [newRemark, setNewRemark] = useState(ilr.remarks);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
+  const [tempDateNote, setTempDateNote] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const remarkInputRef = React.useRef<TextInput>(null);
+  const dateNoteInputRef = React.useRef<TextInput>(null);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -185,17 +189,22 @@ const IlrActivities = () => {
     fetchILRDetails();
   }, [params.ilrId, token]);
 
-  const onDateChange = async (selectedDate?: Date) => {
-    if (!selectedDate) return;
-    const updatedDate = selectedDate.toISOString();
+  const onDateConfirm = (selectedDate: Date) => {
+    setTempDate(selectedDate);
+    setShowDatePicker(false);
+  };
+
+  const saveDateChange = async () => {
+    const updatedDate = tempDate.toISOString();
     setIlr((prev) => ({ ...prev, targetDate: updatedDate }));
+    setShowDateModal(false);
     try {
       await api.patch(
         `/ilrs/${ilr._id}`,
-        { targetDate: updatedDate, note: newNote },
+        { targetDate: updatedDate, note: tempDateNote },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      setNewNote("");
+      setTempDateNote("");
       fetchILRDetails();
     } catch (err) {
       console.error("Failed to update target date:", err);
@@ -485,7 +494,13 @@ const IlrActivities = () => {
               {/* Target Date Row */}
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => setShowDatePicker(true)}
+                onPress={() => {
+                  setTempDate(
+                    ilr.targetDate ? new Date(ilr.targetDate) : new Date(),
+                  );
+                  setTempDateNote("");
+                  setShowDateModal(true);
+                }}
                 className="flex-row items-center py-3 -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
@@ -669,11 +684,20 @@ const IlrActivities = () => {
                           )}
 
                           {act.type === "date" && act.newValue && (
-                            <Text
-                              className={`text-[13px] font-poppins mt-1 mb-1 ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
-                            >
-                              From : {act.oldValue} - To : {act.newValue}
-                            </Text>
+                            <View className="mt-1 mb-1">
+                              <Text
+                                className={`text-[13px] font-poppins ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
+                              >
+                                From : {act.oldValue} - To : {act.newValue}
+                              </Text>
+                              {act.note && (
+                                <Text
+                                  className={`text-[12px] font-poppins italic mt-0.5 ${isDark ? "text-[#F5CACA]/80" : "text-[#454545]/80"}`}
+                                >
+                                  Reason : {act.note}
+                                </Text>
+                              )}
+                            </View>
                           )}
 
                           {act.type === "remark" && (
@@ -774,11 +798,8 @@ const IlrActivities = () => {
       <DateTimePickerModal
         isVisible={showDatePicker}
         mode="date"
-        date={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
-        onConfirm={(date: Date) => {
-          onDateChange(date);
-          setShowDatePicker(false);
-        }}
+        date={tempDate}
+        onConfirm={onDateConfirm}
         onCancel={() => setShowDatePicker(false)}
       />
 
@@ -864,7 +885,7 @@ const IlrActivities = () => {
             onPress={() => setShowRemarkModal(false)}
           >
             <Pressable
-              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-white"}`}
+              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
               onPress={(e) => e.stopPropagation()}
             >
               {/* Handle Bar Wrapper */}
@@ -889,7 +910,7 @@ const IlrActivities = () => {
                 multiline
                 numberOfLines={6}
                 textAlignVertical="top"
-                className={` rounded-xl font-poppins text-[15px] mb-4 min-h-[100px] ${isDark ? "text-white bg-[#2A2A2A]" : "text-black bg-[#F5F5F5]"}`}
+                className={` font-poppins text-[15px] mb-4  min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
                 placeholder="Enter description..."
                 placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
               />
@@ -915,6 +936,140 @@ const IlrActivities = () => {
                     Save
                   </Text>
                 </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Change Target Date Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showDateModal}
+        onRequestClose={() => setShowDateModal(false)}
+        onShow={() => {
+          setTimeout(() => {
+            dateNoteInputRef.current?.focus();
+          }, 100);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <Pressable
+            className="flex-1 justify-end bg-black/50"
+            onPress={() => setShowDateModal(false)}
+          >
+            <Pressable
+              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* Handle Bar Wrapper */}
+              <View className="w-full items-center mb-4">
+                <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+              </View>
+
+              {/* Title */}
+              <Text
+                className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+              >
+                Change Target Date
+              </Text>
+
+              <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-4" />
+              <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
+                New Target Date
+              </Text>
+
+              {/* Date Selection Row */}
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                className={`flex-row items-center justify-between p-4 rounded-xl mb-4 ${isDark ? "bg-[#000000] border border-[#5B4CCC]" : "bg-[#F6F8FA] border border-[#5B4CCC]"}`}
+              >
+                <View className="flex-row items-center">
+                  <Text
+                    className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                  >
+                    {tempDate
+                      ? tempDate.toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Select Date"}
+                  </Text>
+                </View>
+                <HugeiconsIcon
+                  icon={Calendar02Icon}
+                  size={22}
+                  color={isDark ? "#919191" : "#454545"}
+                />
+              </TouchableOpacity>
+
+              <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
+
+              {/* Text Input for Reason */}
+              <TextInput
+                ref={dateNoteInputRef}
+                value={tempDateNote}
+                onChangeText={setTempDateNote}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
+                placeholder="Reason for change..."
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+              />
+
+              {/* Buttons */}
+              <View className="flex-row gap-3 mb-5">
+                <TouchableOpacity
+                  onPress={() => setShowDateModal(false)}
+                  className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+                >
+                  <Text
+                    className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                {(() => {
+                  const isReasonEmpty = !tempDateNote.trim();
+                  const isDateSame = ilr.targetDate
+                    ? new Date(tempDate).toDateString() ===
+                      new Date(ilr.targetDate).toDateString()
+                    : false;
+                  const isSaveDisabled = isReasonEmpty || isDateSame;
+
+                  return (
+                    <TouchableOpacity
+                      onPress={saveDateChange}
+                      disabled={isSaveDisabled}
+                      className={`flex-1 py-3 rounded-xl ${
+                        isSaveDisabled
+                          ? isDark
+                            ? "bg-[#333]"
+                            : "bg-[#E0E5EB]"
+                          : "bg-[#5B4CCC]"
+                      }`}
+                    >
+                      <Text
+                        className={`text-center text-[16px] font-poppins ${
+                          isSaveDisabled
+                            ? isDark
+                              ? "text-[#666]"
+                              : "text-[#919191]"
+                            : "text-white"
+                        }`}
+                      >
+                        Save
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })()}
               </View>
             </Pressable>
           </Pressable>
