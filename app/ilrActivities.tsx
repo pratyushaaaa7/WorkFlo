@@ -6,12 +6,14 @@ import {
   ArrowRight01Icon,
   Calendar02Icon,
   Calendar03Icon,
+  Cancel01Icon,
   CheckmarkCircle02Icon,
   CircleIcon,
   DashedLineCircleIcon,
   Delete03Icon,
   Menu05Icon,
   Note03Icon,
+  Search01Icon,
   UserCircleIcon,
   UserIcon,
 } from "@hugeicons/core-free-icons";
@@ -23,7 +25,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   LayoutAnimation,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -34,6 +35,7 @@ import {
   View,
 } from "react-native";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
+import Modal from "react-native-modal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -88,7 +90,14 @@ const IlrActivities = () => {
     attachments: params.attachments
       ? JSON.parse(params.attachments as string)
       : [],
+    projectId: "",
   });
+
+  const [showAssigneeModal, setShowAssigneeModal] = useState(false);
+  const [tempAssignees, setTempAssignees] = useState<Responsibility[]>([]);
+  const [projectUsers, setProjectUsers] = useState<Responsibility[]>([]);
+  const [loadingProjectUsers, setLoadingProjectUsers] = useState(false);
+  const [assigneeSearchQuery, setAssigneeSearchQuery] = useState("");
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
@@ -150,6 +159,7 @@ const IlrActivities = () => {
         ilrCreatedAt: ilrData.createdAt,
         ilrNumber: ilrData.ilrNumber,
         attachments: ilrData.attachments || [],
+        projectId: ilrData.projectId || ilrData.project || "",
       });
 
       const mappedActivities = (ilrData.activities || [])
@@ -189,6 +199,35 @@ const IlrActivities = () => {
   useEffect(() => {
     fetchILRDetails();
   }, [params.ilrId, token]);
+
+  const fetchProjectUsers = async () => {
+    if (!token || !ilr.projectId) return;
+    setLoadingProjectUsers(true);
+    try {
+      const res = await api.get(`/projects/${ilr.projectId}/users-dropdown`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Map API response to Responsibility type
+      const mapped = res.data.map((u: any) => ({
+        _id: u._id,
+        name: `${u.individualName} (${u.firmName})`,
+        individualName: u.individualName,
+        firmName: u.firmName,
+        designation: u.designation || "",
+      }));
+      setProjectUsers(mapped);
+    } catch (err) {
+      console.error("Error fetching project users:", err);
+    } finally {
+      setLoadingProjectUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showAssigneeModal) {
+      fetchProjectUsers();
+    }
+  }, [showAssigneeModal]);
 
   const onDateConfirm = (selectedDate: Date) => {
     setTempDate(selectedDate);
@@ -241,14 +280,34 @@ const IlrActivities = () => {
     setShowRemarkModal(false);
     setIlr((prev) => ({ ...prev, remarks: newRemark }));
     try {
+      fetchILRDetails();
+    } catch (err) {
+      console.error("Failed to update remark:", err);
+    }
+  };
+
+  const saveAssigneeChange = async () => {
+    setShowAssigneeModal(false);
+    // Send selected objects (ensure they match responsibility schema)
+    const responsibility = tempAssignees.map((a) => ({
+      _id: a._id,
+      name: a.name,
+    }));
+
+    try {
       await api.patch(
         `/ilrs/${ilr._id}`,
-        { remarks: newRemark },
+        { responsibility },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       fetchILRDetails();
     } catch (err) {
-      console.error("Failed to update remark:", err);
+      console.error("Failed to update assignee:", err);
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not update assignees.",
+      });
     }
   };
 
@@ -455,7 +514,14 @@ const IlrActivities = () => {
               </TouchableOpacity>
 
               {/* Assignee Row */}
-              <TouchableOpacity className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4">
+              <TouchableOpacity
+                onPress={() => {
+                  setTempAssignees([...ilr.responsibility]);
+                  setShowAssigneeModal(true);
+                  setAssigneeSearchQuery("");
+                }}
+                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
+              >
                 <View className="p-2 rounded-full mr-3">
                   <HugeiconsIcon
                     icon={UserCircleIcon}
@@ -727,7 +793,8 @@ const IlrActivities = () => {
                             <Text
                               className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-[#CAF5DF]" : "text-[#454545]"}`}
                             >
-                              Note : {act.note}                            </Text>
+                              Note : {act.note}{" "}
+                            </Text>
                           )}
 
                           {/* Footer */}
@@ -804,15 +871,19 @@ const IlrActivities = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
-        animationType="fade"
-        transparent={true}
-        visible={deleteModalVisible}
-        onRequestClose={() => setDeleteModalVisible(false)}
+        isVisible={deleteModalVisible}
+        onBackdropPress={() => setDeleteModalVisible(false)}
+        onBackButtonPress={() => setDeleteModalVisible(false)}
+        onSwipeComplete={() => setDeleteModalVisible(false)}
+        swipeDirection="down"
+        propagateSwipe={true}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+        backdropOpacity={0.5}
+        useNativeDriver
+        hideModalContentWhileAnimating
       >
-        <Pressable
-          className="flex-1 justify-center items-center bg-black/50 px-4"
-          onPress={() => setDeleteModalVisible(false)}
-        >
+        <View className="flex-1 justify-center items-center px-4">
           <Pressable
             className={`w-full max-w-sm p-6 rounded-3xl ${isDark ? "bg-[#000000]" : "bg-white"}`}
             onPress={(e) => e.stopPropagation()}
@@ -831,7 +902,7 @@ const IlrActivities = () => {
               Delete this item
             </Text>
             <Text
-              className={`text-[14px] font-poppins mb-6 ${isDark ? "#919191" : "#454545"}`}
+              className={`text-[14px] font-poppins mb-6 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
             >
               Are you sure you want to delete this element? This action is
               final.
@@ -860,270 +931,428 @@ const IlrActivities = () => {
               </TouchableOpacity>
             </View>
           </Pressable>
-        </Pressable>
+        </View>
       </Modal>
 
       {/* Change Description Modal */}
       <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showRemarkModal}
-        onRequestClose={() => setShowRemarkModal(false)}
-        onShow={() => {
+        isVisible={showRemarkModal}
+        onBackdropPress={() => setShowRemarkModal(false)}
+        onSwipeComplete={() => setShowRemarkModal(false)}
+        swipeDirection="down"
+        propagateSwipe={true}
+        style={{ margin: 0, justifyContent: "flex-end" }}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.5}
+        onModalShow={() => {
           setTimeout(() => {
             remarkInputRef.current?.focus();
           }, 100);
         }}
+        onBackButtonPress={() => setShowRemarkModal(false)}
+        useNativeDriver
+        hideModalContentWhileAnimating
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
         >
-          <Pressable
-            className="flex-1 justify-end bg-black/50"
-            onPress={() => setShowRemarkModal(false)}
+          <View
+            className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
-            <Pressable
-              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
-              onPress={(e) => e.stopPropagation()}
+            {/* Handle Bar Wrapper */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
+
+            {/* Title */}
+            <Text
+              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
             >
-              {/* Handle Bar Wrapper */}
-              <View className="w-full items-center mb-4">
-                <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-              </View>
+              Change Description
+            </Text>
 
-              {/* Title */}
-              <Text
-                className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+            <View className="border-b border-[#E0E5EB] dark:border-[#413E47]" />
+
+            {/* Text Input */}
+            <TextInput
+              ref={remarkInputRef}
+              value={newRemark}
+              onChangeText={setNewRemark}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              className={` font-poppins text-[15px] mb-4  min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
+              placeholder="Enter description..."
+              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+            />
+
+            {/* Buttons */}
+            <View className="flex-row gap-3 mb-5">
+              <TouchableOpacity
+                onPress={() => setShowRemarkModal(false)}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
-                Change Description
-              </Text>
-
-              <View className="border-b border-[#E0E5EB] dark:border-[#413E47]" />
-
-              {/* Text Input */}
-              <TextInput
-                ref={remarkInputRef}
-                value={newRemark}
-                onChangeText={setNewRemark}
-                multiline
-                numberOfLines={6}
-                textAlignVertical="top"
-                className={` font-poppins text-[15px] mb-4  min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
-                placeholder="Enter description..."
-                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
-              />
-
-              {/* Buttons */}
-              <View className="flex-row gap-3 mb-5">
-                <TouchableOpacity
-                  onPress={() => setShowRemarkModal(false)}
-                  className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+                <Text
+                  className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
                 >
-                  <Text
-                    className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              {(() => {
+                const isRemarkEmpty = !(newRemark || "").trim();
+                const isRemarkSame = (newRemark || "") === (ilr.remarks || "");
+                const isSaveDisabled = isRemarkEmpty || isRemarkSame;
+
+                return (
+                  <TouchableOpacity
+                    onPress={saveRemark}
+                    disabled={isSaveDisabled}
+                    className="flex-1"
                   >
-                    Cancel
+                    {isSaveDisabled ? (
+                      <View
+                        style={{ backgroundColor: isDark ? "#333" : "#BDBDBD" }}
+                        className="py-3 rounded-xl items-center justify-center"
+                      >
+                        <Text
+                          className={`text-[16px] font-poppins ${
+                            isDark ? "text-[#666]" : "text-[#757575]"
+                          }`}
+                        >
+                          Save
+                        </Text>
+                      </View>
+                    ) : (
+                      <LinearGradient
+                        colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          borderRadius: 12,
+                        }}
+                        className="py-3 items-center justify-center"
+                      >
+                        <Text className="text-[16px] font-poppins text-white">
+                          Save
+                        </Text>
+                      </LinearGradient>
+                    )}
+                  </TouchableOpacity>
+                );
+              })()}
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Change Assignee Modal */}
+      <Modal
+        isVisible={showAssigneeModal}
+        onBackdropPress={() => setShowAssigneeModal(false)}
+        onSwipeComplete={() => setShowAssigneeModal(false)}
+        swipeDirection="down"
+        propagateSwipe={true}
+        style={{ margin: 0, justifyContent: "flex-end" }}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.5}
+        onBackButtonPress={() => setShowAssigneeModal(false)}
+        useNativeDriver
+        hideModalContentWhileAnimating
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View
+            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+          >
+            {/* Handle Bar */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
+
+            {/* Title */}
+            <Text
+              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+            >
+              Assignees
+            </Text>
+
+            {/* Search Bar */}
+            <View
+              className={`flex-row items-center px-4 py-2 rounded-xl mb-6 ${isDark ? "bg-[#2A2A2A] border border-gray-700" : "bg-[#F5F5F5] border border-gray-200"}`}
+            >
+              <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
+              <TextInput
+                value={assigneeSearchQuery}
+                onChangeText={setAssigneeSearchQuery}
+                placeholder="Search people"
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+                className={`flex-1 ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+              />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+              {/* Currently Assigned Section */}
+              {tempAssignees.length > 0 && (
+                <View className="mb-6">
+                  <Text
+                    className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                  >
+                    Assignees
                   </Text>
-                </TouchableOpacity>
-
-                {(() => {
-                  const isRemarkEmpty = !(newRemark || "").trim();
-                  const isRemarkSame =
-                    (newRemark || "") === (ilr.remarks || "");
-                  const isSaveDisabled = isRemarkEmpty || isRemarkSame;
-
-                  return (
-                    <TouchableOpacity
-                      onPress={saveRemark}
-                      disabled={isSaveDisabled}
-                      className="flex-1"
+                  {tempAssignees.map((user) => (
+                    <View
+                      key={user._id}
+                      className="flex-row items-center justify-between mb-4"
                     >
-                      {isSaveDisabled ? (
-                        <View
-                          style={{
-                            backgroundColor: isDark ? "#333" : "#BDBDBD",
-                          }}
-                          className="py-3 rounded-xl items-center justify-center"
+                      <View className="flex-row items-center">
+                        <GlobalAvatar name={user.name} size={40} />
+                        <Text
+                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
                         >
-                          <Text
-                            className={`text-[16px] font-poppins ${
-                              isDark ? "text-[#666]" : "text-[#757575]"
-                            }`}
-                          >
-                            Save
-                          </Text>
-                        </View>
-                      ) : (
-                        <LinearGradient
-                          colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={{
-                            borderRadius: 12,
-                          }}
-                          className="py-3 items-center justify-center"
+                          {user.name === auth?.user?.fullName
+                            ? "Me"
+                            : user.name}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setTempAssignees((prev) =>
+                            prev.filter((u) => u._id !== user._id),
+                          );
+                        }}
+                      >
+                        <HugeiconsIcon
+                          icon={Cancel01Icon}
+                          size={20}
+                          color="#919191"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* People List Section */}
+              <View className="mb-4">
+                <Text
+                  className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                >
+                  People
+                </Text>
+                {loadingProjectUsers ? (
+                  <ActivityIndicator size="small" color="#5B4CCC" />
+                ) : (
+                  projectUsers
+                    .filter(
+                      (u) =>
+                        u.name
+                          .toLowerCase()
+                          .includes(assigneeSearchQuery.toLowerCase()) &&
+                        !tempAssignees.find((ta) => ta._id === u._id),
+                    )
+                    .map((user) => (
+                      <TouchableOpacity
+                        key={user._id}
+                        onPress={() => {
+                          setTempAssignees((prev) => [...prev, user]);
+                        }}
+                        className="flex-row items-center mb-4"
+                      >
+                        <GlobalAvatar name={user.name} size={40} />
+                        <Text
+                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
                         >
-                          <Text className="text-[16px] font-poppins text-white">
-                            Save
-                          </Text>
-                        </LinearGradient>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })()}
+                          {user.name === auth?.user?.fullName
+                            ? "Me"
+                            : user.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                )}
               </View>
-            </Pressable>
-          </Pressable>
+            </ScrollView>
+
+            {/* Bottom Buttons */}
+            <View className="flex-row gap-3 pt-4">
+              <TouchableOpacity
+                onPress={() => setShowAssigneeModal(false)}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+              >
+                <Text
+                  className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={saveAssigneeChange} className="flex-1">
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ borderRadius: 12 }}
+                  className="py-3 items-center justify-center"
+                >
+                  <Text className="text-[16px] font-poppins text-white">
+                    Save
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
 
       {/* Change Target Date Modal */}
       <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showDateModal}
-        onRequestClose={() => setShowDateModal(false)}
-        onShow={() => {
+        isVisible={showDateModal}
+        onBackdropPress={() => setShowDateModal(false)}
+        onSwipeComplete={() => setShowDateModal(false)}
+        swipeDirection="down"
+        propagateSwipe={true}
+        style={{ margin: 0, justifyContent: "flex-end" }}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.5}
+        onModalShow={() => {
           setTimeout(() => {
             dateNoteInputRef.current?.focus();
           }, 100);
         }}
+        onBackButtonPress={() => setShowDateModal(false)}
+        useNativeDriver
+        hideModalContentWhileAnimating
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
         >
-          <Pressable
-            className="flex-1 justify-end bg-black/50"
-            onPress={() => setShowDateModal(false)}
+          <View
+            className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
-            <Pressable
-              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
-              onPress={(e) => e.stopPropagation()}
+            {/* Handle Bar Wrapper */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
+
+            {/* Title */}
+            <Text
+              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
             >
-              {/* Handle Bar Wrapper */}
-              <View className="w-full items-center mb-4">
-                <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+              Change Target Date
+            </Text>
+
+            <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-4" />
+            <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
+              New Target Date
+            </Text>
+
+            {/* Date Selection Row */}
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              className={`flex-row items-center justify-between p-4 rounded-xl mb-4 ${isDark ? "bg-[#000000] border border-[#5B4CCC]" : "bg-[#F6F8FA] border border-[#5B4CCC]"}`}
+            >
+              <View className="flex-row items-center">
+                <Text
+                  className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"} ${!tempDate ? "opacity-60" : ""}`}
+                >
+                  {tempDate
+                    ? tempDate.toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "New Target Date"}
+                </Text>
               </View>
+              <HugeiconsIcon
+                icon={Calendar02Icon}
+                size={22}
+                color={isDark ? "#919191" : "#454545"}
+              />
+            </TouchableOpacity>
 
-              {/* Title */}
-              <Text
-                className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
-              >
-                Change Target Date
-              </Text>
+            <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
 
-              <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-4" />
-              <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
-                New Target Date
-              </Text>
+            {/* Text Input for Reason */}
+            <TextInput
+              ref={dateNoteInputRef}
+              value={tempDateNote}
+              onChangeText={setTempDateNote}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
+              placeholder="Reason for change..."
+              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+            />
 
-              {/* Date Selection Row */}
+            {/* Buttons */}
+            <View className="flex-row gap-3 mb-5">
               <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
-                className={`flex-row items-center justify-between p-4 rounded-xl mb-4 ${isDark ? "bg-[#000000] border border-[#5B4CCC]" : "bg-[#F6F8FA] border border-[#5B4CCC]"}`}
+                onPress={() => setShowDateModal(false)}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
-                <View className="flex-row items-center">
-                  <Text
-                    className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"} ${!tempDate ? "opacity-60" : ""}`}
-                  >
-                    {tempDate
-                      ? tempDate.toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "New Target Date"}
-                  </Text>
-                </View>
-                <HugeiconsIcon
-                  icon={Calendar02Icon}
-                  size={22}
-                  color={isDark ? "#919191" : "#454545"}
-                />
+                <Text
+                  className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
-              <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
+              {(() => {
+                const isReasonEmpty = !(tempDateNote || "").trim();
+                const isDateSame =
+                  ilr.targetDate && tempDate
+                    ? new Date(tempDate).toDateString() ===
+                      new Date(ilr.targetDate).toDateString()
+                    : false;
+                const isSaveDisabled = isReasonEmpty || isDateSame || !tempDate;
 
-              {/* Text Input for Reason */}
-              <TextInput
-                ref={dateNoteInputRef}
-                value={tempDateNote}
-                onChangeText={setTempDateNote}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
-                placeholder="Reason for change..."
-                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
-              />
-
-              {/* Buttons */}
-              <View className="flex-row gap-3 mb-5">
-                <TouchableOpacity
-                  onPress={() => setShowDateModal(false)}
-                  className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
-                >
-                  <Text
-                    className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                return (
+                  <TouchableOpacity
+                    onPress={saveDateChange}
+                    disabled={isSaveDisabled}
+                    className="flex-1"
                   >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-
-                {(() => {
-                  const isReasonEmpty = !(tempDateNote || "").trim();
-                  const isDateSame =
-                    ilr.targetDate && tempDate
-                      ? new Date(tempDate).toDateString() ===
-                        new Date(ilr.targetDate).toDateString()
-                      : false;
-                  const isSaveDisabled =
-                    isReasonEmpty || isDateSame || !tempDate;
-
-                  return (
-                    <TouchableOpacity
-                      onPress={saveDateChange}
-                      disabled={isSaveDisabled}
-                      className="flex-1"
-                    >
-                      {isSaveDisabled ? (
-                        <View
-                          style={{
-                            backgroundColor: isDark ? "#333" : "#BDBDBD",
-                          }}
-                          className="py-3 rounded-xl items-center justify-center"
+                    {isSaveDisabled ? (
+                      <View
+                        style={{
+                          backgroundColor: isDark ? "#333" : "#BDBDBD",
+                        }}
+                        className="py-3 rounded-xl items-center justify-center"
+                      >
+                        <Text
+                          className={`text-[16px] font-poppins ${
+                            isDark ? "text-[#666]" : "text-[#757575]"
+                          }`}
                         >
-                          <Text
-                            className={`text-[16px] font-poppins ${
-                              isDark ? "text-[#666]" : "text-[#757575]"
-                            }`}
-                          >
-                            Save
-                          </Text>
-                        </View>
-                      ) : (
-                        <LinearGradient
-                          colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={{
-                            borderRadius: 12,
-                          }}
-                          className="py-3 items-center justify-center"
-                        >
-                          <Text className="text-[16px] font-poppins text-white">
-                            Save
-                          </Text>
-                        </LinearGradient>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })()}
-              </View>
-            </Pressable>
-          </Pressable>
+                          Save
+                        </Text>
+                      </View>
+                    ) : (
+                      <LinearGradient
+                        colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          borderRadius: 12,
+                        }}
+                        className="py-3 items-center justify-center"
+                      >
+                        <Text className="text-[16px] font-poppins text-white">
+                          Save
+                        </Text>
+                      </LinearGradient>
+                    )}
+                  </TouchableOpacity>
+                );
+              })()}
+            </View>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
     </View>
