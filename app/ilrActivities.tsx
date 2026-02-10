@@ -635,19 +635,11 @@ const IlrActivities = () => {
           {activitiesLoading ? (
             <ActivityIndicator size="small" color="#3B82F6" />
           ) : (
-            <View className="pl-4 border-l border-gray-200 dark:border-gray-800 ml-2">
+            <View className="pl-4 ml-2">
               {activities.map((act) => {
                 const style = getActivityStyles(act.type);
                 return (
-                  <View key={act._id} className="mb-6 relative pl-4">
-                    {/* Timeline Dot/Icon */}
-                    <View className="absolute -left-7 top-0 bg-white dark:bg-black p-1">
-                      {/* Can use custom icon or simple dot. Image shows specific icons but mostly clean. */}
-                      <View
-                        className={`w-3 h-3 rounded-full ${isDark ? "bg-gray-600" : "bg-gray-300"}`}
-                      />
-                    </View>
-
+                  <View key={act._id} className="mb-6">
                     {/* Activity Card */}
                     <View
                       className={`p-4 rounded-xl ${style.bg} ${act.type === "status" ? (isDark ? "border border-gray-700" : "border border-gray-100 shadow-sm") : ""}`}
