@@ -1,9 +1,14 @@
+import GlobalAvatar from "@/components/GlobalAvatar";
 import Activity from "@/types/ILRActivity";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeftIcon,
   ArrowRight01Icon,
+  Calendar02Icon,
+  CheckmarkCircle02Icon,
+  DashedLineCircleIcon,
   Delete03Icon,
+  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,7 +23,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  UIManager,
   useColorScheme,
   View,
 } from "react-native";
@@ -74,6 +78,9 @@ const IlrActivities = () => {
     ilrCreatedBy: params.createdBy as string,
     ilrCreatedAt: params.createdAt as string,
     ilrNumber: params.ilrNumber as string,
+    attachments: params.attachments
+      ? JSON.parse(params.attachments as string)
+      : [],
   });
 
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -88,15 +95,6 @@ const IlrActivities = () => {
   const [newRemark, setNewRemark] = useState(ilr.remarks);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-
-  useEffect(() => {
-    if (
-      Platform.OS === "android" &&
-      UIManager.setLayoutAnimationEnabledExperimental
-    ) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-  }, []);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -139,6 +137,7 @@ const IlrActivities = () => {
         ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
         ilrCreatedAt: ilrData.createdAt,
         ilrNumber: ilrData.ilrNumber,
+        attachments: ilrData.attachments || [],
       });
 
       const mappedActivities = (ilrData.activities || [])
@@ -357,7 +356,7 @@ const IlrActivities = () => {
           <TouchableOpacity
             onPress={toggleExpand}
             activeOpacity={0.7}
-            className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2"
+            className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2 -mx-4 px-4"
           >
             <Text
               className={`text-sm font-poppins ${isDark ? "[#919191]" : "[#454545]"}`}
@@ -397,75 +396,82 @@ const IlrActivities = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={toggleStatus}
-                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
+                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
               >
-                <View className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full mr-3">
-                  <Ionicons
-                    name="checkmark-circle-outline"
-                    size={20}
-                    color="#16A34A"
-                  />
+                <View className="p-2 rounded-full mr-3">
+                  {ilr.status === "Closed" ? (
+                    <HugeiconsIcon
+                      icon={CheckmarkCircle02Icon}
+                      size={20}
+                      color="#1AA45B"
+                    />
+                  ) : (
+                    <HugeiconsIcon
+                      icon={DashedLineCircleIcon}
+                      size={20}
+                      color="#DF5B5B"
+                    />
+                  )}
                 </View>
                 <View className="flex-1">
                   <Text
-                    className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                    className={`text-xs font-poppins ${isDark ? "text-gray-400" : "text-gray-500"}`}
                   >
                     Status
                   </Text>
                   <Text
-                    className={`text-sm font-medium ${ilr.status === "Closed" ? "text-[#1AA45B]" : "text-[#DF5B5B]"}`}
+                    className={`text-sm font-poppinsMedium ${
+                      ilr.status === "Closed"
+                        ? "text-[#1AA45B]"
+                        : "text-[#DF5B5B]"
+                    }`}
                   >
                     {ilr.status}
                   </Text>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
                   size={20}
-                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                  color="#919191"
                 />
               </TouchableOpacity>
 
               {/* Assignee Row */}
-              <TouchableOpacity className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
-                  <Ionicons
-                    name="person-outline"
+              <TouchableOpacity className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4">
+                <View className="p-2 rounded-full mr-3">
+                  <HugeiconsIcon
+                    icon={UserCircleIcon}
                     size={20}
-                    color={isDark ? "#D1D5DB" : "#374151"}
+                    color={isDark ? "#919191" : "#454545"}
                   />
                 </View>
                 <View className="flex-1 flex-row justify-between items-center pr-2">
                   <Text
-                    className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}
+                    className={`text-sm font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                   >
                     Assignee
                   </Text>
                   <View className="flex-row">
                     {ilr.responsibility.length > 0 ? (
-                      ilr.responsibility.slice(0, 3).map((r, i) => (
-                        <View
-                          key={r._id || i}
-                          className={`w-8 h-8 rounded-full justify-center items-center -ml-2 border-2 ${isDark ? "border-black" : "border-white"}`}
-                          style={{
-                            backgroundColor: ["#3B82F6", "#F97316", "#10B981"][
-                              i % 3
-                            ],
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">
-                            {r.name.substring(0, 2).toUpperCase()}
-                          </Text>
-                        </View>
-                      ))
+                      ilr.responsibility
+                        .slice(0, 3)
+                        .map((r, i) => (
+                          <GlobalAvatar
+                            key={r._id || i}
+                            name={r.name}
+                            size={32}
+                            className="-ml-2 border-2 border-white dark:border-black"
+                          />
+                        ))
                     ) : (
                       <Text className="text-xs text-gray-400">Unassigned</Text>
                     )}
                   </View>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
                   size={20}
-                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                  color="#919191"
                 />
               </TouchableOpacity>
 
@@ -473,24 +479,24 @@ const IlrActivities = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setShowDatePicker(true)}
-                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800"
+                className="flex-row items-center py-3 -mx-4 px-4"
               >
-                <View className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full mr-3">
-                  <Ionicons
-                    name="calendar-outline"
+                <View className="p-2 rounded-full mr-3">
+                  <HugeiconsIcon
+                    icon={Calendar02Icon}
                     size={20}
-                    color={isDark ? "#D1D5DB" : "#374151"}
+                    color={isDark ? "#919191" : "#454545"}
                   />
                 </View>
                 <View className="flex-1 flex-row justify-between items-center pr-2">
                   <View>
                     <Text
-                      className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                      className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                     >
                       Target date
                     </Text>
                     <Text
-                      className={`text-sm font-medium ${isDark ? "text-white" : "text-black"}`}
+                      className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
                     >
                       {ilr.targetDate
                         ? new Date(ilr.targetDate).toLocaleDateString("en-US", {
@@ -503,39 +509,40 @@ const IlrActivities = () => {
                   </View>
                   <View className="items-end">
                     <Text
-                      className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                      className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                     >
                       {daysLeft.label}
                     </Text>
                     <Text
-                      className={`text-sm font-bold ${daysLeft.isOverdue ? "text-red-500" : "text-green-500"}`}
+                      className={`text-sm font-poppinsMedium ${daysLeft.isOverdue ? "text-red-500" : "text-green-500"}`}
                     >
                       {daysLeft.count}
                     </Text>
                   </View>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
                   size={20}
-                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                  color="#919191"
                 />
               </TouchableOpacity>
 
               {/* Description Row */}
+              <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4 " />
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setShowRemarkInput(!showRemarkInput)}
-                className="flex-row items-center justify-between py-4"
+                className="flex-row items-center justify-between pt-4 pb-2"
               >
                 <Text
-                  className={`text-base font-medium ${isDark ? "text-white" : "text-black"}`}
+                  className={`text-base font-poppinsMedium ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                 >
                   Description
                 </Text>
-                <Ionicons
-                  name="chevron-forward"
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
                   size={20}
-                  color={isDark ? "#6B7280" : "#9CA3AF"}
+                  color="#919191"
                 />
               </TouchableOpacity>
 
@@ -545,7 +552,7 @@ const IlrActivities = () => {
                     value={newRemark}
                     onChangeText={setNewRemark}
                     multiline
-                    className={`p-3 rounded-lg border ${isDark ? "text-white border-gray-700 bg-gray-900" : "text-black border-gray-300 bg-gray-50"}`}
+                    className={`p-3 rounded-lg font-poppinsRegular border ${isDark ? "text-white border-gray-700 bg-gray-900" : "text-black border-gray-300 bg-gray-50"}`}
                     placeholder="Update description..."
                     placeholderTextColor="#9CA3AF"
                   />
@@ -560,56 +567,67 @@ const IlrActivities = () => {
                 </View>
               ) : (
                 <Text
-                  className={`text-sm leading-5 mb-4 ${isDark ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-[14px] font-poppins mb-4 ${isDark ? "text-white" : "text-black"}`}
                 >
                   {ilr.remarks || "No additional description."}
                 </Text>
               )}
 
+              <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
+
               {/* Attachments Section */}
-              <View className="mb-6">
-                <Text
-                  className={`text-base font-medium mb-3 ${isDark ? "text-white" : "text-black"}`}
-                >
-                  Attachments
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="flex-row"
-                >
-                  {/* Mock Attachments */}
-                  {[1, 2, 3].map((item) => (
-                    <View
-                      key={item}
-                      className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
-                      style={{ width: 140 }}
+              {ilr.attachments && ilr.attachments.length > 0 && (
+                <>
+                  <View className="my-4">
+                    <Text
+                      className={`text-base font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                     >
-                      <View className="h-24 bg-gray-300 w-full items-center justify-center">
-                        <Ionicons
-                          name="image-outline"
-                          size={30}
-                          color="#6B7280"
-                        />
-                      </View>
-                      <View className="p-2">
-                        <Text
-                          className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
+                      Attachments
+                    </Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      className="flex-row"
+                    >
+                      {ilr.attachments.map((item: any, index: number) => (
+                        <View
+                          key={index}
+                          className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
+                          style={{ width: 140 }}
                         >
-                          image-1254785
-                        </Text>
-                        <Text className="text-xs text-gray-500">Jan 24</Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
+                          <View className="h-24 bg-gray-300 w-full items-center justify-center">
+                            <Ionicons
+                              name="image-outline"
+                              size={30}
+                              color="#6B7280"
+                            />
+                          </View>
+                          <View className="p-2">
+                            <Text
+                              className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
+                              numberOfLines={1}
+                            >
+                              {item.name || `Attachment ${index + 1}`}
+                            </Text>
+                            <Text className="text-xs text-gray-500">
+                              {item.date
+                                ? new Date(item.date).toLocaleDateString()
+                                : "No Date"}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                  <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
+                </>
+              )}
             </View>
           )}
 
           {/* Activity Log */}
           <Text
-            className={`text-lg font-bold mb-4 ${isDark ? "text-white" : "text-black"}`}
+            className={`text-lg font-dmSemiBold my-4 ${isDark ? "text-white" : "text-black"}`}
           >
             Activity Log
           </Text>
