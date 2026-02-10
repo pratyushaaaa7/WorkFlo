@@ -16,6 +16,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
@@ -98,9 +99,9 @@ const IlrActivities = () => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRemarkModal, setShowRemarkModal] = useState(false);
-  const [newRemark, setNewRemark] = useState(ilr.remarks);
+  const [newRemark, setNewRemark] = useState(ilr.remarks || "");
   const [showDateModal, setShowDateModal] = useState(false);
-  const [tempDate, setTempDate] = useState<Date>(new Date());
+  const [tempDate, setTempDate] = useState<Date | null>(null);
   const [tempDateNote, setTempDateNote] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
@@ -195,6 +196,7 @@ const IlrActivities = () => {
   };
 
   const saveDateChange = async () => {
+    if (!tempDate) return;
     const updatedDate = tempDate.toISOString();
     setIlr((prev) => ({ ...prev, targetDate: updatedDate }));
     setShowDateModal(false);
@@ -495,9 +497,7 @@ const IlrActivities = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
-                  setTempDate(
-                    ilr.targetDate ? new Date(ilr.targetDate) : new Date(),
-                  );
+                  setTempDate(null);
                   setTempDateNote("");
                   setShowDateModal(true);
                 }}
@@ -574,7 +574,7 @@ const IlrActivities = () => {
                 <Text
                   className={`text-[14px] font-poppins ${isDark ? "text-white" : "text-black"}`}
                 >
-                  {ilr.remarks || "No additional description."}
+                  {ilr.remarks || "No description added."}
                 </Text>
               </TouchableOpacity>
 
@@ -686,13 +686,13 @@ const IlrActivities = () => {
                           {act.type === "date" && act.newValue && (
                             <View className="mt-1 mb-1">
                               <Text
-                                className={`text-[13px] font-poppins ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
+                                className={`text-[12px] font-poppins ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
                               >
                                 From : {act.oldValue} - To : {act.newValue}
                               </Text>
                               {act.note && (
                                 <Text
-                                  className={`text-[12px] font-poppins italic mt-0.5 ${isDark ? "text-[#F5CACA]/80" : "text-[#454545]/80"}`}
+                                  className={`text-[12px] font-poppins  mt-0.5 ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
                                 >
                                   Reason : {act.note}
                                 </Text>
@@ -703,12 +703,12 @@ const IlrActivities = () => {
                           {act.type === "remark" && (
                             <View className="mt-1 mb-2">
                               <Text
-                                className={`text-[13px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
+                                className={`text-[12px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
                               >
                                 From : {act.oldValue || "No description"}
                               </Text>
                               <Text
-                                className={`text-[13px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
+                                className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
                               >
                                 To : {act.newValue || "No description"}
                               </Text>
@@ -798,7 +798,7 @@ const IlrActivities = () => {
       <DateTimePickerModal
         isVisible={showDatePicker}
         mode="date"
-        date={tempDate}
+        date={tempDate || new Date()}
         onConfirm={onDateConfirm}
         onCancel={() => setShowDatePicker(false)}
       />
@@ -928,14 +928,51 @@ const IlrActivities = () => {
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={saveRemark}
-                  className="flex-1 py-3 rounded-xl bg-[#5B4CCC]"
-                >
-                  <Text className="text-center text-[16px] font-poppins text-white">
-                    Save
-                  </Text>
-                </TouchableOpacity>
+                {(() => {
+                  const isRemarkEmpty = !(newRemark || "").trim();
+                  const isRemarkSame =
+                    (newRemark || "") === (ilr.remarks || "");
+                  const isSaveDisabled = isRemarkEmpty || isRemarkSame;
+
+                  return (
+                    <TouchableOpacity
+                      onPress={saveRemark}
+                      disabled={isSaveDisabled}
+                      className="flex-1"
+                    >
+                      {isSaveDisabled ? (
+                        <View
+                          style={{
+                            backgroundColor: isDark ? "#333" : "#BDBDBD",
+                          }}
+                          className="py-3 rounded-xl items-center justify-center"
+                        >
+                          <Text
+                            className={`text-[16px] font-poppins ${
+                              isDark ? "text-[#666]" : "text-[#757575]"
+                            }`}
+                          >
+                            Save
+                          </Text>
+                        </View>
+                      ) : (
+                        <LinearGradient
+                          colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={{
+                            borderRadius: 12,
+                          }}
+                          className="py-3 items-center justify-center"
+                        >
+                          <Text className="text-[16px] font-poppins text-white">
+                            Save
+                          </Text>
+                        </LinearGradient>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })()}
               </View>
             </Pressable>
           </Pressable>
@@ -990,7 +1027,7 @@ const IlrActivities = () => {
               >
                 <View className="flex-row items-center">
                   <Text
-                    className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                    className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"} ${!tempDate ? "opacity-60" : ""}`}
                   >
                     {tempDate
                       ? tempDate.toLocaleDateString("en-US", {
@@ -998,7 +1035,7 @@ const IlrActivities = () => {
                           month: "short",
                           year: "numeric",
                         })
-                      : "Select Date"}
+                      : "New Target Date"}
                   </Text>
                 </View>
                 <HugeiconsIcon
@@ -1037,36 +1074,51 @@ const IlrActivities = () => {
                 </TouchableOpacity>
 
                 {(() => {
-                  const isReasonEmpty = !tempDateNote.trim();
-                  const isDateSame = ilr.targetDate
-                    ? new Date(tempDate).toDateString() ===
-                      new Date(ilr.targetDate).toDateString()
-                    : false;
-                  const isSaveDisabled = isReasonEmpty || isDateSame;
+                  const isReasonEmpty = !(tempDateNote || "").trim();
+                  const isDateSame =
+                    ilr.targetDate && tempDate
+                      ? new Date(tempDate).toDateString() ===
+                        new Date(ilr.targetDate).toDateString()
+                      : false;
+                  const isSaveDisabled =
+                    isReasonEmpty || isDateSame || !tempDate;
 
                   return (
                     <TouchableOpacity
                       onPress={saveDateChange}
                       disabled={isSaveDisabled}
-                      className={`flex-1 py-3 rounded-xl ${
-                        isSaveDisabled
-                          ? isDark
-                            ? "bg-[#333]"
-                            : "bg-[#E0E5EB]"
-                          : "bg-[#5B4CCC]"
-                      }`}
+                      className="flex-1"
                     >
-                      <Text
-                        className={`text-center text-[16px] font-poppins ${
-                          isSaveDisabled
-                            ? isDark
-                              ? "text-[#666]"
-                              : "text-[#919191]"
-                            : "text-white"
-                        }`}
-                      >
-                        Save
-                      </Text>
+                      {isSaveDisabled ? (
+                        <View
+                          style={{
+                            backgroundColor: isDark ? "#333" : "#BDBDBD",
+                          }}
+                          className="py-3 rounded-xl items-center justify-center"
+                        >
+                          <Text
+                            className={`text-[16px] font-poppins ${
+                              isDark ? "text-[#666]" : "text-[#757575]"
+                            }`}
+                          >
+                            Save
+                          </Text>
+                        </View>
+                      ) : (
+                        <LinearGradient
+                          colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={{
+                            borderRadius: 12,
+                          }}
+                          className="py-3 items-center justify-center"
+                        >
+                          <Text className="text-[16px] font-poppins text-white">
+                            Save
+                          </Text>
+                        </LinearGradient>
+                      )}
                     </TouchableOpacity>
                   );
                 })()}
