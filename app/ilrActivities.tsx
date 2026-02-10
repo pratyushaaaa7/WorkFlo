@@ -20,6 +20,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   LayoutAnimation,
   Modal,
   Platform,
@@ -96,10 +97,11 @@ const IlrActivities = () => {
   const [newNote, setNewNote] = useState("");
 
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showRemarkInput, setShowRemarkInput] = useState(false);
+  const [showRemarkModal, setShowRemarkModal] = useState(false);
   const [newRemark, setNewRemark] = useState(ilr.remarks);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const remarkInputRef = React.useRef<TextInput>(null);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -225,7 +227,7 @@ const IlrActivities = () => {
   };
 
   const saveRemark = async () => {
-    setShowRemarkInput(false);
+    setShowRemarkModal(false);
     setIlr((prev) => ({ ...prev, remarks: newRemark }));
     try {
       await api.patch(
@@ -536,47 +538,30 @@ const IlrActivities = () => {
               <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4 " />
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => setShowRemarkInput(!showRemarkInput)}
-                className="flex-row items-center justify-between pt-4 pb-2"
+                onPress={() => {
+                  setNewRemark(ilr.remarks);
+                  setShowRemarkModal(true);
+                }}
+                className="pt-4 pb-4"
               >
-                <Text
-                  className={`text-base font-poppinsMedium ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                >
-                  Description
-                </Text>
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  size={20}
-                  color="#919191"
-                />
-              </TouchableOpacity>
-
-              {showRemarkInput ? (
-                <View className="mb-4">
-                  <TextInput
-                    value={newRemark}
-                    onChangeText={setNewRemark}
-                    multiline
-                    className={`p-3 rounded-lg font-poppinsRegular border ${isDark ? "text-white border-gray-700 bg-gray-900" : "text-black border-gray-300 bg-gray-50"}`}
-                    placeholder="Update description..."
-                    placeholderTextColor="#9CA3AF"
-                  />
-                  <TouchableOpacity
-                    onPress={saveRemark}
-                    className="mt-2 bg-blue-600 p-2 rounded-lg items-center"
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text
+                    className={`text-base font-poppinsMedium ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                   >
-                    <Text className="text-white font-medium">
-                      Save Description
-                    </Text>
-                  </TouchableOpacity>
+                    Description
+                  </Text>
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    size={20}
+                    color="#919191"
+                  />
                 </View>
-              ) : (
                 <Text
-                  className={`text-[14px] font-poppins mb-4 ${isDark ? "text-white" : "text-black"}`}
+                  className={`text-[14px] font-poppins ${isDark ? "text-white" : "text-black"}`}
                 >
                   {ilr.remarks || "No additional description."}
                 </Text>
-              )}
+              </TouchableOpacity>
 
               <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
 
@@ -790,7 +775,7 @@ const IlrActivities = () => {
         isVisible={showDatePicker}
         mode="date"
         date={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
-        onConfirm={(date) => {
+        onConfirm={(date: Date) => {
           onDateChange(date);
           setShowDatePicker(false);
         }}
@@ -856,6 +841,84 @@ const IlrActivities = () => {
             </View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Change Description Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showRemarkModal}
+        onRequestClose={() => setShowRemarkModal(false)}
+        onShow={() => {
+          setTimeout(() => {
+            remarkInputRef.current?.focus();
+          }, 100);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <Pressable
+            className="flex-1 justify-end bg-black/50"
+            onPress={() => setShowRemarkModal(false)}
+          >
+            <Pressable
+              className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-white"}`}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* Handle Bar Wrapper */}
+              <View className="w-full items-center mb-4">
+                <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+              </View>
+
+              {/* Title */}
+              <Text
+                className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+              >
+                Change Description
+              </Text>
+
+              <View className="border-b border-[#E0E5EB] dark:border-[#413E47]" />
+
+              {/* Text Input */}
+              <TextInput
+                ref={remarkInputRef}
+                value={newRemark}
+                onChangeText={setNewRemark}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                className={` rounded-xl font-poppins text-[15px] mb-4 min-h-[100px] ${isDark ? "text-white bg-[#2A2A2A]" : "text-black bg-[#F5F5F5]"}`}
+                placeholder="Enter description..."
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+              />
+
+              {/* Buttons */}
+              <View className="flex-row gap-3 mb-5">
+                <TouchableOpacity
+                  onPress={() => setShowRemarkModal(false)}
+                  className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+                >
+                  <Text
+                    className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={saveRemark}
+                  className="flex-1 py-3 rounded-xl bg-[#5B4CCC]"
+                >
+                  <Text className="text-center text-[16px] font-poppins text-white">
+                    Save
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
