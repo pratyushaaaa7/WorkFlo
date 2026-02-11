@@ -210,6 +210,21 @@ const RunningNotes = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const toggleSection = (title: string) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) {
+        next.delete(title);
+      } else {
+        next.add(title);
+      }
+      return next;
+    });
+  };
 
   // Fetch users
   useEffect(() => {
@@ -278,9 +293,9 @@ const RunningNotes = () => {
     () =>
       Object.entries(groupedNotes).map(([date, notes]) => ({
         title: date,
-        data: notes,
+        data: collapsedSections.has(date) ? [] : notes,
       })),
-    [notes],
+    [notes, collapsedSections],
   );
 
   // 🔹 SCROLL & HIGHLIGHT LOGIC
@@ -480,12 +495,24 @@ const RunningNotes = () => {
     </View>
   );
 
-  const DateHeader = ({ date }: { date: string }) => (
-    <View
-      className="px-3 py-2  flex-row justify-between items-center"
+  const DateHeader = ({
+    date,
+    onPress,
+    isCollapsed,
+  }: {
+    date: string;
+    onPress: () => void;
+    isCollapsed: boolean;
+  }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      className={`px-3 py-2 flex-row justify-between items-center ${
+        isCollapsed ? "border-b" : ""
+      }`}
       style={{
         backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
-        // borderColor: isDarkMode ? "#222" : "#E2E8F0",
+        borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
       }}
     >
       <Text
@@ -495,11 +522,11 @@ const RunningNotes = () => {
         {date}
       </Text>
       <Ionicons
-        name="chevron-down"
+        name={isCollapsed ? "chevron-up" : "chevron-down"}
         size={18}
         color={isDarkMode ? "#BBBBBB" : "#454545"}
       />
-    </View>
+    </TouchableOpacity>
   );
 
   const rightActionStyle: any = {
@@ -803,7 +830,11 @@ const RunningNotes = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => renderNote({ item })}
         renderSectionHeader={({ section: { title } }) => (
-          <DateHeader date={title} />
+          <DateHeader
+            date={title}
+            onPress={() => toggleSection(title)}
+            isCollapsed={collapsedSections.has(title)}
+          />
         )}
         stickySectionHeadersEnabled
         refreshControl={
