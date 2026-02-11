@@ -621,7 +621,7 @@ const RunningNotes = () => {
           }}
         >
           <AnimatedNoteRow item={item}>
-            <View className="flex-row border-b border-black/10">
+            <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
               {/* Note with Left Strip */}
               <View
                 style={{
@@ -640,10 +640,10 @@ const RunningNotes = () => {
 
               {/* Responsible (Assignee) */}
               <View
-                className="items-center justify-center border-r border-black/5"
+                className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
                 style={{
                   width: COL.responsible,
-                  backgroundColor: isDarkMode ? "#111" : "#F8FAFC",
+                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
                 }}
               >
                 {item.responsible &&
@@ -656,15 +656,16 @@ const RunningNotes = () => {
                         name={
                           users.find((u) => u.value === respId)?.label || "N/A"
                         }
-                        size={22}
-                        fontSize={8}
+                        size={28}
+                        fontSize={12}
+                        fontFamily="500_poppinsRegular"
                       />
                     ))}
                   </View>
                 ) : (
                   <Text
-                    className="text-xs"
-                    style={{ color: isDarkMode ? "#666" : "#94A3B8" }}
+                    className="text-xs font-poppins"
+                    style={{ color: isDarkMode ? "#FFF" : "#000" }}
                   >
                     N/A
                   </Text>
@@ -676,12 +677,12 @@ const RunningNotes = () => {
                 className="items-center justify-center"
                 style={{
                   width: COL.target,
-                  backgroundColor: isDarkMode ? "#111" : "#F8FAFC",
+                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
                 }}
               >
                 <Text
-                  className="text-xs"
-                  style={{ color: isDarkMode ? "#444" : "#94A3B8" }}
+                  className="text-xs font-poppins"
+                  style={{ color: isDarkMode ? "#FFF" : "#000" }}
                 >
                   {item.targetDate ? formatDate(item.targetDate) : "N/A"}
                 </Text>
