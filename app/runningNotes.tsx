@@ -457,7 +457,7 @@ const RunningNotes = () => {
       }}
     >
       {[
-        ["Note", COL.note],
+        ["Notes", COL.note],
         ["Assignee", COL.responsible],
         ["T Date", COL.target],
       ].map(([label, width]) => (
@@ -482,22 +482,22 @@ const RunningNotes = () => {
 
   const DateHeader = ({ date }: { date: string }) => (
     <View
-      className="px-3 py-2 border-b flex-row justify-between items-center"
+      className="px-3 py-2  flex-row justify-between items-center"
       style={{
-        backgroundColor: isDarkMode ? "#111" : "#fff",
-        borderColor: isDarkMode ? "#222" : "#E2E8F0",
+        backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+        // borderColor: isDarkMode ? "#222" : "#E2E8F0",
       }}
     >
       <Text
-        className="font-bold text-xs"
+        className="font-poppinsMedium text-[13px]"
         style={{ color: isDarkMode ? "#fff" : "#000" }}
       >
         {date}
       </Text>
       <Ionicons
         name="chevron-down"
-        size={16}
-        color={isDarkMode ? "#666" : "#94A3B8"}
+        size={18}
+        color={isDarkMode ? "#BBBBBB" : "#454545"}
       />
     </View>
   );
