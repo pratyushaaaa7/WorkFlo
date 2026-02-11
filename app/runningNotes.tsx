@@ -120,7 +120,7 @@ const getNoteBgColor = (status: string) => {
     case "Closed":
       return "#D1FAE5";
     default:
-      return "#FFFFFF";
+      return "#DDE2FB";
   }
 };
 

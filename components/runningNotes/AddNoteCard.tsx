@@ -166,7 +166,7 @@ const AddNoteCard = ({ users, onAdd }: any) => {
             <HugeiconsIcon
               icon={Calendar02Icon}
               size={16}
-              color={isDarkMode ? "#666" : "#64748B"}
+              color={isDarkMode ? "#919191" : "#919191"}
             />
           </View>
         </TouchableOpacity>
