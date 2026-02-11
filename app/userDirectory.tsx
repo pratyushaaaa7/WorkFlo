@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
+import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -370,6 +371,18 @@ const UserList = () => {
       <View className="flex-row justify-between items-center border-t border-[#E0E5EB] dark:border-[#252525] pt-2">
         <TouchableOpacity
           onPress={() => item.email && Linking.openURL(`mailto:${item.email}`)}
+          onLongPress={async () => {
+            if (item.email) {
+              await Clipboard.setStringAsync(item.email);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Toast.show({
+                type: "success",
+                text1: "Copied",
+                text2: "Email copied to clipboard",
+                position: "bottom",
+              });
+            }
+          }}
           className="flex-1 mr-2"
         >
           <Text
@@ -388,6 +401,18 @@ const UserList = () => {
                   ? `tel:${item.phone}`
                   : `telprompt:${item.phone}`;
               Linking.openURL(phoneNumber);
+            }
+          }}
+          onLongPress={async () => {
+            if (item.phone) {
+              await Clipboard.setStringAsync(item.phone);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Toast.show({
+                type: "success",
+                text1: "Copied",
+                text2: "Phone number copied to clipboard",
+                position: "bottom",
+              });
             }
           }}
         >

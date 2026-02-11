@@ -6,6 +6,8 @@ import {
   PencilEdit02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
@@ -146,17 +148,41 @@ const UserDetail = () => {
     label: string,
     value: string | undefined,
     isFullWidth = false,
+    copyable = false,
   ) => (
     <View className={`mb-5 ${isFullWidth ? "w-full" : "w-[48%]"}`}>
       <Text className="text-[#454545] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
-      <Text
-        className="text-black dark:text-white text-sm font-poppinsMedium"
-        numberOfLines={3}
-      >
-        {value || "N/A"}
-      </Text>
+      {copyable && value ? (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onLongPress={async () => {
+            await Clipboard.setStringAsync(value);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Toast.show({
+              type: "success",
+              text1: "Copied",
+              text2: `${label} copied to clipboard`,
+              position: "bottom",
+            });
+          }}
+        >
+          <Text
+            className="text-black dark:text-white text-sm font-poppinsMedium"
+            numberOfLines={3}
+          >
+            {value}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <Text
+          className="text-black dark:text-white text-sm font-poppinsMedium"
+          numberOfLines={3}
+        >
+          {value || "N/A"}
+        </Text>
+      )}
     </View>
   );
 
@@ -250,6 +276,7 @@ const UserDetail = () => {
                     ? userData.emailList[0]
                     : userData?.email,
                   false,
+                  true,
                 )}
                 {renderInfoField(
                   "Mobile",
@@ -265,6 +292,7 @@ const UserDetail = () => {
                       : "N/A";
                   })(),
                   false,
+                  true,
                 )}
               </View>
               <View className="h-[1px] bg-gray-200 dark:bg-[#413E47] w-full mb-3" />

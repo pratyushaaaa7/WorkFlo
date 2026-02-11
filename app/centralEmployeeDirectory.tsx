@@ -7,7 +7,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system";
+import * as Haptics from "expo-haptics";
 import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useContext, useEffect, useMemo, useState } from "react";
@@ -209,6 +211,18 @@ export default function CentralEmployeeDirectory() {
       <View className="flex-row items-center justify-between">
         <TouchableOpacity
           onPress={() => item.email && Linking.openURL(`mailto:${item.email}`)}
+          onLongPress={async () => {
+            if (item.email) {
+              await Clipboard.setStringAsync(item.email);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Toast.show({
+                type: "success",
+                text1: "Copied",
+                text2: "Email copied to clipboard",
+                position: "bottom",
+              });
+            }
+          }}
           className="flex-1 mr-2"
         >
           <Text
@@ -222,6 +236,18 @@ export default function CentralEmployeeDirectory() {
         {item.contactNumbers && item.contactNumbers.length > 0 ? (
           <TouchableOpacity
             onPress={() => Linking.openURL(`tel:${item.contactNumbers![0]}`)}
+            onLongPress={async () => {
+              if (item.contactNumbers && item.contactNumbers[0]) {
+                await Clipboard.setStringAsync(item.contactNumbers[0]);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                Toast.show({
+                  type: "success",
+                  text1: "Copied",
+                  text2: "Phone number copied to clipboard",
+                  position: "bottom",
+                });
+              }
+            }}
           >
             <Text className="text-[13px] font-poppins text-[#0073CB] dark:text-[#0073CB]">
               {item.contactNumbers[0]}

@@ -4,11 +4,14 @@ import {
   ArrowUp01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import moment from "moment";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import Toast from "react-native-toast-message";
 import GlobalAvatar from "../GlobalAvatar";
 
 interface AboutTabProps {
@@ -32,14 +35,35 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
   const renderInfoField = (
     label: string,
     value: string | number | undefined,
+    copyable: boolean = false,
   ) => (
     <View className="mb-2">
       <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
-      <Text className="text-black dark:text-white text-base font-dmMedium">
-        {value || "N/A"}
-      </Text>
+      {copyable && value ? (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onLongPress={async () => {
+            await Clipboard.setStringAsync(String(value));
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Toast.show({
+              type: "success",
+              text1: "Copied",
+              text2: `${label} copied to clipboard`,
+              position: "bottom",
+            });
+          }}
+        >
+          <Text className="text-black dark:text-white text-base font-dmMedium">
+            {value}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <Text className="text-black dark:text-white text-base font-dmMedium">
+          {value || "N/A"}
+        </Text>
+      )}
     </View>
   );
 
@@ -267,24 +291,36 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
 
       {/* Contact Information */}
       <Section title="Contact Details">
-        {renderInfoField("Official Email", userData?.email)}
-        {renderInfoField("Personal Email", userData?.personalEmail)}
+        {renderInfoField("Official Email", userData?.email, true)}
+        {renderInfoField("Personal Email", userData?.personalEmail, true)}
         {userData?.contactNumbers && userData.contactNumbers.length > 0 && (
           <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
               Phone Numbers
             </Text>
             {userData.contactNumbers.map((number: string, index: number) => (
-              <Text
+              <TouchableOpacity
                 key={index}
-                className="text-black dark:text-white text-base font-dmMedium mb-1"
+                activeOpacity={0.7}
+                onLongPress={async () => {
+                  await Clipboard.setStringAsync(number);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  Toast.show({
+                    type: "success",
+                    text1: "Copied",
+                    text2: "Phone number copied to clipboard",
+                    position: "bottom",
+                  });
+                }}
               >
-                {number}
-              </Text>
+                <Text className="text-black dark:text-white text-base font-dmMedium mb-1">
+                  {number}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         )}
-        {renderInfoField("Emergency Contact", userData?.emergencyContact)}
+        {renderInfoField("Emergency Contact", userData?.emergencyContact, true)}
       </Section>
 
       {/* Identity Information */}
@@ -363,10 +399,16 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
           userData.experience.map((exp: any, index: number) => (
             <View key={index} className="mb-3">
               <Text className="text-[#606060] dark:text-[#919191] font-dmSemiBold text-sm mb-1">
-                {exp.company} <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmSemiBold text-xs">(
-                {exp.fromDate ? moment(exp.fromDate).format("MMM YYYY") : "?"} -{" "}
-                {exp.toDate ? moment(exp.toDate).format("MMM YYYY") : "Present"}
-                )</Text>
+                {exp.company}{" "}
+                <Text className="text-[#8E8E8E] dark:text-[#606060] font-dmSemiBold text-xs">
+                  (
+                  {exp.fromDate ? moment(exp.fromDate).format("MMM YYYY") : "?"}{" "}
+                  -{" "}
+                  {exp.toDate
+                    ? moment(exp.toDate).format("MMM YYYY")
+                    : "Present"}
+                  )
+                </Text>
               </Text>
               <Text className="text-black dark:text-white font-poppins text-sm mb-1">
                 {exp.designation}
