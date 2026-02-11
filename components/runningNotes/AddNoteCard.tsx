@@ -250,8 +250,8 @@ const AddNoteCard = ({ users, onAdd }: any) => {
             colors={
               isAddDisabled
                 ? isDarkMode
-                  ? ["#2A2A2A", "#2A2A2A"]
-                  : ["#E2E8F0", "#E2E8F0"]
+                  ? ["#2F2F2F", "#2F2F2F"]
+                  : ["#EFEFEF", "#EFEFEF"]
                 : ["#5B4CCC", "#6347C2", "#8056D1"]
             }
             start={{ x: 0, y: 0.5 }}
@@ -271,8 +271,8 @@ const AddNoteCard = ({ users, onAdd }: any) => {
                 className={`font-poppins text-[16px] ${
                   isAddDisabled
                     ? isDarkMode
-                      ? "text-[#888]"
-                      : "text-white"
+                      ? "text-[#919191]"
+                      : "text-[#777777]"
                     : "text-white"
                 }`}
               >
