@@ -114,7 +114,7 @@ const formatDate = (date: Date) => {
 const getNoteBgColor = (status: string) => {
   switch (status) {
     case "Open":
-      return "#FEE2E2";
+      return "#FFEBEB";
     case "In Progress":
       return "#FEF3C7";
     case "Closed":
@@ -628,11 +628,11 @@ const RunningNotes = () => {
                   width: COL.note,
                   backgroundColor: getNoteBgColor(item.status),
                   flexDirection: "row",
-                  minHeight: 50,
+                  minHeight: 42,
                 }}
               >
                 <View className="flex-1 p-2">
-                  <Text className="text-sm text-black leading-tight">
+                  <Text className="text-[12px] text-black font-poppins leading-tight">
                     {item.text}
                   </Text>
                 </View>
@@ -658,7 +658,7 @@ const RunningNotes = () => {
                         }
                         size={28}
                         fontSize={12}
-                        fontFamily="500_poppinsRegular"
+                        // fontFamily="500_poppinsRegular"
                       />
                     ))}
                   </View>
