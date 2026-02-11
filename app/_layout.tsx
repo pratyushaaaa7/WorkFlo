@@ -83,7 +83,7 @@ const CustomDrawerContent = (props: any) => {
               className={`flex-row items-center justify-between p-4 mb-2 rounded-2xl  ${
                 isActive ? "bg-indigo-50  dark:bg-[#27215880]" : "transparent"
               }`}
-              onPress={() => router.push(`/${item.name}`)}
+              onPress={() => router.push(`/${item.name}` as any)}
             >
               <View className="flex-row items-center flex-1">
                 <View style={{ flexShrink: 0 }}>

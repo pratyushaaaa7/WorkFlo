@@ -1,23 +1,29 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { Calendar02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useRef, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
+  useColorScheme,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
-// import DateTimePicker from "@react-native-community/datetimepicker";
+import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { statusOptions } from "../../utils/runningNotes";
 
 const AddNoteCard = ({ users, onAdd }: any) => {
+  const isDarkMode = useColorScheme() === "dark";
   const [noteText, setNoteText] = useState("");
   const [status, setStatus] = useState("Open");
-  const [responsible, setResponsible] = useState<string | null>(null);
+  const [responsible, setResponsible] = useState<string[]>([]);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showAddDatePicker, setShowAddDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const multiSelectRef: any = useRef(null);
 
   const isAddDisabled = !noteText.trim() || isSubmitting;
 
@@ -27,124 +33,305 @@ const AddNoteCard = ({ users, onAdd }: any) => {
     await onAdd({ noteText, status, responsible, targetDate });
     setNoteText("");
     setStatus("Open");
-    setResponsible(null);
+    setResponsible([]);
     setTargetDate(null);
     setIsSubmitting(false);
   };
 
   return (
-    <View className="p-2">
-      <View className="bg-white px-2 py-2 rounded-2xl shadow-md">
-        <Text className="font-semibold px-1 mb-1 text-base">Add New Note</Text>
+    <View
+      className="p-3"
+      style={{ backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
+    >
+      <Text
+        className="font-poppinsMedium mb-2 text-sm"
+        style={{ color: isDarkMode ? "#fff" : "#000" }}
+      >
+        Add New Note
+      </Text>
 
-        {/* Note Text Input */}
-        <TextInput
-          placeholder="Enter note..."
-          placeholderTextColor="#888"
-          value={noteText}
-          multiline
-          onChangeText={setNoteText}
-          className="border border-gray-200 rounded-xl p-2 mb-1 text-sm"
+      {/* Note Text Input */}
+      <TextInput
+        placeholder="Enter note..."
+        placeholderTextColor={isDarkMode ? "#666" : "#64748B"}
+        value={noteText}
+        multiline
+        onChangeText={setNoteText}
+        style={{
+          backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+
+          borderRadius: 12,
+          padding: 8,
+          color: isDarkMode ? "#fff" : "#000",
+          minHeight: 30,
+          maxHeight: 120,
+          textAlignVertical: "top",
+          marginBottom: 10,
+          fontFamily: "Poppins_400Regular",
+        }}
+      />
+
+      {/* Status + Target Date Row */}
+      <View className="flex-row gap-2 mb-2">
+        <Dropdown
+          style={{
+            flex: 1,
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            // borderWidth: 1,
+            // borderColor: isDarkMode ? "#5B4CCC" : "transparent",
+            borderRadius: 12,
+            height: 40,
+            paddingHorizontal: 10,
+          }}
+          placeholderStyle={{
+            fontSize: 13,
+            color: isDarkMode ? "#666" : "#64748B",
+            fontFamily: "Poppins_400Regular",
+          }}
+          selectedTextStyle={{
+            fontSize: 13,
+            color: isDarkMode ? "#fff" : "#000",
+            fontFamily: "Poppins_400Regular",
+          }}
+          containerStyle={{
+            borderRadius: 12,
+            backgroundColor: isDarkMode ? "#000" : "#fff",
+            borderColor: isDarkMode ? "#1A1A1A" : "#E2E8F0",
+            marginTop: 4,
+            paddingVertical: 0,
+          }}
+          itemContainerStyle={{
+            paddingVertical: 2,
+            borderRadius: 8,
+          }}
+          itemTextStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontFamily: "Poppins_400Regular",
+            fontSize: 14,
+          }}
+          activeColor={isDarkMode ? "#1A1A1A" : "#F0F3F7"}
+          data={statusOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="Status"
+          value={status}
+          onChange={(item) => setStatus(item.value)}
+          renderRightIcon={() => (
+            <Ionicons
+              name="chevron-down"
+              size={16}
+              color={isDarkMode ? "#999" : "#64748B"}
+            />
+          )}
         />
 
-        {/* Status + Target Date Row */}
-        <View className="flex-row justify-between mb-1 gap-2">
-          <Dropdown
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            borderWidth: 1,
+            borderColor: "transparent",
+            borderRadius: 12,
+            height: 40,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 10,
+          }}
+          onPress={() => setShowAddDatePicker(true)}
+        >
+          <View
             style={{
               flex: 1,
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              borderRadius: 12,
-              height: 34,
-              paddingHorizontal: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
-            placeholderStyle={{ fontSize: 14, color: "#888" }}
-            selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-            containerStyle={{ borderRadius: 14, backgroundColor: "#fff" }}
-            activeColor="#EEF2FF"
-            data={statusOptions}
-            labelField="label"
-            valueField="value"
-            placeholder="Select status"
-            value={status}
-            onChange={(item) => setStatus(item.value)}
-          />
-
-          <TouchableOpacity
-            className="border border-gray-200 rounded-xl flex-1 justify-center px-3"
-            style={{ height: 34 }}
-            onPress={() => setShowAddDatePicker(true)}
           >
-            <Text className="text-sm">
-              {targetDate ? targetDate.toDateString() : "Select target date"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Modal Date Picker */}
-        <DateTimePickerModal
-          isVisible={showAddDatePicker}
-          mode="date"
-          onConfirm={(date) => {
-            setTargetDate(date);
-            setShowAddDatePicker(false);
-          }}
-          onCancel={() => setShowAddDatePicker(false)}
-        />
-
-        {/* Responsible + Add Button Row */}
-        <View className="flex-row items-center gap-2">
-          <View style={{ flex: 1 }}>
-            <Dropdown
+            <Text
+              className="font-poppins"
               style={{
-                borderWidth: 1,
-                borderColor: "#E5E7EB",
-                borderRadius: 12,
-                height: 34,
-                paddingHorizontal: 10,
+                fontSize: 13,
+                color: targetDate
+                  ? isDarkMode
+                    ? "#fff"
+                    : "#000"
+                  : isDarkMode
+                    ? "#666"
+                    : "#64748B",
               }}
-              placeholderStyle={{ fontSize: 13, color: "#888" }}
-              selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-              containerStyle={{
-                borderRadius: 14,
-                backgroundColor: "#fff",
-                marginBottom: 0,
-              }}
-              activeColor="#EEF2FF"
-              data={users}
-              labelField="label"
-              valueField="value"
-              placeholder="Responsible"
-              value={responsible}
-              onChange={(item) => setResponsible(item.value)}
+            >
+              {targetDate ? targetDate.toLocaleDateString() : "Due date"}
+            </Text>
+            <HugeiconsIcon
+              icon={Calendar02Icon}
+              size={16}
+              color={isDarkMode ? "#666" : "#64748B"}
             />
           </View>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity
-            className="rounded-lg items-center justify-center"
+      {/* Modal Date Picker */}
+      <DateTimePickerModal
+        isVisible={showAddDatePicker}
+        mode="date"
+        onConfirm={(date) => {
+          setTargetDate(date);
+          setShowAddDatePicker(false);
+        }}
+        onCancel={() => setShowAddDatePicker(false)}
+      />
+
+      {/* Responsible + Add Button Row */}
+      <View className="flex-row items-center gap-2">
+        <MultiSelect
+          ref={multiSelectRef}
+          style={{
+            flex: 1,
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            borderRadius: 12,
+            height: 40,
+            paddingHorizontal: 12,
+            justifyContent: "center",
+          }}
+          placeholderStyle={{
+            fontSize: 13,
+            color: isDarkMode ? "#BBBBBB" : "#454545",
+            fontFamily: "Poppins_400Regular",
+          }}
+          selectedTextStyle={{
+            fontSize: 13,
+            color: isDarkMode ? "#fff" : "#000",
+            fontFamily: "Poppins_400Regular",
+          }}
+          containerStyle={{
+            borderRadius: 12,
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+            borderColor: isDarkMode ? "#1A1A1A" : "#E2E8F0",
+            marginTop: 4,
+            paddingVertical: 0,
+          }}
+          itemContainerStyle={{
+            paddingVertical: 2,
+            borderRadius: 8,
+          }}
+          itemTextStyle={{
+            color: isDarkMode ? "#fff" : "#000",
+            fontFamily: "Poppins_400Regular",
+            fontSize: 14,
+          }}
+          activeColor={isDarkMode ? "#1A1A1A" : "#F0F3F7"}
+          data={users}
+          labelField="label"
+          valueField="value"
+          placeholder="Assignee"
+          value={responsible}
+          onChange={(item) => {
+            setResponsible(item);
+            multiSelectRef.current?.close();
+          }}
+          search
+          searchPlaceholder="Search"
+          inputSearchStyle={{
+            backgroundColor: isDarkMode ? "#000" : "#F0F3F7",
+            color: isDarkMode ? "#fff" : "#000",
+            borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+            borderRadius: 8,
+            height: 48,
+            fontSize: 13,
+            fontFamily: "Poppins_400Regular",
+          }}
+          renderSelectedItem={() => <View />} // Hide internal selection safely
+        />
+
+        <TouchableOpacity onPress={handleAdd} disabled={isAddDisabled}>
+          <LinearGradient
+            colors={
+              isAddDisabled
+                ? isDarkMode
+                  ? ["#2A2A2A", "#2A2A2A"]
+                  : ["#E2E8F0", "#E2E8F0"]
+                : ["#5B4CCC", "#6347C2", "#8056D1"]
+            }
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
             style={{
-              height: 34,
-              width: 90,
-              backgroundColor: isAddDisabled ? "#A5B4FC" : "#4F46E5",
+              height: 40,
+              width: 76,
+              borderRadius: 12,
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            onPress={handleAdd}
-            disabled={isAddDisabled}
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <Text
-                className="font-semibold text-xs"
-                style={{
-                  color: isAddDisabled ? "#E0E7FF" : "#FFFFFF",
-                }}
+                className={`font-poppins text-[16px] ${
+                  isAddDisabled
+                    ? isDarkMode
+                      ? "text-[#888]"
+                      : "text-white"
+                    : "text-white"
+                }`}
               >
                 Add
               </Text>
             )}
-          </TouchableOpacity>
-        </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
+
+      {/* Manual Selection Chips (Mapped Below) */}
+      {responsible.length > 0 && (
+        <View className="flex-row flex-wrap mt-1">
+          {responsible.map((userId) => {
+            const user = users.find((u: any) => u.value === userId);
+            if (!user) return null;
+            return (
+              <TouchableOpacity
+                key={userId}
+                onPress={() =>
+                  setResponsible((prev) => prev.filter((id) => id !== userId))
+                }
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: 10,
+                    backgroundColor: isDarkMode ? "#000" : "#fff",
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    marginTop: 8,
+                    marginRight: 8,
+                    borderWidth: 1,
+                    borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: isDarkMode ? "#fff" : "#000",
+                      fontFamily: "Poppins_400Regular",
+                      marginRight: 6,
+                    }}
+                  >
+                    {user.label}
+                  </Text>
+                  <Ionicons
+                    name="close"
+                    size={14}
+                    color={isDarkMode ? "#fff" : "#000"}
+                  />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 };

@@ -1,10 +1,12 @@
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
 // import DateTimePicker from "@react-native-community/datetimepicker";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as FileSystem from "expo-file-system";
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+
 import React, {
   useCallback,
   useContext,
@@ -22,15 +24,18 @@ import {
   RefreshControl,
   ScrollView,
   SectionList,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   useWindowDimensions,
   View,
 } from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
+import { MultiSelect } from "react-native-element-dropdown";
 import { Swipeable } from "react-native-gesture-handler";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
 
@@ -109,13 +114,26 @@ const formatDate = (date: Date) => {
 const getNoteBgColor = (status: string) => {
   switch (status) {
     case "Open":
-      return "#FEE2E2"; // red-100 (clear but not aggressive)
+      return "#FEE2E2";
     case "In Progress":
-      return "#FEF3C7"; // amber-100 (warm, readable)
+      return "#FEF3C7";
     case "Closed":
-      return "#D1FAE5"; // green-100 (soft success)
+      return "#D1FAE5";
     default:
       return "#FFFFFF";
+  }
+};
+
+const getNoteStripColor = (status: string) => {
+  switch (status) {
+    case "Open":
+      return "#ef4444";
+    case "In Progress":
+      return "#f59e0b";
+    case "Closed":
+      return "#22c55e";
+    default:
+      return "#94a3b8";
   }
 };
 
@@ -123,21 +141,21 @@ const statusOptions = [
   {
     value: "Open",
     label: "Open",
-    color: "#EF4444", // red-500
+    color: "#EF4444",
     bg: "bg-red-500",
     border: "border-red-500",
   },
   {
     value: "In Progress",
     label: "In Progress",
-    color: "#F59E0B", // amber-500
+    color: "#F59E0B",
     bg: "bg-amber-500",
     border: "#F59E0B",
   },
   {
     value: "Closed",
     label: "Closed",
-    color: "#22C55E", // green-500
+    color: "#22C55E",
     bg: "bg-green-500",
     border: "border-green-500",
   },
@@ -147,13 +165,14 @@ type Note = {
   id: string;
   text: string;
   status: "Open" | "In Progress" | "Closed";
-  responsible: string | null;
+  responsible: string[];
   targetDate: Date | null;
   // createdBy: string;
   createdAt: Date;
 };
 
 const RunningNotes = () => {
+  const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
   const { projectId, projectName, company, highlightId } =
     useLocalSearchParams();
@@ -226,7 +245,11 @@ const RunningNotes = () => {
         id: note._id,
         text: note.text,
         status: note.status,
-        responsible: note.responsible?._id || null,
+        responsible: Array.isArray(note.responsible)
+          ? note.responsible.map((r: any) => r._id || r)
+          : note.responsible
+            ? [note.responsible._id || note.responsible]
+            : [],
         targetDate: note.targetDate ? new Date(note.targetDate) : null,
         createdAt: new Date(note.createdAt),
       }));
@@ -314,6 +337,11 @@ const RunningNotes = () => {
     status,
     responsible,
     targetDate,
+  }: {
+    noteText: string;
+    status: string;
+    responsible: string[];
+    targetDate: Date | null;
   }) => {
     if (!token || !projectId) return;
 
@@ -329,7 +357,11 @@ const RunningNotes = () => {
         id: res.data._id,
         text: res.data.text,
         status: res.data.status,
-        responsible: res.data.responsible || null,
+        responsible: Array.isArray(res.data.responsible)
+          ? res.data.responsible
+          : res.data.responsible
+            ? [res.data.responsible]
+            : [],
         targetDate: res.data.targetDate ? new Date(res.data.targetDate) : null,
         createdAt: new Date(res.data.createdAt),
       };
@@ -404,9 +436,9 @@ const RunningNotes = () => {
   // };
 
   const COL_RATIO = {
-    note: 0.62, // 55%
-    responsible: 0.23, // 25%
-    target: 0.15, // 20%
+    note: 0.6,
+    responsible: 0.2,
+    target: 0.2,
   };
 
   const COL = {
@@ -417,30 +449,60 @@ const RunningNotes = () => {
 
   // Table column headers
   const TableColumnHeader = () => (
-    <View className="flex-row border-l border-t border-slate-300 bg-slate-100">
+    <View
+      className="flex-row border-y "
+      style={{
+        backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
+        borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+      }}
+    >
       {[
         ["Note", COL.note],
-        ["Responsible", COL.responsible],
-        ["Target", COL.target],
+        ["Assignee", COL.responsible],
+        ["T Date", COL.target],
       ].map(([label, width]) => (
         <View
-          key={label}
-          className="border-r border-b border-gray-400 px-1 py-1"
-          style={{ width: width as number }}
+          key={label as string}
+          className=" items-center py-1.5 border-r"
+          style={{
+            width: width as number,
+            borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+          }}
         >
-          <Text className="font-semibold text-sm text-slate-700">{label}</Text>
+          <Text
+            className="font-poppinsMedium text-[13px] upper-case"
+            style={{ color: isDarkMode ? "#D2D2D2" : "#454545" }}
+          >
+            {label as string}
+          </Text>
         </View>
       ))}
     </View>
   );
 
   const DateHeader = ({ date }: { date: string }) => (
-    <View className="bg-indigo-100 px-2 py-2 border-l border-r border-indigo-200">
-      <Text className="font-semibold text-xs text-indigo-800">{date}</Text>
+    <View
+      className="px-3 py-2 border-b flex-row justify-between items-center"
+      style={{
+        backgroundColor: isDarkMode ? "#111" : "#fff",
+        borderColor: isDarkMode ? "#222" : "#E2E8F0",
+      }}
+    >
+      <Text
+        className="font-bold text-xs"
+        style={{ color: isDarkMode ? "#fff" : "#000" }}
+      >
+        {date}
+      </Text>
+      <Ionicons
+        name="chevron-down"
+        size={16}
+        color={isDarkMode ? "#666" : "#94A3B8"}
+      />
     </View>
   );
 
-  const rightActionStyle = {
+  const rightActionStyle: any = {
     width: 160,
     backgroundColor: "#dc2626",
     justifyContent: "center",
@@ -485,13 +547,23 @@ const RunningNotes = () => {
       }
     }, [isHighlighted]);
 
-    const backgroundColor = animValue.interpolate({
+    const highlightOpacity = animValue.interpolate({
       inputRange: [0, 1],
-      outputRange: [getNoteBgColor(item.status), "#B7F0FF"], // Normal to Yellow highlight
+      outputRange: [0, 0.4],
     });
 
     return (
-      <Animated.View style={{ backgroundColor }}>{children}</Animated.View>
+      <View style={{ position: "relative" }}>
+        {children}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: "#B7F0FF",
+            opacity: highlightOpacity,
+          }}
+        />
+      </View>
     );
   };
 
@@ -522,34 +594,68 @@ const RunningNotes = () => {
           }}
         >
           <AnimatedNoteRow item={item}>
-            <View className="flex-row border-l border-slate-400">
-              {/* Note */}
+            <View className="flex-row border-b border-black/10">
+              {/* Note with Left Strip */}
               <View
-                className="border-r border-b border-gray-300 px-2 py-1"
                 style={{
                   width: COL.note,
+                  backgroundColor: getNoteBgColor(item.status),
+                  flexDirection: "row",
+                  minHeight: 50,
                 }}
               >
-                <Text className="text-sm text-black">{item.text}</Text>
+                <View className="flex-1 p-2">
+                  <Text className="text-sm text-black leading-tight">
+                    {item.text}
+                  </Text>
+                </View>
               </View>
 
-              {/* Responsible */}
+              {/* Responsible (Assignee) */}
               <View
-                className="border-r border-b border-gray-300 px-1 py-1"
-                style={{ width: COL.responsible }}
+                className="items-center justify-center border-r border-black/5"
+                style={{
+                  width: COL.responsible,
+                  backgroundColor: isDarkMode ? "#111" : "#F8FAFC",
+                }}
               >
-                <Text className="text-xs" numberOfLines={2}>
-                  {users.find((u) => u.value === item.responsible)?.label ||
-                    "N/A"}
-                </Text>
+                {item.responsible &&
+                Array.isArray(item.responsible) &&
+                item.responsible.length > 0 ? (
+                  <View className="flex-row items-center -space-x-2">
+                    {item.responsible.map((respId, index) => (
+                      <GlobalAvatar
+                        key={`${item.id}-${respId}-${index}`}
+                        name={
+                          users.find((u) => u.value === respId)?.label || "N/A"
+                        }
+                        size={22}
+                        fontSize={8}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <Text
+                    className="text-xs"
+                    style={{ color: isDarkMode ? "#666" : "#94A3B8" }}
+                  >
+                    N/A
+                  </Text>
+                )}
               </View>
 
-              {/* Target Date */}
+              {/* T Date */}
               <View
-                className="border-r border-b border-gray-300 px-1 py-1"
-                style={{ width: COL.target }}
+                className="items-center justify-center"
+                style={{
+                  width: COL.target,
+                  backgroundColor: isDarkMode ? "#111" : "#F8FAFC",
+                }}
               >
-                <Text className="text-xs">
+                <Text
+                  className="text-xs"
+                  style={{ color: isDarkMode ? "#444" : "#94A3B8" }}
+                >
                   {item.targetDate ? formatDate(item.targetDate) : "N/A"}
                 </Text>
               </View>
@@ -563,47 +669,61 @@ const RunningNotes = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#F1F5F9" }}
+      style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <LinearGradient colors={["#4F46E5", "#6366F1"]}>
-        <View className="pt-16 pb-6 px-4 flex-row justify-between  items-center">
-          <TouchableOpacity
-            onPress={() =>
-              router.push(
-                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
-              )
-            }
-            className="flex-row items-center"
+      <View
+        className="pt-14 pb-2 px-4 flex-row items-center"
+        style={{ backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
+      >
+        <TouchableOpacity
+          onPress={() =>
+            router.push(
+              `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
+            )
+          }
+          className="flex-row items-center"
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+          <Text
+            className="text-lg font-dmSemiBold ml-1"
+            style={{ color: isDarkMode ? "#fff" : "#000" }}
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-white text-xl font-semibold ml-3">
-              Running Notes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={downloadingExcel}
-            onPress={() =>
-              handleDownloadRunningNotesExcel(
-                projectId as string,
-                projectName as string,
-                company as string,
-                token as string,
-                setDownloadingExcel,
-              )
-            }
-            className={`p-2 rounded-full ${
-              downloadingExcel ? "bg-white/10" : "bg-white/20"
-            }`}
-          >
-            {downloadingExcel ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Ionicons name="download-outline" size={22} color="#fff" />
-            )}
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+            Running Notes
+          </Text>
+        </TouchableOpacity>
+        <View className="flex-1" />
+        <TouchableOpacity
+          disabled={downloadingExcel}
+          onPress={() =>
+            handleDownloadRunningNotesExcel(
+              projectId as string,
+              projectName as string,
+              company as string,
+              token as string,
+              setDownloadingExcel,
+            )
+          }
+          className="p-2"
+        >
+          {downloadingExcel ? (
+            <ActivityIndicator
+              size="small"
+              color={isDarkMode ? "#fff" : "#000"}
+            />
+          ) : (
+            <Ionicons
+              name="download-outline"
+              size={24}
+              color={isDarkMode ? "#fff" : "#000"}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
 
       {/* <AddNoteCard/
         users={users}
@@ -623,7 +743,11 @@ const RunningNotes = () => {
               id: res.data._id,
               text: res.data.text,
               status: res.data.status,
-              responsible: res.data.responsible || null,
+              responsible: Array.isArray(res.data.responsible)
+                ? res.data.responsible
+                : res.data.responsible
+                  ? [res.data.responsible]
+                  : [],
               targetDate: res.data.targetDate
                 ? new Date(res.data.targetDate)
                 : null,
@@ -663,11 +787,16 @@ const RunningNotes = () => {
         </View>
       ) : ( */}
       {/* // DATA STATE */}
+      <AddNoteCard users={users} onAdd={handleAddNote} />
+      <View style={{ backgroundColor: "#E5E7EB" }}>
+        <TableColumnHeader />
+      </View>
+
       <SectionList
         ref={sectionListRef}
-        style={{ flex: 1, backgroundColor: "#F1F5F9" }}
+        style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#fff" }}
         contentContainerStyle={{
-          backgroundColor: "#F1F5F9",
+          backgroundColor: isDarkMode ? "#000" : "#fff",
           paddingBottom: Platform.OS === "android" ? 24 : 0,
         }}
         sections={noteSections}
@@ -681,77 +810,25 @@ const RunningNotes = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#4F46E5"]}
-            tintColor="#4F46E5"
+            colors={["#7C3AED"]}
+            tintColor="#7C3AED"
+            progressBackgroundColor={isDarkMode ? "#222" : "#fff"}
           />
         }
         // contentContainerStyle={{ paddingBottom: 40 }}
-        ListHeaderComponent={
-          <>
-            {/* <AddNoteCard
-                users={users}
-                onAdd={async ({
-                  noteText,
-                  status,
-                  responsible,
-                  targetDate,
-                }) => {
-                  if (!token || !projectId) return;
-                  setIsSubmitting(true);
-                  try {
-                    const res = await api.post(
-                      "/running-notes",
-                      {
-                        projectId,
-                        text: noteText,
-                        status,
-                        responsible,
-                        targetDate,
-                      },
-                      { headers: { Authorization: `Bearer ${token}` } }
-                    );
-                    const newNote: Note = {
-                      id: res.data._id,
-                      text: res.data.text,
-                      status: res.data.status,
-                      responsible: res.data.responsible || null,
-                      targetDate: res.data.targetDate
-                        ? new Date(res.data.targetDate)
-                        : null,
-                      createdAt: new Date(res.data.createdAt),
-                    };
-                    setNotes((prev) => [newNote, ...prev]);
-                  } catch (err) {
-                    console.log("Error adding note:", err);
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-              /> */}
-            <AddNoteCard users={users} onAdd={handleAddNote} />
-            {/* Fixed Table Header */}
-            <View style={{ backgroundColor: "#E5E7EB" }}>
-              <TableColumnHeader />
-            </View>
-          </>
-        }
         /* LOADING + EMPTY handled here */
         ListEmptyComponent={
           initialLoading ? (
             <View className="flex-1 justify-center items-center py-20">
-              <ActivityIndicator size="large" color="#4F46E5" />
-              <Text className="mt-3 text-gray-500 text-sm">
+              <ActivityIndicator size="large" color="#7C3AED" />
+              <Text className="mt-3 text-gray-400 text-sm">
                 Loading running notes...
               </Text>
             </View>
           ) : (
             <View className="flex-1 justify-center items-center py-20">
-              <Ionicons
-                name="document-text-outline"
-                size={50}
-                color="#9CA3AF"
-              />
-              <Text className="text-gray-400 mt-4 text-center text-base">
+              <Ionicons name="document-text-outline" size={50} color="#444" />
+              <Text className="text-gray-500 mt-4 text-center text-base">
                 No running notes yet.{"\n"}Add a note to get started.
               </Text>
             </View>
@@ -883,7 +960,7 @@ const RunningNotes = () => {
 
                 {/* Responsible */}
                 <View className="mb-3">
-                  <Dropdown
+                  <MultiSelect
                     style={{
                       borderWidth: 1,
                       borderColor: "#E5E7EB",
@@ -895,15 +972,28 @@ const RunningNotes = () => {
                     placeholder="Select responsible"
                     placeholderStyle={{ fontSize: 13, color: "#9CA3AF" }}
                     selectedTextStyle={{ fontSize: 13, color: "#111827" }}
+                    containerStyle={{
+                      borderRadius: 14,
+                      backgroundColor: "#fff",
+                      borderColor: "#E5E7EB",
+                    }}
+                    itemTextStyle={{ color: "#111827" }}
+                    selectedStyle={{
+                      borderRadius: 12,
+                      backgroundColor: "#E2E8F0",
+                      borderWidth: 0,
+                    }}
                     data={users}
                     labelField="label"
                     valueField="value"
-                    value={editingNote?.responsible}
+                    value={editingNote?.responsible || []}
                     onChange={(item) =>
                       setEditingNote(
-                        (prev) => prev && { ...prev, responsible: item.value },
+                        (prev) => prev && { ...prev, responsible: item },
                       )
                     }
+                    search
+                    searchPlaceholder="Search..."
                   />
                 </View>
 
