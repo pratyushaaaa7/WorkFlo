@@ -135,18 +135,7 @@ const getNoteBgColor = (status: string) => {
   }
 };
 
-const getNoteStripColor = (status: string) => {
-  switch (status) {
-    case "Open":
-      return "#ef4444";
-    case "In Progress":
-      return "#f59e0b";
-    case "Closed":
-      return "#22c55e";
-    default:
-      return "#94a3b8";
-  }
-};
+
 
 const statusOptions = [
   {
@@ -1165,9 +1154,9 @@ const RunningNotes = () => {
                     const getStatusStyles = () => {
                       if (s.value === "Open") {
                         return {
-                          dot: "#6366F1",
-                          bg: isDarkMode ? "#282446" : "#D7DEF2",
-                          text: "#6366F1",
+                          dot: "#DF5B5B",
+                          bg: isDarkMode ? "#5E1010" : "#FDE6E6",
+                          text: "#DF5B5B",
                         };
                       }
                       if (s.value === "In Progress") {
