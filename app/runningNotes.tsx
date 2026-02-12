@@ -11,8 +11,8 @@ import {
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import * as FileSystem from "expo-file-system";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import Modal from "react-native-modal";
@@ -598,42 +598,44 @@ const RunningNotes = () => {
     </View>
   );
 
-  const DateHeader = ({
-    date,
-    onPress,
-    isCollapsed,
-  }: {
-    date: string;
-    onPress: () => void;
-    isCollapsed: boolean;
-  }) => (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      className={isCollapsed ? "border-b" : ""}
-      style={{
-        borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
-      }}
-    >
-      <View
-        className="px-3 py-2 flex-row justify-between items-center"
+  const DateHeader = React.memo(
+    ({
+      date,
+      onPress,
+      isCollapsed,
+    }: {
+      date: string;
+      onPress: () => void;
+      isCollapsed: boolean;
+    }) => (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        className={isCollapsed ? "border-b" : ""}
         style={{
-          backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+          borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
         }}
       >
-        <Text
-          className="font-poppinsMedium text-[13px]"
-          style={{ color: isDarkMode ? "#fff" : "#000" }}
+        <View
+          className="px-3 py-2 flex-row justify-between items-center"
+          style={{
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+          }}
         >
-          {date}
-        </Text>
-        <Ionicons
-          name={isCollapsed ? "chevron-up" : "chevron-down"}
-          size={18}
-          color={isDarkMode ? "#BBBBBB" : "#454545"}
-        />
-      </View>
-    </TouchableOpacity>
+          <Text
+            className="font-poppinsMedium text-[13px]"
+            style={{ color: isDarkMode ? "#fff" : "#000" }}
+          >
+            {date}
+          </Text>
+          <Ionicons
+            name={isCollapsed ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={isDarkMode ? "#BBBBBB" : "#454545"}
+          />
+        </View>
+      </TouchableOpacity>
+    ),
   );
 
   const rightActionStyle: any = {
@@ -701,127 +703,147 @@ const RunningNotes = () => {
     );
   };
 
-  // Note row
-  const renderNote = useCallback(
-    ({ item }: { item: Note }) => (
-      <Swipeable
-        ref={(ref) => {
-          if (ref) swipeableRefs.current.set(item.id, ref);
-        }}
-        renderRightActions={renderRightActions}
-        overshootRight={true}
-        rightThreshold={120} // must fully overshoot
-        onSwipeableWillOpen={() => {
-          // close FIRST → avoids visual stop
-          swipeableRefs.current.get(item.id)?.close();
-
-          // open modal immediately
-          setNoteToDelete(item);
-          setDeleteModalVisible(true);
-        }}
-      >
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => {
-            setEditingNote({
-              ...item,
-              responsible: normalizeResponsible(item.responsible) as any,
-            });
-            setEditModalVisible(true);
+  // Memoized Note Row Component for performance
+  const NoteRow = React.memo(
+    ({
+      item,
+      onEdit,
+      onDelete,
+    }: {
+      item: Note;
+      onEdit: (note: Note) => void;
+      onDelete: (note: Note) => void;
+    }) => {
+      return (
+        <Swipeable
+          ref={(ref) => {
+            if (ref) swipeableRefs.current.set(item.id, ref);
+          }}
+          renderRightActions={renderRightActions}
+          overshootRight={true}
+          rightThreshold={120}
+          onSwipeableWillOpen={() => {
+            swipeableRefs.current.get(item.id)?.close();
+            onDelete(item);
           }}
         >
-          <View>
-            <AnimatedNoteRow item={item}>
-              <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
-                {/* Note with Left Strip */}
-                <View
-                  style={{
-                    width: COL.note,
-                    backgroundColor: getNoteBgColor(item.status),
-                    flexDirection: "row",
-                    minHeight: 42,
-                  }}
-                >
-                  <View className="flex-1 p-2">
-                    <Text className="text-[12px] text-black font-poppins leading-tight">
-                      {item.text}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Responsible (Assignee) */}
-                <View
-                  className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
-                  style={{
-                    width: COL.responsible,
-                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                  }}
-                >
-                  {item.responsible &&
-                  Array.isArray(item.responsible) &&
-                  item.responsible.length > 0 ? (
-                    <View className="flex-col items-center gap-1">
-                      {item.responsible.map((resp, index) => {
-                        // Handle different data formats:
-                        // 1. responsibility: {_id: {...}, name: "..."}
-                        // 2. populated responsible: {_id: "...", fullName: "..."}
-                        // 3. plain ID string
-                        const getName = () => {
-                          if (typeof resp === "object" && resp !== null) {
-                            // Check for name field (responsibility format)
-                            if (resp.name) return resp.name;
-                            // Check for fullName field (populated responsible)
-                            if (resp.fullName) return resp.fullName;
-                            // Try to extract ID and lookup
-                            const id = extractStringId(resp);
-                            return usersMap.get(id)?.label || "N/A";
-                          }
-                          // Plain ID string - lookup in users
-                          return usersMap.get(resp)?.label || "N/A";
-                        };
-
-                        return (
-                          <GlobalAvatar
-                            key={`${item.id}-${index}`}
-                            name={getName()}
-                            size={28}
-                            fontSize={12}
-                          />
-                        );
-                      })}
+          <TouchableOpacity activeOpacity={0.8} onPress={() => onEdit(item)}>
+            <View>
+              <AnimatedNoteRow item={item}>
+                <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
+                  {/* Note with Left Strip */}
+                  <View
+                    style={{
+                      width: COL.note,
+                      backgroundColor: getNoteBgColor(item.status),
+                      flexDirection: "row",
+                      minHeight: 42,
+                    }}
+                  >
+                    <View className="flex-1 p-2">
+                      <Text className="text-[12px] text-black font-poppins leading-tight">
+                        {item.text}
+                      </Text>
                     </View>
-                  ) : (
+                  </View>
+
+                  {/* Responsible (Assignee) */}
+                  <View
+                    className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
+                    style={{
+                      width: COL.responsible,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    }}
+                  >
+                    {item.responsible &&
+                    Array.isArray(item.responsible) &&
+                    item.responsible.length > 0 ? (
+                      <View className="flex-col items-center gap-1">
+                        {item.responsible.map((resp, index) => {
+                          const getName = () => {
+                            if (typeof resp === "object" && resp !== null) {
+                              if (resp.name) return resp.name;
+                              if (resp.fullName) return resp.fullName;
+                              const id = extractStringId(resp);
+                              return usersMap.get(id)?.label || "N/A";
+                            }
+                            return usersMap.get(resp)?.label || "N/A";
+                          };
+
+                          return (
+                            <GlobalAvatar
+                              key={`${item.id}-${index}`}
+                              name={getName()}
+                              size={28}
+                              fontSize={12}
+                            />
+                          );
+                        })}
+                      </View>
+                    ) : (
+                      <Text
+                        className="text-xs font-poppins"
+                        style={{ color: isDarkMode ? "#FFF" : "#000" }}
+                      >
+                        N/A
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* T Date */}
+                  <View
+                    className="items-center justify-center"
+                    style={{
+                      width: COL.target,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    }}
+                  >
                     <Text
                       className="text-xs font-poppins"
                       style={{ color: isDarkMode ? "#FFF" : "#000" }}
                     >
-                      N/A
+                      {item.targetDate ? formatDate(item.targetDate) : "N/A"}
                     </Text>
-                  )}
+                  </View>
                 </View>
+              </AnimatedNoteRow>
+            </View>
+          </TouchableOpacity>
+        </Swipeable>
+      );
+    },
+    (prevProps, nextProps) => {
+      // Custom comparison function for memo
+      return (
+        prevProps.item.id === nextProps.item.id &&
+        prevProps.item.text === nextProps.item.text &&
+        prevProps.item.status === nextProps.item.status &&
+        prevProps.item.targetDate === nextProps.item.targetDate &&
+        JSON.stringify(prevProps.item.responsible) ===
+          JSON.stringify(nextProps.item.responsible)
+      );
+    },
+  );
 
-                {/* T Date */}
-                <View
-                  className="items-center justify-center"
-                  style={{
-                    width: COL.target,
-                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                  }}
-                >
-                  <Text
-                    className="text-xs font-poppins"
-                    style={{ color: isDarkMode ? "#FFF" : "#000" }}
-                  >
-                    {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-                  </Text>
-                </View>
-              </View>
-            </AnimatedNoteRow>
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
+  // Note row
+  const renderNote = useCallback(
+    ({ item }: { item: Note }) => (
+      <NoteRow
+        item={item}
+        onEdit={(note) => {
+          setEditingNote({
+            ...note,
+            responsible: normalizeResponsible(note.responsible) as any,
+          });
+          setEditModalVisible(true);
+        }}
+        onDelete={(note) => {
+          setNoteToDelete(note);
+          setDeleteModalVisible(true);
+        }}
+      />
     ),
-    [users, swipeableRefs, COL, highlightedNoteId],
+    [],
   );
 
   return (
@@ -911,6 +933,17 @@ const RunningNotes = () => {
             stickySectionHeadersEnabled
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.3}
+            // Performance optimizations
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            updateCellsBatchingPeriod={50}
+            windowSize={10}
+            initialNumToRender={15}
+            getItemLayout={(data, index) => ({
+              length: 42, // minHeight from the note row
+              offset: 42 * index,
+              index,
+            })}
             ListFooterComponent={
               isLoadingMore ? (
                 <View className="py-4 items-center">
@@ -1397,8 +1430,8 @@ const RunningNotes = () => {
                   colors={
                     isEditDisabled
                       ? isDarkMode
-                        ? ["#4C1D9580", "#4C1D9580"]
-                        : ["#C7D2FE", "#C7D2FE"]
+                        ? ["#2F2F2F", "#2F2F2F"]
+                        : ["#EFEFEF", "#EFEFEF"]
                       : ["#5B4CCC", "#6347C2", "#8056D1"]
                   }
                   start={{ x: 0, y: 0.5 }}
