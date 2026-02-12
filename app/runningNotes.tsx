@@ -1368,7 +1368,7 @@ const RunningNotes = () => {
             )}
 
             {/* ACTIONS */}
-            <View className="flex-row px-4 py-4 gap-4">
+            <View className="flex-row px-4 py-4 gap-3">
               <TouchableOpacity
                 onPress={() => {
                   setEditModalVisible(false);
@@ -1376,12 +1376,12 @@ const RunningNotes = () => {
                 }}
                 className="flex-1 h-[48px] rounded-[16px] border-[1px] items-center justify-center"
                 style={{
-                  borderColor: isDarkMode ? "#2B2B2B" : "#000000",
-                  backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+                  borderColor: isDarkMode ? "#FFFFFFF" : "#000000",
+                  backgroundColor: isDarkMode ? "transparent" : "transparent",
                 }}
               >
                 <Text
-                  className="text-[12px] font-poppins"
+                  className="text-[16px] font-poppins"
                   style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
                 >
                   Cancel
