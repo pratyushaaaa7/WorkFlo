@@ -934,16 +934,16 @@ const RunningNotes = () => {
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.3}
             // Performance optimizations
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            updateCellsBatchingPeriod={50}
-            windowSize={10}
-            initialNumToRender={15}
-            getItemLayout={(data, index) => ({
-              length: 42, // minHeight from the note row
-              offset: 42 * index,
-              index,
-            })}
+            // removeClippedSubviews={true}
+            // maxToRenderPerBatch={10}
+            // updateCellsBatchingPeriod={50}
+            // windowSize={10}
+            // initialNumToRender={15}
+            // getItemLayout={(data, index) => ({
+            //   length: 42, // minHeight from the note row
+            //   offset: 42 * index,
+            //   index,
+            // })}
             ListFooterComponent={
               isLoadingMore ? (
                 <View className="py-4 items-center">
