@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 import {
   Analytics01Icon,
+  Cancel01Icon,
   Clock01Icon,
   Menu02Icon,
   PieChart01Icon,
@@ -15,10 +16,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  LayoutAnimation,
+  Platform,
   RefreshControl,
   StatusBar,
   Text,
+  TextInput,
   TouchableOpacity,
+  UIManager,
   useColorScheme,
   View,
 } from "react-native";
@@ -37,7 +42,26 @@ export default function UsageScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState("Today");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
   const [userLeaderboard, setUserLeaderboard] = useState<any[]>([]);
+
+  // Enable LayoutAnimation for Android
+  if (
+    Platform.OS === "android" &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+
+  const toggleSearch = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isSearching) {
+      setSearchQuery("");
+    }
+    setIsSearching(!isSearching);
+  };
 
   // -------------------------------
   // 🔥 Fetch leaderboard data
@@ -86,6 +110,11 @@ export default function UsageScreen() {
   useEffect(() => {
     fetchLeaderboard();
   }, [selectedTab]); // Refetch when tab changes
+
+  const filteredLeaderboard = userLeaderboard.filter((item) => {
+    const name = (item.userId?.fullName || "").toLowerCase();
+    return name.includes(searchQuery.toLowerCase());
+  });
 
   // -------------------------------------
   // HELPER: Format Duration (seconds -> 3h - 12m)
@@ -145,7 +174,6 @@ export default function UsageScreen() {
           <View className="flex-row  items-center mb-5">
             <GlobalAvatar
               name={name}
-              image={item.userId?.profileImage}
               size={44}
               fontSize={18}
               borderRadius={8}
@@ -236,14 +264,14 @@ export default function UsageScreen() {
         </View>
 
         <View className="flex-row gap-4">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={toggleSearch}>
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={isSearching ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "#D2D2D2" : "#454545"}
             />
           </TouchableOpacity>
-          {/* Excel Icon Placeholder - HugeIcons doesn't have explicit Excel, using generic File or we can assume it's an image in the design */}
+          {/* Excel Icon Placeholder */}
           <TouchableOpacity>
             <HugeiconsIcon
               icon={Xsl01Icon}
@@ -253,6 +281,27 @@ export default function UsageScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* 🔹 SEARCH BAR (Collapsible - Central Directory Style) */}
+      {isSearching && (
+        <View className="px-4 pb-2 bg-[#FBFCFD] dark:bg-[#000]">
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-4 py-1">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={20}
+              color={isDarkMode ? "#606060" : "#454545"}
+            />
+            <TextInput
+              placeholder="Search name..."
+              placeholderTextColor="#9CA3AF"
+              className="ml-2 flex-1 font-poppins text-black dark:text-white text-base"
+              autoFocus
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+      )}
 
       {/* 🔹 TABS */}
       <View className="px-4 py-4">
@@ -293,7 +342,7 @@ export default function UsageScreen() {
         </View>
       ) : (
         <FlatList
-          data={userLeaderboard}
+          data={filteredLeaderboard}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderUserCard}
           contentContainerStyle={{ paddingBottom: 100 }}

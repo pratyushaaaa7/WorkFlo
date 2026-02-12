@@ -7,6 +7,7 @@ import {
   ArrowRight01Icon,
   Calendar02Icon,
   Cancel01Icon,
+  Delete03Icon,
   Progress03Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -30,6 +31,7 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   SectionList,
@@ -989,44 +991,67 @@ const RunningNotes = () => {
           <Modal
             isVisible={deleteModalVisible}
             onBackdropPress={() => setDeleteModalVisible(false)}
+            onBackButtonPress={() => setDeleteModalVisible(false)}
             onSwipeComplete={() => setDeleteModalVisible(false)}
             swipeDirection="down"
-            animationIn="zoomIn"
-            animationOut="zoomOut"
-            backdropOpacity={0.4}
+            propagateSwipe={true}
+            animationIn="fadeIn"
+            animationOut="fadeOut"
+            backdropOpacity={0.5}
+            useNativeDriver
+            hideModalContentWhileAnimating
           >
-            <View className="bg-white rounded-2xl w-full p-6 shadow-xl">
-              <Text className="text-xl font-poppinsBold text-gray-900 mb-2">
-                Delete Note
-              </Text>
-
-              <Text className="text-[15px] font-poppins text-gray-600 mb-6">
-                Are you sure you want to delete this note? This action cannot be
-                undone.
-              </Text>
-
-              <View className="flex-row justify-end gap-3">
-                <TouchableOpacity
-                  className="px-6 py-3 rounded-xl bg-slate-100"
-                  onPress={() => {
-                    setDeleteModalVisible(false);
-                    setNoteToDelete(null);
-                  }}
+            <View className="flex-1 justify-center items-center">
+              <Pressable
+                className={`w-full max-w-sm p-4 rounded-3xl ${isDarkMode ? "bg-[#000000]" : "bg-white"}`}
+                onPress={(e) => e.stopPropagation()}
+              >
+                {/* Icon */}
+                <View
+                  className={`w-12 h-12 rounded-full items-center justify-center mb-4 ${isDarkMode ? "bg-[#5E1010]" : "bg-[#FDE6E6]"}`}
                 >
-                  <Text className="text-slate-700 text-[15px] font-poppinsSemiBold">
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
+                  <HugeiconsIcon
+                    icon={Delete03Icon}
+                    size={24}
+                    color="#DF5B5B"
+                  />
+                </View>
 
-                <TouchableOpacity
-                  className="px-6 py-3 rounded-xl bg-red-600"
-                  onPress={deleteNote}
+                {/* Content */}
+                <Text
+                  className={`text-xl font-dmSemiBold mb-2 ${isDarkMode ? "text-white" : "text-black"}`}
                 >
-                  <Text className="text-white text-[15px] font-poppinsBold">
-                    Delete
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  Delete this item
+                </Text>
+                <Text
+                  className={`text-[14px] font-poppins mb-6 ${isDarkMode ? "text-[#919191]" : "text-[#454545]"}`}
+                >
+                  Are you sure you want to delete this item? This action is final.
+                </Text>
+
+                {/* Buttons */}
+                <View className="flex-row gap-3">
+                  <TouchableOpacity
+                    onPress={() => setDeleteModalVisible(false)}
+                    className={`flex-1 py-3 rounded-xl border ${isDarkMode ? "border-white" : "border-black"}`}
+                  >
+                    <Text
+                      className={`text-center text-lg font-poppins ${isDarkMode ? "text-white" : "text-black"}`}
+                    >
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={deleteNote}
+                    className="flex-1 py-3 rounded-xl bg-[#DF5B5B]"
+                  >
+                    <Text className="text-center text-lg font-poppins text-white">
+                      Confirm
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
             </View>
           </Modal>
         </View>
@@ -1121,7 +1146,7 @@ const RunningNotes = () => {
             />
 
             {/* STATUS */}
-            <View className="px-4 py-2 flex-row">
+            <View className="px-4 py-3 flex-row">
               <View className="w-10 items-start pt-1">
                 <HugeiconsIcon
                   icon={Progress03Icon}
@@ -1218,7 +1243,7 @@ const RunningNotes = () => {
             />
 
             {/* ASSIGNEE */}
-            <View className="px-4 py-2 flex-row">
+            <View className="px-4 py-3 flex-row">
               <View className="w-10 items-start pt-1">
                 <HugeiconsIcon
                   icon={UserCircleIcon}
@@ -1229,7 +1254,7 @@ const RunningNotes = () => {
               <View className="flex-1">
                 <MultiSelect
                   style={{
-                    height: 38,
+                    height: 44,
                     backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
                     paddingHorizontal: 16,
                     borderRadius: 12,
@@ -1338,7 +1363,7 @@ const RunningNotes = () => {
 
             {/* DUE DATE */}
             <TouchableOpacity onPress={() => setShowEditDatePicker(true)}>
-              <View className="px-4 py-2 flex-row">
+              <View className="px-4 py-3 flex-row">
                 <View className="w-10 items-start pt-1">
                   <HugeiconsIcon
                     icon={Calendar02Icon}
