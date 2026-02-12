@@ -180,6 +180,25 @@ type Note = {
   createdAt: Date;
 };
 
+// Helper function to extract string ID from various formats
+const extractStringId = (item: any): string => {
+  if (typeof item === "string") return item;
+  if (!item || typeof item !== "object") return String(item);
+
+  let id = item._id || item;
+  // Handle nested ObjectId structures
+  while (id && typeof id === "object") {
+    id = id._id || id.toString?.() || String(id);
+  }
+  return String(id);
+};
+
+// Helper to normalize responsible array to string IDs
+const normalizeResponsible = (responsible: any[]): string[] => {
+  const ids = responsible.map(extractStringId);
+  return Array.from(new Set(ids)); // Remove duplicates
+};
+
 const RunningNotes = () => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
@@ -234,6 +253,13 @@ const RunningNotes = () => {
       return next;
     });
   };
+
+  // Memoized user lookup map for O(1) access
+  const usersMap = useMemo(() => {
+    const map = new Map<string, { label: string; value: string }>();
+    users.forEach((user) => map.set(user.value, user));
+    return map;
+  }, [users]);
 
   // Fetch users
   useEffect(() => {
@@ -646,26 +672,9 @@ const RunningNotes = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            // Normalize responsible to string IDs for editing
-            const normalizedResponsible = item.responsible.map((r) => {
-              if (typeof r === "object" && r !== null) {
-                // Handle nested _id (could be ObjectId object)
-                let id = r._id;
-                // If _id is still an object, try to extract string representation
-                while (id && typeof id === "object") {
-                  id = id._id || id.toString?.() || String(id);
-                }
-                return id || r;
-              }
-              return r;
-            });
-            // Remove duplicates using Set
-            const uniqueResponsible = Array.from(
-              new Set(normalizedResponsible),
-            );
             setEditingNote({
               ...item,
-              responsible: uniqueResponsible as any,
+              responsible: normalizeResponsible(item.responsible) as any,
             });
             setEditModalVisible(true);
           }}
@@ -713,15 +722,11 @@ const RunningNotes = () => {
                             // Check for fullName field (populated responsible)
                             if (resp.fullName) return resp.fullName;
                             // Try to extract ID and lookup
-                            const id = resp._id || resp;
-                            return (
-                              users.find((u) => u.value === id)?.label || "N/A"
-                            );
+                            const id = extractStringId(resp);
+                            return usersMap.get(id)?.label || "N/A";
                           }
                           // Plain ID string - lookup in users
-                          return (
-                            users.find((u) => u.value === resp)?.label || "N/A"
-                          );
+                          return usersMap.get(resp)?.label || "N/A";
                         };
 
                         return (
@@ -1177,12 +1182,8 @@ const RunningNotes = () => {
 
                       <View className="flex-col items-start gap-2 mt-1">
                         {(editingNote?.responsible || []).map((respId) => {
-                          // Extract ID if it's an object
-                          const id =
-                            typeof respId === "object" && respId !== null
-                              ? respId._id || respId
-                              : respId;
-                          const user = users.find((u) => u.value === id);
+                          const id = extractStringId(respId);
+                          const user = usersMap.get(id);
                           if (!user) return null;
                           return (
                             <Pressable
@@ -1193,13 +1194,7 @@ const RunningNotes = () => {
                                     prev && {
                                       ...prev,
                                       responsible: prev.responsible.filter(
-                                        (r) => {
-                                          const rId =
-                                            typeof r === "object" && r !== null
-                                              ? r._id || r
-                                              : r;
-                                          return rId !== id;
-                                        },
+                                        (r) => extractStringId(r) !== id,
                                       ),
                                     },
                                 )
