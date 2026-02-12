@@ -649,13 +649,23 @@ const RunningNotes = () => {
             // Normalize responsible to string IDs for editing
             const normalizedResponsible = item.responsible.map((r) => {
               if (typeof r === "object" && r !== null) {
-                return r._id || r;
+                // Handle nested _id (could be ObjectId object)
+                let id = r._id;
+                // If _id is still an object, try to extract string representation
+                while (id && typeof id === "object") {
+                  id = id._id || id.toString?.() || String(id);
+                }
+                return id || r;
               }
               return r;
             });
+            // Remove duplicates using Set
+            const uniqueResponsible = Array.from(
+              new Set(normalizedResponsible),
+            );
             setEditingNote({
               ...item,
-              responsible: normalizedResponsible as any,
+              responsible: uniqueResponsible as any,
             });
             setEditModalVisible(true);
           }}
