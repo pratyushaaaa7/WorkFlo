@@ -1255,14 +1255,14 @@ const RunningNotes = () => {
                     return (
                       <View
                         key={id}
-                        className="flex-row items-center px-2.5 py-1 rounded-[12px] border"
+                        className="flex-row items-center px-2.5 py-1 rounded-[7px] border"
                         style={{
                           backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                           borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
                         }}
                       >
                         <Text
-                          className="text-[13px] font-poppinsMedium mr-2"
+                          className="text-[12px] font-poppinsMedium mr-2"
                           style={{
                             color: isDarkMode ? "#FFFFFF" : "#000000",
                           }}
@@ -1285,7 +1285,7 @@ const RunningNotes = () => {
                           <HugeiconsIcon
                             icon={Cancel01Icon}
                             size={14}
-                            strokeWidth={3}
+                            strokeWidth={2}
                             color={isDarkMode ? "#fff" : "#000"}
                           />
                         </TouchableOpacity>
