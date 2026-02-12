@@ -1430,8 +1430,8 @@ const RunningNotes = () => {
                   colors={
                     isEditDisabled
                       ? isDarkMode
-                        ? ["#2F2F2F", "#2F2F2F"]
-                        : ["#EFEFEF", "#EFEFEF"]
+                        ? ["#2F2F2F", "#2F2F2F", "#2F2F2F"]
+                        : ["#EFEFEF", "#EFEFEF", "#EFEFEF"]
                       : ["#5B4CCC", "#6347C2", "#8056D1"]
                   }
                   start={{ x: 0, y: 0.5 }}
