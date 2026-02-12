@@ -850,9 +850,10 @@ const RunningNotes = () => {
           >
             <TouchableOpacity
               onPress={() =>
-                router.push(
-                  `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
-                )
+                // router.push(
+                //   `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
+                // )
+                router.back()
               }
             >
               <View className="flex-row items-center">

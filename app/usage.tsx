@@ -47,13 +47,16 @@ export default function UsageScreen() {
 
   const [userLeaderboard, setUserLeaderboard] = useState<any[]>([]);
 
-  // Enable LayoutAnimation for Android
-  if (
-    Platform.OS === "android" &&
-    UIManager.setLayoutAnimationEnabledExperimental
-  ) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
+  // Enable LayoutAnimation for Android (suppress warning in New Architecture)
+  useEffect(() => {
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental &&
+      !(global as any).nativeFabricUIManager
+    ) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   const toggleSearch = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
