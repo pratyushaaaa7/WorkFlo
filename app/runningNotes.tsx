@@ -1020,7 +1020,7 @@ const RunningNotes = () => {
         avoidKeyboard={true}
       >
         <View
-          className="rounded-t-[40px] w-full max-h-[95%] shadow-2xl"
+          className="rounded-t-[24px] w-full max-h-[95%] shadow-2xl"
           style={{
             backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
           }}
@@ -1060,7 +1060,7 @@ const RunningNotes = () => {
             contentContainerStyle={{ paddingBottom: 40 }}
           >
             {/* NOTE CONTENT */}
-            <View className="px-6 pt-4 pb-6">
+            <View className="px-3 py-2 ">
               <TextInput
                 value={editingNote?.text}
                 multiline
@@ -1070,7 +1070,7 @@ const RunningNotes = () => {
                 onChangeText={(text) =>
                   setEditingNote((prev) => prev && { ...prev, text })
                 }
-                className="text-[16px] font-poppins text-left"
+                className="text-[13px] font-poppins text-left min-h-[40px] max-h-[100px]"
                 style={{
                   color: isDarkMode ? "#D1D5DB" : "#454545",
                   lineHeight: 24,
