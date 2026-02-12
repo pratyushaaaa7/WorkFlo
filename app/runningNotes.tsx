@@ -1,7 +1,15 @@
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
 // import DateTimePicker from "@react-native-community/datetimepicker";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Calendar02Icon,
+  Cancel01Icon,
+  Progress03Icon,
+  UserCircleIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,13 +29,14 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   SectionList,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
+  TouchableOpacity, // Added Pressable
   useColorScheme,
   useWindowDimensions,
   View,
@@ -165,7 +174,7 @@ type Note = {
   id: string;
   text: string;
   status: "Open" | "In Progress" | "Closed";
-  responsible: string[];
+  responsible: (string | { _id?: any; name?: string; fullName?: string })[];
   targetDate: Date | null;
   // createdBy: string;
   createdAt: Date;
@@ -260,16 +269,20 @@ const RunningNotes = () => {
         id: note._id,
         text: note.text,
         status: note.status,
-        responsible: Array.isArray(note.responsible)
-          ? note.responsible.map((r: any) => r._id || r)
-          : note.responsible
-            ? [note.responsible._id || note.responsible]
-            : [],
+        responsible:
+          Array.isArray(note.responsibility) && note.responsibility.length > 0
+            ? note.responsibility
+            : Array.isArray(note.responsible)
+              ? note.responsible
+              : note.responsible
+                ? [note.responsible]
+                : [],
         targetDate: note.targetDate ? new Date(note.targetDate) : null,
         createdAt: new Date(note.createdAt),
       }));
+      console.log("Raw GET Note 0:", res.data[0]);
+      // setNotes(formattedNotes); // Keep this but valid
       setNotes(formattedNotes);
-      // console.log(formattedNotes);
     } catch (err) {
       console.log("Error fetching notes:", err);
     } finally {
@@ -372,11 +385,15 @@ const RunningNotes = () => {
         id: res.data._id,
         text: res.data.text,
         status: res.data.status,
-        responsible: Array.isArray(res.data.responsible)
-          ? res.data.responsible
-          : res.data.responsible
-            ? [res.data.responsible]
-            : [],
+        responsible:
+          Array.isArray(res.data.responsibility) &&
+          res.data.responsibility.length > 0
+            ? res.data.responsibility
+            : Array.isArray(res.data.responsible)
+              ? res.data.responsible
+              : res.data.responsible
+                ? [res.data.responsible]
+                : [],
         targetDate: res.data.targetDate ? new Date(res.data.targetDate) : null,
         createdAt: new Date(res.data.createdAt),
       };
@@ -396,9 +413,10 @@ const RunningNotes = () => {
       const res = await api.put(
         `/running-notes/${editingNote.id}`,
         {
+          projectId,
           text: editingNote.text,
           status: editingNote.status,
-          responsible: editingNote.responsible,
+          responsible: editingNote.responsible || [],
           targetDate: editingNote.targetDate,
         },
         { headers: { Authorization: `Bearer ${token}` } },
@@ -411,7 +429,15 @@ const RunningNotes = () => {
                 ...n,
                 text: res.data.text,
                 status: res.data.status,
-                responsible: editingNote.responsible, // Use local state, not API response
+                responsible:
+                  Array.isArray(res.data.responsibility) &&
+                  res.data.responsibility.length > 0
+                    ? res.data.responsibility
+                    : Array.isArray(res.data.responsible)
+                      ? res.data.responsible
+                      : res.data.responsible
+                        ? [res.data.responsible]
+                        : [],
                 targetDate: res.data.targetDate
                   ? new Date(res.data.targetDate)
                   : null,
@@ -451,8 +477,8 @@ const RunningNotes = () => {
   // };
 
   const COL_RATIO = {
-    note: 0.6,
-    responsible: 0.2,
+    note: 0.65,
+    responsible: 0.15,
     target: 0.2,
   };
 
@@ -473,7 +499,7 @@ const RunningNotes = () => {
     >
       {[
         ["Notes", COL.note],
-        ["Assignee", COL.responsible],
+        ["Resp", COL.responsible],
         ["T Date", COL.target],
       ].map(([label, width]) => (
         <View
@@ -507,25 +533,29 @@ const RunningNotes = () => {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className={`px-3 py-2 flex-row justify-between items-center ${
-        isCollapsed ? "border-b" : ""
-      }`}
+      className={isCollapsed ? "border-b" : ""}
       style={{
-        backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
         borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
       }}
     >
-      <Text
-        className="font-poppinsMedium text-[13px]"
-        style={{ color: isDarkMode ? "#fff" : "#000" }}
+      <View
+        className="px-3 py-2 flex-row justify-between items-center"
+        style={{
+          backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+        }}
       >
-        {date}
-      </Text>
-      <Ionicons
-        name={isCollapsed ? "chevron-up" : "chevron-down"}
-        size={18}
-        color={isDarkMode ? "#BBBBBB" : "#454545"}
-      />
+        <Text
+          className="font-poppinsMedium text-[13px]"
+          style={{ color: isDarkMode ? "#fff" : "#000" }}
+        >
+          {date}
+        </Text>
+        <Ionicons
+          name={isCollapsed ? "chevron-up" : "chevron-down"}
+          size={18}
+          color={isDarkMode ? "#BBBBBB" : "#454545"}
+        />
+      </View>
     </TouchableOpacity>
   );
 
@@ -616,79 +646,112 @@ const RunningNotes = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            setEditingNote(item);
+            // Normalize responsible to string IDs for editing
+            const normalizedResponsible = item.responsible.map((r) => {
+              if (typeof r === "object" && r !== null) {
+                return r._id || r;
+              }
+              return r;
+            });
+            setEditingNote({
+              ...item,
+              responsible: normalizedResponsible as any,
+            });
             setEditModalVisible(true);
           }}
         >
-          <AnimatedNoteRow item={item}>
-            <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
-              {/* Note with Left Strip */}
-              <View
-                style={{
-                  width: COL.note,
-                  backgroundColor: getNoteBgColor(item.status),
-                  flexDirection: "row",
-                  minHeight: 42,
-                }}
-              >
-                <View className="flex-1 p-2">
-                  <Text className="text-[12px] text-black font-poppins leading-tight">
-                    {item.text}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Responsible (Assignee) */}
-              <View
-                className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
-                style={{
-                  width: COL.responsible,
-                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                }}
-              >
-                {item.responsible &&
-                Array.isArray(item.responsible) &&
-                item.responsible.length > 0 ? (
-                  <View className="flex-row items-center -space-x-2">
-                    {item.responsible.map((respId, index) => (
-                      <GlobalAvatar
-                        key={`${item.id}-${respId}-${index}`}
-                        name={
-                          users.find((u) => u.value === respId)?.label || "N/A"
-                        }
-                        size={28}
-                        fontSize={12}
-                        // fontFamily="500_poppinsRegular"
-                      />
-                    ))}
+          <View>
+            <AnimatedNoteRow item={item}>
+              <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
+                {/* Note with Left Strip */}
+                <View
+                  style={{
+                    width: COL.note,
+                    backgroundColor: getNoteBgColor(item.status),
+                    flexDirection: "row",
+                    minHeight: 42,
+                  }}
+                >
+                  <View className="flex-1 p-2">
+                    <Text className="text-[12px] text-black font-poppins leading-tight">
+                      {item.text}
+                    </Text>
                   </View>
-                ) : (
+                </View>
+
+                {/* Responsible (Assignee) */}
+                <View
+                  className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
+                  style={{
+                    width: COL.responsible,
+                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                  }}
+                >
+                  {item.responsible &&
+                  Array.isArray(item.responsible) &&
+                  item.responsible.length > 0 ? (
+                    <View className="flex-col items-center gap-1">
+                      {item.responsible.map((resp, index) => {
+                        // Handle different data formats:
+                        // 1. responsibility: {_id: {...}, name: "..."}
+                        // 2. populated responsible: {_id: "...", fullName: "..."}
+                        // 3. plain ID string
+                        const getName = () => {
+                          if (typeof resp === "object" && resp !== null) {
+                            // Check for name field (responsibility format)
+                            if (resp.name) return resp.name;
+                            // Check for fullName field (populated responsible)
+                            if (resp.fullName) return resp.fullName;
+                            // Try to extract ID and lookup
+                            const id = resp._id || resp;
+                            return (
+                              users.find((u) => u.value === id)?.label || "N/A"
+                            );
+                          }
+                          // Plain ID string - lookup in users
+                          return (
+                            users.find((u) => u.value === resp)?.label || "N/A"
+                          );
+                        };
+
+                        return (
+                          <GlobalAvatar
+                            key={`${item.id}-${index}`}
+                            name={getName()}
+                            size={28}
+                            fontSize={12}
+                          />
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text
+                      className="text-xs font-poppins"
+                      style={{ color: isDarkMode ? "#FFF" : "#000" }}
+                    >
+                      N/A
+                    </Text>
+                  )}
+                </View>
+
+                {/* T Date */}
+                <View
+                  className="items-center justify-center"
+                  style={{
+                    width: COL.target,
+                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                  }}
+                >
                   <Text
                     className="text-xs font-poppins"
                     style={{ color: isDarkMode ? "#FFF" : "#000" }}
                   >
-                    N/A
+                    {item.targetDate ? formatDate(item.targetDate) : "N/A"}
                   </Text>
-                )}
+                </View>
               </View>
-
-              {/* T Date */}
-              <View
-                className="items-center justify-center"
-                style={{
-                  width: COL.target,
-                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                }}
-              >
-                <Text
-                  className="text-xs font-poppins"
-                  style={{ color: isDarkMode ? "#FFF" : "#000" }}
-                >
-                  {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-                </Text>
-              </View>
-            </View>
-          </AnimatedNoteRow>
+            </AnimatedNoteRow>
+          </View>
         </TouchableOpacity>
       </Swipeable>
     ),
@@ -696,401 +759,589 @@ const RunningNotes = () => {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View
-        className="pt-14 pb-2 px-4 flex-row items-center"
-        style={{ backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
+    <>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <TouchableOpacity
-          onPress={() =>
-            router.push(
-              `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
-            )
-          }
-          className="flex-row items-center"
-        >
-          <HugeiconsIcon
-            icon={ArrowLeft01Icon}
-            size={24}
-            color={isDarkMode ? "#fff" : "#000"}
-          />
-          <Text
-            className="text-lg font-dmSemiBold ml-1"
-            style={{ color: isDarkMode ? "#fff" : "#000" }}
+        <View style={{ flex: 1 }}>
+          <View
+            className="pt-14 pb-2 px-4 flex-row items-center"
+            style={{ backgroundColor: isDarkMode ? "#000" : "#FBFCFD" }}
           >
-            Running Notes
-          </Text>
-        </TouchableOpacity>
-        <View className="flex-1" />
-        <TouchableOpacity
-          disabled={downloadingExcel}
-          onPress={() =>
-            handleDownloadRunningNotesExcel(
-              projectId as string,
-              projectName as string,
-              company as string,
-              token as string,
-              setDownloadingExcel,
-            )
-          }
-          className="p-2"
-        >
-          {downloadingExcel ? (
-            <ActivityIndicator
-              size="small"
-              color={isDarkMode ? "#fff" : "#000"}
-            />
-          ) : (
-            <Ionicons
-              name="download-outline"
-              size={24}
-              color={isDarkMode ? "#fff" : "#000"}
-            />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* <AddNoteCard/
-        users={users}
-        onAdd={async ({ noteText, status, responsible, targetDate }) => {
-          if (!token || !projectId) return;
-
-          setIsSubmitting(true); // optional: maintain same loading state
-
-          try {
-            const res = await api.post(
-              "/running-notes",
-              { projectId, text: noteText, status, responsible, targetDate },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            const newNote: Note = {
-              id: res.data._id,
-              text: res.data.text,
-              status: res.data.status,
-              responsible: Array.isArray(res.data.responsible)
-                ? res.data.responsible
-                : res.data.responsible
-                  ? [res.data.responsible]
-                  : [],
-              targetDate: res.data.targetDate
-                ? new Date(res.data.targetDate)
-                : null,
-              createdAt: new Date(res.data.createdAt),
-            };
-
-            setNotes((prev) => [newNote, ...prev]);
-          } catch (err) {
-            console.log("Error adding note:", err);
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-      /> */}
-
-      {/* Fixed Table Header */}
-      {/* <View style={{ backgroundColor: "#E5E7EB" }}>
-        <TableColumnHeader />
-      </View> */}
-
-      {/* CONTENT AREA */}
-      {/* {initialLoading ? (
-        //  FIRST LOAD LOADER
-        <View className="flex-1 justify-center items-center bg-[#F1F5F9] py-20">
-          <ActivityIndicator size="large" color="#4F46E5" />
-          <Text className="mt-3 text-gray-500 text-sm">
-            Loading running notes...
-          </Text>
-        </View>
-      ) : notes.length === 0 ? (
-        //  EMPTY STATE (after load)
-        <View className="flex-1 justify-center items-center pt-10 py-20">
-          <Ionicons name="document-text-outline" size={50} color="#9CA3AF" />
-          <Text className="text-gray-400 mt-4 text-center text-base">
-            No running notes yet.{"\n"}Add a note to get started.
-          </Text>
-        </View>
-      ) : ( */}
-      {/* // DATA STATE */}
-      <AddNoteCard users={users} onAdd={handleAddNote} />
-      <View style={{ backgroundColor: "#E5E7EB" }}>
-        <TableColumnHeader />
-      </View>
-
-      <SectionList
-        ref={sectionListRef}
-        style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#fff" }}
-        contentContainerStyle={{
-          backgroundColor: isDarkMode ? "#000" : "#fff",
-          paddingBottom: Platform.OS === "android" ? 24 : 0,
-        }}
-        sections={noteSections}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => renderNote({ item })}
-        renderSectionHeader={({ section: { title } }) => (
-          <DateHeader
-            date={title}
-            onPress={() => toggleSection(title)}
-            isCollapsed={collapsedSections.has(title)}
-          />
-        )}
-        stickySectionHeadersEnabled
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#7C3AED"]}
-            tintColor="#7C3AED"
-            progressBackgroundColor={isDarkMode ? "#222" : "#fff"}
-          />
-        }
-        // contentContainerStyle={{ paddingBottom: 40 }}
-        /* LOADING + EMPTY handled here */
-        ListEmptyComponent={
-          initialLoading ? (
-            <View className="flex-1 justify-center items-center py-20">
-              <ActivityIndicator size="large" color="#7C3AED" />
-              <Text className="mt-3 text-gray-400 text-sm">
-                Loading running notes...
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-1 justify-center items-center py-20">
-              <Ionicons name="document-text-outline" size={50} color="#444" />
-              <Text className="text-gray-500 mt-4 text-center text-base">
-                No running notes yet.{"\n"}Add a note to get started.
-              </Text>
-            </View>
-          )
-        }
-      />
-      {/* )} */}
-
-      <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/40 justify-center items-center px-6">
-          <View className="bg-white rounded-2xl w-full p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-2">
-              Delete Note
-            </Text>
-
-            <Text className="text-sm text-gray-600 mb-4">
-              Are you sure you want to delete this note? This action cannot be
-              undone.
-            </Text>
-
-            <View className="flex-row justify-end gap-3">
-              <TouchableOpacity
-                className="px-4 py-2 rounded-lg bg-slate-100"
-                onPress={() => {
-                  setDeleteModalVisible(false);
-                  setNoteToDelete(null);
-                }}
-              >
-                <Text className="text-slate-700 text-sm">Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="px-4 py-2 rounded-lg bg-red-600"
-                onPress={deleteNote}
-              >
-                <Text className="text-white text-sm font-semibold">Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={editModalVisible} transparent animationType="fade">
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "height" : undefined}
-        >
-          <View className="flex-1 bg-black/40 justify-center items-center px-4">
-            {/* Modal Card */}
-            <View className="bg-white rounded-3xl w-full max-h-[85%] shadow-2xl">
-              {/* 🔑 SINGLE SCROLLVIEW */}
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ padding: 20, paddingBottom: 28 }}
-              >
-                {/* Header */}
-                <Text className="text-lg font-semibold text-gray-900 mb-4">
-                  Edit Note
-                </Text>
-
-                {/* NOTE */}
-                <Text className="text-xs font-semibold text-gray-500 mb-1">
-                  NOTE
-                </Text>
-
-                <TextInput
-                  value={editingNote?.text}
-                  multiline
-                  scrollEnabled={false}
-                  placeholder="Edit note..."
-                  placeholderTextColor="#9CA3AF"
-                  onChangeText={(text) =>
-                    setEditingNote((prev) => prev && { ...prev, text })
-                  }
-                  className="border border-gray-200 rounded-2xl p-3 mb-4 text-sm bg-slate-50"
+            <TouchableOpacity
+              onPress={() =>
+                router.push(
+                  `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
+                )
+              }
+            >
+              <View className="flex-row items-center">
+                <HugeiconsIcon
+                  icon={ArrowLeft01Icon}
+                  size={24}
+                  color={isDarkMode ? "#fff" : "#000"}
                 />
-
-                {/* STATUS */}
-                <Text className="text-xs font-semibold text-gray-500 mb-2">
-                  STATUS
-                </Text>
-
-                <View className="flex-row flex-wrap gap-2 mb-4">
-                  {statusOptions.map((s) => {
-                    const active = editingNote?.status === s.value;
-
-                    return (
-                      <TouchableOpacity
-                        key={s.value}
-                        onPress={() =>
-                          setEditingNote(
-                            (prev) =>
-                              prev && {
-                                ...prev,
-                                status: s.value as Note["status"],
-                              },
-                          )
-                        }
-                        className={`flex-row items-center gap-2 px-3 py-3 rounded-full border ${
-                          active
-                            ? `${s.bg} ${s.border}`
-                            : "border-gray-300 bg-white"
-                        }`}
-                      >
-                        <View
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{
-                            backgroundColor: active ? "#fff" : s.color,
-                          }}
-                        />
-
-                        <Text
-                          className={`text-xs font-medium ${
-                            active ? "text-white" : "text-gray-700"
-                          }`}
-                        >
-                          {s.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                {/* DETAILS */}
-                <Text className="text-xs font-semibold text-gray-500 mb-2">
-                  DETAILS
-                </Text>
-
-                {/* Responsible */}
-                <View className="mb-3">
-                  <MultiSelect
-                    style={{
-                      borderWidth: 1,
-                      borderColor: "#E5E7EB",
-                      borderRadius: 14,
-                      height: 38,
-                      paddingHorizontal: 12,
-                      backgroundColor: "#F8FAFC",
-                    }}
-                    placeholder="Select responsible"
-                    placeholderStyle={{ fontSize: 13, color: "#9CA3AF" }}
-                    selectedTextStyle={{ fontSize: 13, color: "#111827" }}
-                    containerStyle={{
-                      borderRadius: 14,
-                      backgroundColor: "#fff",
-                      borderColor: "#E5E7EB",
-                    }}
-                    itemTextStyle={{ color: "#111827" }}
-                    selectedStyle={{
-                      borderRadius: 12,
-                      backgroundColor: "#E2E8F0",
-                      borderWidth: 0,
-                    }}
-                    data={users}
-                    labelField="label"
-                    valueField="value"
-                    value={editingNote?.responsible || []}
-                    onChange={(item) =>
-                      setEditingNote(
-                        (prev) => prev && { ...prev, responsible: item },
-                      )
-                    }
-                    search
-                    searchPlaceholder="Search..."
-                  />
-                </View>
-
-                {/* Target Date */}
-                <TouchableOpacity
-                  className="flex-row items-center gap-2 border border-gray-200 rounded-2xl px-3 py-2.5 mb-4 bg-slate-50"
-                  onPress={() => setShowEditDatePicker(true)}
+                <Text
+                  className="text-lg font-dmSemiBold ml-1"
+                  style={{ color: isDarkMode ? "#fff" : "#000" }}
                 >
-                  <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                  <Text className="text-sm text-gray-700">
-                    {editingNote?.targetDate
-                      ? editingNote.targetDate.toDateString()
-                      : "Select target date"}
-                  </Text>
-                </TouchableOpacity>
-
-                <DateTimePickerModal
-                  isVisible={showEditDatePicker}
-                  mode="date"
-                  date={editingNote?.targetDate || new Date()}
-                  onConfirm={(date) => {
-                    setShowEditDatePicker(false);
-                    setEditingNote(
-                      (prev) => prev && { ...prev, targetDate: date },
-                    );
-                  }}
-                  onCancel={() => setShowEditDatePicker(false)}
+                  Running Notes
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <View className="flex-1" />
+            <TouchableOpacity
+              disabled={downloadingExcel}
+              onPress={() =>
+                handleDownloadRunningNotesExcel(
+                  projectId as string,
+                  projectName as string,
+                  company as string,
+                  token as string,
+                  setDownloadingExcel,
+                )
+              }
+              className="p-2"
+            >
+              {downloadingExcel ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? "#fff" : "#000"}
                 />
+              ) : (
+                <Ionicons
+                  name="download-outline"
+                  size={24}
+                  color={isDarkMode ? "#fff" : "#000"}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
 
-                {/* ACTIONS — SCROLLABLE */}
-                <View className="flex-row justify-end gap-3 mt-2">
+          {/* // DATA STATE */}
+          <AddNoteCard users={users} onAdd={handleAddNote} />
+          <View style={{ backgroundColor: "#E5E7EB" }}>
+            <TableColumnHeader />
+          </View>
+
+          <SectionList
+            ref={sectionListRef}
+            style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#fff" }}
+            contentContainerStyle={{
+              backgroundColor: isDarkMode ? "#000" : "#fff",
+              paddingBottom: Platform.OS === "android" ? 24 : 0,
+            }}
+            sections={noteSections}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => renderNote({ item })}
+            renderSectionHeader={({ section: { title } }) => (
+              <DateHeader
+                date={title}
+                onPress={() => toggleSection(title)}
+                isCollapsed={collapsedSections.has(title)}
+              />
+            )}
+            stickySectionHeadersEnabled
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#7C3AED"]}
+                tintColor="#7C3AED"
+                progressBackgroundColor={isDarkMode ? "#222" : "#fff"}
+              />
+            }
+            // contentContainerStyle={{ paddingBottom: 40 }}
+            /* LOADING + EMPTY handled here */
+            ListEmptyComponent={
+              initialLoading ? (
+                <View className="flex-1 justify-center items-center py-20">
+                  <ActivityIndicator size="large" color="#7C3AED" />
+                  <Text className="mt-3 text-gray-400 text-sm">
+                    Loading running notes...
+                  </Text>
+                </View>
+              ) : (
+                <View className="flex-1 justify-center items-center py-20">
+                  <Ionicons
+                    name="document-text-outline"
+                    size={50}
+                    color="#444"
+                  />
+                  <Text className="text-gray-500 mt-4 text-center text-base">
+                    No running notes yet.{"\n"}Add a note to get started.
+                  </Text>
+                </View>
+              )
+            }
+          />
+
+          {/* DELETE MODAL */}
+          <Modal visible={deleteModalVisible} transparent animationType="fade">
+            <View className="flex-1 bg-black/40 justify-center items-center px-6">
+              <View className="bg-white rounded-2xl w-full p-4">
+                <Text className="text-base font-semibold text-gray-900 mb-2">
+                  Delete Note
+                </Text>
+
+                <Text className="text-sm text-gray-600 mb-4">
+                  Are you sure you want to delete this note? This action cannot
+                  be undone.
+                </Text>
+
+                <View className="flex-row justify-end gap-3">
                   <TouchableOpacity
-                    className="px-4 py-2 rounded-xl bg-slate-100"
+                    className="px-4 py-2 rounded-lg bg-slate-100"
                     onPress={() => {
-                      setEditModalVisible(false);
-                      setEditingNote(null);
+                      setDeleteModalVisible(false);
+                      setNoteToDelete(null);
                     }}
                   >
-                    <Text className="text-slate-700 font-medium">Cancel</Text>
+                    <Text className="text-slate-700 text-sm">Cancel</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className="px-5 py-2 rounded-xl"
-                    style={{
-                      backgroundColor: isEditDisabled ? "#A5B4FC" : "#4F46E5",
-                    }}
-                    disabled={isEditDisabled}
-                    onPress={saveChanges}
+                    className="px-4 py-2 rounded-lg bg-red-600"
+                    onPress={deleteNote}
                   >
-                    <Text
-                      className="font-semibold"
-                      style={{
-                        color: isEditDisabled ? "#E0E7FF" : "#FFFFFF",
-                      }}
-                    >
-                      Save Changes
+                    <Text className="text-white text-sm font-semibold">
+                      Delete
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </ScrollView>
+              </View>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </Modal>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* EDIT MODAL */}
+      <Modal visible={editModalVisible} transparent animationType="slide">
+        <View style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <View style={{ flex: 1 }}>
+              <View className="flex-1 bg-black/50 justify-end">
+                {/* Modal Card */}
+                <View
+                  className="rounded-t-[40px] w-full max-h-[90%] shadow-2xl"
+                  style={{
+                    backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                  }}
+                >
+                  {/* Handle Bar */}
+                  <View className="items-center pt-4 pb-2">
+                    <View
+                      className="w-12 h-1 rounded-full"
+                      style={{
+                        backgroundColor: isDarkMode ? "#333" : "#E5E7EB",
+                      }}
+                    />
+                  </View>
+
+                  {/* Header */}
+                  <View className="px-6 py-2 items-center">
+                    <Text
+                      className="text-[20px] font-poppinsSemiBold"
+                      style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+                    >
+                      Edit Note
+                    </Text>
+                  </View>
+
+                  <View
+                    className="h-[1px] w-full"
+                    style={{
+                      backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
+                    }}
+                  />
+
+                  {/* SINGLE SCROLLVIEW */}
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                  >
+                    {/* NOTE CONTENT */}
+                    <View className="px-6 py-6">
+                      <TextInput
+                        value={editingNote?.text}
+                        multiline
+                        scrollEnabled={false}
+                        placeholder="Enter your note here..."
+                        placeholderTextColor={isDarkMode ? "#666" : "#94A3B8"}
+                        onChangeText={(text) =>
+                          setEditingNote((prev) => prev && { ...prev, text })
+                        }
+                        className="text-[16px] font-poppins "
+                        style={{
+                          color: isDarkMode ? "#D1D5DB" : "#4B5563",
+                          lineHeight: 24,
+                        }}
+                      />
+                    </View>
+
+                    <View
+                      className="h-[1px] w-full"
+                      style={{
+                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
+                      }}
+                    />
+
+                    {/* STATUS */}
+                    <View className="px-6 py-5">
+                      <View className="flex-row items-center mb-3">
+                        <View className="w-8 h-8 rounded-full rotate-180 items-center justify-center mr-3">
+                          <HugeiconsIcon
+                            icon={Progress03Icon}
+                            size={18}
+                            color={isDarkMode ? "#919191" : "#454545"}
+                          />
+                        </View>
+                        <Text
+                          className="text-[14px] font-poppins"
+                          style={{ color: isDarkMode ? "#919191" : "#454545" }}
+                        >
+                          Status
+                        </Text>
+                      </View>
+
+                      <View className="flex-row gap-2">
+                        {statusOptions.map((s) => {
+                          const active = editingNote?.status === s.value;
+                          // Use colors from the design image
+                          const getStatusStyles = () => {
+                            if (s.value === "Open") {
+                              return {
+                                dot: "#6366F1",
+                                bg: isDarkMode ? "#282446" : "#D7DEF2",
+                                text: "#6366F1",
+                              };
+                            }
+                            if (s.value === "In Progress") {
+                              return {
+                                dot: "#3B82F6",
+                                bg: isDarkMode ? "#101F40" : "#E8F0FF",
+                                text: "#3B82F6",
+                              };
+                            }
+                            return {
+                              dot: "#22C55E",
+                              bg: isDarkMode ? "#122E25" : "#E8F9ED",
+                              text: "#22C55E",
+                            };
+                          };
+
+                          const styles = getStatusStyles();
+
+                          return (
+                            <TouchableOpacity
+                              key={s.value}
+                              onPress={() =>
+                                setEditingNote(
+                                  (prev) =>
+                                    prev && {
+                                      ...prev,
+                                      status: s.value as Note["status"],
+                                    },
+                                )
+                              }
+                            >
+                              <View
+                                className="flex-row items-center px-4 py-2.5 rounded-[12px]"
+                                style={{
+                                  backgroundColor: active
+                                    ? styles.bg
+                                    : isDarkMode
+                                      ? "#262626"
+                                      : "#F8FAFC",
+                                }}
+                              >
+                                <View
+                                  className="w-2 h-2 rounded-full mr-2"
+                                  style={{
+                                    backgroundColor: active
+                                      ? styles.dot
+                                      : "#9CA3AF",
+                                  }}
+                                />
+                                <Text
+                                  className="text-[14px] font-poppinsMedium"
+                                  style={{
+                                    color: active
+                                      ? styles.text
+                                      : isDarkMode
+                                        ? "#9CA3AF"
+                                        : "#64748B",
+                                  }}
+                                >
+                                  {s.label}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+
+                    <View
+                      className="h-[1px] w-full"
+                      style={{
+                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
+                      }}
+                    />
+
+                    {/* ASSIGNEE */}
+                    <View className="px-6 py-5">
+                      <View className="flex-row items-center mb-3">
+                        <View
+                          className="w-8 h-8 rounded-full items-center justify-center mr-3"
+                          style={{
+                            backgroundColor: isDarkMode ? "#262626" : "#F1F5F9",
+                          }}
+                        >
+                          <HugeiconsIcon
+                            icon={UserCircleIcon}
+                            size={20}
+                            color={isDarkMode ? "#9CA3AF" : "#64748B"}
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <MultiSelect
+                            style={{
+                              height: 38,
+                              backgroundColor: "transparent",
+                            }}
+                            placeholder="Assignee"
+                            placeholderStyle={{
+                              fontSize: 14,
+                              color: isDarkMode ? "#9CA3AF" : "#64748B",
+                              fontFamily: "Poppins_400Regular",
+                            }}
+                            selectedTextStyle={{
+                              fontSize: 14,
+                              color: isDarkMode ? "#FFFFFF" : "#000000",
+                              fontFamily: "Poppins_400Regular",
+                            }}
+                            containerStyle={{
+                              borderRadius: 20,
+                              backgroundColor: isDarkMode
+                                ? "#1A1A1A"
+                                : "#FFFFFF",
+                              borderColor: isDarkMode ? "#2B2B2B" : "#E2E8F0",
+                              marginTop: 10,
+                            }}
+                            itemTextStyle={{
+                              color: isDarkMode ? "#FFFFFF" : "#111827",
+                              fontFamily: "Poppins_400Regular",
+                            }}
+                            activeColor={isDarkMode ? "#262626" : "#F8FAFC"}
+                            data={users}
+                            labelField="label"
+                            valueField="value"
+                            value={(editingNote?.responsible || []) as string[]}
+                            onChange={(item) =>
+                              setEditingNote(
+                                (prev) =>
+                                  prev && { ...prev, responsible: item },
+                              )
+                            }
+                            search
+                            searchPlaceholder="Search..."
+                            renderRightIcon={() => (
+                              <View>
+                                <HugeiconsIcon
+                                  icon={ArrowDown01Icon}
+                                  size={16}
+                                  color={isDarkMode ? "#666" : "#94A3B8"}
+                                />
+                              </View>
+                            )}
+                            renderSelectedItem={() => <View />} // Safety fix: return View instead of null
+                          />
+                        </View>
+                      </View>
+
+                      <View className="flex-col items-start gap-2 mt-1">
+                        {(editingNote?.responsible || []).map((respId) => {
+                          // Extract ID if it's an object
+                          const id =
+                            typeof respId === "object" && respId !== null
+                              ? respId._id || respId
+                              : respId;
+                          const user = users.find((u) => u.value === id);
+                          if (!user) return null;
+                          return (
+                            <Pressable
+                              key={id}
+                              onPress={() =>
+                                setEditingNote(
+                                  (prev) =>
+                                    prev && {
+                                      ...prev,
+                                      responsible: prev.responsible.filter(
+                                        (r) => {
+                                          const rId =
+                                            typeof r === "object" && r !== null
+                                              ? r._id || r
+                                              : r;
+                                          return rId !== id;
+                                        },
+                                      ),
+                                    },
+                                )
+                              }
+                            >
+                              <View
+                                className="flex-row items-center px-3 py-2 rounded-[12px] border"
+                                style={{
+                                  backgroundColor: isDarkMode
+                                    ? "#000000"
+                                    : "#FFFFFF",
+                                  borderColor: isDarkMode
+                                    ? "#2B2B2B"
+                                    : "#E2E8F0",
+                                }}
+                              >
+                                <Text
+                                  className="text-[13px] font-poppins mr-2"
+                                  style={{
+                                    color: isDarkMode ? "#FFFFFF" : "#000000",
+                                  }}
+                                >
+                                  {user.label.split(" (")[0]}
+                                </Text>
+                                <View>
+                                  <HugeiconsIcon
+                                    icon={Cancel01Icon}
+                                    size={14}
+                                    color={isDarkMode ? "#666" : "#94A3B8"}
+                                  />
+                                </View>
+                              </View>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+
+                    <View
+                      className="h-[1px] w-full"
+                      style={{
+                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
+                      }}
+                    />
+
+                    {/* DUE DATE */}
+                    <TouchableOpacity
+                      onPress={() => setShowEditDatePicker(true)}
+                    >
+                      <View className="px-6 py-5 flex-row items-center justify-between">
+                        <View className="flex-row items-center">
+                          <View className="w-8 h-8 rounded-full  items-center justify-center mr-3">
+                            <HugeiconsIcon
+                              icon={Calendar02Icon}
+                              size={20}
+                              color={isDarkMode ? "#9CA3AF" : "#64748B"}
+                            />
+                          </View>
+                          <View>
+                            <Text
+                              className="text-[12px] font-poppins"
+                              style={{
+                                color: isDarkMode ? "#9CA3AF" : "#64748B",
+                              }}
+                            >
+                              Due date
+                            </Text>
+                            <Text
+                              className="text-[16px] font-poppinsSemiBold"
+                              style={{
+                                color: isDarkMode ? "#FFFFFF" : "#000000",
+                              }}
+                            >
+                              {editingNote?.targetDate
+                                ? new Date(
+                                    editingNote.targetDate,
+                                  ).toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "Select date"}
+                            </Text>
+                          </View>
+                        </View>
+                        <HugeiconsIcon
+                          icon={ArrowRight01Icon}
+                          size={18}
+                          color={isDarkMode ? "#666" : "#94A3B8"}
+                        />
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* ACTIONS */}
+                    <View className="flex-row px-6 py-8 gap-4">
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditModalVisible(false);
+                          setEditingNote(null);
+                        }}
+                        className="flex-1 h-[56px] rounded-[20px] border items-center justify-center"
+                        style={{
+                          borderColor: isDarkMode ? "#2B2B2B" : "#000000",
+                          backgroundColor: isDarkMode
+                            ? "#000000"
+                            : "transparent",
+                        }}
+                      >
+                        <Text
+                          className="text-[16px] font-poppinsSemiBold"
+                          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={saveChanges}
+                        disabled={isEditDisabled}
+                        className="flex-1 h-[56px] rounded-[20px] items-center justify-center"
+                        style={{
+                          backgroundColor: isEditDisabled
+                            ? isDarkMode
+                              ? "#4C1D9580"
+                              : "#C7D2FE"
+                            : "#7C3AED",
+                        }}
+                      >
+                        <Text className="text-[16px] font-poppinsSemiBold text-white">
+                          Save
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
-    </KeyboardAvoidingView>
+
+      <DateTimePickerModal
+        isVisible={showEditDatePicker}
+        mode="date"
+        date={editingNote?.targetDate || new Date()}
+        onConfirm={(date) => {
+          setShowEditDatePicker(false);
+          setEditingNote((prev) => prev && { ...prev, targetDate: date });
+        }}
+        onCancel={() => setShowEditDatePicker(false)}
+      />
+    </>
   );
 };
 
