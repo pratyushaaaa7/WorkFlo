@@ -4,16 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
-  ArrowRight01Icon,
   Calendar02Icon,
   Cancel01Icon,
-  Progress03Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import Modal from "react-native-modal";
 
 import React, {
   useCallback,
@@ -27,9 +26,7 @@ import {
   ActivityIndicator,
   Animated,
   KeyboardAvoidingView,
-  Modal,
   Platform,
-  Pressable,
   RefreshControl,
   ScrollView,
   SectionList,
@@ -230,6 +227,11 @@ const RunningNotes = () => {
 
   const [users, setUsers] = useState<{ label: string; value: string }[]>([]);
 
+  // Pagination states
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
@@ -284,14 +286,30 @@ const RunningNotes = () => {
   }, [token, projectId]);
 
   //Fetch Notes
-  const fetchNotes = async () => {
+  const fetchNotes = async (cursor?: string | null) => {
     if (!token || !projectId) return;
 
+    const isInitial = !cursor;
+    if (isInitial) {
+      setInitialLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
-      const res = await api.get(`/running-notes/project/${projectId}`, {
+      const url = cursor
+        ? `/running-notes/project/${projectId}?limit=20&cursor=${cursor}`
+        : `/running-notes/project/${projectId}?limit=20`;
+
+      const res = await api.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const formattedNotes = res.data.map((note: any) => ({
+
+      // Handle both new paginated response and old array response (for backward compatibility)
+      const data = res.data.notes ? res.data.notes : res.data;
+      const pagination = res.data.pagination || {};
+
+      const formattedNotes = data.map((note: any) => ({
         id: note._id,
         text: note.text,
         status: note.status,
@@ -306,13 +324,33 @@ const RunningNotes = () => {
         targetDate: note.targetDate ? new Date(note.targetDate) : null,
         createdAt: new Date(note.createdAt),
       }));
-      console.log("Raw GET Note 0:", res.data[0]);
-      // setNotes(formattedNotes); // Keep this but valid
-      setNotes(formattedNotes);
+
+      if (isInitial) {
+        setNotes(formattedNotes);
+      } else {
+        // Prevent duplicate notes if any
+        setNotes((prev) => {
+          const existingIds = new Set(prev.map((n) => n.id));
+          const uniqueNewNotes = formattedNotes.filter(
+            (n: Note) => !existingIds.has(n.id),
+          );
+          return [...prev, ...uniqueNewNotes];
+        });
+      }
+
+      setNextCursor(pagination.nextCursor || null);
+      setHasMore(pagination.hasMore ?? false);
     } catch (err) {
       console.log("Error fetching notes:", err);
     } finally {
-      setInitialLoading(false); // 👈 only ends first load
+      setInitialLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore && nextCursor) {
+      fetchNotes(nextCursor);
     }
   };
 
@@ -381,6 +419,8 @@ const RunningNotes = () => {
   //refresh
   const onRefresh = async () => {
     setRefreshing(true);
+    setNextCursor(null);
+    setHasMore(true);
     await fetchNotes();
     setRefreshing(false);
   };
@@ -858,6 +898,15 @@ const RunningNotes = () => {
               />
             )}
             stickySectionHeadersEnabled
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#7C3AED" />
+                </View>
+              ) : null
+            }
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -893,38 +942,46 @@ const RunningNotes = () => {
           />
 
           {/* DELETE MODAL */}
-          <Modal visible={deleteModalVisible} transparent animationType="fade">
-            <View className="flex-1 bg-black/40 justify-center items-center px-6">
-              <View className="bg-white rounded-2xl w-full p-4">
-                <Text className="text-base font-semibold text-gray-900 mb-2">
-                  Delete Note
-                </Text>
+          <Modal
+            isVisible={deleteModalVisible}
+            onBackdropPress={() => setDeleteModalVisible(false)}
+            onSwipeComplete={() => setDeleteModalVisible(false)}
+            swipeDirection="down"
+            animationIn="zoomIn"
+            animationOut="zoomOut"
+            backdropOpacity={0.4}
+          >
+            <View className="bg-white rounded-2xl w-full p-6 shadow-xl">
+              <Text className="text-xl font-poppinsBold text-gray-900 mb-2">
+                Delete Note
+              </Text>
 
-                <Text className="text-sm text-gray-600 mb-4">
-                  Are you sure you want to delete this note? This action cannot
-                  be undone.
-                </Text>
+              <Text className="text-[15px] font-poppins text-gray-600 mb-6">
+                Are you sure you want to delete this note? This action cannot be
+                undone.
+              </Text>
 
-                <View className="flex-row justify-end gap-3">
-                  <TouchableOpacity
-                    className="px-4 py-2 rounded-lg bg-slate-100"
-                    onPress={() => {
-                      setDeleteModalVisible(false);
-                      setNoteToDelete(null);
-                    }}
-                  >
-                    <Text className="text-slate-700 text-sm">Cancel</Text>
-                  </TouchableOpacity>
+              <View className="flex-row justify-end gap-3">
+                <TouchableOpacity
+                  className="px-6 py-3 rounded-xl bg-slate-100"
+                  onPress={() => {
+                    setDeleteModalVisible(false);
+                    setNoteToDelete(null);
+                  }}
+                >
+                  <Text className="text-slate-700 text-[15px] font-poppinsSemiBold">
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    className="px-4 py-2 rounded-lg bg-red-600"
-                    onPress={deleteNote}
-                  >
-                    <Text className="text-white text-sm font-semibold">
-                      Delete
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  className="px-6 py-3 rounded-xl bg-red-600"
+                  onPress={deleteNote}
+                >
+                  <Text className="text-white text-[15px] font-poppinsBold">
+                    Delete
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </Modal>
@@ -932,407 +989,423 @@ const RunningNotes = () => {
       </KeyboardAvoidingView>
 
       {/* EDIT MODAL */}
-      <Modal visible={editModalVisible} transparent animationType="slide">
-        <View style={{ flex: 1 }}>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+      <Modal
+        isVisible={editModalVisible}
+        onBackdropPress={() => {
+          setEditModalVisible(false);
+          setEditingNote(null);
+        }}
+        onSwipeComplete={() => {
+          setEditModalVisible(false);
+          setEditingNote(null);
+        }}
+        swipeDirection="down"
+        // swipeThreshold={100}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.5}
+        style={{ margin: 0, justifyContent: "flex-end" }}
+        propagateSwipe={true}
+        avoidKeyboard={true}
+      >
+        <View
+          className="rounded-t-[40px] w-full max-h-[95%] shadow-2xl"
+          style={{
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
+          }}
+        >
+          {/* Handle Bar */}
+          <View className="items-center pt-4 pb-2">
+            <View
+              className="w-[48px] h-[2px] rounded-full"
+              style={{
+                backgroundColor: isDarkMode ? "#FFFFFF" : "#000000",
+                // opacity: isDarkMode ? 1 : 0.8,
+              }}
+            />
+          </View>
+
+          {/* Header */}
+          <View className="px-6 py-3 items-center">
+            <Text
+              className="text-[18px] font-dmSemiBold"
+              style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+            >
+              Edit Note
+            </Text>
+          </View>
+
+          <View
+            className="h-[1px] w-full"
+            style={{
+              backgroundColor: isDarkMode ? "#413E47" : "#E0E5EB",
+            }}
+          />
+
+          {/* SINGLE SCROLLVIEW */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 40 }}
           >
-            <View style={{ flex: 1 }}>
-              <View className="flex-1 bg-black/50 justify-end">
-                {/* Modal Card */}
-                <View
-                  className="rounded-t-[40px] w-full max-h-[90%] shadow-2xl"
-                  style={{
-                    backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
-                  }}
-                >
-                  {/* Handle Bar */}
-                  <View className="items-center pt-4 pb-2">
-                    <View
-                      className="w-12 h-1 rounded-full"
-                      style={{
-                        backgroundColor: isDarkMode ? "#333" : "#E5E7EB",
-                      }}
-                    />
-                  </View>
+            {/* NOTE CONTENT */}
+            <View className="px-6 py-6">
+              <TextInput
+                value={editingNote?.text}
+                multiline
+                scrollEnabled={false}
+                placeholder="Enter your note here..."
+                placeholderTextColor={isDarkMode ? "#666" : "#94A3B8"}
+                onChangeText={(text) =>
+                  setEditingNote((prev) => prev && { ...prev, text })
+                }
+                className="text-[16px] font-poppins "
+                style={{
+                  color: isDarkMode ? "#D1D5DB" : "#4B5563",
+                  lineHeight: 24,
+                }}
+              />
+            </View>
 
-                  {/* Header */}
-                  <View className="px-6 py-2 items-center">
-                    <Text
-                      className="text-[20px] font-poppinsSemiBold"
-                      style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-                    >
-                      Edit Note
-                    </Text>
-                  </View>
+            <View
+              className="h-[1px] w-full"
+              style={{
+                backgroundColor: isDarkMode ? "#413E47" : "#E0E5EB",
+              }}
+            />
 
-                  <View
-                    className="h-[1px] w-full"
-                    style={{
-                      backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
-                    }}
+            {/* STATUS */}
+            <View className="px-6 py-5">
+              <View className="flex-row items-center mb-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center mr-1">
+                  <Ionicons
+                    name="contrast-outline"
+                    size={22}
+                    color={isDarkMode ? "#919191" : "#454545"}
                   />
+                </View>
+                <Text
+                  className="text-[14px] font-poppins text-gray-500"
+                  style={{ color: isDarkMode ? "#919191" : "#717171" }}
+                >
+                  Status & Type
+                </Text>
+              </View>
 
-                  {/* SINGLE SCROLLVIEW */}
-                  <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingBottom: 40 }}
-                  >
-                    {/* NOTE CONTENT */}
-                    <View className="px-6 py-6">
-                      <TextInput
-                        value={editingNote?.text}
-                        multiline
-                        scrollEnabled={false}
-                        placeholder="Enter your note here..."
-                        placeholderTextColor={isDarkMode ? "#666" : "#94A3B8"}
-                        onChangeText={(text) =>
-                          setEditingNote((prev) => prev && { ...prev, text })
-                        }
-                        className="text-[16px] font-poppins "
+              <View className="flex-row gap-2">
+                {statusOptions.map((s) => {
+                  const active = editingNote?.status === s.value;
+                  // Use colors from the design image
+                  const getStatusStyles = () => {
+                    if (s.value === "Open") {
+                      return {
+                        dot: "#6366F1",
+                        bg: isDarkMode ? "#282446" : "#D7DEF2",
+                        text: "#6366F1",
+                      };
+                    }
+                    if (s.value === "In Progress") {
+                      return {
+                        dot: "#3B82F6",
+                        bg: isDarkMode ? "#101F40" : "#E8F0FF",
+                        text: "#3B82F6",
+                      };
+                    }
+                    return {
+                      dot: "#22C55E",
+                      bg: isDarkMode ? "#122E25" : "#E8F9ED",
+                      text: "#22C55E",
+                    };
+                  };
+
+                  const styles = getStatusStyles();
+
+                  return (
+                    <TouchableOpacity
+                      key={s.value}
+                      onPress={() =>
+                        setEditingNote(
+                          (prev) =>
+                            prev && {
+                              ...prev,
+                              status: s.value as Note["status"],
+                            },
+                        )
+                      }
+                    >
+                      <View
+                        className="flex-row items-center px-4 py-2.5 rounded-[12px]"
                         style={{
-                          color: isDarkMode ? "#D1D5DB" : "#4B5563",
-                          lineHeight: 24,
+                          backgroundColor: active
+                            ? styles.bg
+                            : isDarkMode
+                              ? "#262626"
+                              : "#F8FAFC",
                         }}
-                      />
-                    </View>
-
-                    <View
-                      className="h-[1px] w-full"
-                      style={{
-                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
-                      }}
-                    />
-
-                    {/* STATUS */}
-                    <View className="px-6 py-5">
-                      <View className="flex-row items-center mb-3">
-                        <View className="w-8 h-8 rounded-full rotate-180 items-center justify-center mr-3">
-                          <HugeiconsIcon
-                            icon={Progress03Icon}
-                            size={18}
-                            color={isDarkMode ? "#919191" : "#454545"}
-                          />
-                        </View>
-                        <Text
-                          className="text-[14px] font-poppins"
-                          style={{ color: isDarkMode ? "#919191" : "#454545" }}
-                        >
-                          Status
-                        </Text>
-                      </View>
-
-                      <View className="flex-row gap-2">
-                        {statusOptions.map((s) => {
-                          const active = editingNote?.status === s.value;
-                          // Use colors from the design image
-                          const getStatusStyles = () => {
-                            if (s.value === "Open") {
-                              return {
-                                dot: "#6366F1",
-                                bg: isDarkMode ? "#282446" : "#D7DEF2",
-                                text: "#6366F1",
-                              };
-                            }
-                            if (s.value === "In Progress") {
-                              return {
-                                dot: "#3B82F6",
-                                bg: isDarkMode ? "#101F40" : "#E8F0FF",
-                                text: "#3B82F6",
-                              };
-                            }
-                            return {
-                              dot: "#22C55E",
-                              bg: isDarkMode ? "#122E25" : "#E8F9ED",
-                              text: "#22C55E",
-                            };
-                          };
-
-                          const styles = getStatusStyles();
-
-                          return (
-                            <TouchableOpacity
-                              key={s.value}
-                              onPress={() =>
-                                setEditingNote(
-                                  (prev) =>
-                                    prev && {
-                                      ...prev,
-                                      status: s.value as Note["status"],
-                                    },
-                                )
-                              }
-                            >
-                              <View
-                                className="flex-row items-center px-4 py-2.5 rounded-[12px]"
-                                style={{
-                                  backgroundColor: active
-                                    ? styles.bg
-                                    : isDarkMode
-                                      ? "#262626"
-                                      : "#F8FAFC",
-                                }}
-                              >
-                                <View
-                                  className="w-2 h-2 rounded-full mr-2"
-                                  style={{
-                                    backgroundColor: active
-                                      ? styles.dot
-                                      : "#9CA3AF",
-                                  }}
-                                />
-                                <Text
-                                  className="text-[14px] font-poppinsMedium"
-                                  style={{
-                                    color: active
-                                      ? styles.text
-                                      : isDarkMode
-                                        ? "#9CA3AF"
-                                        : "#64748B",
-                                  }}
-                                >
-                                  {s.label}
-                                </Text>
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    </View>
-
-                    <View
-                      className="h-[1px] w-full"
-                      style={{
-                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
-                      }}
-                    />
-
-                    {/* ASSIGNEE */}
-                    <View className="px-6 py-5">
-                      <View className="flex-row items-center mb-3">
+                      >
                         <View
-                          className="w-8 h-8 rounded-full items-center justify-center mr-3"
+                          className="w-2 h-2 rounded-full mr-2"
                           style={{
-                            backgroundColor: isDarkMode ? "#262626" : "#F1F5F9",
+                            backgroundColor: active ? styles.dot : "#9CA3AF",
+                          }}
+                        />
+                        <Text
+                          className="text-[14px] font-poppinsMedium"
+                          style={{
+                            color: active
+                              ? styles.text
+                              : isDarkMode
+                                ? "#9CA3AF"
+                                : "#64748B",
                           }}
                         >
-                          <HugeiconsIcon
-                            icon={UserCircleIcon}
-                            size={20}
-                            color={isDarkMode ? "#9CA3AF" : "#64748B"}
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <MultiSelect
-                            style={{
-                              height: 38,
-                              backgroundColor: "transparent",
-                            }}
-                            placeholder="Assignee"
-                            placeholderStyle={{
-                              fontSize: 14,
-                              color: isDarkMode ? "#9CA3AF" : "#64748B",
-                              fontFamily: "Poppins_400Regular",
-                            }}
-                            selectedTextStyle={{
-                              fontSize: 14,
-                              color: isDarkMode ? "#FFFFFF" : "#000000",
-                              fontFamily: "Poppins_400Regular",
-                            }}
-                            containerStyle={{
-                              borderRadius: 20,
-                              backgroundColor: isDarkMode
-                                ? "#1A1A1A"
-                                : "#FFFFFF",
-                              borderColor: isDarkMode ? "#2B2B2B" : "#E2E8F0",
-                              marginTop: 10,
-                            }}
-                            itemTextStyle={{
-                              color: isDarkMode ? "#FFFFFF" : "#111827",
-                              fontFamily: "Poppins_400Regular",
-                            }}
-                            activeColor={isDarkMode ? "#262626" : "#F8FAFC"}
-                            data={users}
-                            labelField="label"
-                            valueField="value"
-                            value={(editingNote?.responsible || []) as string[]}
-                            onChange={(item) =>
-                              setEditingNote(
-                                (prev) =>
-                                  prev && { ...prev, responsible: item },
-                              )
-                            }
-                            search
-                            searchPlaceholder="Search..."
-                            renderRightIcon={() => (
-                              <View>
-                                <HugeiconsIcon
-                                  icon={ArrowDown01Icon}
-                                  size={16}
-                                  color={isDarkMode ? "#666" : "#94A3B8"}
-                                />
-                              </View>
-                            )}
-                            renderSelectedItem={() => <View />} // Safety fix: return View instead of null
-                          />
-                        </View>
+                          {s.label}
+                        </Text>
                       </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
 
-                      <View className="flex-col items-start gap-2 mt-1">
-                        {(editingNote?.responsible || []).map((respId) => {
-                          const id = extractStringId(respId);
-                          const user = usersMap.get(id);
-                          if (!user) return null;
-                          return (
-                            <Pressable
-                              key={id}
-                              onPress={() =>
-                                setEditingNote(
-                                  (prev) =>
-                                    prev && {
-                                      ...prev,
-                                      responsible: prev.responsible.filter(
-                                        (r) => extractStringId(r) !== id,
-                                      ),
-                                    },
-                                )
-                              }
-                            >
-                              <View
-                                className="flex-row items-center px-3 py-2 rounded-[12px] border"
-                                style={{
-                                  backgroundColor: isDarkMode
-                                    ? "#000000"
-                                    : "#FFFFFF",
-                                  borderColor: isDarkMode
-                                    ? "#2B2B2B"
-                                    : "#E2E8F0",
-                                }}
-                              >
-                                <Text
-                                  className="text-[13px] font-poppins mr-2"
-                                  style={{
-                                    color: isDarkMode ? "#FFFFFF" : "#000000",
-                                  }}
-                                >
-                                  {user.label.split(" (")[0]}
-                                </Text>
-                                <View>
-                                  <HugeiconsIcon
-                                    icon={Cancel01Icon}
-                                    size={14}
-                                    color={isDarkMode ? "#666" : "#94A3B8"}
-                                  />
-                                </View>
-                              </View>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </View>
+            <View
+              className="h-[1px] w-full"
+              style={{
+                backgroundColor: isDarkMode ? "#413E47" : "#E0E5EB",
+              }}
+            />
 
-                    <View
-                      className="h-[1px] w-full"
-                      style={{
-                        backgroundColor: isDarkMode ? "#2B2B2B" : "#F1F5F9",
-                      }}
-                    />
-
-                    {/* DUE DATE */}
-                    <TouchableOpacity
-                      onPress={() => setShowEditDatePicker(true)}
-                    >
-                      <View className="px-6 py-5 flex-row items-center justify-between">
-                        <View className="flex-row items-center">
-                          <View className="w-8 h-8 rounded-full  items-center justify-center mr-3">
-                            <HugeiconsIcon
-                              icon={Calendar02Icon}
-                              size={20}
-                              color={isDarkMode ? "#9CA3AF" : "#64748B"}
-                            />
-                          </View>
-                          <View>
-                            <Text
-                              className="text-[12px] font-poppins"
-                              style={{
-                                color: isDarkMode ? "#9CA3AF" : "#64748B",
-                              }}
-                            >
-                              Due date
-                            </Text>
-                            <Text
-                              className="text-[16px] font-poppinsSemiBold"
-                              style={{
-                                color: isDarkMode ? "#FFFFFF" : "#000000",
-                              }}
-                            >
-                              {editingNote?.targetDate
-                                ? new Date(
-                                    editingNote.targetDate,
-                                  ).toLocaleDateString("en-GB", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  })
-                                : "Select date"}
-                            </Text>
-                          </View>
-                        </View>
+            {/* ASSIGNEE */}
+            <View className="px-6 py-5">
+              <View className="flex-row items-center mb-3">
+                <View className="w-8 h-8 rounded-full items-center justify-center mr-2">
+                  <HugeiconsIcon
+                    icon={UserCircleIcon}
+                    size={24}
+                    color={isDarkMode ? "#9CA3AF" : "#454545"}
+                  />
+                </View>
+                <View className="flex-1">
+                  <MultiSelect
+                    style={{
+                      height: 48,
+                      backgroundColor: isDarkMode ? "#262626" : "#F3F4F6",
+                      paddingHorizontal: 16,
+                      borderRadius: 12,
+                    }}
+                    placeholder="Assignee"
+                    placeholderStyle={{
+                      fontSize: 14,
+                      color: isDarkMode ? "#9CA3AF" : "#64748B",
+                      fontFamily: "Poppins_400Regular",
+                    }}
+                    selectedTextStyle={{
+                      fontSize: 14,
+                      color: isDarkMode ? "#FFFFFF" : "#000000",
+                      fontFamily: "Poppins_400Regular",
+                    }}
+                    containerStyle={{
+                      borderRadius: 20,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                      borderColor: isDarkMode ? "#2B2B2B" : "#E2E8F0",
+                      marginTop: 10,
+                    }}
+                    itemTextStyle={{
+                      color: isDarkMode ? "#FFFFFF" : "#111827",
+                      fontFamily: "Poppins_400Regular",
+                    }}
+                    activeColor={isDarkMode ? "#262626" : "#F8FAFC"}
+                    data={users}
+                    labelField="label"
+                    valueField="value"
+                    value={(editingNote?.responsible || []) as string[]}
+                    onChange={(item) =>
+                      setEditingNote(
+                        (prev) => prev && { ...prev, responsible: item },
+                      )
+                    }
+                    search
+                    searchPlaceholder="Search..."
+                    renderRightIcon={() => (
+                      <View>
                         <HugeiconsIcon
-                          icon={ArrowRight01Icon}
-                          size={18}
+                          icon={ArrowDown01Icon}
+                          size={16}
                           color={isDarkMode ? "#666" : "#94A3B8"}
                         />
                       </View>
-                    </TouchableOpacity>
-
-                    {/* ACTIONS */}
-                    <View className="flex-row px-6 py-8 gap-4">
-                      <TouchableOpacity
-                        onPress={() => {
-                          setEditModalVisible(false);
-                          setEditingNote(null);
-                        }}
-                        className="flex-1 h-[56px] rounded-[20px] border items-center justify-center"
-                        style={{
-                          borderColor: isDarkMode ? "#2B2B2B" : "#000000",
-                          backgroundColor: isDarkMode
-                            ? "#000000"
-                            : "transparent",
-                        }}
-                      >
-                        <Text
-                          className="text-[16px] font-poppinsSemiBold"
-                          style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
-                        >
-                          Cancel
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={saveChanges}
-                        disabled={isEditDisabled}
-                        className="flex-1 h-[56px] rounded-[20px] items-center justify-center"
-                        style={{
-                          backgroundColor: isEditDisabled
-                            ? isDarkMode
-                              ? "#4C1D9580"
-                              : "#C7D2FE"
-                            : "#7C3AED",
-                        }}
-                      >
-                        <Text className="text-[16px] font-poppinsSemiBold text-white">
-                          Save
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </ScrollView>
+                    )}
+                    renderSelectedItem={() => <View />} // Safety fix: return View instead of null
+                  />
                 </View>
               </View>
+
+              <View className="flex-row flex-wrap items-start gap-2 mt-1">
+                {(editingNote?.responsible || []).map((respId) => {
+                  const id = extractStringId(respId);
+                  const user = usersMap.get(id);
+                  if (!user) return null;
+                  return (
+                    <View
+                      key={id}
+                      className="flex-row items-center px-3 py-1.5 rounded-[12px] border"
+                      style={{
+                        backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+                        borderColor: isDarkMode ? "#2B2B2B" : "#E2E8F0",
+                      }}
+                    >
+                      <Text
+                        className="text-[13px] font-poppinsMedium mr-2"
+                        style={{
+                          color: isDarkMode ? "#FFFFFF" : "#000000",
+                        }}
+                      >
+                        {user.label.split(" (")[0]}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setEditingNote(
+                            (prev) =>
+                              prev && {
+                                ...prev,
+                                responsible: prev.responsible.filter(
+                                  (r) => extractStringId(r) !== id,
+                                ),
+                              },
+                          )
+                        }
+                      >
+                        <HugeiconsIcon
+                          icon={Cancel01Icon}
+                          size={14}
+                          color={isDarkMode ? "#fff" : "#000"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
-          </KeyboardAvoidingView>
+
+            <View
+              className="h-[1px] w-full"
+              style={{
+                backgroundColor: isDarkMode ? "#413E47" : "#E0E5EB",
+              }}
+            />
+
+            {/* DUE DATE */}
+            <TouchableOpacity onPress={() => setShowEditDatePicker(true)}>
+              <View className="px-6 py-5 flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                  <View className="w-8 h-8 rounded-full items-center justify-center mr-2">
+                    <HugeiconsIcon
+                      icon={Calendar02Icon}
+                      size={24}
+                      color={isDarkMode ? "#9CA3AF" : "#454545"}
+                    />
+                  </View>
+                  <View>
+                    <Text
+                      className="text-[14px] font-poppins text-gray-500"
+                      style={{
+                        color: isDarkMode ? "#9CA3AF" : "#717171",
+                      }}
+                    >
+                      Due date
+                    </Text>
+                    <Text
+                      className="text-[18px] font-poppinsSemiBold"
+                      style={{
+                        color: isDarkMode ? "#FFFFFF" : "#000000",
+                        marginTop: -4,
+                      }}
+                    >
+                      {editingNote?.targetDate
+                        ? new Date(editingNote.targetDate).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )
+                        : "Select date"}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={isDarkMode ? "#666" : "#94A3B8"}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {/* CREATED BY FOOTER */}
+            <View className="px-6 py-4 flex-row justify-between items-center">
+              <Text
+                className="text-[13px] font-poppins"
+                style={{ color: "#717171" }}
+              >
+                Created by God
+              </Text>
+              <Text
+                className="text-[13px] font-poppins"
+                style={{ color: "#717171" }}
+              >
+                {editingNote?.createdAt
+                  ? new Date(editingNote.createdAt).toLocaleDateString(
+                      "en-GB",
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )
+                  : ""}
+              </Text>
+            </View>
+
+            {/* ACTIONS */}
+            <View className="flex-row px-6 py-8 gap-4">
+              <TouchableOpacity
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setEditingNote(null);
+                }}
+                className="flex-1 h-[64px] rounded-[16px] border-[1.5px] items-center justify-center"
+                style={{
+                  borderColor: isDarkMode ? "#2B2B2B" : "#000000",
+                  backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+                }}
+              >
+                <Text
+                  className="text-[18px] font-poppinsSemiBold"
+                  style={{ color: isDarkMode ? "#FFFFFF" : "#000000" }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={saveChanges}
+                disabled={isEditDisabled}
+                className="flex-1 h-[64px] rounded-[16px] items-center justify-center"
+                style={{
+                  backgroundColor: isEditDisabled
+                    ? isDarkMode
+                      ? "#4C1D9580"
+                      : "#C7D2FE"
+                    : "#6358DC",
+                }}
+              >
+                <Text className="text-[18px] font-poppinsSemiBold text-white">
+                  Save
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
