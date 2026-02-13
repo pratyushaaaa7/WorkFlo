@@ -16,7 +16,6 @@ import Svg, {
 } from "react-native-svg";
 
 interface GlassNavProps {
-  children: React.ReactNode;
   activeTabIndex: number;
   totalTabs: number;
   activeTabName: string;
@@ -112,7 +111,7 @@ export default function GlassNav({
                 {
                   translateX: Animated.add(
                     slideAnim,
-                    -(mountainWidth / 2) + tabWidth / 2 + 12
+                    -(mountainWidth / 2) + tabWidth / 2 + 12,
                   ),
                 },
               ],

@@ -14,8 +14,10 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -56,27 +58,34 @@ const Dashboard = () => {
   // Dashboard Data State
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      if (!refreshing) setLoading(true);
+      const res = await api.get("/dashboard/my-tasks", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) {
+        setDashboardData(res.data);
+      }
+      console.log(res.data);
+    } catch (error) {
+      console.error("Dashboard Fetch Error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get("/dashboard/my-tasks", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.data.success) {
-          setDashboardData(res.data);
-        }
-        console.log(res.data);
-      } catch (error) {
-        console.error("Dashboard Fetch Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
 
   const setActiveTab = (tab: string) => {
     setActiveTabState(tab);
@@ -158,6 +167,19 @@ const Dashboard = () => {
     inputRange: [0, searchHeight],
     outputRange: [searchHeight, 0],
     extrapolateRight: "clamp",
+  });
+
+  // Interpolation for Refresh Button Opacity/Position
+  const refreshOpacity = scrollY.interpolate({
+    inputRange: [-60, -20, 0],
+    outputRange: [1, 0, 0],
+    extrapolate: "clamp",
+  });
+
+  const refreshTranslateY = scrollY.interpolate({
+    inputRange: [-60, 0],
+    outputRange: [0, -20],
+    extrapolate: "clamp",
   });
 
   return (
@@ -291,6 +313,33 @@ const Dashboard = () => {
           </View>
         </Animated.View>
 
+        {/* 🔄 CUSTOM REFRESH BUTTON (Appears when swiped from top) */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 70, // Below Header/Navbar area
+            alignSelf: "center",
+            zIndex: 2000,
+            opacity: refreshOpacity,
+            transform: [{ translateY: refreshTranslateY }],
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={onRefresh}
+            className="bg-white dark:bg-[#1A1A1A] px-4 py-2 rounded-full border border-[#E0E5EB] dark:border-[#333] shadow-lg flex-row items-center gap-2"
+          >
+            <ActivityIndicator
+              size="small"
+              color="#566FEC"
+              animating={refreshing}
+            />
+            <Text className="text-[#566FEC] font-poppinsMedium text-sm">
+              Refresh
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+
         <Animated.ScrollView
           ref={scrollRef}
           className="flex-1"
@@ -302,6 +351,14 @@ const Dashboard = () => {
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
             { useNativeDriver: true },
           )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="transparent" // Hide the default spinner since we have our button
+              colors={["transparent"]}
+            />
+          }
         >
           {/* Search Bar (Determines Height) */}
           <View
