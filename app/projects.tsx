@@ -434,7 +434,7 @@ const ProjectsScreen = () => {
               }`}
             >
               <Text
-                className={`font-poppinsMedium text-sm ${
+                className={`font-poppinsMedium  ${
                   isActive
                     ? "text-[#5B4CCC]"
                     : isDarkMode
