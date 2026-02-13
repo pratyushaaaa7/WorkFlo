@@ -1,4 +1,5 @@
-import Logo from "@/assets/images/bita.png";
+import logoDark from "@/assets/images/logoDark.png";
+import logoLight from "@/assets/images/logoLight.png";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,12 +16,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
 
 export default function LoginScreen() {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const { login } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -98,8 +102,12 @@ export default function LoginScreen() {
           style={{ transform: [{ scale: logoScale }] }}
           className="mb-8 items-center"
         >
-          <View className="bg-slate-950 rounded-full p-5 shadow-md shadow-black/10">
-            <Image source={Logo} className="w-20 h-20" resizeMode="contain" />
+          <View className="items-center justify-center">
+            <Image
+              source={isDarkMode ? logoDark : logoLight}
+              style={{ width: 140, height: 100 }}
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-white text-2xl mt-20 font-medium">
             Login to your account

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "BITA",
-    "slug": "WTech",
+    "name": "Thuhroh",
+    "slug": "Thuhroh",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/bita.png",
-    "scheme": "wtech",
+    "icon": "./assets/images/logoIconThuhroh.png",
+    "scheme": "thuhroh",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,8 +14,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/bita.png",
-        "backgroundColor": "#020618"
+        "foregroundImage": "./assets/images/logoIconThuhroh.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.WTech"
@@ -23,17 +23,21 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/bita.png"
+      "favicon": "./assets/images/logoIconThuhroh.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/bita.png",
+          "image": "./assets/images/splashScreenLight.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#020618"
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/images/splashScreenDark.png",
+            "backgroundColor": "#0D0D0D"
+          }
         }
       ],
       "expo-font"

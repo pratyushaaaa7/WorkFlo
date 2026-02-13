@@ -90,7 +90,7 @@ const ProfileScreen = () => {
       text2: "You have been signed out successfully.",
       position: "bottom",
     });
-    router.replace("/login");
+    // router.replace("/login");
   };
 
   if (loading) {
