@@ -135,8 +135,6 @@ const getNoteBgColor = (status: string) => {
   }
 };
 
-
-
 const statusOptions = [
   {
     value: "Open",
@@ -189,6 +187,210 @@ const normalizeResponsible = (responsible: any[]): string[] => {
   const ids = responsible.map(extractStringId);
   return Array.from(new Set(ids)); // Remove duplicates
 };
+
+const AnimatedNoteRow = ({
+  item,
+  isHighlighted,
+  children,
+}: {
+  item: Note;
+  isHighlighted: boolean;
+  children: React.ReactNode;
+}) => {
+  const animValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isHighlighted) {
+      console.log("Starting Highlight Animation for:", item.id);
+      Animated.sequence([
+        Animated.timing(animValue, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+        Animated.delay(2000),
+        Animated.timing(animValue, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, [isHighlighted]);
+
+  const highlightOpacity = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  return (
+    <View style={{ position: "relative" }}>
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: "#DFE5FB",
+          opacity: highlightOpacity,
+        }}
+      />
+      {children}
+    </View>
+  );
+};
+
+// Memoized Note Row Component for performance
+const NoteRow = React.memo(
+  ({
+    item,
+    isHighlighted,
+    isDarkMode,
+    COL,
+    usersMap,
+    onEdit,
+    onDelete,
+    renderRightActions,
+    swipeableRefs,
+  }: {
+    item: Note;
+    isHighlighted: boolean;
+    isDarkMode: boolean;
+    COL: any;
+    usersMap: Map<string, any>;
+    onEdit: (note: Note) => void;
+    onDelete: (note: Note) => void;
+    renderRightActions: () => React.ReactNode;
+    swipeableRefs: React.MutableRefObject<Map<string, Swipeable>>;
+  }) => {
+    return (
+      <Swipeable
+        ref={(ref) => {
+          if (ref) swipeableRefs.current.set(item.id, ref);
+        }}
+        renderRightActions={renderRightActions}
+        overshootRight={true}
+        rightThreshold={120}
+        onSwipeableWillOpen={() => {
+          swipeableRefs.current.get(item.id)?.close();
+          onDelete(item);
+        }}
+      >
+        <TouchableOpacity activeOpacity={0.8} onPress={() => onEdit(item)}>
+          <View>
+            <AnimatedNoteRow item={item} isHighlighted={isHighlighted}>
+              <View
+                className="flex-row border-b"
+                style={{
+                  borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+                }}
+              >
+                {/* Note with Left Strip */}
+                <View
+                  style={{
+                    width: COL.note,
+                    backgroundColor: isHighlighted
+                      ? "transparent"
+                      : getNoteBgColor(item.status),
+                    flexDirection: "row",
+                    minHeight: 42,
+                  }}
+                >
+                  <View className="flex-1 p-2">
+                    <Text
+                      className="text-[12px] font-poppins leading-tight"
+                      style={{ color: isDarkMode ? "#fff" : "#000" }}
+                    >
+                      {item.text}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Responsible (Assignee) */}
+                <View
+                  className="items-center justify-center border-r"
+                  style={{
+                    width: COL.responsible,
+                    backgroundColor: isHighlighted
+                      ? "transparent"
+                      : isDarkMode
+                        ? "#1A1A1A"
+                        : "#F0F3F7",
+                    borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+                  }}
+                >
+                  {item.responsible &&
+                  Array.isArray(item.responsible) &&
+                  item.responsible.length > 0 ? (
+                    <View className="flex-col items-center gap-1">
+                      {item.responsible.map((resp, index) => {
+                        const getName = () => {
+                          if (typeof resp === "object" && resp !== null) {
+                            if (resp.name) return resp.name;
+                            if (resp.fullName) return resp.fullName;
+                            const id = extractStringId(resp);
+                            return usersMap.get(id)?.label || "N/A";
+                          }
+                          return usersMap.get(resp)?.label || "N/A";
+                        };
+
+                        return (
+                          <GlobalAvatar
+                            key={`${item.id}-${index}`}
+                            name={getName()}
+                            size={28}
+                            fontSize={12}
+                          />
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text
+                      className="text-xs font-poppins"
+                      style={{ color: isDarkMode ? "#FFF" : "#000" }}
+                    >
+                      N/A
+                    </Text>
+                  )}
+                </View>
+
+                {/* T Date */}
+                <View
+                  className="items-center justify-center"
+                  style={{
+                    width: COL.target,
+                    backgroundColor: isHighlighted
+                      ? "transparent"
+                      : isDarkMode
+                        ? "#1A1A1A"
+                        : "#F0F3F7",
+                  }}
+                >
+                  <Text
+                    className="text-xs font-poppins"
+                    style={{ color: isDarkMode ? "#FFF" : "#000" }}
+                  >
+                    {item.targetDate ? formatDate(item.targetDate) : "N/A"}
+                  </Text>
+                </View>
+              </View>
+            </AnimatedNoteRow>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.item.id === nextProps.item.id &&
+      prevProps.isHighlighted === nextProps.isHighlighted &&
+      prevProps.isDarkMode === nextProps.isDarkMode &&
+      prevProps.item.text === nextProps.item.text &&
+      prevProps.item.status === nextProps.item.status &&
+      prevProps.item.targetDate === nextProps.item.targetDate &&
+      JSON.stringify(prevProps.item.responsible) ===
+        JSON.stringify(nextProps.item.responsible)
+    );
+  },
+);
 
 const RunningNotes = () => {
   const isDarkMode = useColorScheme() === "dark";
@@ -377,6 +579,7 @@ const RunningNotes = () => {
       const idToFind = Array.isArray(highlightId)
         ? highlightId[0]
         : highlightId;
+      // console.log("Targeting Note for Highlight:", idToFind);
       setHighlightedNoteId(idToFind);
 
       // Find indices
@@ -398,16 +601,16 @@ const RunningNotes = () => {
         setTimeout(() => {
           sectionListRef.current?.scrollToLocation({
             sectionIndex,
-            itemIndex: itemIndex + 1, // +1 for the section header
+            itemIndex: itemIndex,
             viewOffset: 80,
             animated: true,
           });
         }, 500);
 
-        // Clear highlight after 3 seconds
+        // Clear highlight state exactly after animation finishes (300ms in + 2000ms hold + 500ms out)
         setTimeout(() => {
           setHighlightedNoteId(null);
-        }, 3500);
+        }, 3000);
       }
     }
   }, [highlightId, notes, noteSections]);
@@ -645,182 +848,17 @@ const RunningNotes = () => {
 
   const isEditDisabled = !editingNote?.text?.trim();
 
-  // Animated Highlight Wrapper
-  const AnimatedNoteRow = ({
-    item,
-    children,
-  }: {
-    item: Note;
-    children: React.ReactNode;
-  }) => {
-    const isHighlighted = item.id === highlightedNoteId;
-    const animValue = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-      if (isHighlighted) {
-        Animated.sequence([
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: false,
-          }),
-          Animated.delay(2000),
-          Animated.timing(animValue, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: false,
-          }),
-        ]).start();
-      }
-    }, [isHighlighted]);
-
-    const highlightOpacity = animValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 0.4],
-    });
-
-    return (
-      <View style={{ position: "relative" }}>
-        {children}
-        <Animated.View
-          pointerEvents="none"
-          style={{
-            ...StyleSheet.absoluteFillObject,
-            backgroundColor: "#B7F0FF",
-            opacity: highlightOpacity,
-          }}
-        />
-      </View>
-    );
-  };
-
-  // Memoized Note Row Component for performance
-  const NoteRow = React.memo(
-    ({
-      item,
-      onEdit,
-      onDelete,
-    }: {
-      item: Note;
-      onEdit: (note: Note) => void;
-      onDelete: (note: Note) => void;
-    }) => {
-      return (
-        <Swipeable
-          ref={(ref) => {
-            if (ref) swipeableRefs.current.set(item.id, ref);
-          }}
-          renderRightActions={renderRightActions}
-          overshootRight={true}
-          rightThreshold={120}
-          onSwipeableWillOpen={() => {
-            swipeableRefs.current.get(item.id)?.close();
-            onDelete(item);
-          }}
-        >
-          <TouchableOpacity activeOpacity={0.8} onPress={() => onEdit(item)}>
-            <View>
-              <AnimatedNoteRow item={item}>
-                <View className="flex-row border-b dark:border-[#2B2B2B] border-[#E0E5EB]">
-                  {/* Note with Left Strip */}
-                  <View
-                    style={{
-                      width: COL.note,
-                      backgroundColor: getNoteBgColor(item.status),
-                      flexDirection: "row",
-                      minHeight: 42,
-                    }}
-                  >
-                    <View className="flex-1 p-2">
-                      <Text className="text-[12px] text-black font-poppins leading-tight">
-                        {item.text}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Responsible (Assignee) */}
-                  <View
-                    className="items-center justify-center border-r dark:border-[#2B2B2B] border-[#E0E5EB]"
-                    style={{
-                      width: COL.responsible,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                    }}
-                  >
-                    {item.responsible &&
-                    Array.isArray(item.responsible) &&
-                    item.responsible.length > 0 ? (
-                      <View className="flex-col items-center gap-1">
-                        {item.responsible.map((resp, index) => {
-                          const getName = () => {
-                            if (typeof resp === "object" && resp !== null) {
-                              if (resp.name) return resp.name;
-                              if (resp.fullName) return resp.fullName;
-                              const id = extractStringId(resp);
-                              return usersMap.get(id)?.label || "N/A";
-                            }
-                            return usersMap.get(resp)?.label || "N/A";
-                          };
-
-                          return (
-                            <GlobalAvatar
-                              key={`${item.id}-${index}`}
-                              name={getName()}
-                              size={28}
-                              fontSize={12}
-                            />
-                          );
-                        })}
-                      </View>
-                    ) : (
-                      <Text
-                        className="text-xs font-poppins"
-                        style={{ color: isDarkMode ? "#FFF" : "#000" }}
-                      >
-                        N/A
-                      </Text>
-                    )}
-                  </View>
-
-                  {/* T Date */}
-                  <View
-                    className="items-center justify-center"
-                    style={{
-                      width: COL.target,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                    }}
-                  >
-                    <Text
-                      className="text-xs font-poppins"
-                      style={{ color: isDarkMode ? "#FFF" : "#000" }}
-                    >
-                      {item.targetDate ? formatDate(item.targetDate) : "N/A"}
-                    </Text>
-                  </View>
-                </View>
-              </AnimatedNoteRow>
-            </View>
-          </TouchableOpacity>
-        </Swipeable>
-      );
-    },
-    (prevProps, nextProps) => {
-      // Custom comparison function for memo
-      return (
-        prevProps.item.id === nextProps.item.id &&
-        prevProps.item.text === nextProps.item.text &&
-        prevProps.item.status === nextProps.item.status &&
-        prevProps.item.targetDate === nextProps.item.targetDate &&
-        JSON.stringify(prevProps.item.responsible) ===
-          JSON.stringify(nextProps.item.responsible)
-      );
-    },
-  );
-
   // Note row
   const renderNote = useCallback(
     ({ item }: { item: Note }) => (
       <NoteRow
         item={item}
+        isHighlighted={item.id === highlightedNoteId}
+        isDarkMode={isDarkMode}
+        COL={COL}
+        usersMap={usersMap}
+        swipeableRefs={swipeableRefs}
+        renderRightActions={renderRightActions}
         onEdit={(note) => {
           setEditingNote({
             ...note,
@@ -834,7 +872,14 @@ const RunningNotes = () => {
         }}
       />
     ),
-    [],
+    [
+      highlightedNoteId,
+      isDarkMode,
+      COL,
+      usersMap,
+      swipeableRefs,
+      renderRightActions,
+    ],
   );
 
   return (
@@ -1016,7 +1061,8 @@ const RunningNotes = () => {
                 <Text
                   className={`text-[14px] font-poppins mb-6 ${isDarkMode ? "text-[#919191]" : "text-[#454545]"}`}
                 >
-                  Are you sure you want to delete this item? This action is final.
+                  Are you sure you want to delete this item? This action is
+                  final.
                 </Text>
 
                 {/* Buttons */}
