@@ -11,6 +11,7 @@ import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -20,6 +21,8 @@ import {
 
 interface TasksTabProps {
   loading: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
   responsibleItems: any[];
 }
 
@@ -235,7 +238,12 @@ const ProjectSection = ({ project }: { project: any }) => {
   );
 };
 
-const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
+const TasksTab = ({
+  loading,
+  refreshing,
+  onRefresh,
+  responsibleItems,
+}: TasksTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
   const isDarkMode = useColorScheme() === "dark";
   const subTabs = ["MOM Tasks", "Running Notes", "ILR Tasks"];
@@ -346,7 +354,17 @@ const TasksTab = ({ loading, responsibleItems }: TasksTabProps) => {
         Tasks
       </Text> */}
 
-      <ScrollView className="flex-1   pb-5">
+      <ScrollView
+        className="flex-1   pb-5"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5B4CCC"]}
+            tintColor="#5B4CCC"
+          />
+        }
+      >
         {transformedData.length > 0 ? (
           transformedData.map((project, idx) => (
             <ProjectSection key={idx} project={project} />

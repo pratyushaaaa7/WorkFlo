@@ -1,9 +1,5 @@
 import api from "@/lib/api";
-import {
-  Delete03Icon,
-  MoreHorizontalIcon,
-  NoteAddIcon,
-} from "@hugeicons/core-free-icons";
+import { Delete03Icon, NoteAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
 import * as Haptics from "expo-haptics";
@@ -14,6 +10,8 @@ import React, { useCallback, useContext, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -24,7 +22,7 @@ import { AuthContext } from "../../context/AuthContext";
 
 const NoteSkeleton = ({ isDark }: { isDark: boolean }) => {
   const height = useRef(
-    Math.floor(Math.random() * (200 - 120 + 1)) + 120
+    Math.floor(Math.random() * (200 - 120 + 1)) + 120,
   ).current;
 
   return (
@@ -39,7 +37,13 @@ const NoteSkeleton = ({ isDark }: { isDark: boolean }) => {
   );
 };
 
-const NotesTab = () => {
+const NotesTab = ({
+  refreshing,
+  onRefresh,
+}: {
+  refreshing: boolean;
+  onRefresh: () => void;
+}) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -77,7 +81,7 @@ const NotesTab = () => {
   useFocusEffect(
     useCallback(() => {
       fetchNotes();
-    }, [fetchNotes])
+    }, [fetchNotes]),
   );
 
   const handleLongPress = (note: any) => {
@@ -223,117 +227,129 @@ const NotesTab = () => {
       </Modal>
 
       {/* 🔹 CONTENT STATES */}
-      {loading && notes.length === 0 ? (
-        /* 🔹 LOADING STATE (MOTI SKELETON) */
-        <View className="px-4 pt-5 pb-20">
-          <View className="flex-row">
-            <View className="flex-1 mr-2">
-              <NoteSkeleton isDark={isDark} />
-              <NoteSkeleton isDark={isDark} />
-              <NoteSkeleton isDark={isDark} />
-            </View>
-            <View className="flex-1 ml-2">
-              <NoteSkeleton isDark={isDark} />
-              <NoteSkeleton isDark={isDark} />
-              <NoteSkeleton isDark={isDark} />
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5B4CCC"]}
+            tintColor="#5B4CCC"
+          />
+        }
+      >
+        {loading && notes.length === 0 ? (
+          /* 🔹 LOADING STATE (MOTI SKELETON) */
+          <View className="px-4 pt-5 pb-20">
+            <View className="flex-row">
+              <View className="flex-1 mr-2">
+                <NoteSkeleton isDark={isDark} />
+                <NoteSkeleton isDark={isDark} />
+                <NoteSkeleton isDark={isDark} />
+              </View>
+              <View className="flex-1 ml-2">
+                <NoteSkeleton isDark={isDark} />
+                <NoteSkeleton isDark={isDark} />
+                <NoteSkeleton isDark={isDark} />
+              </View>
             </View>
           </View>
-        </View>
-      ) : notes.length === 0 ? (
-        /* 🔹 EMPTY STATE (Only if NOT loading or if strictly empty after fetch) */
-        <MotiView
-          from={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className=" mt-20 items-center justify-center "
-        >
-          <Text
-            className={`mt-4 text-base font-poppins ${
-              isDark ? "text-[#BBBBBB]" : "text-[#454545]"
-            }`}
+        ) : notes.length === 0 ? (
+          /* 🔹 EMPTY STATE (Only if NOT loading or if strictly empty after fetch) */
+          <MotiView
+            from={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className=" mt-20 items-center justify-center "
           >
-            You have no notes yet
-          </Text>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push("/createMyNote")}
-            className="flex-row items-center mt-3 justify-center"
-          >
-            <HugeiconsIcon
-              icon={NoteAddIcon}
-              size={20}
-              color={isDark ? "#FFFFFF" : "#000000"}
-            />
-            <Text className="ml-2 text-black dark:text-[#f5f5f5] text-lg font-poppinsMedium">
-              Create Notes
+            <Text
+              className={`mt-4 text-base font-poppins ${
+                isDark ? "text-[#BBBBBB]" : "text-[#454545]"
+              }`}
+            >
+              You have no notes yet
             </Text>
-          </TouchableOpacity>
-        </MotiView>
-      ) : (
-        /* 🔹 NOTES LIST */
-        <MotiView
-          from={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 500 }}
-          className="px-4 pt-5 pb-20"
-        >
-          <View className="flex-row">
-            <View className="flex-1 mr-2">
-              {leftColumn.map((note) => (
-                <TouchableOpacity
-                  key={note._id}
-                  ref={(el) => {
-                    noteRefs.current[note._id] = el;
-                  }}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    // Navigate to Edit Mode
-                    router.push({
-                      pathname: "/createMyNote",
-                      params: {
-                        noteId: note._id,
-                        title: note.title,
-                        content: note.content,
-                      },
-                    });
-                  }}
-                  onLongPress={() => handleLongPress(note)}
-                  delayLongPress={300}
-                >
-                  <NoteCard note={note} />
-                </TouchableOpacity>
-              ))}
-            </View>
 
-            <View className="flex-1 ml-2">
-              {rightColumn.map((note) => (
-                <TouchableOpacity
-                  key={note._id}
-                  ref={(el) => {
-                    noteRefs.current[note._id] = el;
-                  }}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    // Navigate to Edit Mode
-                    router.push({
-                      pathname: "/createMyNote",
-                      params: {
-                        noteId: note._id,
-                        title: note.title,
-                        content: note.content,
-                      },
-                    });
-                  }}
-                  onLongPress={() => handleLongPress(note)}
-                  delayLongPress={300}
-                >
-                  <NoteCard note={note} />
-                </TouchableOpacity>
-              ))}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/createMyNote")}
+              className="flex-row items-center mt-3 justify-center"
+            >
+              <HugeiconsIcon
+                icon={NoteAddIcon}
+                size={20}
+                color={isDark ? "#FFFFFF" : "#000000"}
+              />
+              <Text className="ml-2 text-black dark:text-[#f5f5f5] text-lg font-poppinsMedium">
+                Create Notes
+              </Text>
+            </TouchableOpacity>
+          </MotiView>
+        ) : (
+          /* 🔹 NOTES LIST */
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", duration: 500 }}
+            className="px-4 pt-5 pb-20"
+          >
+            <View className="flex-row">
+              <View className="flex-1 mr-2">
+                {leftColumn.map((note) => (
+                  <TouchableOpacity
+                    key={note._id}
+                    ref={(el) => {
+                      noteRefs.current[note._id] = el;
+                    }}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      // Navigate to Edit Mode
+                      router.push({
+                        pathname: "/createMyNote",
+                        params: {
+                          noteId: note._id,
+                          title: note.title,
+                          content: note.content,
+                        },
+                      });
+                    }}
+                    onLongPress={() => handleLongPress(note)}
+                    delayLongPress={300}
+                  >
+                    <NoteCard note={note} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View className="flex-1 ml-2">
+                {rightColumn.map((note) => (
+                  <TouchableOpacity
+                    key={note._id}
+                    ref={(el) => {
+                      noteRefs.current[note._id] = el;
+                    }}
+                    activeOpacity={0.9}
+                    onPress={() => {
+                      // Navigate to Edit Mode
+                      router.push({
+                        pathname: "/createMyNote",
+                        params: {
+                          noteId: note._id,
+                          title: note.title,
+                          content: note.content,
+                        },
+                      });
+                    }}
+                    onLongPress={() => handleLongPress(note)}
+                    delayLongPress={300}
+                  >
+                    <NoteCard note={note} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
-        </MotiView>
-      )}
+          </MotiView>
+        )}
+      </ScrollView>
     </View>
   );
 };

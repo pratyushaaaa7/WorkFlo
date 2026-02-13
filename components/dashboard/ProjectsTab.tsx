@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   useColorScheme,
@@ -175,7 +177,13 @@ const ProjectCard = memo(
     prev.project.status === next.project.status,
 );
 
-const ProjectsTab = () => {
+const ProjectsTab = ({
+  refreshing,
+  onRefresh,
+}: {
+  refreshing: boolean;
+  onRefresh: () => void;
+}) => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
   const [activeStatusFilter, setActiveStatusFilter] = useState("ALL");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -295,7 +303,17 @@ const ProjectsTab = () => {
   }, [visibleCount, filteredProjects]);
 
   return (
-    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
+    <ScrollView
+      className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#5B4CCC"]}
+          tintColor="#5B4CCC"
+        />
+      }
+    >
       {/* Sub-Tab Navigation */}
       <View className="flex-row ">
         {subTabs.map((tab) => {
@@ -406,7 +424,7 @@ const ProjectsTab = () => {
           ))}
         </View>
       ) : (
-        <View className="flex-1 items-center justify-center -mt-20">
+        <View className="flex-1 items-center justify-center mt-14">
           <Image
             source={
               isDarkMode
@@ -416,7 +434,9 @@ const ProjectsTab = () => {
             style={{ width: 300, height: 220 }}
             resizeMode="contain"
           />
-          <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
+          <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+            No Projects
+          </Text>
           <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
             {activeStatusFilter === "ALL"
               ? `You don't have any project in ${getCompanyValue(activeSubTab)}`
@@ -426,7 +446,7 @@ const ProjectsTab = () => {
           </Text>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 };
 

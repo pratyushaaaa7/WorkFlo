@@ -14,10 +14,8 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Pressable,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -101,27 +99,33 @@ const Dashboard = () => {
           <OverviewTab
             setActiveTab={setActiveTab}
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
           />
         );
       case "Projects":
-        return <ProjectsTab />;
+        return <ProjectsTab refreshing={refreshing} onRefresh={onRefresh} />;
       case "Tasks":
         return (
           <TasksTab
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
           />
         );
       case "Calendar":
         return <CalendarTab />;
       case "Notes":
-        return <NotesTab />;
+        return <NotesTab refreshing={refreshing} onRefresh={onRefresh} />;
       default:
         return (
           <OverviewTab
             setActiveTab={setActiveTab}
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
           />
         );
@@ -167,19 +171,6 @@ const Dashboard = () => {
     inputRange: [0, searchHeight],
     outputRange: [searchHeight, 0],
     extrapolateRight: "clamp",
-  });
-
-  // Interpolation for Refresh Button Opacity/Position
-  const refreshOpacity = scrollY.interpolate({
-    inputRange: [-60, -20, 0],
-    outputRange: [1, 0, 0],
-    extrapolate: "clamp",
-  });
-
-  const refreshTranslateY = scrollY.interpolate({
-    inputRange: [-60, 0],
-    outputRange: [0, -20],
-    extrapolate: "clamp",
   });
 
   return (
@@ -233,178 +224,106 @@ const Dashboard = () => {
         </View>
       </View>
 
-      {/* 3. SCROLLABLE CONTENT */}
-      {/* Container View holds both the Absolute Navbar and the ScrollView */}
-      <View className="flex-1 relative">
-        {/* OVERLAY STICKY NAVBAR (Absolute Positioned relative to this container) */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            transform: [{ translateY }],
-            elevation: 0,
-            shadowOpacity: 0,
-            shadowRadius: 0,
-            shadowOffset: { width: 0, height: 0 },
-          }}
-        >
-          <View className="bg-white dark:bg-[#1A1A1A]" style={{ height: 60 }}>
-            {/* Visual Layer */}
-            <View
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-              pointerEvents="none"
-            >
-              <GlassNav
-                activeTabIndex={tabs.indexOf(activeTab)}
-                totalTabs={tabs.length}
-                activeTabName={activeTab}
+      {/* 3. CONTENT AREA */}
+      <View className="flex-1">
+        {/* Search Bar (Now Fixed) */}
+        <View className="px-3 pt-3 bg-white dark:bg-black">
+          <View className="flex-row items-center">
+            <View className="flex-1 flex-row items-center px-4 py-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+              <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
+              <TextInput
+                placeholder="Search"
+                placeholderTextColor="#606060"
+                className="flex-1 ml-3 font-dm text-[#606060] py-1"
               />
             </View>
-
-            {/* Interactive Layer */}
-            <View
-              className="flex-1 flex-row items-center justify-between gap-1"
-              style={{ paddingHorizontal: 12, paddingTop: 8 }}
-            >
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab;
-                const themeColor = getTabColor(tab);
-                return (
-                  <Pressable
-                    key={tab}
-                    onPress={() => setActiveTab(tab)}
-                    className="flex-1 items-center justify-center py-4"
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                  >
-                    <View className="items-center justify-center">
-                      <HugeiconsIcon
-                        icon={getTabIcon(tab)}
-                        size={22}
-                        color={
-                          isActive
-                            ? themeColor
-                            : isDarkMode
-                              ? "#919191"
-                              : "#6B7280"
-                        }
-                      />
-                      <Text
-                        className={`text-[10px] sm:text-xs font-poppinsMedium mt-1 ${
-                          isActive ? "" : "text-gray-500 dark:text-[#919191]"
-                        }`}
-                        style={isActive ? { color: themeColor } : {}}
-                      >
-                        {tab}
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* 🔄 CUSTOM REFRESH BUTTON (Appears when swiped from top) */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            top: 70, // Below Header/Navbar area
-            alignSelf: "center",
-            zIndex: 2000,
-            opacity: refreshOpacity,
-            transform: [{ translateY: refreshTranslateY }],
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={onRefresh}
-            className="bg-white dark:bg-[#1A1A1A] px-4 py-2 rounded-full border border-[#E0E5EB] dark:border-[#333] shadow-lg flex-row items-center gap-2"
-          >
-            <ActivityIndicator
-              size="small"
-              color="#566FEC"
-              animating={refreshing}
-            />
-            <Text className="text-[#566FEC] font-poppinsMedium text-sm">
-              Refresh
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.ScrollView
-          ref={scrollRef}
-          className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="always"
-          scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true },
-          )}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="transparent" // Hide the default spinner since we have our button
-              colors={["transparent"]}
-            />
-          }
-        >
-          {/* Search Bar (Determines Height) */}
-          <View
-            onLayout={(e) => setSearchHeight(e.nativeEvent.layout.height)}
-            className="px-3 pt-3 bg-white dark:bg-black"
-          >
-            <View className="flex-row items-center">
-              <View className="flex-1 flex-row items-center px-4 py-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
-                <HugeiconsIcon icon={Search01Icon} size={20} color="#606060" />
-                <TextInput
-                  placeholder="Search"
-                  placeholderTextColor="#606060"
-                  className="flex-1 ml-3 font-dm text-[#606060] py-1"
-                />
-              </View>
-              <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
-                <HugeiconsIcon
-                  icon={FilterHorizontalIcon}
-                  size={24}
-                  color="#606060"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* SPACER for Sticky Header (Since Navbar is absolute, we need empty space) */}
-          <View style={{ height: 60, backgroundColor: "transparent" }} />
-
-          {/* 4. MAIN CONTENT */}
-          <View className="flex-1">{renderTabContent()}</View>
-        </Animated.ScrollView>
-
-        {/* 🔹 FLOATING ACTION BUTTON (ONLY FOR NOTES) */}
-        {activeTab === "Notes" && (
-          <View className="absolute bottom-10 right-6 z-50">
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.push("/createMyNote")}
-              style={styles.fab}
-              className="w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center"
-            >
-              <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
+            <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+              <HugeiconsIcon
+                icon={FilterHorizontalIcon}
+                size={24}
+                color="#606060"
+              />
             </TouchableOpacity>
           </View>
-        )}
+        </View>
+
+        {/* Tab Navigation (Now Fixed below search) */}
+        <View className="bg-white dark:bg-[#1A1A1A]" style={{ height: 60 }}>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+            pointerEvents="none"
+          >
+            <GlassNav
+              activeTabIndex={tabs.indexOf(activeTab)}
+              totalTabs={tabs.length}
+              activeTabName={activeTab}
+            />
+          </View>
+
+          <View
+            className="flex-1 flex-row items-center justify-between gap-1"
+            style={{ paddingHorizontal: 12, paddingTop: 8 }}
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              const themeColor = getTabColor(tab);
+              return (
+                <Pressable
+                  key={tab}
+                  onPress={() => setActiveTab(tab)}
+                  className="flex-1 items-center justify-center py-4"
+                  style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                >
+                  <View className="items-center justify-center">
+                    <HugeiconsIcon
+                      icon={getTabIcon(tab)}
+                      size={22}
+                      color={
+                        isActive
+                          ? themeColor
+                          : isDarkMode
+                            ? "#919191"
+                            : "#6B7280"
+                      }
+                    />
+                    <Text
+                      className={`text-[10px] sm:text-xs font-poppinsMedium mt-1 ${
+                        isActive ? "" : "text-gray-500 dark:text-[#919191]"
+                      }`}
+                      style={isActive ? { color: themeColor } : {}}
+                    >
+                      {tab}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* 4. MAIN CONTENT (Scrollable within each tab) */}
+        <View className="flex-1">{renderTabContent()}</View>
       </View>
+
+      {/* 🔹 FLOATING ACTION BUTTON (ONLY FOR NOTES) */}
+      {activeTab === "Notes" && (
+        <View className="absolute bottom-10 right-6 z-50">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push("/createMyNote")}
+            style={styles.fab}
+            className="w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center"
+          >
+            <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
