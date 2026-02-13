@@ -5,6 +5,7 @@ import {
   Relieved01Icon,
   SadDizzyIcon,
   SmileIcon,
+  WifiOffIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
@@ -22,7 +23,6 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
-import OverviewCalendar from "./OverviewCalendar";
 
 const OverviewTab = ({
   setActiveTab,
@@ -43,6 +43,7 @@ const OverviewTab = ({
   const token = auth?.token;
 
   const [statsLoading, setStatsLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [projectCounts, setProjectCounts] = useState({
     active: 0,
     closed: 0,
@@ -54,6 +55,7 @@ const OverviewTab = ({
     if (!token) return;
     try {
       if (!refreshing) setStatsLoading(true);
+      setIsOffline(false);
       const res = await api.get("/projects", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -71,8 +73,12 @@ const OverviewTab = ({
         }
         setProjectCounts(counts);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch project stats:", error);
+      // Check if it's a network error (no response)
+      if (!error.response || error.message === "Network Error") {
+        setIsOffline(true);
+      }
     } finally {
       setStatsLoading(false);
     }
@@ -208,7 +214,7 @@ const OverviewTab = ({
   return (
     <ScrollView
       className="flex-1 bg-[#F6F8FA] dark:bg-black"
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -219,6 +225,31 @@ const OverviewTab = ({
       }
     >
       <View className="py-5 px-3">
+        {/* Offline Warning */}
+        {isOffline && (
+          <View className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 p-4 rounded-2xl flex-row items-center">
+            <View className="bg-red-100 dark:bg-red-900/40 p-2 rounded-full mr-3">
+              <HugeiconsIcon icon={WifiOffIcon} size={20} color="#EF4444" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-red-800 dark:text-red-200 font-poppinsSemiBold text-sm">
+                No Internet Connection
+              </Text>
+              <Text className="text-red-600 dark:text-red-300 font-poppins text-xs">
+                Showing outdated or empty data. Swipe down to retry.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={fetchProjectStats}
+              className="bg-red-500 px-3 py-1.5 rounded-xl ml-2"
+            >
+              <Text className="text-white font-poppinsMedium text-xs">
+                Retry
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Project Summary */}
         <View className="mb-6">
           <View className="flex-row items-center justify-between mb-4">
@@ -274,7 +305,6 @@ const OverviewTab = ({
               const dateStatus = getDateStatus(task.targetDate);
 
               const handlePress = () => {
-                // ... handlePress logic stays the same
                 switch (task.type) {
                   case "MOM":
                     router.push({
@@ -382,8 +412,8 @@ const OverviewTab = ({
             })
           ) : (
             <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 items-center">
-              <Text className="text-gray-500 font-poppins">
-                You have no tasks :)
+              <Text className="text-gray-500 dark:text-gray-400 font-poppins">
+                {isOffline ? "Unable to load tasks" : "You have no tasks :)"}
               </Text>
             </View>
           )}
