@@ -58,6 +58,15 @@ export default function CentralEmployeeDirectory() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const filterOptions = [
+    { label: "All", value: "all" },
+    { label: "Permanent", value: "Permanent" },
+    { label: "Exit", value: "Exit" },
+    { label: "Probation", value: "Probation" },
+    { label: "Notice", value: "Notice" },
+  ];
 
   const fetchUsers = async () => {
     if (!token) return;
@@ -67,6 +76,7 @@ export default function CentralEmployeeDirectory() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users);
+      console.log(res.data.users);
     } catch (err) {
       console.error("Failed to fetch users:", err);
       Toast.show({
@@ -159,9 +169,19 @@ export default function CentralEmployeeDirectory() {
   };
 
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
+    let result = users;
+
+    // Apply Status Filter
+    if (activeFilter !== "all") {
+      result = result.filter(
+        (u) => u.status?.toLowerCase() === activeFilter.toLowerCase(),
+      );
+    }
+
+    // Apply Search Query
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.toLowerCase();
-    return users.filter((u) => {
+    return result.filter((u) => {
       return (
         u.fullName?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q) ||
@@ -170,7 +190,7 @@ export default function CentralEmployeeDirectory() {
         u.employeeCode?.toString().includes(q)
       );
     });
-  }, [searchQuery, users]);
+  }, [searchQuery, users, activeFilter]);
 
   const renderEmployee = ({ item }: { item: User }) => (
     <TouchableOpacity
@@ -316,7 +336,6 @@ export default function CentralEmployeeDirectory() {
         </View>
       </View>
 
-      {/* 🔹 SEARCH BAR (Collapsible) */}
       {searchVisible && (
         <View className="px-4 ">
           <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-2">
@@ -336,6 +355,54 @@ export default function CentralEmployeeDirectory() {
           </View>
         </View>
       )}
+
+      {/* 🔹 FILTER CHIPS */}
+      <View className="bg-[#FBFCFD] dark:bg-black pb-2 pt-2">
+        <FlatList
+          horizontal
+          data={filterOptions}
+          keyExtractor={(item) => item.value}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          renderItem={({ item }) => {
+            const isActive = activeFilter === item.value;
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveFilter(item.value);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                style={{
+                  backgroundColor: isActive
+                    ? isDarkMode
+                      ? "#27215880"
+                      : "#DAE0FA"
+                    : "transparent",
+                  borderColor: isActive
+                    ? "#566FEC"
+                    : isDarkMode
+                      ? "#333"
+                      : "#E0E5EB",
+                  borderWidth: 1,
+                  paddingHorizontal: 24,
+                  paddingVertical: 8,
+                  borderRadius: 50,
+                  marginRight: 10,
+                }}
+              >
+                <Text
+                  className="font-poppins text-sm"
+                  style={{
+                    color: isActive ? "#566FEC" : isDarkMode ? "#fff" : "#000",
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
 
       {/* 🔹 EMPLOYEE LIST */}
       <View className="flex-1 pt-4">
