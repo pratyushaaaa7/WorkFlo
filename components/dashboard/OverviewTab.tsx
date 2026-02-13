@@ -9,9 +9,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   ScrollView,
@@ -138,8 +138,69 @@ const OverviewTab = ({
 
   if (loading) {
     return (
-      <View className="py-20 items-center justify-center">
-        <ActivityIndicator size="large" color="#5B4CCC" />
+      <View className="py-5 px-3 bg-[#F6F8FA] dark:bg-black flex-1">
+        {/* Project Summary Skeleton */}
+        <View className="mb-6">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={150}
+            height={24}
+            radius={4}
+          />
+          <View className="flex-row mt-4 gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton
+                key={i}
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={100}
+                height={100}
+                radius={16}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Tasks Skeleton */}
+        <View className="mb-6">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={120}
+            height={24}
+            radius={4}
+          />
+          <View className="mt-4 gap-4">
+            {[1, 2, 3].map((i) => (
+              <View
+                key={i}
+                className="px-3 py-2 bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-[#2B2B2B]"
+              >
+                <Skeleton
+                  colorMode={isDarkMode ? "dark" : "light"}
+                  width="80%"
+                  height={20}
+                  radius={4}
+                />
+                <View className="mt-2" />
+                <Skeleton
+                  colorMode={isDarkMode ? "dark" : "light"}
+                  width="40%"
+                  height={14}
+                  radius={4}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Calendar Skeleton */}
+        {/* <View>
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width="100%"
+            height={300}
+            radius={16}
+          />
+        </View> */}
       </View>
     );
   }
@@ -329,10 +390,10 @@ const OverviewTab = ({
         </View>
 
         {/* Calendar Section */}
-        <OverviewCalendar
+        {/* <OverviewCalendar
           setActiveTab={setActiveTab}
           responsibleItems={responsibleItems}
-        />
+        /> */}
       </View>
     </ScrollView>
   );
