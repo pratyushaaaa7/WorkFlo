@@ -126,7 +126,7 @@ const OverviewTab = ({
 
   const getDateStatus = (dateString: string | null) => {
     if (!dateString || !isValid(new Date(dateString))) {
-      return { color: "#454545", text: "For Info" }; // Gray-400
+      return { color: isDarkMode ? "#D2D2D2" : "#454545", text: "For Info" }; // Gray-400
     }
 
     const date = new Date(dateString);
@@ -391,18 +391,36 @@ const OverviewTab = ({
                           </Text>
                         )}
 
-                        <View className="flex-row mt-1 items-center">
-                          <HugeiconsIcon
-                            icon={Calendar03Icon}
-                            size={14}
-                            color={dateStatus.color}
-                          />
-                          <Text
-                            className="ml-1.5 text-xs font-poppinsMedium"
-                            style={{ color: dateStatus.color }}
-                          >
-                            {dateStatus.text}
-                          </Text>
+                        <View className="flex-row mt-1 items-center justify-between">
+                          <View>
+                            <Text
+                              className="text-[12px] font-poppinsMedium"
+                              style={{
+                                color: isDarkMode ? "#919191" : "#454545",
+                              }}
+                            >
+                              {task.type === "Running Notes"
+                                ? "Running Note"
+                                : task.type === "ILR"
+                                  ? "ILR"
+                                  : task.type === "MOM"
+                                    ? "MOM"
+                                    : task.type}
+                            </Text>
+                          </View>
+                          <View className="flex-row items-center">
+                            <HugeiconsIcon
+                              icon={Calendar03Icon}
+                              size={14}
+                              color={dateStatus.color}
+                            />
+                            <Text
+                              className="ml-1.5 text-[12px] font-poppinsMedium"
+                              style={{ color: dateStatus.color }}
+                            >
+                              {dateStatus.text}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     </View>
