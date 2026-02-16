@@ -208,7 +208,10 @@ const MasterProjectList = () => {
       const targetCompany = companyMap[activeTab];
       if (targetCompany) {
         result = result.filter(
-          (p) => p.company?.includes(targetCompany) || p.company === activeTab,
+          (p) =>
+            p.company?.includes(targetCompany) ||
+            p.company === activeTab ||
+            (activeTab === "WALL" && p.company?.toUpperCase() === "WAL"),
         );
       }
     }

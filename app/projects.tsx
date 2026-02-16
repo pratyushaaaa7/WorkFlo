@@ -165,7 +165,9 @@ const ProjectsScreen = () => {
       list = list.filter((p) => {
         const pCompany = p.company?.toUpperCase();
         if (activeTab === "WALL") {
-          return pCompany === "WALL" || pCompany === "WAL+L";
+          return (
+            pCompany === "WALL" || pCompany === "WAL+L" || pCompany === "WAL"
+          );
         }
         if (activeTab === "WP") {
           return pCompany === "WP" || pCompany === "WPROJECTS";
