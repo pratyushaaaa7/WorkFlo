@@ -69,7 +69,7 @@ const Dashboard = () => {
       if (res.data.success) {
         setDashboardData(res.data);
       }
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
       console.error("Dashboard Fetch Error:", error);
     } finally {
