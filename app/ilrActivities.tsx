@@ -310,9 +310,19 @@ const IlrActivities = () => {
     setShowRemarkModal(false);
     setIlr((prev) => ({ ...prev, remarks: newRemark }));
     try {
+      await api.patch(
+        `/ilrs/${ilr._id}`,
+        { remarks: newRemark },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
       fetchILRDetails();
     } catch (err) {
       console.error("Failed to update remark:", err);
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not update description.",
+      });
     }
   };
 
