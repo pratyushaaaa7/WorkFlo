@@ -147,7 +147,7 @@ const MasterProjectList = () => {
         Company: proj.company,
         Status: proj.status,
         FileNumber: proj.fileNumber,
-        Description: proj.description,
+        Description: proj.projectDescription,
         Location: proj.location,
         Area: proj.area,
         Typology: proj.typology,
@@ -238,7 +238,7 @@ const MasterProjectList = () => {
         (p) =>
           p.projectName.toLowerCase().includes(query) ||
           p.fileNumber?.toLowerCase().includes(query) ||
-          p.description?.toLowerCase().includes(query),
+          p.projectDescription?.toLowerCase().includes(query),
       );
     }
 
@@ -360,7 +360,7 @@ const MasterProjectList = () => {
             className="text-sm font-poppins text-[#454545] dark:text-[#919191] leading-5"
             numberOfLines={2}
           >
-            {item.description || "No description."}
+            {item.projectDescription || "No description."}
           </Text>
         </TouchableOpacity>
       </View>
