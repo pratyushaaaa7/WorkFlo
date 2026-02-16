@@ -989,7 +989,7 @@ const IlrActivities = () => {
         <View
           className="px-3 py-2 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
           style={{
-            borderTopColor: isDark ? "#222" : "#E0E5EB",
+            borderColor: isDark ? "#413E47" : "#E0E5EB",
             paddingBottom: bottom > 0 ? bottom : 0,
           }}
         >
