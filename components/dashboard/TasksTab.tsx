@@ -7,9 +7,11 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
+  FlatList,
   LayoutAnimation,
   RefreshControl,
   ScrollView,
@@ -18,6 +20,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 interface TasksTabProps {
   loading: boolean;
@@ -247,8 +251,9 @@ const TasksTab = ({
   const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
   const isDarkMode = useColorScheme() === "dark";
   const subTabs = ["MOM Tasks", "Running Notes", "ILR Tasks"];
+  const flatListRef = React.useRef<FlatList>(null);
 
-  const transformedData = useMemo(() => {
+  const getTransformedData = (subTab: string) => {
     // Map Sub-Tab names to Backend Types
     const typeMap: { [key: string]: string } = {
       "MOM Tasks": "MOM",
@@ -256,7 +261,7 @@ const TasksTab = ({
       "ILR Tasks": "ILR",
     };
 
-    const activeType = typeMap[activeSubTab];
+    const activeType = typeMap[subTab];
 
     // Filter and transform
     const sourceData = responsibleItems
@@ -265,7 +270,7 @@ const TasksTab = ({
         id: item.id,
         title: item.title,
         description:
-          activeSubTab === "Running Notes"
+          subTab === "Running Notes"
             ? ""
             : item.description || item.remarks || "",
         date: item.targetDate,
@@ -313,7 +318,20 @@ const TasksTab = ({
     return Object.values(projectGroups).sort((a: any, b: any) =>
       a.projectName.localeCompare(b.projectName),
     );
-  }, [activeSubTab, responsibleItems]);
+  };
+
+  const handleTabPress = (index: number) => {
+    setActiveSubTab(subTabs[index]);
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+  };
+
+  const onMomentumScrollEnd = (e: any) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / width);
+    if (index >= 0 && index < subTabs.length) {
+      setActiveSubTab(subTabs[index]);
+    }
+  };
 
   if (loading) {
     return (
@@ -327,12 +345,12 @@ const TasksTab = ({
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
       <View className="flex-row ">
-        {subTabs.map((tab) => {
+        {subTabs.map((tab, index) => {
           const isActive = activeSubTab === tab;
           return (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveSubTab(tab)}
+              onPress={() => handleTabPress(index)}
               className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
             >
               <Text
@@ -350,34 +368,52 @@ const TasksTab = ({
           );
         })}
       </View>
-      {/* <Text className="dark:text-white  px-4 pt-3 font-poppinsMedium">
-        Tasks
-      </Text> */}
 
-      <ScrollView
-        className="flex-1   pb-5"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#5B4CCC"]}
-            tintColor="#5B4CCC"
-          />
-        }
-      >
-        {transformedData.length > 0 ? (
-          transformedData.map((project, idx) => (
-            <ProjectSection key={idx} project={project} />
-          ))
-        ) : (
-          <View className="items-center py-10">
-            <Text className="text-gray-500 font-poppins">
-              You have no Tasks :)
-            </Text>
-          </View>
-        )}
-        <View className="h-20" />
-      </ScrollView>
+      <FlatList
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={subTabs}
+        keyExtractor={(item) => item}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        getItemLayout={(data: any, index: number) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={({ item: tabName }: { item: string }) => {
+          const transformedData = getTransformedData(tabName);
+          return (
+            <View style={{ width }}>
+              <ScrollView
+                className="flex-1   pb-5"
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#5B4CCC"]}
+                    tintColor="#5B4CCC"
+                  />
+                }
+              >
+                {transformedData.length > 0 ? (
+                  transformedData.map((project, idx) => (
+                    <ProjectSection key={idx} project={project} />
+                  ))
+                ) : (
+                  <View className="items-center py-10">
+                    <Text className="text-gray-500 font-poppins">
+                      You have no Tasks :)
+                    </Text>
+                  </View>
+                )}
+                <View className="h-20" />
+              </ScrollView>
+            </View>
+          );
+        }}
+      />
     </View>
   );
 };

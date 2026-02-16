@@ -7,9 +7,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import React, { memo, useContext, useEffect, useMemo, useState } from "react";
+import { MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
+import React, { memo, useContext, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
+  Dimensions,
   FlatList,
   Image,
   RefreshControl,
@@ -23,6 +25,84 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { Project } from "../../types/Project";
 import GlobalAvatar from "../GlobalAvatar";
+const { width } = Dimensions.get("window");
+
+const ProjectSkeleton = () => {
+  const isDarkMode = useColorScheme() === "dark";
+  const bg = isDarkMode ? "#1A1A1A" : "#F0F3F7";
+  const skeletonColor = isDarkMode ? "#252525" : "#EBEFF2";
+
+  return (
+    <MotiView
+      transition={{
+        type: "timing",
+      }}
+      style={{
+        backgroundColor: bg,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: isDarkMode ? "#222" : "#F3F4F6",
+      }}
+    >
+      <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center gap-2">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={70}
+            height={24}
+            radius="round"
+          />
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={80}
+            height={24}
+            radius="round"
+          />
+        </View>
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={60}
+          height={16}
+        />
+      </View>
+
+      <View className="mb-4">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="80%"
+          height={24}
+        />
+        <View className="h-2" />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="100%"
+          height={16}
+        />
+        <View className="h-1" />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="90%"
+          height={16}
+        />
+      </View>
+
+      <View className="flex-row">
+        {[1, 2, 3].map((i) => (
+          <View key={i} className="-mr-3">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={36}
+              height={36}
+              radius="round"
+            />
+          </View>
+        ))}
+      </View>
+    </MotiView>
+  );
+};
 
 const ProjectCard = memo(
   function ProjectCard({ project }: { project: Project }) {
@@ -186,8 +266,16 @@ const ProjectsTab = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
   const [activeStatusFilter, setActiveStatusFilter] = useState("ALL");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [projectsMap, setProjectsMap] = useState<{ [key: string]: Project[] }>({
+    WAL: [],
+    WP: [],
+    WCorp: [],
+  });
+  const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({
+    WAL: false,
+    WP: false,
+    WCorp: false,
+  });
   const [visibleCount, setVisibleCount] = useState(5);
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -240,14 +328,15 @@ const ProjectsTab = ({
   ];
 
   // Filter projects by status - Memoized for performance
-  const filteredProjects = useMemo(() => {
+  const getFilteredProjects = (company: string) => {
+    const rawProjects = projectsMap[company] || [];
     if (activeStatusFilter === "ALL") {
-      return projects;
+      return rawProjects;
     }
-    return projects.filter((project) => {
+    return rawProjects.filter((project) => {
       return project.status?.toLowerCase() === activeStatusFilter;
     });
-  }, [projects, activeStatusFilter]);
+  };
 
   const handleStatusPress = (status: string) => {
     setVisibleCount(5);
@@ -270,18 +359,27 @@ const ProjectsTab = ({
   useEffect(() => {
     const fetchProjects = async () => {
       if (!token) return;
+      const company = getCompanyValue(activeSubTab);
+
+      // If we already have projects, we might not want to show a skeleton again
+      // but for swipeable tabs, it's often better to fetch in background or
+      // only fetch if empty. For now, let's fetch every time but manage loading per tab.
+
       try {
-        setLoading(true);
+        setLoadingMap((prev) => ({ ...prev, [company]: true }));
         const res = await api.get("/projects", {
           headers: { Authorization: `Bearer ${token}` },
-          params: { company: getCompanyValue(activeSubTab) },
+          params: { company },
         });
-        setProjects(res.data.projects || []);
+        setProjectsMap((prev) => ({
+          ...prev,
+          [company]: res.data.projects || [],
+        }));
       } catch (err) {
-        console.error("Failed to fetch projects for tab:", activeSubTab, err);
-        setProjects([]);
+        console.error("Failed to fetch projects for company:", company, err);
+        setProjectsMap((prev) => ({ ...prev, [company]: [] }));
       } finally {
-        setLoading(false);
+        setLoadingMap((prev) => ({ ...prev, [company]: false }));
       }
     };
 
@@ -293,35 +391,41 @@ const ProjectsTab = ({
     setVisibleCount(5);
   }, [activeSubTab]);
 
+  const flatListRef = React.useRef<FlatList>(null);
+
+  const handleTabPress = (index: number) => {
+    setActiveSubTab(subTabs[index]);
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+  };
+
+  const onMomentumScrollEnd = (e: any) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / width);
+    if (index >= 0 && index < subTabs.length) {
+      setActiveSubTab(subTabs[index]);
+    }
+  };
+
   useEffect(() => {
-    if (filteredProjects.length > 0 && visibleCount < filteredProjects.length) {
+    const filtered = getFilteredProjects(getCompanyValue(activeSubTab));
+    if (filtered.length > 0 && visibleCount < filtered.length) {
       const timer = setTimeout(() => {
         setVisibleCount((prev) => prev + 5);
       }, 10);
       return () => clearTimeout(timer);
     }
-  }, [visibleCount, filteredProjects]);
+  }, [visibleCount, activeSubTab, projectsMap, activeStatusFilter]);
 
   return (
-    <ScrollView
-      className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#5B4CCC"]}
-          tintColor="#5B4CCC"
-        />
-      }
-    >
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       {/* Sub-Tab Navigation */}
       <View className="flex-row ">
-        {subTabs.map((tab) => {
+        {subTabs.map((tab, index) => {
           const isActive = activeSubTab === tab;
           return (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveSubTab(tab)}
+              onPress={() => handleTabPress(index)}
               className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
             >
               <Text
@@ -338,115 +442,161 @@ const ProjectsTab = ({
         })}
       </View>
 
-      {/* List Header */}
-      <View className="px-4 pt-4 pb-2">
-        <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
-          Projects{" "}
-          <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
-            ({filteredProjects.length})
-          </Text>
-        </Text>
-      </View>
+      <FlatList
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={subTabs}
+        keyExtractor={(item) => item}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        getItemLayout={(data: any, index: number) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={({ item: tabName }) => {
+          const companyKey = getCompanyValue(tabName);
+          const currentProjects = getFilteredProjects(companyKey);
+          const isLoading = loadingMap[companyKey];
+          const isCurrentTab = tabName === activeSubTab;
 
-      {/* Status Filter Pills - Updated to match MasterProjectList */}
-      <View className="py-3">
-        <FlatList
-          horizontal
-          data={statusFilters}
-          keyExtractor={(item) => item.key}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-          renderItem={({ item }) => {
-            const isActive = activeStatusFilter === item.key;
-            return (
-              <TouchableOpacity
-                onPress={() => handleStatusPress(item.key)}
-                style={{
-                  backgroundColor: isActive
-                    ? isDarkMode
-                      ? item.darkBg
-                      : item.bg
-                    : isDarkMode
-                      ? "#1A1A1A"
-                      : "#F0F3F7",
-                  borderColor: isActive
-                    ? "transparent"
-                    : isDarkMode
-                      ? "#1A1A1A"
-                      : "#E0E5EB",
-                  borderWidth: 1,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  marginRight: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                {item.icon && (
-                  <HugeiconsIcon
-                    icon={item.icon}
-                    size={18}
-                    color={item.color}
+          return (
+            <View style={{ width }}>
+              <ScrollView
+                className="flex-1"
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#5B4CCC"]}
+                    tintColor="#5B4CCC"
                   />
-                )}
-                <Text
-                  className="font-poppinsMedium text-sm"
-                  style={{
-                    color: isActive
-                      ? item.color
-                      : isDarkMode
-                        ? "#FFFFFF"
-                        : "#000000",
-                  }}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      </View>
+                }
+              >
+                {/* List Header */}
+                <View className="px-4 pt-4 pb-2">
+                  <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
+                    Projects{" "}
+                    <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
+                      ({currentProjects.length})
+                    </Text>
+                  </Text>
+                </View>
 
-      {/* Project List */}
-      {loading ? (
-        <View className="flex-1 items-center justify-center py-20">
-          <ActivityIndicator size="large" color="#5B4CCC" />
-          <Text className="mt-4 text-gray-500 font-poppinsMedium">
-            Loading projects...
-          </Text>
-        </View>
-      ) : filteredProjects.length > 0 ? (
-        <View className="px-4 pb-20">
-          {filteredProjects.slice(0, visibleCount).map((project: Project) => (
-            <ProjectCard key={project._id} project={project} />
-          ))}
-        </View>
-      ) : (
-        <View className="flex-1 items-center justify-center mt-14">
-          <Image
-            source={
-              isDarkMode
-                ? require("../../assets/images/ghostDarkMode.png")
-                : require("../../assets/images/ghostLightMode.png")
-            }
-            style={{ width: 300, height: 220 }}
-            resizeMode="contain"
-          />
-          <Text className="text-black dark:text-white font-dmSemiBold text-lg">
-            No Projects
-          </Text>
-          <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
-            {activeStatusFilter === "ALL"
-              ? `You don't have any project in ${getCompanyValue(activeSubTab)}`
-              : `You don't have any ${
-                  statusFilters.find((f) => f.key === activeStatusFilter)?.label
-                } project in ${getCompanyValue(activeSubTab)}`}
-          </Text>
-        </View>
-      )}
-    </ScrollView>
+                {/* Status Filter Pills */}
+                <View className="py-3">
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                  >
+                    {statusFilters.map((item) => {
+                      const isActive = activeStatusFilter === item.key;
+                      return (
+                        <TouchableOpacity
+                          key={item.key}
+                          onPress={() => handleStatusPress(item.key)}
+                          style={{
+                            backgroundColor: isActive
+                              ? isDarkMode
+                                ? item.darkBg
+                                : item.bg
+                              : isDarkMode
+                                ? "#1A1A1A"
+                                : "#F0F3F7",
+                            borderColor: isActive
+                              ? "transparent"
+                              : isDarkMode
+                                ? "#1A1A1A"
+                                : "#E0E5EB",
+                            borderWidth: 1,
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                            marginRight: 10,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          {item.icon && (
+                            <HugeiconsIcon
+                              icon={item.icon}
+                              size={18}
+                              color={item.color}
+                            />
+                          )}
+                          <Text
+                            className="font-poppinsMedium text-sm"
+                            style={{
+                              color: isActive
+                                ? item.color
+                                : isDarkMode
+                                  ? "#FFFFFF"
+                                  : "#000000",
+                            }}
+                          >
+                            {item.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+
+                {/* Project List */}
+                {isLoading && currentProjects.length === 0 ? (
+                  <View className="px-4 pb-20">
+                    {[1, 2, 3].map((i) => (
+                      <ProjectSkeleton key={i} />
+                    ))}
+                  </View>
+                ) : currentProjects.length > 0 ? (
+                  <View className="px-4 pb-20">
+                    {currentProjects
+                      .slice(0, visibleCount)
+                      .map((project: Project) => (
+                        <ProjectCard key={project._id} project={project} />
+                      ))}
+                  </View>
+                ) : !isLoading ? (
+                  <View className="flex-1 items-center justify-center mt-14">
+                    <Image
+                      source={
+                        isDarkMode
+                          ? require("../../assets/images/ghostDarkMode.png")
+                          : require("../../assets/images/ghostLightMode.png")
+                      }
+                      style={{ width: 300, height: 220 }}
+                      resizeMode="contain"
+                    />
+                    <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+                      No Projects
+                    </Text>
+                    <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
+                      {activeStatusFilter === "ALL"
+                        ? `You don't have any project in ${companyKey}`
+                        : `You don't have any ${
+                            statusFilters.find(
+                              (f) => f.key === activeStatusFilter,
+                            )?.label
+                          } project in ${companyKey}`}
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="px-4 pb-20">
+                    {[1, 2, 3].map((i) => (
+                      <ProjectSkeleton key={i} />
+                    ))}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          );
+        }}
+      />
+    </View>
   );
 };
 
