@@ -1,5 +1,6 @@
 import logoDark from "@/assets/images/logoDark.png";
 import logoLight from "@/assets/images/logoLight.png";
+import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
@@ -59,11 +60,22 @@ const CustomDrawerContent = (props: any) => {
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       <View className="pt-12 px-6 pb-6 flex-row justify-between items-center">
         <View className="flex-row items-center">
-          <Image
+          {/* <Image
             source={isDarkMode ? logoDark : logoLight}
             style={{ width: 120, height: 40 }}
             resizeMode="contain"
-          />
+          /> */}
+          <View className="w-8 h-8 rounded-lg  items-center justify-center mr-3">
+            {/* <Text className="text-white font-bold text-lg">T</Text> */}
+            <Image
+              source={thuhrohLogo}
+              style={{ width: 120, height: 40 }}
+              resizeMode="contain"
+            />
+          </View>
+          <Text className="text-gray-900 dark:text-white text-2xl font-bold tracking-tight">
+            Thuhroh
+          </Text>
         </View>
         <TouchableOpacity onPress={() => props.navigation.closeDrawer()}>
           <HugeiconsIcon

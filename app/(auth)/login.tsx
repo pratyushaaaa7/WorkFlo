@@ -1,14 +1,10 @@
-import logoDark from "@/assets/images/logoDark.png";
-import logoLight from "@/assets/images/logoLight.png";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
-  Image,
   Keyboard,
   Platform,
   Pressable,
@@ -18,6 +14,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/Feather"; // Feather for eye icon
@@ -81,95 +78,97 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={["#6366F1", "#8B5CF6"]}
-      className="flex-1"
-      style={{ flex: 1 }}
+    <KeyboardAwareScrollView
+      contentContainerStyle={{
+        flexGrow: 1,
+        // justifyContent: "center",
+        paddingHorizontal: 16,
+      }}
+      className="bg-white dark:bg-black"
+      enableOnAndroid
+      extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
+      keyboardShouldPersistTaps="handled"
     >
-      <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          paddingHorizontal: 24,
-        }}
-        enableOnAndroid
-        extraScrollHeight={Platform.OS === "ios" ? 20 : 30}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Logo */}
-        <Animated.View
-          style={{ transform: [{ scale: logoScale }] }}
-          className="mb-8 items-center"
-        >
-          <View className="items-center justify-center">
-            <Image
-              source={isDarkMode ? logoDark : logoLight}
-              style={{ width: 140, height: 100 }}
-              resizeMode="contain"
-            />
-          </View>
-          <Text className="text-white text-2xl mt-20 font-medium">
-            Login to your account
+      <View className="w-full mt-24">
+        {/* Header */}
+        <View className="mb-8">
+          <Text className="text-black dark:text-white text-[24px] font-dmBold mb-2">
+            Login to your Account
           </Text>
-        </Animated.View>
+        </View>
 
-        {/* Login Form */}
-        <View className="bg-white w-full p-6 rounded-3xl shadow-lg shadow-black/10">
+        {/* Username Field */}
+        <View className="mb-6">
+          <Text className="text-black dark:text-white text-base font-poppinsMedium mb-3 ml-1">
+            Username
+          </Text>
           <TextInput
-            placeholder="Username"
+            placeholder="e.g. W001"
             value={username}
             onChangeText={setUsername}
-            className="border border-gray-300 text-black w-full px-4 py-3 mb-4 rounded-xl text-base"
-            placeholderTextColor="#999"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white w-full px-5 py-4 rounded-2xl text-base font-poppins"
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
           />
+        </View>
 
-          {/* Password with toggle */}
-          <View className="relative mb-2">
+        {/* Password Field */}
+        <View className="mb-8">
+          <Text className="text-black dark:text-white text-base font-poppinsMedium mb-3 ml-1">
+            Password
+          </Text>
+          <View className="relative">
             <TextInput
-              placeholder="Password"
+              placeholder="Enter Password"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={secureText}
-              className="border border-gray-300 text-black w-full px-4 py-3 pr-12 rounded-xl text-base"
-              placeholderTextColor="#999"
+              className="bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white w-full px-5 py-4 rounded-2xl text-base font-poppins"
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             />
             <TouchableOpacity
               onPress={() => setSecureText(!secureText)}
-              className="absolute right-4 top-1/2 -translate-y-1/2"
+              className="absolute right-4 top-1/2 -translate-y-1/2 opacity-60"
             >
               <Icon
                 name={secureText ? "eye-off" : "eye"}
                 size={22}
-                color="#666"
+                color={isDarkMode ? "#FFFFFF" : "#000000"}
               />
             </TouchableOpacity>
           </View>
+        </View>
 
-          {/* Login Button */}
-          <Pressable
-            onPress={handleLogin}
-            disabled={loading}
-            className={`${
-              loading ? "bg-indigo-400" : "bg-indigo-600"
-            } py-3 rounded-xl w-full mt-4 items-center active:scale-95`}
-            android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+        {/* Login Button */}
+        <Pressable
+          onPress={handleLogin}
+          disabled={loading}
+          className="py-4 rounded-2xl w-full overflow-hidden active:scale-95"
+          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+        >
+          <LinearGradient
+            colors={
+              loading
+                ? ["#A5B4FC", "#A5B4FC"] // light indigo when loading
+                : ["#5B4CCC", "#6347C2", "#8056D1"] // gradient when active
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              paddingVertical: 14,
+              borderRadius: 16,
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+            }}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white font-semibold text-lg">Login</Text>
+              <Text className="text-white font-dmSemiBold text-lg">Log In</Text>
             )}
-          </Pressable>
-        </View>
-
-        {/* Footer Disclaimer */}
-        <View className="mt-10 items-center">
-          <Text className="text-white text-xs text-center">
-            © 2025 WTech. All rights reserved.
-          </Text>
-        </View>
-      </KeyboardAwareScrollView>
-    </LinearGradient>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </KeyboardAwareScrollView>
   );
 }

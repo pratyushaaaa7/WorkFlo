@@ -23,11 +23,13 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Image,
 } from "react-native";
 import GlassNav from "../components/GlassNav";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
+import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
 
 // Tab Components
 import CalendarTab from "../components/dashboard/CalendarTab";
@@ -193,11 +195,30 @@ const Dashboard = () => {
                 color={isDarkMode ? "#919191" : "#454545"}
               />
 
-              <View className="flex-row items-center">
+              {/* <View className="flex-row items-center">
                 <View className="w-8 h-8 rounded-lg bg-indigo-500 items-center justify-center mr-2">
                   <Text className="text-white font-bold text-lg">T</Text>
                 </View>
                 <Text className="text-gray-900 dark:text-white text-xl font-bold">
+                  Thuhroh
+                </Text>
+              </View> */}
+
+              <View className="flex-row items-center">
+                {/* <Image
+                          source={isDarkMode ? logoDark : logoLight}
+                          style={{ width: 120, height: 40 }}
+                          resizeMode="contain"
+                        /> */}
+                <View className="w-8 h-8 rounded-lg items-center justify-center mx-3">
+                  {/* <Text className="text-white font-bold text-lg">T</Text> */}
+                  <Image
+                    source={thuhrohLogo}
+                    style={{ width: 120, height: 40 }}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text className="text-gray-900 dark:text-white text-2xl font-bold tracking-tight">
                   Thuhroh
                 </Text>
               </View>
