@@ -455,6 +455,15 @@ const ProjectsTab = ({
           offset: width * index,
           index,
         })}
+        onScrollToIndexFailed={(info) => {
+          const wait = new Promise((resolve) => setTimeout(resolve, 100));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+            });
+          });
+        }}
         renderItem={({ item: tabName }) => {
           const companyKey = getCompanyValue(tabName);
           const currentProjects = getFilteredProjects(companyKey);

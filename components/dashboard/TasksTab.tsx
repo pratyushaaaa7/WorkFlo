@@ -382,6 +382,15 @@ const TasksTab = ({
           offset: width * index,
           index,
         })}
+        onScrollToIndexFailed={(info) => {
+          const wait = new Promise((resolve) => setTimeout(resolve, 100));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+            });
+          });
+        }}
         renderItem={({ item: tabName }: { item: string }) => {
           const transformedData = getTransformedData(tabName);
           return (
@@ -404,7 +413,7 @@ const TasksTab = ({
                 ) : (
                   <View className="items-center py-10">
                     <Text className="text-gray-500 font-poppins">
-                      You have nothing in {activeSubTab} 
+                      You have nothing in {activeSubTab}
                     </Text>
                   </View>
                 )}
