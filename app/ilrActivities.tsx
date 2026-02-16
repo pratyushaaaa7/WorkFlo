@@ -554,19 +554,49 @@ const IlrActivities = () => {
                   >
                     Assignee
                   </Text>
-                  <View className="flex-row">
+                  <View className="flex-row items-center">
                     {ilr.responsibility.length > 0 ? (
-                      ilr.responsibility.slice(0, 3).map((r, i) => {
-                        const rId = getSafeId(r);
-                        return (
-                          <GlobalAvatar
-                            key={rId || i}
-                            name={r.name}
-                            size={32}
-                            className="-ml-2 border-2 border-white dark:border-black"
-                          />
-                        );
-                      })
+                      <>
+                        {ilr.responsibility.length <= 3 ? (
+                          ilr.responsibility.map((r, i) => {
+                            const rId = getSafeId(r);
+                            return (
+                              <GlobalAvatar
+                                key={rId || i}
+                                name={r.name}
+                                size={32}
+                                className="-ml-2 border-2 border-white dark:border-black"
+                              />
+                            );
+                          })
+                        ) : (
+                          <>
+                            {ilr.responsibility.slice(0, 2).map((r, i) => {
+                              const rId = getSafeId(r);
+                              return (
+                                <GlobalAvatar
+                                  key={rId || i}
+                                  name={r.name}
+                                  size={32}
+                                  className="-ml-2 border-2 border-white dark:border-black"
+                                />
+                              );
+                            })}
+                            <View
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 16,
+                              }}
+                              className="-ml-2 bg-[#F0F3F7] dark:bg-zinc-800 border-2 border-white dark:border-black items-center justify-center"
+                            >
+                              <Text className="text-[11px] font-dmBold text-[#454545] dark:text-[#D2D2D2]">
+                                +{ilr.responsibility.length - 2}
+                              </Text>
+                            </View>
+                          </>
+                        )}
+                      </>
                     ) : (
                       <Text className="text-xs text-gray-400">Unassigned</Text>
                     )}
