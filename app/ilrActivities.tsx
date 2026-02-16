@@ -35,7 +35,10 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import Modal from "react-native-modal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -445,9 +448,11 @@ const IlrActivities = () => {
       </View>
 
       <View className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
           className="px-4"
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* Top Info */}
           <TouchableOpacity
@@ -946,7 +951,7 @@ const IlrActivities = () => {
               })}
             </View>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
 
       <KeyboardStickyView
