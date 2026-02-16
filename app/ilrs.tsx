@@ -311,7 +311,7 @@ const ILRs = () => {
     return (
       <View className={`${isLast ? "mb-2" : ""}`}>
         {isFirst && (
-          <View className="px-4 py-3 bg-[#F0F3F7] dark:bg-white/5 border-b border-b-gray-200/30 dark:border-b-zinc-800/20 rounded-t-[16px]">
+          <View className="px-4 py-3 bg-[#F6F8FA] dark:bg-[#1A1A1A] border-b border-b-gray-200/30 dark:border-b-zinc-800/20 rounded-t-[16px]">
             <Text className="text-[15px] font-dmMedium text-[#000] dark:text-[#FFF]">
               {section.title}
             </Text>
@@ -352,9 +352,13 @@ const ILRs = () => {
             ${
               isSelected
                 ? "bg-[#EEF2FF] dark:bg-[#1B1F3B]"
-                : "bg-[#F6F8FA] dark:bg-[#1A1A1A]"
+                : "bg-[#F0F3F7] dark:bg-[#0D0D0D]"
             }
-            ${isLast ? "rounded-b-[16px]" : ""}
+            ${
+              isLast
+                ? "rounded-b-[16px]"
+                : "border-b border-[#E0E5EB] dark:border-[#413E47]"
+            }
           `}
         >
           <View className="flex-row items-center mb-1.5 ">
