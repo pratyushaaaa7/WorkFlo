@@ -867,11 +867,18 @@ const IlrActivities = () => {
                           )}
 
                           {act.type === "assignee" && (
-                            <Text
-                              className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
-                            >
-                              From : {act.oldValue} - To : {act.newValue}
-                            </Text>
+                            <View className="mt-1 mb-2">
+                              <Text
+                                className={`text-[12px] font-poppins ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
+                              >
+                                From : {act.oldValue}
+                              </Text>
+                              <Text
+                                className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
+                              >
+                                To : {act.newValue}
+                              </Text>
+                            </View>
                           )}
 
                           {act.type === "note" && act.note && (
