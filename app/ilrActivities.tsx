@@ -24,6 +24,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -346,6 +347,7 @@ const IlrActivities = () => {
 
   const addNote = async () => {
     if (!newNote.trim()) return;
+    Keyboard.dismiss();
     try {
       await api.post(
         `/ilrs/${ilr._id}/notes`,
