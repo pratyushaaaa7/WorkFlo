@@ -88,7 +88,7 @@ const ILRs = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setIlrs(res.data);
-        console.log(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error("Error fetching ILRs:", err);
     }
@@ -203,9 +203,9 @@ const ILRs = () => {
     switch (s) {
       case "open":
         return {
-          bg: isDarkMode ? "bg-[#282446]" : "bg-[#D7DEF2]",
-          text: "text-[#5B4CCC] dark:text-[#9486FB]",
-          dot: "bg-[#5B4CCC] dark:bg-[#9486FB]",
+          bg: isDarkMode ? "bg-[#5E1010]" : "bg-[#FDE6E6]",
+          text: "text-[#DF5B5B] dark:text-[#F29999]",
+          dot: "bg-[#DF5B5B] dark:bg-[#F29999]",
         };
       // case "in progress":
       //   return {
@@ -229,30 +229,11 @@ const ILRs = () => {
   };
 
   const getDueIndicator = (item: ILR) => {
-    if (item.status === "Closed") {
-      const rawDate = item.updatedAt || item.targetDate;
-      let dateStr = "N/A";
-
-      if (rawDate) {
-        const d = new Date(rawDate);
-        if (!isNaN(d.getTime())) {
-          dateStr = d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          });
-        }
-      }
-      return {
-        text: dateStr,
-        color: "text-green-600 dark:text-green-400",
-        icon: Calendar03Icon,
-      };
-    }
+    if (item.status === "Closed") return null;
 
     if (item.overdueDays && item.overdueDays > 0) {
       return {
-        text: `Delay - ${item.overdueDays}`,
+        text: `Overdue - ${item.overdueDays}`,
         color: "text-red-500",
         icon: Calendar03Icon,
       };
@@ -263,10 +244,25 @@ const ILRs = () => {
     const target = new Date(item.targetDate);
     target.setHours(0, 0, 0, 0);
 
-    if (today.getTime() === target.getTime()) {
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
       return {
         text: "Today",
         color: "text-[#4F46E5] dark:text-[#A5B4FC]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    if (diffDays > 5) {
+      return {
+        text: target.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+        color: "text-green-600 dark:text-green-400",
         icon: Calendar03Icon,
       };
     }
@@ -401,26 +397,31 @@ const ILRs = () => {
               </Text>
             </View>
 
-            <View className="flex-row items-center">
-              <HugeiconsIcon
-                icon={dueInfo.icon}
-                size={14}
-                color={
-                  dueInfo.color === "text-red-500"
-                    ? "#EF4444"
-                    : dueInfo.color.includes("green")
-                      ? "#10B981"
-                      : isDarkMode
-                        ? "#7C95FF"
-                        : "#5B4CCC"
-                }
-              />
-              <Text
-                className={`text-[12px] font-poppins ml-1.5 ${dueInfo.color}`}
-              >
-                {dueInfo.text}
-              </Text>
-            </View>
+            {dueInfo && (
+              <View className="flex-row items-center">
+                <HugeiconsIcon
+                  icon={dueInfo.icon}
+                  size={14}
+                  color={
+                    dueInfo.color === "text-red-500"
+                      ? "#EF4444"
+                      : dueInfo.color.includes("green")
+                        ? "#10B981"
+                        : dueInfo.color.includes("#4F46E5") ||
+                            dueInfo.text === "Today"
+                          ? "#4F46E5"
+                          : isDarkMode
+                            ? "#7C95FF"
+                            : "#5B4CCC"
+                  }
+                />
+                <Text
+                  className={`text-[12px] pt-1 font-poppins ml-1.5 ${dueInfo.color}`}
+                >
+                  {dueInfo.text}
+                </Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
       </View>
