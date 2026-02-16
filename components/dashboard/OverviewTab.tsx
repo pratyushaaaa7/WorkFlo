@@ -396,7 +396,7 @@ const OverviewTab = ({
                             <Text
                               className="text-[12px] font-poppinsMedium"
                               style={{
-                                color: isDarkMode ? "#919191" : "#454545",
+                                color: isDarkMode ? "#919191" : "#919191",
                               }}
                             >
                               {task.type === "Running Notes"
