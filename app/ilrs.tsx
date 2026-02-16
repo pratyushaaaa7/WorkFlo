@@ -255,14 +255,16 @@ const ILRs = () => {
       };
     }
 
-    if (diffDays > 5) {
+    if (diffDays > 0) {
       return {
-        text: target.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
-        color: "text-green-600 dark:text-green-400",
+        text: !isNaN(target.getTime())
+          ? target.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "N/A",
+        color: "text-[#1AA45B] dark:text-[#1AA45B]",
         icon: Calendar03Icon,
       };
     }
@@ -405,8 +407,9 @@ const ILRs = () => {
                   color={
                     dueInfo.color === "text-red-500"
                       ? "#EF4444"
-                      : dueInfo.color.includes("green")
-                        ? "#10B981"
+                      : dueInfo.color.includes("green") ||
+                          dueInfo.color.includes("#1AA45B")
+                        ? "#1AA45B"
                         : dueInfo.text === "Today"
                           ? isDarkMode
                             ? "#9486FB"
