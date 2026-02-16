@@ -325,7 +325,7 @@ const ProjectsTab = ({
               className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
             >
               <Text
-                className={`text-sm font-poppinsMedium ${
+                className={`font-poppinsMedium ${
                   isActive
                     ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
                     : "text-[#454545] dark:text-[#BBBBBB]"

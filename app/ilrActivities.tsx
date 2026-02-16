@@ -24,7 +24,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -1005,9 +1004,9 @@ const IlrActivities = () => {
         useNativeDriver
         hideModalContentWhileAnimating
       >
-        <View className="flex-1 justify-center items-center px-4">
+        <View className="flex-1 justify-center items-center ">
           <Pressable
-            className={`w-full max-w-sm p-6 rounded-3xl ${isDark ? "bg-[#000000]" : "bg-white"}`}
+            className={`w-full max-w-sm p-3 rounded-3xl ${isDark ? "bg-[#000000]" : "bg-white"}`}
             onPress={(e) => e.stopPropagation()}
           >
             {/* Icon */}
@@ -1075,10 +1074,10 @@ const IlrActivities = () => {
         onBackButtonPress={() => setShowRemarkModal(false)}
         useNativeDriver
         hideModalContentWhileAnimating
+        avoidKeyboard={false}
+        statusBarTranslucent={true}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1166,7 +1165,7 @@ const IlrActivities = () => {
               })()}
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1183,10 +1182,10 @@ const IlrActivities = () => {
         onBackButtonPress={() => setShowAssigneeModal(false)}
         useNativeDriver
         hideModalContentWhileAnimating
+        avoidKeyboard={false}
+        statusBarTranslucent={true}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1353,7 +1352,7 @@ const IlrActivities = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
       </Modal>
 
       {/* Change Target Date Modal */}
@@ -1367,18 +1366,13 @@ const IlrActivities = () => {
         animationIn="slideInUp"
         animationOut="slideOutDown"
         backdropOpacity={0.5}
-        onModalShow={() => {
-          setTimeout(() => {
-            dateNoteInputRef.current?.focus();
-          }, 100);
-        }}
         onBackButtonPress={() => setShowDateModal(false)}
         useNativeDriver
         hideModalContentWhileAnimating
+        avoidKeyboard={false}
+        statusBarTranslucent={true}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1395,49 +1389,55 @@ const IlrActivities = () => {
             </Text>
 
             <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-4" />
-            <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
-              New Target Date
-            </Text>
 
-            {/* Date Selection Row */}
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              className={`flex-row items-center justify-between p-4 rounded-xl mb-4 ${isDark ? "bg-[#000000] border border-[#5B4CCC]" : "bg-[#F6F8FA] border border-[#5B4CCC]"}`}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              className="max-h-[70vh]"
             >
-              <View className="flex-row items-center">
-                <Text
-                  className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"} ${!tempDate ? "opacity-60" : ""}`}
-                >
-                  {tempDate
-                    ? tempDate.toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "New Target Date"}
-                </Text>
-              </View>
-              <HugeiconsIcon
-                icon={Calendar02Icon}
-                size={22}
-                color={isDark ? "#919191" : "#454545"}
+              <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
+                New Target Date
+              </Text>
+
+              {/* Date Selection Row */}
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                className={`flex-row items-center justify-between p-4 rounded-xl mb-4 ${isDark ? "bg-[#000000] border border-[#5B4CCC]" : "bg-[#F6F8FA] border border-[#5B4CCC]"}`}
+              >
+                <View className="flex-row items-center">
+                  <Text
+                    className={` font-poppins text-[15px] ${isDark ? "text-white" : "text-black"} ${!tempDate ? "opacity-60" : ""}`}
+                  >
+                    {tempDate
+                      ? tempDate.toLocaleDateString("en-US", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "New Target Date"}
+                  </Text>
+                </View>
+                <HugeiconsIcon
+                  icon={Calendar02Icon}
+                  size={22}
+                  color={isDark ? "#919191" : "#454545"}
+                />
+              </TouchableOpacity>
+
+              <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
+
+              {/* Text Input for Reason */}
+              <TextInput
+                ref={dateNoteInputRef}
+                value={tempDateNote}
+                onChangeText={setTempDateNote}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
+                placeholder="Reason for change..."
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
               />
-            </TouchableOpacity>
-
-            <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
-
-            {/* Text Input for Reason */}
-            <TextInput
-              ref={dateNoteInputRef}
-              value={tempDateNote}
-              onChangeText={setTempDateNote}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
-              placeholder="Reason for change..."
-              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
-            />
+            </ScrollView>
 
             {/* Buttons */}
             <View className="flex-row gap-3 mb-5">
@@ -1502,7 +1502,7 @@ const IlrActivities = () => {
               })()}
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
       </Modal>
     </View>
   );

@@ -338,7 +338,7 @@ const TasksTab = ({
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                className={`text-sm font-poppinsMedium ${
+                className={` font-poppinsMedium ${
                   isActive
                     ? "text-[#5B4CCC] dark:text-[#5B4CCC]"
                     : "text-[#454545] dark:text-[#BBBBBB]"
