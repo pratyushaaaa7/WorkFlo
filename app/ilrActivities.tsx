@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeftIcon,
   ArrowRight01Icon,
+  ArrowRight02Icon,
   Calendar02Icon,
   Calendar03Icon,
   Cancel01Icon,
@@ -749,19 +750,84 @@ const IlrActivities = () => {
 
                           {/* Details */}
                           {act.type === "status" && act.newValue && (
-                            <View className="flex-row items-center mt-1 mb-2">
-                              <View className="bg-[#DBEAFE] rounded-md px-2.5 py-1 mr-2">
-                                <Text className="text-[#1E40AF] text-xs font-poppinsMedium">
+                            <View className="flex-row items-center mt-2 mb-2">
+                              {/* Old Status Pill */}
+                              <View
+                                className={`flex-row items-center rounded-lg px-3 py-1.5 ${
+                                  act.oldValue === "Closed"
+                                    ? isDark
+                                      ? "bg-[#0A2E1A]"
+                                      : "bg-[#E6F9F0]"
+                                    : isDark
+                                      ? "bg-[#420A0A]"
+                                      : "bg-[#FDE6E6]"
+                                }`}
+                              >
+                                <HugeiconsIcon
+                                  icon={
+                                    act.oldValue === "Closed"
+                                      ? CheckmarkCircle02Icon
+                                      : DashedLineCircleIcon
+                                  }
+                                  size={16}
+                                  color={
+                                    act.oldValue === "Closed"
+                                      ? "#1AA45B"
+                                      : "#DF5B5B"
+                                  }
+                                />
+                                <Text
+                                  className={`ml-1.5 text-sm font-dmMedium ${
+                                    act.oldValue === "Closed"
+                                      ? "text-[#1AA45B]"
+                                      : "text-[#DF5B5B]"
+                                  }`}
+                                >
                                   {act.oldValue || "Open"}
                                 </Text>
                               </View>
-                              <Ionicons
-                                name="arrow-forward"
-                                size={14}
-                                color={isDark ? "#9CA3AF" : "#6B7280"}
-                              />
-                              <View className="bg-[#D1FAE5] rounded-md px-2.5 py-1 ml-2">
-                                <Text className="text-[#065F46] text-xs font-poppinsMedium">
+
+                              {/* Arrow */}
+                              <View className="mx-2">
+                                <HugeiconsIcon
+                                  icon={ArrowRight02Icon}
+                                  size={18}
+                                  color={isDark ? "#9CA3AF" : "#454545"}
+                                />
+                              </View>
+
+                              {/* New Status Pill */}
+                              <View
+                                className={`flex-row items-center rounded-lg px-3 py-1.5 ${
+                                  act.newValue === "Closed"
+                                    ? isDark
+                                      ? "bg-[#0A2E1A]"
+                                      : "bg-[#E6F9F0]"
+                                    : isDark
+                                      ? "bg-[#420A0A]"
+                                      : "bg-[#FDE6E6]"
+                                }`}
+                              >
+                                <HugeiconsIcon
+                                  icon={
+                                    act.newValue === "Closed"
+                                      ? CheckmarkCircle02Icon
+                                      : DashedLineCircleIcon
+                                  }
+                                  size={16}
+                                  color={
+                                    act.newValue === "Closed"
+                                      ? "#1AA45B"
+                                      : "#DF5B5B"
+                                  }
+                                />
+                                <Text
+                                  className={`ml-1.5 text-sm font-dmMedium ${
+                                    act.newValue === "Closed"
+                                      ? "text-[#1AA45B]"
+                                      : "text-[#DF5B5B]"
+                                  }`}
+                                >
                                   {act.newValue}
                                 </Text>
                               </View>
