@@ -355,7 +355,7 @@ const ProjectDetails = () => {
 
       {/* STICKY HEADER (SPOTIFY STYLE) */}
       <Animated.View
-        className="absolute  top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 pr-5 flex-row items-center justify-between "
+        className="absolute  top-0 left-0 right-0 z-50 pt-14 pb-3 px-4 pr-5 flex-row items-center justify-between"
         style={[
           {
             backgroundColor: isDarkMode ? "#0D0D0D" : "#FBFCFD",
@@ -391,7 +391,7 @@ const ProjectDetails = () => {
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
             size={24}
-            color={isDarkMode ? "#FFF" : "#000"}
+            color={isDarkMode ? "#FFF" : "#000000"}
           />
         </TouchableOpacity>
       </Animated.View>
@@ -478,7 +478,7 @@ const ProjectDetails = () => {
           />
 
           <View
-            className="w-full bg-white dark:bg-[#111111] rounded-[32px] p-4 shadow-2xl"
+            className="w-full bg-white dark:bg-[#111111] rounded-[24px] p-4 shadow-2xl"
             style={{ elevation: 20 }}
           >
             {/* Red Icon Header */}
@@ -493,14 +493,13 @@ const ProjectDetails = () => {
               Delete this Project
             </Text>
             <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191] mb-5 leading-6">
-              Are you sure you want to delete this project?{"\n"}This action is
-              final.
+              Are you sure you want to delete this project?
             </Text>
 
             <View className="flex-row gap-4">
               <TouchableOpacity
                 onPress={() => setShowDeleteModal(false)}
-                className="flex-1 h-[56px] items-center justify-center rounded-2xl border border-[#E5E7EB] dark:border-[#333333]"
+                className="flex-1 h-[56px] items-center justify-center rounded-xl border border-[#E5E7EB] dark:border-[#333333]"
               >
                 <Text className="text-lg font-dmBold text-black dark:text-white">
                   Cancel
@@ -586,7 +585,7 @@ const ProjectDetails = () => {
             <HugeiconsIcon
               icon={MoreHorizontalIcon}
               size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
+              color={isDarkMode ? "#FFF" : "#FFF"}
             />
           </TouchableOpacity>
         </View>
