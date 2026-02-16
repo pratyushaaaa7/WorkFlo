@@ -61,7 +61,7 @@ const ProjectMain = () => {
         } catch (err: any) {
           console.error(
             "Failed to fetch project data/images:",
-            err.message || err
+            err.message || err,
           );
         } finally {
           // setLoadingImages(false);
@@ -235,7 +235,7 @@ const ProjectMain = () => {
       <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
         <View className="rounded-b-3xl px-6 pt-14 pb-10">
           <TouchableOpacity
-            onPress={() => router.push("/projects")}
+            onPress={() => router.back()}
             className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
           >
             <Ionicons name="arrow-back" size={22} color="#fff" />
@@ -414,8 +414,8 @@ const ProjectMain = () => {
                       project?.status === "active"
                         ? "#16A34A"
                         : project?.status === "inactive"
-                        ? "#CA8A04"
-                        : "#DC2626",
+                          ? "#CA8A04"
+                          : "#DC2626",
                     borderWidth: 1,
                     alignSelf: "flex-start", // ensures the pill wraps content
                     marginTop: 4,
@@ -430,8 +430,8 @@ const ProjectMain = () => {
                         project?.status === "active"
                           ? "#16A34A"
                           : project?.status === "inactive"
-                          ? "#CA8A04"
-                          : "#DC2626",
+                            ? "#CA8A04"
+                            : "#DC2626",
                       marginRight: 6,
                     }}
                   />
@@ -442,8 +442,8 @@ const ProjectMain = () => {
                         project?.status === "active"
                           ? "#166534"
                           : project?.status === "inactive"
-                          ? "#854D0E"
-                          : "#7F1D1D",
+                            ? "#854D0E"
+                            : "#7F1D1D",
                     }}
                   >
                     {project?.status}

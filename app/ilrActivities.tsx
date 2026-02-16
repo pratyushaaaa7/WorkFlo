@@ -28,6 +28,7 @@ import {
   LayoutAnimation,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -134,8 +135,15 @@ const IlrActivities = () => {
   const [tempDateNote, setTempDateNote] = useState("");
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const remarkInputRef = React.useRef<TextInput>(null);
   const dateNoteInputRef = React.useRef<TextInput>(null);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchILRDetails();
+    setRefreshing(false);
+  };
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -453,6 +461,14 @@ const IlrActivities = () => {
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#5B4CCC"]}
+              tintColor="#5B4CCC"
+            />
+          }
         >
           {/* Top Info */}
           <TouchableOpacity

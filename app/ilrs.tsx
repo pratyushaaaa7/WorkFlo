@@ -250,7 +250,7 @@ const ILRs = () => {
     if (diffDays === 0) {
       return {
         text: "Today",
-        color: "text-[#4F46E5] dark:text-[#A5B4FC]",
+        color: "text-[#5B4CCC] dark:text-[#9486FB]",
         icon: Calendar03Icon,
       };
     }
@@ -407,9 +407,10 @@ const ILRs = () => {
                       ? "#EF4444"
                       : dueInfo.color.includes("green")
                         ? "#10B981"
-                        : dueInfo.color.includes("#4F46E5") ||
-                            dueInfo.text === "Today"
-                          ? "#4F46E5"
+                        : dueInfo.text === "Today"
+                          ? isDarkMode
+                            ? "#9486FB"
+                            : "#5B4CCC"
                           : isDarkMode
                             ? "#7C95FF"
                             : "#5B4CCC"
