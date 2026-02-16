@@ -265,6 +265,7 @@ const IlrActivities = () => {
   };
 
   const saveDateChange = async () => {
+    Keyboard.dismiss();
     if (!tempDate) return;
     const updatedDate = tempDate.toISOString();
     setIlr((prev) => ({ ...prev, targetDate: updatedDate }));
@@ -307,6 +308,7 @@ const IlrActivities = () => {
   };
 
   const saveRemark = async () => {
+    Keyboard.dismiss();
     setShowRemarkModal(false);
     setIlr((prev) => ({ ...prev, remarks: newRemark }));
     try {
@@ -327,6 +329,7 @@ const IlrActivities = () => {
   };
 
   const saveAssigneeChange = async () => {
+    Keyboard.dismiss();
     setShowAssigneeModal(false);
     // Send selected objects (ensure they match responsibility schema)
     const responsibility = tempAssignees.map((a) => ({
@@ -468,7 +471,7 @@ const IlrActivities = () => {
       <View className="flex-1">
         <KeyboardAwareScrollView
           className="px-4"
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -1026,8 +1029,15 @@ const IlrActivities = () => {
       {/* Delete Confirmation Modal */}
       <Modal
         isVisible={deleteModalVisible}
-        onBackdropPress={() => setDeleteModalVisible(false)}
-        onBackButtonPress={() => setDeleteModalVisible(false)}
+        onBackdropPress={() => {
+          Keyboard.dismiss();
+          setDeleteModalVisible(false);
+        }}
+        onModalHide={() => Keyboard.dismiss()}
+        onBackButtonPress={() => {
+          Keyboard.dismiss();
+          setDeleteModalVisible(false);
+        }}
         onSwipeComplete={() => setDeleteModalVisible(false)}
         swipeDirection="down"
         propagateSwipe={true}
@@ -1065,7 +1075,10 @@ const IlrActivities = () => {
             {/* Buttons */}
             <View className="flex-row gap-3">
               <TouchableOpacity
-                onPress={() => setDeleteModalVisible(false)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setDeleteModalVisible(false);
+                }}
                 className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
                 <Text
@@ -1091,8 +1104,14 @@ const IlrActivities = () => {
       {/* Change Description Modal */}
       <Modal
         isVisible={showRemarkModal}
-        onBackdropPress={() => setShowRemarkModal(false)}
-        onSwipeComplete={() => setShowRemarkModal(false)}
+        onBackdropPress={() => {
+          Keyboard.dismiss();
+          setShowRemarkModal(false);
+        }}
+        onSwipeComplete={() => {
+          Keyboard.dismiss();
+          setShowRemarkModal(false);
+        }}
         swipeDirection="down"
         propagateSwipe={true}
         style={{ margin: 0, justifyContent: "flex-end" }}
@@ -1104,7 +1123,11 @@ const IlrActivities = () => {
             remarkInputRef.current?.focus();
           }, 100);
         }}
-        onBackButtonPress={() => setShowRemarkModal(false)}
+        onModalHide={() => Keyboard.dismiss()}
+        onBackButtonPress={() => {
+          Keyboard.dismiss();
+          setShowRemarkModal(false);
+        }}
         useNativeDriver
         hideModalContentWhileAnimating
         avoidKeyboard={false}
@@ -1144,7 +1167,10 @@ const IlrActivities = () => {
             {/* Buttons */}
             <View className="flex-row gap-3 mb-5">
               <TouchableOpacity
-                onPress={() => setShowRemarkModal(false)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setShowRemarkModal(false);
+                }}
                 className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
                 <Text
@@ -1204,15 +1230,25 @@ const IlrActivities = () => {
       {/* Change Assignee Modal */}
       <Modal
         isVisible={showAssigneeModal}
-        onBackdropPress={() => setShowAssigneeModal(false)}
-        onSwipeComplete={() => setShowAssigneeModal(false)}
+        onBackdropPress={() => {
+          Keyboard.dismiss();
+          setShowAssigneeModal(false);
+        }}
+        onSwipeComplete={() => {
+          Keyboard.dismiss();
+          setShowAssigneeModal(false);
+        }}
         swipeDirection="down"
         propagateSwipe={true}
         style={{ margin: 0, justifyContent: "flex-end" }}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         backdropOpacity={0.5}
-        onBackButtonPress={() => setShowAssigneeModal(false)}
+        onModalHide={() => Keyboard.dismiss()}
+        onBackButtonPress={() => {
+          Keyboard.dismiss();
+          setShowAssigneeModal(false);
+        }}
         useNativeDriver
         hideModalContentWhileAnimating
         avoidKeyboard={false}
@@ -1341,7 +1377,10 @@ const IlrActivities = () => {
             {/* Bottom Buttons */}
             <View className="flex-row gap-3 pt-4">
               <TouchableOpacity
-                onPress={() => setShowAssigneeModal(false)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setShowAssigneeModal(false);
+                }}
                 className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
                 <Text
@@ -1391,15 +1430,25 @@ const IlrActivities = () => {
       {/* Change Target Date Modal */}
       <Modal
         isVisible={showDateModal}
-        onBackdropPress={() => setShowDateModal(false)}
-        onSwipeComplete={() => setShowDateModal(false)}
+        onBackdropPress={() => {
+          Keyboard.dismiss();
+          setShowDateModal(false);
+        }}
+        onSwipeComplete={() => {
+          Keyboard.dismiss();
+          setShowDateModal(false);
+        }}
         swipeDirection="down"
         propagateSwipe={true}
         style={{ margin: 0, justifyContent: "flex-end" }}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         backdropOpacity={0.5}
-        onBackButtonPress={() => setShowDateModal(false)}
+        onModalHide={() => Keyboard.dismiss()}
+        onBackButtonPress={() => {
+          Keyboard.dismiss();
+          setShowDateModal(false);
+        }}
         useNativeDriver
         hideModalContentWhileAnimating
         avoidKeyboard={false}
@@ -1475,7 +1524,10 @@ const IlrActivities = () => {
             {/* Buttons */}
             <View className="flex-row gap-3 mb-5">
               <TouchableOpacity
-                onPress={() => setShowDateModal(false)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setShowDateModal(false);
+                }}
                 className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
                 <Text
