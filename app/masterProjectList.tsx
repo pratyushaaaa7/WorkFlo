@@ -23,6 +23,7 @@ import {
   FlatList,
   Image,
   Platform,
+  RefreshControl,
   StatusBar,
   Text,
   TextInput,
@@ -56,6 +57,7 @@ const MasterProjectList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch all projects initially
   const fetchProjects = async () => {
@@ -74,7 +76,13 @@ const MasterProjectList = () => {
       // });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProjects();
   };
 
   useEffect(() => {
@@ -601,6 +609,14 @@ const MasterProjectList = () => {
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#5B4CCC"]}
+              tintColor="#5B4CCC"
+            />
+          }
           ListEmptyComponent={
             <View className="flex-1 justify-center items-center mt-20 px-8">
               <Image
@@ -612,7 +628,9 @@ const MasterProjectList = () => {
                 style={{ width: 300, height: 220 }}
                 resizeMode="contain"
               />
-               <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
+              <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+                No Projects
+              </Text>
               <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center mt-2">
                 {selectedStatus === "ALL"
                   ? `You don't have any project in ${

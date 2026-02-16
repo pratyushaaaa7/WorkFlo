@@ -179,7 +179,7 @@ const CreateProjectScreen = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsMultipleSelection: true,
-      quality: 0.8,
+      quality: 1,
     });
 
     if (!result.canceled) {

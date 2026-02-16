@@ -384,7 +384,7 @@ const ProjectsTab = ({
     };
 
     fetchProjects();
-  }, [token, activeSubTab]);
+  }, [token, activeSubTab, refreshing]);
 
   // Progressive Rendering Effect (Initial load and Tab Switch)
   useEffect(() => {

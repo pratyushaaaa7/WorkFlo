@@ -1,23 +1,24 @@
-import React, { useEffect, useState, useContext, useMemo } from "react";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  FlatList,
+  RefreshControl,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import api from "../lib/api";
-import { AuthContext } from "../context/AuthContext";
-import { Ionicons, Feather } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import * as XLSX from "xlsx";
 import Toast from "react-native-toast-message";
+import * as XLSX from "xlsx";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 import { Project } from "../types/Project";
-import { LinearGradient } from "expo-linear-gradient";
 
 const ProjectList = () => {
   const router = useRouter();
@@ -28,6 +29,7 @@ const ProjectList = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // 🔍 New state
 
   const fetchProjects = async () => {
@@ -45,7 +47,13 @@ const ProjectList = () => {
       console.error("Failed to fetch projects", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProjects();
   };
 
   useEffect(() => {
@@ -86,7 +94,7 @@ const ProjectList = () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -165,9 +173,7 @@ const ProjectList = () => {
             params: {
               id: item._id,
               project: JSON.stringify(item),
-
             },
-            
           })
         }
         activeOpacity={0.7}
@@ -192,10 +198,10 @@ const ProjectList = () => {
               item.status === "active"
                 ? "bg-green-100"
                 : item.status === "BD"
-                ? "bg-yellow-100"
-                : item.status === "inactive"
-                ? "bg-gray-200"
-                : "bg-red-100"
+                  ? "bg-yellow-100"
+                  : item.status === "inactive"
+                    ? "bg-gray-200"
+                    : "bg-red-100"
             }`}
           >
             <Text
@@ -203,10 +209,10 @@ const ProjectList = () => {
                 item.status === "active"
                   ? "text-green-700"
                   : item.status === "BD"
-                  ? "text-yellow-800"
-                  : item.status === "inactive"
-                  ? "text-gray-700"
-                  : "text-red-700"
+                    ? "text-yellow-800"
+                    : item.status === "inactive"
+                      ? "text-gray-700"
+                      : "text-red-700"
               }`}
             >
               {item.status?.toUpperCase() || "—"}
@@ -231,7 +237,7 @@ const ProjectList = () => {
               router.push({
                 pathname: "/createProject",
                 // params: { project: JSON.stringify(item) },
-                  params: { projectId: item._id },
+                params: { projectId: item._id },
               })
             }
           >
@@ -324,6 +330,14 @@ const ProjectList = () => {
           renderItem={renderItem}
           contentContainerStyle={{ paddingVertical: 12, paddingBottom: 90 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#6366F1"]}
+              tintColor="#6366F1"
+            />
+          }
         />
       )}
     </View>
