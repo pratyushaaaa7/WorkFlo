@@ -14,9 +14,16 @@ import {
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -71,6 +78,14 @@ const ILRs = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Track if it's the first load to show global spinner
+  const isFirstLoad = useRef(true);
+
+  // Reset first load if project changes
+  useEffect(() => {
+    isFirstLoad.current = true;
+  }, [projectId]);
+
   const {
     filter,
     searchQuery,
@@ -81,32 +96,41 @@ const ILRs = () => {
     reset,
   } = useILRFilterStore();
 
-  const fetchILRs = async () => {
-    if (!token || !projectId) return;
-    try {
-      const res = await api.get(`/ilrs/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setIlrs(res.data);
-      console.log(res.data);
-    } catch (err) {
-      console.error("Error fetching ILRs:", err);
-    }
-  };
+  const fetchILRs = useCallback(
+    async (background = false) => {
+      if (!token || !projectId) return;
+      try {
+        if (!background) setLoading(true);
+        const res = await api.get(`/ilrs/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setIlrs(res.data);
+        // console.log(res.data);
+      } catch (err) {
+        console.error("Error fetching ILRs:", err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [token, projectId],
+  );
 
-  useEffect(() => {
-    const loadInitial = async () => {
-      setLoading(true);
-      await fetchILRs();
-      setLoading(false);
-    };
-    loadInitial();
-  }, [token, projectId]);
+  // Refresh ILRs when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (projectId) {
+        // Use silent refresh if not first load
+        fetchILRs(!isFirstLoad.current);
+        isFirstLoad.current = false;
+      }
+    }, [fetchILRs, projectId]),
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchILRs();
-    setRefreshing(false);
+    // Silent fetch because RefreshControl handles the spinner
+    await fetchILRs(true);
   };
 
   const handleDownloadExcel = async () => {
