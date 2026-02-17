@@ -297,7 +297,7 @@ const NoteRow = React.memo(
                   <View className="flex-1 p-2">
                     <Text
                       className="text-[12px] font-poppins leading-tight"
-                      style={{ color: isDarkMode ? "#fff" : "#000" }}
+                      style={{ color: "#000" }}
                     >
                       {item.text}
                     </Text>
