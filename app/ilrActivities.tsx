@@ -987,7 +987,7 @@ const IlrActivities = () => {
         offset={{ closed: 0, opened: 0 }} // adjust if needed
       >
         <View
-          className="px-3 py-2 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
+          className="px-3 py-2 pb-6 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
           style={{
             borderColor: isDark ? "#413E47" : "#E0E5EB",
             paddingBottom: bottom > 0 ? bottom : 0,
