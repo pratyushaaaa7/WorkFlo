@@ -413,7 +413,7 @@ const TasksTab = ({
                 ) : (
                   <View className="items-center py-10">
                     <Text className="text-gray-500 font-poppins">
-                      You have nothing in {activeSubTab}
+                      You have nothing in {tabName}
                     </Text>
                   </View>
                 )}

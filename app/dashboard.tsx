@@ -60,9 +60,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isRefresh = false) => {
     try {
-      if (!refreshing) setLoading(true);
+      if (!isRefresh) setLoading(true);
       const res = await api.get("/dashboard/my-tasks", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -84,7 +84,7 @@ const Dashboard = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchDashboardData();
+    fetchDashboardData(true);
   };
 
   const setActiveTab = (tab: string) => {
