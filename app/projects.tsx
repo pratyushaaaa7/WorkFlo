@@ -13,16 +13,18 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { AnimatePresence, MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Image,
   RefreshControl,
+  ScrollView,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from "react-native";
 import GlobalAvatar from "../components/GlobalAvatar";
@@ -105,6 +107,7 @@ const ProjectsScreen = () => {
   const navigation = useNavigation();
   const auth = useContext(AuthContext);
   const token = auth?.token;
+  const { width: screenWidth } = useWindowDimensions();
 
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +115,7 @@ const ProjectsScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [activeTab, setActiveTab] = useState("ALL");
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const fetchAssignedProjects = async () => {
     try {
@@ -155,6 +159,27 @@ const ProjectsScreen = () => {
   const onRefresh = () => {
     setRefreshing(true);
     fetchAssignedProjects();
+  };
+
+  // Handle tab press - scroll to the corresponding tab
+  const handleTabPress = (tab: string) => {
+    const tabIndex = TABS.indexOf(tab);
+    if (tabIndex !== -1 && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        x: tabIndex * screenWidth,
+        animated: true,
+      });
+    }
+    setActiveTab(tab);
+  };
+
+  // Handle scroll event - update active tab based on scroll position
+  const handleScroll = (event: any) => {
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const tabIndex = Math.round(scrollX / screenWidth);
+    if (tabIndex >= 0 && tabIndex < TABS.length) {
+      setActiveTab(TABS[tabIndex]);
+    }
   };
 
   const filteredProjects = useMemo(() => {
@@ -428,7 +453,7 @@ const ProjectsScreen = () => {
           return (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => handleTabPress(tab)}
               className={`py-2 px-2 border-b flex-1 items-center ${
                 isActive
                   ? "border-[#5B4CCC] dark:border-[#5B4CCC]"
@@ -451,68 +476,109 @@ const ProjectsScreen = () => {
         })}
       </View>
 
-      {/* Project Count */}
-      <View className="px-4 pt-4 pb-2">
-        <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
-          Projects{" "}
-          <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
-            ({filteredProjects.length})
-          </Text>
-        </Text>
-      </View>
+      {/* Swipeable Content Area */}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
+      >
+        {TABS.map((tab) => {
+          // Filter projects for this specific tab
+          let tabProjects = projects;
+          if (tab !== "ALL") {
+            tabProjects = projects.filter((p) => {
+              const pCompany = p.company?.toUpperCase();
+              if (tab === "WALL") {
+                return (
+                  pCompany === "WALL" ||
+                  pCompany === "WAL+L" ||
+                  pCompany === "WAL"
+                );
+              }
+              if (tab === "WP") {
+                return pCompany === "WP" || pCompany === "WPROJECTS";
+              }
+              return pCompany === tab;
+            });
+          }
 
-      <FlatList
-        data={filteredProjects}
-        renderItem={renderProjectItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={{ paddingTop: 12, paddingBottom: 100 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#5B4CCC"
-          />
-        }
-        // ListHeaderComponent={() => (
-        //   <View className="px-4 mb-4">
-        //     <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
-        //       Projects{" "}
-        //       <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
-        //         ({filteredProjects.length})
-        //       </Text>
-        //     </Text>
-        //   </View>
-        // )}
-        ListEmptyComponent={() =>
-          !loading ? (
-            <View className="flex-1 items-center justify-center pt-20">
-              <Image
-                source={
-                  isDarkMode
-                    ? require("../assets/images/ghostDarkMode.png")
-                    : require("../assets/images/ghostLightMode.png")
+          // Apply search filter
+          if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            tabProjects = tabProjects.filter((p) => {
+              const nameMatch = p.projectName?.toLowerCase().includes(query);
+              const fileMatch = String(p.fileNumber || "")
+                .toLowerCase()
+                .includes(query);
+              const descMatch = (p.description || p.projectDescription || "")
+                .toLowerCase()
+                .includes(query);
+              return nameMatch || fileMatch || descMatch;
+            });
+          }
+
+          return (
+            <View key={tab} style={{ width: screenWidth }}>
+              {/* Project Count */}
+              <View className="px-4 pt-4 pb-2">
+                <Text className="text-[20px] font-dmSemiBold text-black dark:text-white">
+                  Projects{" "}
+                  <Text className="text-[#8E8E8E] font-poppinsMedium text-[14px]">
+                    ({tabProjects.length})
+                  </Text>
+                </Text>
+              </View>
+
+              <FlatList
+                data={tabProjects}
+                renderItem={renderProjectItem}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={{ paddingTop: 12, paddingBottom: 100 }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor="#5B4CCC"
+                  />
                 }
-                style={{ width: 300, height: 220 }}
-                resizeMode="contain"
+                ListEmptyComponent={() =>
+                  !loading ? (
+                    <View className="flex-1 items-center justify-center pt-20">
+                      <Image
+                        source={
+                          isDarkMode
+                            ? require("../assets/images/ghostDarkMode.png")
+                            : require("../assets/images/ghostLightMode.png")
+                        }
+                        style={{ width: 300, height: 220 }}
+                        resizeMode="contain"
+                      />
+                      <Text className="text-black dark:text-white font-dmSemiBold text-lg">
+                        No Projects
+                      </Text>
+                      <Text className="text-gray-500 font-poppins text-center px-10 mt-2">
+                        {searchQuery
+                          ? `No results found for "${searchQuery}"`
+                          : "You don't have any strictly assigned projects yet."}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="pt-2">
+                      {[1, 2, 3].map((i) => (
+                        <ProjectSkeleton key={i} isDarkMode={isDarkMode} />
+                      ))}
+                    </View>
+                  )
+                }
               />
-              <Text className="text-black dark:text-white font-dmSemiBold text-lg">
-                No Projects
-              </Text>
-              <Text className="text-gray-500 font-poppins text-center px-10 mt-2">
-                {searchQuery
-                  ? `No results found for "${searchQuery}"`
-                  : "You don't have any strictly assigned projects yet."}
-              </Text>
             </View>
-          ) : (
-            <View className="pt-2">
-              {[1, 2, 3].map((i) => (
-                <ProjectSkeleton key={i} isDarkMode={isDarkMode} />
-              ))}
-            </View>
-          )
-        }
-      />
+          );
+        })}
+      </ScrollView>
     </View>
   );
 };
