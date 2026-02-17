@@ -46,6 +46,7 @@ const EmployeeDetail = () => {
   const [activeTab, setActiveTab] = useState("Profile");
   const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const isFirstLoad = useRef(true);
 
   // Scroll Value for Animation
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -57,12 +58,13 @@ const EmployeeDetail = () => {
     async (isManualRefresh = false) => {
       if (!userId || !token) return;
       try {
-        if (!isManualRefresh) setLoading(true);
+        if (!isManualRefresh && isFirstLoad.current) setLoading(true);
         const res = await api.get(`/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserData(res.data);
         // console.log(res.data);
+        isFirstLoad.current = false;
       } catch (err) {
         console.error("Error fetching user:", err);
       } finally {
@@ -79,6 +81,7 @@ const EmployeeDetail = () => {
   }, [fetchUser]);
 
   useEffect(() => {
+    isFirstLoad.current = true;
     fetchUser();
   }, [fetchUser, refresh]);
 
