@@ -292,6 +292,7 @@ const EmployeeDetail = () => {
         stickyHeaderIndices={[1]}
         style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }} // 👈 EXPLICIT LOWER Z-INDEX
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled" // Add this line
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
