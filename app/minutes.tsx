@@ -1,20 +1,21 @@
-import React, { useEffect, useState, useContext } from "react";
+import CircleProgress from "@/components/CircleProgress";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Pressable,
-  Alert,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext"; // adjust path
 import api from "../lib/api"; // axios instance with baseURL
-import CircleProgress from "@/components/CircleProgress";
-import Toast from "react-native-toast-message";
 
 const Minutes = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
@@ -24,29 +25,36 @@ const Minutes = () => {
 
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // console.log(JSON.stringify(meetings, null, 2));
 
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get(`/minutes/project/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMeetings(res.data);
-        console.log(res.data);
-      } catch (err) {
-        console.error("Failed to fetch meetings", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchMeetings = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/minutes/project/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMeetings(res.data);
+      console.log(res.data);
+    } catch (err) {
+      console.error("Failed to fetch meetings", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     if (projectId) fetchMeetings();
   }, [projectId, token]);
 
-  const handleDeleteMeeting = (meetingId) => {
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchMeetings();
+  };
+
+  const handleDeleteMeeting = (meetingId: any) => {
     Alert.alert(
       "Delete Meeting",
       "This meeting will be permanently deleted. Continue?",
@@ -93,7 +101,7 @@ const Minutes = () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -129,6 +137,14 @@ const Minutes = () => {
       <ScrollView
         className="p-4  bg-gray-100"
         contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#6366F1"]}
+            tintColor="#6366F1"
+          />
+        }
       >
         {loading ? (
           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
@@ -144,10 +160,10 @@ const Minutes = () => {
               onPress={() =>
                 meeting.meetingStage !== "mom_submitted"
                   ? router.push(
-                      `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
+                      `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
                     )
                   : router.push(
-                      `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+                      `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
                     )
               }
               style={{
@@ -275,7 +291,7 @@ const Minutes = () => {
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
-                        `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`
+                        `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
                       )
                     }
                     className="flex-1 bg-sky-700 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
@@ -289,7 +305,7 @@ const Minutes = () => {
                   <TouchableOpacity
                     onPress={() =>
                       router.push(
-                        `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
+                        `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
                       )
                     }
                     className="flex-1 bg-green-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
@@ -310,7 +326,7 @@ const Minutes = () => {
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/createMeeting?projectId=${projectId}&projectName=${projectName}`
+            `/createMeeting?projectId=${projectId}&projectName=${projectName}`,
           )
         }
         className="bg-indigo-600"
