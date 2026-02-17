@@ -1,3 +1,4 @@
+import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
 import {
   Add01Icon,
   Calendar04Icon,
@@ -15,6 +16,7 @@ import { useNavigation, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -23,13 +25,11 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  Image,
 } from "react-native";
 import GlassNav from "../components/GlassNav";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
-import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
 
 // Tab Components
 import CalendarTab from "../components/dashboard/CalendarTab";
