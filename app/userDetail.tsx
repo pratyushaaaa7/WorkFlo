@@ -28,6 +28,7 @@ import ReactNativeModal from "react-native-modal";
 import Toast from "react-native-toast-message";
 import VeryBlackStar from "../assets/images/Revised Black Star.png";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import GlobalAvatar from "../components/GlobalAvatar";
 import api from "../lib/api";
 
 const UserDetail = () => {
@@ -441,63 +442,61 @@ const UserDetail = () => {
 
           {ratings &&
             ratings.length > 0 &&
-            ratings.map((r: any, idx: number) => (
-              <View
-                key={idx}
-                className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
-              >
-                <View className="flex-row items-start">
-                  {/* Left Column: Avatar */}
-                  <View className="w-11 h-11 rounded-full bg-[#0073CB] items-center justify-center mr-3 mt-1">
-                    <Text className="text-white font-poppinsMedium text-base">
-                      {r.givenBy?.fullName
-                        ? r.givenBy.fullName
-                            .trim()
-                            .split(/\s+/)
-                            .slice(0, 2)
-                            .map((name: string) => name[0])
-                            .join("")
-                            .toUpperCase()
-                        : "UN"}
-                    </Text>
-                  </View>
+            ratings
+              .sort((a: any, b: any) =>
+                moment(b.createdAt).diff(moment(a.createdAt)),
+              )
+              .map((r: any, idx: number) => (
+                <View
+                  key={idx}
+                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
+                >
+                  <View className="flex-row items-start">
+                    {/* Left Column: Avatar */}
+                    <GlobalAvatar
+                      name={r.givenBy?.fullName || "Unknown"}
+                      size={44}
+                      fontSize={16}
+                      borderRadius={22}
+                      className="mr-3 mt-1"
+                    />
 
-                  {/* Right Column: Content */}
-                  <View className="flex-1">
-                    <View className="flex-row justify-between items-start">
-                      <Text className="text-black dark:text-white font-dmSemiBold text-base flex-1 mr-2">
-                        {r.givenBy?.fullName || "Unknown"}
-                      </Text>
-                      <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
-                        {moment(r.createdAt).format("DD MMM YYYY")}
-                      </Text>
+                    {/* Right Column: Content */}
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-start">
+                        <Text className="text-black dark:text-white font-dmSemiBold text-base flex-1 mr-2">
+                          {r.givenBy?.fullName || "Unknown"}
+                        </Text>
+                        <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
+                          {moment(r.createdAt).format("DD MMM YYYY")}
+                        </Text>
+                      </View>
+
+                      {/* Stars Rating - Only show given stars */}
+                      <View className="flex-row mt-1 mb-2">
+                        {[...Array(r.stars || 0)].map((_, i) => (
+                          <Image
+                            key={i}
+                            source={
+                              isDarkMode
+                                ? require("../assets/images/Rating White Star.png")
+                                : require("../assets/images/Rating Black Star.png")
+                            }
+                            style={{ width: 12, height: 12, marginRight: 2 }}
+                            resizeMode="contain"
+                          />
+                        ))}
+                      </View>
+
+                      {r.note && (
+                        <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
+                          {r.note}
+                        </Text>
+                      )}
                     </View>
-
-                    {/* Stars Rating - Only show given stars */}
-                    <View className="flex-row mt-1 mb-2">
-                      {[...Array(r.stars || 0)].map((_, i) => (
-                        <Image
-                          key={i}
-                          source={
-                            isDarkMode
-                              ? require("../assets/images/Rating White Star.png")
-                              : require("../assets/images/Rating Black Star.png")
-                          }
-                          style={{ width: 12, height: 12, marginRight: 2 }}
-                          resizeMode="contain"
-                        />
-                      ))}
-                    </View>
-
-                    {r.note && (
-                      <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
-                        {r.note}
-                      </Text>
-                    )}
                   </View>
                 </View>
-              </View>
-            ))}
+              ))}
           <View className="h-24" />
         </ScrollView>
       )}
