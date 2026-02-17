@@ -23,6 +23,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import ReactNativeModal from "react-native-modal";
 import Toast from "react-native-toast-message";
 import VeryBlackStar from "../assets/images/Revised Black Star.png";
@@ -539,121 +540,124 @@ const UserDetail = () => {
         // swipeThreshold={50}
         // backdropTransitionOutTiming={0}
         propagateSwipe
+        avoidKeyboard={false}
       >
-        <View className="bg-[#FBFCFD] dark:bg-[#1A1A1A] w-full rounded-t-[32px] px-6 pt-4 pb-10 shadow-xl">
-          {/* Top Indicator */}
-          <View className="items-center mb-4">
-            <View className="w-16 h-1 bg-black dark:bg-gray-700 rounded-full" />
-          </View>
-
-          <Text className="text-xl font-dmSemiBold text-center text-black dark:text-white mb-3">
-            Write a review
-          </Text>
-
-          <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47] w-full mb-5" />
-
-          {/* Star Rating Section */}
-          <View className="mb-6">
-            <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
-              Your Rating
-            </Text>
-            <View className="flex-row justify-between">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity
-                  key={star}
-                  onPress={() => setNewStars(star)}
-                  className={`w-[18%] aspect-square border-[#E0E5EB] dark:border-[#413E47] rounded-2xl border items-center justify-center ${
-                    newStars && newStars >= star
-                    // ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#2B2B2B]"
-                    // : "border-[#E0E5EB] dark:border-[#2B2B2B]"
-                  }`}
-                >
-                  <Image
-                    source={
-                      newStars && newStars >= star
-                        ? isDarkMode
-                          ? require("../assets/images/Rating White Star.png")
-                          : VeryBlackStar
-                        : isDarkMode
-                          ? require("../assets/images/Rating White Star.png")
-                          : VeryBlackStar
-                    }
-                    style={{
-                      width: 26,
-                      height: 26,
-                      opacity: newStars && newStars >= star ? 1 : 0.2,
-                    }}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-              ))}
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+          <View className="bg-[#FBFCFD] dark:bg-[#1A1A1A] w-full rounded-t-[32px] px-6 pt-4 pb-10 shadow-xl">
+            {/* Top Indicator */}
+            <View className="items-center mb-4">
+              <View className="w-16 h-1 bg-black dark:bg-gray-700 rounded-full" />
             </View>
-          </View>
 
-          {/* Review Input Section */}
-          <View className="mb-8">
-            <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
-              Your Review
+            <Text className="text-xl font-dmSemiBold text-center text-black dark:text-white mb-3">
+              Write a review
             </Text>
-            <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl">
-              <TextInput
-                placeholder="Provide a detailed review..."
-                placeholderTextColor="#454545"
-                value={newNote}
-                onChangeText={setNewNote}
-                multiline
-                maxLength={200}
-                numberOfLines={4}
-                className="text-gray-700 dark:text-gray-200 text-sm font-poppins h-20 textAlignVertical-top"
-                style={{ textAlignVertical: "top" }}
-              />
-              <Text className="text-right text-xs text-gray-400 font-poppins mr-3 ">
-                {newNote.length}/200
-              </Text>
-            </View>
-          </View>
 
-          {/* Action Buttons */}
-          <View className="flex-row justify-between gap-4">
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              className="flex-1 py-4 rounded-2xl border border-[#E5E7EB] dark:border-[#333] items-center"
-            >
-              <Text className="text-[#454545] dark:text-[#919191] font-dmMedium text-base">
-                Cancel
-              </Text>
-            </TouchableOpacity>
+            <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47] w-full mb-5" />
 
-            {newStars && newStars > 0 && newNote.trim().length > 0 ? (
-              <View className="flex-1">
-                <LinearGradient
-                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ borderRadius: 16 }}
-                >
+            {/* Star Rating Section */}
+            <View className="mb-6">
+              <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
+                Your Rating
+              </Text>
+              <View className="flex-row justify-between">
+                {[1, 2, 3, 4, 5].map((star) => (
                   <TouchableOpacity
-                    onPress={handleSubmit}
-                    className="py-4 items-center"
+                    key={star}
+                    onPress={() => setNewStars(star)}
+                    className={`w-[18%] aspect-square border-[#E0E5EB] dark:border-[#413E47] rounded-2xl border items-center justify-center ${
+                      newStars && newStars >= star
+                      // ? "border-[#5B4CCC] bg-[#F5F4FF] dark:bg-[#2B2B2B]"
+                      // : "border-[#E0E5EB] dark:border-[#2B2B2B]"
+                    }`}
                   >
-                    <Text className="text-white font-dmMedium text-base">
-                      Submit
-                    </Text>
+                    <Image
+                      source={
+                        newStars && newStars >= star
+                          ? isDarkMode
+                            ? require("../assets/images/Rating White Star.png")
+                            : VeryBlackStar
+                          : isDarkMode
+                            ? require("../assets/images/Rating White Star.png")
+                            : VeryBlackStar
+                      }
+                      style={{
+                        width: 26,
+                        height: 26,
+                        opacity: newStars && newStars >= star ? 1 : 0.2,
+                      }}
+                      resizeMode="contain"
+                    />
                   </TouchableOpacity>
-                </LinearGradient>
+                ))}
               </View>
-            ) : (
+            </View>
+
+            {/* Review Input Section */}
+            <View className="mb-8">
+              <Text className="text-base font-dmSemiBold text-black dark:text-white mb-3">
+                Your Review
+              </Text>
+              <View className="border border-[#E5E7EB] dark:border-[#333] rounded-2xl">
+                <TextInput
+                  placeholder="Provide a detailed review..."
+                  placeholderTextColor="#454545"
+                  value={newNote}
+                  onChangeText={setNewNote}
+                  multiline
+                  maxLength={200}
+                  numberOfLines={4}
+                  className="text-gray-700 dark:text-gray-200 text-sm font-poppins h-20 textAlignVertical-top"
+                  style={{ textAlignVertical: "top" }}
+                />
+                <Text className="text-right text-xs text-gray-400 font-poppins mr-3 ">
+                  {newNote.length}/200
+                </Text>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View className="flex-row justify-between gap-4">
               <TouchableOpacity
-                disabled
-                className="flex-1 py-4 rounded-2xl bg-[#C4C4C4] dark:bg-[#333] items-center"
+                onPress={() => setModalVisible(false)}
+                className="flex-1 py-4 rounded-2xl border border-[#E5E7EB] dark:border-[#333] items-center"
               >
-                <Text className="text-white/60 font-dmMedium text-base">
-                  Submit
+                <Text className="text-[#454545] dark:text-[#919191] font-dmMedium text-base">
+                  Cancel
                 </Text>
               </TouchableOpacity>
-            )}
+
+              {newStars && newStars > 0 && newNote.trim().length > 0 ? (
+                <View className="flex-1">
+                  <LinearGradient
+                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ borderRadius: 16 }}
+                  >
+                    <TouchableOpacity
+                      onPress={handleSubmit}
+                      className="py-4 items-center"
+                    >
+                      <Text className="text-white font-dmMedium text-base">
+                        Submit
+                      </Text>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  disabled
+                  className="flex-1 py-4 rounded-2xl bg-[#C4C4C4] dark:bg-[#333] items-center"
+                >
+                  <Text className="text-white/60 font-dmMedium text-base">
+                    Submit
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        </View>
+        </KeyboardStickyView>
       </ReactNativeModal>
 
       {/* 🔹 DELETE CONFIRMATION MODAL */}
