@@ -1,4 +1,4 @@
-import { LogoutCircle01Icon, Menu02Icon } from "@hugeicons/core-free-icons";
+import { LogoutCircle01Icon, Menu02Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
@@ -147,11 +147,12 @@ const ProfileScreen = () => {
       >
         <View className="flex-row items-center justify-between">
           <TouchableOpacity
-            onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+            // onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+            onPress={() => router.back()}
             className="w-10"
           >
             <HugeiconsIcon
-              icon={Menu02Icon}
+              icon={ArrowLeft01Icon}
               size={24}
               color={isDarkMode ? "#FFF" : "#000"}
             />
