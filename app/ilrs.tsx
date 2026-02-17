@@ -508,7 +508,7 @@ const ILRs = () => {
                 />
               </TouchableOpacity>
               <Text className="text-[20px] font-dmBold text-[#2D3436] dark:text-white">
-                ILRs
+                ILR
               </Text>
             </View>
 
