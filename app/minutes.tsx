@@ -1,8 +1,14 @@
 import CircleProgress from "@/components/CircleProgress";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -29,29 +35,48 @@ const Minutes = () => {
 
   // console.log(JSON.stringify(meetings, null, 2));
 
-  const fetchMeetings = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get(`/minutes/project/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMeetings(res.data);
-      console.log(res.data);
-    } catch (err) {
-      console.error("Failed to fetch meetings", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  // Track if it's the first load to show global spinner
+  const isFirstLoad = useRef(true);
 
+  // Reset first load if project changes
   useEffect(() => {
-    if (projectId) fetchMeetings();
-  }, [projectId, token]);
+    isFirstLoad.current = true;
+  }, [projectId]);
+
+  const fetchMeetings = useCallback(
+    async (background = false) => {
+      try {
+        if (!background) setLoading(true);
+        const res = await api.get(`/minutes/project/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setMeetings(res.data);
+        // console.log(res.data);
+      } catch (err) {
+        console.error("Failed to fetch meetings", err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [projectId, token],
+  );
+
+  // Refresh meetings when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (projectId) {
+        // Use silent refresh if not first load
+        fetchMeetings(!isFirstLoad.current);
+        isFirstLoad.current = false;
+      }
+    }, [fetchMeetings, projectId]),
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchMeetings();
+    // Silent fetch because RefreshControl handles the spinner
+    fetchMeetings(true);
   };
 
   const handleDeleteMeeting = (meetingId: any) => {
