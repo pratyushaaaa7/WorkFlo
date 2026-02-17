@@ -256,37 +256,41 @@ const NotesTab = ({
           </View>
         ) : notes.length === 0 ? (
           /* 🔹 EMPTY STATE (Only if NOT loading or if strictly empty after fetch) */
-          <MotiView
-            from={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className=" mt-20 items-center justify-center "
-          >
-            <Text
-              className={`mt-4 text-base font-poppins ${
-                isDark ? "text-[#BBBBBB]" : "text-[#454545]"
-              }`}
+          <View className="mt-20 items-center justify-center">
+            <MotiView
+              key="empty-state"
+              from={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "timing", duration: 300 }}
             >
-              You have no notes yet
-            </Text>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.push("/createMyNote")}
-              className="flex-row items-center mt-3 justify-center"
-            >
-              <HugeiconsIcon
-                icon={NoteAddIcon}
-                size={20}
-                color={isDark ? "#FFFFFF" : "#000000"}
-              />
-              <Text className="ml-2 text-black dark:text-[#f5f5f5] text-lg font-poppinsMedium">
-                Create Notes
+              <Text
+                className={`mt-4 text-base font-poppins ${
+                  isDark ? "text-[#BBBBBB]" : "text-[#454545]"
+                }`}
+              >
+                You have no notes yet
               </Text>
-            </TouchableOpacity>
-          </MotiView>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => router.push("/createMyNote")}
+                className="flex-row items-center mt-3 justify-center"
+              >
+                <HugeiconsIcon
+                  icon={NoteAddIcon}
+                  size={20}
+                  color={isDark ? "#FFFFFF" : "#000000"}
+                />
+                <Text className="ml-2 text-black dark:text-[#f5f5f5] text-lg font-poppinsMedium">
+                  Create Notes
+                </Text>
+              </TouchableOpacity>
+            </MotiView>
+          </View>
         ) : (
           /* 🔹 NOTES LIST */
           <MotiView
+            key="notes-list"
             from={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ type: "timing", duration: 500 }}
