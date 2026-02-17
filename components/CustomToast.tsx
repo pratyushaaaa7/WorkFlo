@@ -28,7 +28,7 @@ const ToastContainer = ({
   return (
     <View className="px-3 w-full items-center">
       <View
-        className="flex-row items-center p-4 rounded-2xl w-full max-w-[400px]"
+        className="flex-row items-center p-3  rounded-2xl w-full max-w-[400px]"
         style={{
           backgroundColor: backgroundColor,
           shadowColor: "#000",
@@ -39,7 +39,7 @@ const ToastContainer = ({
         }}
       >
         {/* White Icon Container */}
-        <View className="w-12 h-12 rounded-xl bg-white items-center justify-center mr-2 ">
+        <View className="w-14 h-14 rounded-xl bg-white items-center justify-center mr-3 ">
           <HugeiconsIcon icon={icon} size={24} color={iconColor} />
         </View>
 

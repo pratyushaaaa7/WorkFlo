@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -35,6 +36,8 @@ const CreateNote = () => {
   const [content, setContent] = useState(initialContent);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
 
@@ -49,17 +52,17 @@ const CreateNote = () => {
         setTitle("");
         setContent("");
       };
-    }, [noteId, initialTitle, initialContent])
+    }, [noteId, initialTitle, initialContent]),
   );
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      () => setKeyboardVisible(true)
+      () => setKeyboardVisible(true),
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      () => setKeyboardVisible(false)
+      () => setKeyboardVisible(false),
     );
 
     return () => {
@@ -86,7 +89,7 @@ const CreateNote = () => {
 
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      backAction
+      backAction,
     );
 
     return () => backHandler.remove();
@@ -110,7 +113,7 @@ const CreateNote = () => {
           },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
       } else {
         // Create
@@ -123,7 +126,7 @@ const CreateNote = () => {
           },
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
       }
 
@@ -154,7 +157,43 @@ const CreateNote = () => {
   };
 
   const handleDeleteOrCancel = () => {
-    router.back();
+    if (noteId) {
+      setDeleteModalVisible(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      await api.delete(`/personal-notes/${noteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Toast.show({
+        type: "success",
+        position: "bottom",
+        text1: "Note Deleted",
+        text2: "Your note has been removed.",
+      });
+
+      setDeleteModalVisible(false);
+      // Clear state and route back
+      setTitle("");
+      setContent("");
+      router.replace("/dashboard");
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Toast.show({
+        type: "error",
+        position: "bottom",
+        text1: "Delete Failed",
+        text2: "Could not delete the note. Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleBackPress = () => {
@@ -192,17 +231,27 @@ const CreateNote = () => {
           </View>
 
           <View className="flex-row items-center gap-4">
-            {showTick ? (
-              <TouchableOpacity onPress={handleSave} disabled={loading}>
-                <HugeiconsIcon icon={Tick02Icon} size={24} color={iconColor} />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity onPress={handleDeleteOrCancel}>
+            {noteId ? (
+              <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
                 <HugeiconsIcon
                   icon={Delete03Icon}
                   size={24}
                   color={iconColor}
                 />
+              </TouchableOpacity>
+            ) : !showTick ? (
+              <TouchableOpacity onPress={() => router.back()}>
+                <HugeiconsIcon
+                  icon={Delete03Icon}
+                  size={24}
+                  color={iconColor}
+                />
+              </TouchableOpacity>
+            ) : null}
+
+            {showTick && (
+              <TouchableOpacity onPress={handleSave} disabled={loading}>
+                <HugeiconsIcon icon={Tick02Icon} size={24} color={iconColor} />
               </TouchableOpacity>
             )}
           </View>
@@ -241,6 +290,14 @@ const CreateNote = () => {
             autoFocus={true}
           />
         </ScrollView>
+        <DeleteConfirmationModal
+          isVisible={isDeleteModalVisible}
+          onClose={() => setDeleteModalVisible(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Note"
+          message="Are you sure you want to delete this note? This action cannot be undone."
+          loading={isDeleting}
+        />
       </KeyboardAvoidingView>
     </View>
   );
