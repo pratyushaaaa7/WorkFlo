@@ -5,6 +5,7 @@ import {
   Add01Icon,
   ArrowDown01Icon,
   ArrowLeft01Icon,
+  ArrowRight01Icon,
   Calendar03Icon,
   Cancel01Icon,
   MoreHorizontalIcon,
@@ -40,7 +41,7 @@ import { Calendar } from "react-native-calendars";
 import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
-import { exportILRsToExcel } from "../utils/ilrExcel";
+// import { exportILRsToExcel } from "../utils/ilrExcel";
 
 type ILR = {
   _id: string;
@@ -84,6 +85,30 @@ const ILRs = () => {
   const [dateFilterVisible, setDateFilterVisible] = useState(false);
   const [tempStartDate, setTempStartDate] = useState<string | null>(null);
   const [tempEndDate, setTempEndDate] = useState<string | null>(null);
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [modalView, setModalView] = useState<"MENU" | "CALENDAR">("MENU");
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const years = Array.from({ length: 21 }, (_, i) =>
+    (new Date().getFullYear() - 10 + i).toString(),
+  );
 
   // Track if it's the first load to show global spinner
   const isFirstLoad = useRef(true);
@@ -129,7 +154,41 @@ const ILRs = () => {
   const openDateFilterModal = () => {
     setTempStartDate(startDate ? startDate.toISOString().split("T")[0] : null);
     setTempEndDate(endDate ? endDate.toISOString().split("T")[0] : null);
+    setCurrentCalendarDate(
+      (startDate || new Date()).toISOString().split("T")[0],
+    );
+    setModalView("MENU");
     setDateFilterVisible(true);
+  };
+
+  const handlePresetSelect = (preset: string) => {
+    setActivePreset(preset);
+    const today = new Date();
+    let start: Date;
+    let end: Date = today;
+
+    switch (preset) {
+      case "Today":
+        start = today;
+        break;
+      case "Yesterday":
+        start = new Date(today);
+        start.setDate(today.getDate() - 1);
+        end = start;
+        break;
+      case "Last 7 Days":
+        start = new Date(today);
+        start.setDate(today.getDate() - 6);
+        break;
+      case "Month":
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        break;
+      default:
+        return;
+    }
+
+    setTempStartDate(start.toISOString().split("T")[0]);
+    setTempEndDate(end.toISOString().split("T")[0]);
   };
 
   const markedDates = useMemo(() => {
@@ -139,11 +198,6 @@ const ILRs = () => {
         startingDay: true,
         color: "#5B4CCC",
         textColor: "white",
-        customStyles: {
-          container: {
-            borderRadius: 8,
-          },
-        },
       };
     }
     if (tempEndDate) {
@@ -151,11 +205,6 @@ const ILRs = () => {
         endingDay: true,
         color: "#5B4CCC",
         textColor: "white",
-        customStyles: {
-          container: {
-            borderRadius: 8,
-          },
-        },
       };
 
       // Fill range
@@ -224,12 +273,12 @@ const ILRs = () => {
       return;
     }
 
-    await exportILRsToExcel(
-      dataToExport as any,
-      projectName as string,
-      auth?.user?.fullName || auth?.user?.username || "Self",
-      auth?.user?.company || "WP",
-    );
+    // await exportILRsToExcel(
+    //   dataToExport as any,
+    //   projectName as string,
+    //   auth?.user?.fullName || auth?.user?.username || "Self",
+    //   auth?.user?.company || "WP",
+    // );
   };
 
   const handleDownloadPDF = () => {
@@ -896,80 +945,226 @@ const ILRs = () => {
             <View className="w-12 h-1 bg-gray-200 dark:bg-zinc-800 rounded-full" />
           </View>
 
-          <Text className="text-[22px] font-dmBold text-black dark:text-white text-center mb-6">
-            Custom date range
+          <Text className="text-[20px] font-dmSemiBold text-black dark:text-white text-center mb-6">
+            Date Range
           </Text>
 
-          <Calendar
-            markingType={"period"}
-            markedDates={markedDates}
-            onDayPress={onDayPress}
-            renderHeader={(date) => {
-              const month = date.toString("MMM");
-              const year = date.toString("yyyy");
-              return (
-                <View className="flex-row items-center gap-2">
-                  <View className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
-                    <Text className="text-[15px] font-poppinsMedium text-black dark:text-white mr-1.5">
-                      {month}
-                    </Text>
+          {modalView === "MENU" ? (
+            <View>
+              {/* Custom Options */}
+              <TouchableOpacity
+                onPress={() => setModalView("CALENDAR")}
+                className="flex-row items-center justify-between py-4 border-b border-gray-100 dark:border-zinc-800"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-10 h-10 items-center justify-center mr-4">
                     <HugeiconsIcon
-                      icon={ArrowDown01Icon}
-                      size={14}
-                      color={isDarkMode ? "#94A3B8" : "#64748B"}
+                      icon={Calendar03Icon}
+                      size={24}
+                      color={isDarkMode ? "#D2D2D2" : "#454545"}
                     />
                   </View>
-                  <View className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
-                    <Text className="text-[15px] font-poppinsMedium text-black dark:text-white mr-1.5">
-                      {year}
+                  <View>
+                    <Text className="text-[16px] font-poppins text-black dark:text-white">
+                      Rolling period
                     </Text>
-                    <HugeiconsIcon
-                      icon={ArrowDown01Icon}
-                      size={14}
-                      color={isDarkMode ? "#94A3B8" : "#64748B"}
-                    />
+                    <Text className="text-[12px] font-poppins text-gray-400">
+                      Define a time period relative to today
+                    </Text>
                   </View>
                 </View>
-              );
-            }}
-            renderArrow={(direction) => (
-              <HugeiconsIcon
-                icon={direction === "left" ? ArrowLeft01Icon : ArrowDown01Icon}
-                size={20}
-                color="#000"
-                style={{
-                  transform: [
-                    { rotate: direction === "right" ? "-90deg" : "0deg" },
-                  ],
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={18}
+                  color="#94A3B8"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setModalView("CALENDAR")}
+                className="flex-row items-center justify-between py-4 border-b border-gray-100 dark:border-zinc-800"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-10 h-10 items-center justify-center mr-4">
+                    <HugeiconsIcon
+                      icon={Calendar03Icon}
+                      size={24}
+                      color={isDarkMode ? "#D2D2D2" : "#454545"}
+                    />
+                  </View>
+                  <View>
+                    <Text className="text-[16px] font-poppins text-black dark:text-white">
+                      Review date
+                    </Text>
+                    <Text className="text-[12px] font-poppins text-gray-400">
+                      Define a time period relative to today
+                    </Text>
+                  </View>
+                </View>
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={18}
+                  color="#94A3B8"
+                />
+              </TouchableOpacity>
+
+              {/* Presets */}
+              {["Today", "Yesterday", "Last 7 Days", "Month"].map((preset) => (
+                <TouchableOpacity
+                  key={preset}
+                  onPress={() => handlePresetSelect(preset)}
+                  className="flex-row items-center py-4 border-b border-gray-100 dark:border-zinc-800"
+                >
+                  <View className="mr-4">
+                    <View
+                      className={`w-6 h-6 rounded-full border-2 items-center justify-center ${activePreset === preset ? "border-[#5B4CCC]" : "border-gray-200 dark:border-zinc-700"}`}
+                    >
+                      {activePreset === preset && (
+                        <View className="w-3 h-3 rounded-full bg-[#5B4CCC]" />
+                      )}
+                    </View>
+                  </View>
+                  <Text className="text-[16px] font-poppinsMedium text-black dark:text-white">
+                    {preset}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                onPress={() => {
+                  applyDateFilter();
+                  setDateFilterVisible(false);
+                }}
+                className="w-full py-4 mt-8 bg-white dark:bg-white items-center justify-center rounded-full border border-gray-200"
+              >
+                <Text className="text-[18px] font-dmBold text-black">
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View>
+              <Calendar
+                key={currentCalendarDate}
+                current={currentCalendarDate}
+                markingType={"period"}
+                markedDates={markedDates}
+                onDayPress={onDayPress}
+                onMonthChange={(month) => {
+                  setCurrentCalendarDate(month.dateString);
+                }}
+                renderHeader={(date) => {
+                  const month = date.toString("MMM");
+                  const year = date.toString("yyyy");
+                  return (
+                    <View className="flex-row items-center gap-2">
+                      <TouchableOpacity
+                        onPress={() => setShowMonthPicker(!showMonthPicker)}
+                        className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl"
+                      >
+                        <Text className="text-[15px] font-poppinsMedium text-black dark:text-white mr-1.5">
+                          {month}
+                        </Text>
+                        <HugeiconsIcon
+                          icon={ArrowDown01Icon}
+                          size={14}
+                          color={isDarkMode ? "#94A3B8" : "#64748B"}
+                        />
+                      </TouchableOpacity>
+                      <View className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
+                        <Text className="text-[15px] font-poppinsMedium text-black dark:text-white">
+                          {year}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                }}
+                renderArrow={(direction) => (
+                  <HugeiconsIcon
+                    icon={
+                      direction === "left" ? ArrowLeft01Icon : ArrowRight01Icon
+                    }
+                    size={20}
+                    color={isDarkMode ? "#FFF" : "#000"}
+                  />
+                )}
+                theme={{
+                  backgroundColor: "transparent",
+                  calendarBackground: "transparent",
+                  textSectionTitleColor: "#94A3B8",
+                  selectedDayBackgroundColor: "#5B4CCC",
+                  selectedDayTextColor: "#ffffff",
+                  todayTextColor: "#5B4CCC",
+                  dayTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
+                  textDisabledColor: isDarkMode ? "#4A5568" : "#CBD5E0",
+                  monthTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
+                  arrowColor: isDarkMode ? "#FFF" : "#000",
+                  textDayFontFamily: "Poppins-Medium",
+                  textMonthFontFamily: "DM-Sans-Bold",
+                  textDayHeaderFontFamily: "Poppins-Regular",
+                  textDayFontSize: 16,
+                  textMonthFontSize: 18,
+                  textDayHeaderFontSize: 14,
                 }}
               />
-            )}
-            theme={{
-              backgroundColor: "transparent",
-              calendarBackground: "transparent",
-              textSectionTitleColor: "#94A3B8",
-              selectedDayBackgroundColor: "#5B4CCC",
-              selectedDayTextColor: "#ffffff",
-              todayTextColor: "#5B4CCC",
-              dayTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
-              textDisabledColor: isDarkMode ? "#4A5568" : "#CBD5E0",
-              monthTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
-              arrowColor: "#000",
-              textDayFontFamily: "Poppins-Medium",
-              textMonthFontFamily: "DM-Sans-Bold",
-              textDayHeaderFontFamily: "Poppins-Regular",
-              textDayFontSize: 16,
-              textMonthFontSize: 18,
-              textDayHeaderFontSize: 14,
-            }}
-          />
 
-          <TouchableOpacity
-            onPress={applyDateFilter}
-            className="w-full py-4 mt-6 items-center justify-center rounded-[20px] bg-[#5B4CCC]"
-          >
-            <Text className="text-[18px] font-dmBold text-white">Apply</Text>
-          </TouchableOpacity>
+              {/* Month Picker Overlay */}
+              {showMonthPicker && (
+                <View className="absolute top-[80px] left-0 right-0 bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-zinc-800 rounded-2xl p-4 shadow-xl z-50">
+                  <View className="flex-row flex-wrap justify-between">
+                    {months.map((m, index) => {
+                      const d = new Date(currentCalendarDate);
+                      // Use a safe day for month calculation
+                      const currentMonthIndex = d.getMonth();
+                      const isSelected = index === currentMonthIndex;
+                      return (
+                        <TouchableOpacity
+                          key={m}
+                          onPress={() => {
+                            const newDate = new Date(currentCalendarDate);
+                            newDate.setMonth(index);
+                            setCurrentCalendarDate(
+                              newDate.toISOString().split("T")[0],
+                            );
+                            setShowMonthPicker(false);
+                          }}
+                          className={`w-[30%] py-3 mb-2 rounded-xl items-center ${isSelected ? "bg-[#5B4CCC]" : "bg-gray-50 dark:bg-zinc-800"}`}
+                        >
+                          <Text
+                            className={`text-[14px] font-poppinsMedium ${isSelected ? "text-white" : "text-black dark:text-white"}`}
+                          >
+                            {m}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              <View className="flex-row gap-4 mt-6">
+                <TouchableOpacity
+                  onPress={() => setModalView("MENU")}
+                  className="flex-1 py-4 items-center justify-center rounded-[20px] bg-gray-100 dark:bg-zinc-800"
+                >
+                  <Text className="text-[18px] font-dmBold text-black dark:text-white">
+                    Back
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    applyDateFilter();
+                    setDateFilterVisible(false);
+                  }}
+                  className="flex-1 py-4 items-center justify-center rounded-[20px] bg-[#5B4CCC]"
+                >
+                  <Text className="text-[18px] font-dmBold text-white">
+                    Apply
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
       </Modal>
     </View>
