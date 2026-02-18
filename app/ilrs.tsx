@@ -194,11 +194,11 @@ const ILRs = () => {
         break;
       case "Last 7 Days":
         start = new Date(today);
-        start.setDate(today.getDate() - 6);
+        start.setDate(today.getDate() - 7);
         break;
       case "Last 30 Days":
         start = new Date(today);
-        start.setDate(today.getDate() - 29);
+        start.setDate(today.getDate() - 30);
         break;
       default:
         return;
@@ -1001,7 +1001,7 @@ const ILRs = () => {
         animationOut="slideOutDown"
         style={{ margin: 0, justifyContent: "flex-end" }}
       >
-        <View className="bg-white dark:bg-[#1A1A1A] rounded-t-[32px] p-6 pb-10">
+        <View className="bg-white dark:bg-[#1A1A1A] rounded-t-[32px] p-6 pb-14">
           <View className="items-center mb-2">
             <View className="w-12 h-1 bg-gray-200 dark:bg-zinc-800 rounded-full" />
           </View>
@@ -1096,7 +1096,7 @@ const ILRs = () => {
                           )}
                         </View>
                       </View>
-                      <Text className="text-[16px] font-poppinsMedium text-black dark:text-white">
+                      <Text className="text-[16px] font-poppins text-black dark:text-white">
                         {preset}
                       </Text>
                     </TouchableOpacity>
@@ -1251,7 +1251,7 @@ const ILRs = () => {
                       end={{ x: 1, y: 0.1 }}
                       className="w-full py-4 items-center justify-center"
                     >
-                      <Text className="text-[18px] font-dmBold text-white">
+                      <Text className="text-[18px] font-poppins text-white">
                         Apply
                       </Text>
                     </LinearGradient>
