@@ -339,10 +339,22 @@ export default function UsageScreen() {
     fetchLeaderboard();
   }, [selectedTab, startDate, endDate]); // Refetch when tab or dates change
 
-  const filteredLeaderboard = userLeaderboard.filter((item) => {
-    const name = (item.userId?.fullName || "").toLowerCase();
-    return name.includes(searchQuery.toLowerCase());
-  });
+  const filteredLeaderboard = useMemo(() => {
+    return userLeaderboard
+      .map((item, index) => ({
+        ...item,
+        originalRank: index + 1,
+      }))
+      .filter((item) => {
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) return true;
+
+        const name = (item.userId?.fullName || "").toLowerCase();
+        const rankMatch = item.originalRank.toString() === query;
+
+        return name.includes(query) || rankMatch;
+      });
+  }, [userLeaderboard, searchQuery]);
 
   // -------------------------------------
   // HELPER: Format Duration (seconds -> 3h - 12m)
@@ -378,19 +390,25 @@ export default function UsageScreen() {
       : "0h - 0m";
     const mostUsed = item.mostUsedScreen || "N/A";
 
+    const rank = item.originalRank;
+    const suffix =
+      rank === 11 || rank === 12 || rank === 13
+        ? "th"
+        : rank % 10 === 1
+          ? "st"
+          : rank % 10 === 2
+            ? "nd"
+            : rank % 10 === 3
+              ? "rd"
+              : "th";
+
     return (
       <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]">
         {/* Header Row: Rank & Last Active */}
         <View className="flex-row justify-between px-4 items-center py-2">
           <Text className="text-black dark:text-white font-dmBold text-sm">
-            # {index + 1}
-            {index === 0
-              ? "st"
-              : index === 1
-                ? "nd"
-                : index === 2
-                  ? "rd"
-                  : "th"}
+            # {rank}
+            {suffix}
           </Text>
           <Text className="text-[#8E8E8E] dark:text-[#919191] font-poppins text-xs">
             Last seen : {lastActive}
