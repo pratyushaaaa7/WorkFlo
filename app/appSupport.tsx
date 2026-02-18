@@ -10,10 +10,16 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
-import { useNavigation, useRouter } from "expo-router";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import moment from "moment";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -45,35 +51,51 @@ const AppSupport = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  const fetchTickets = async () => {
-    try {
-      if (!refreshing) setLoading(true);
-      const response = await api.get("/support", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTickets(response.data.supports || []);
-      // console.log(response.data.supports);
-    } catch (err) {
-      console.error("❌ Error fetching tickets:", err);
-      Toast.show({
-        type: "error",
-        text1: "Failed to load tickets",
-        text2: "Please try again later.",
-        position: "bottom",
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  // Track if it's the first load to show global spinner
+  const isFirstLoad = useRef(true);
+
+  const fetchTickets = useCallback(
+    async (silent = false) => {
+      try {
+        if (!silent && !refreshing) setLoading(true);
+        const response = await api.get("/support", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTickets(response.data.supports || []);
+      } catch (err) {
+        console.error("❌ Error fetching tickets:", err);
+        if (!silent) {
+          Toast.show({
+            type: "error",
+            text1: "Failed to load tickets",
+            text2: "Please try again later.",
+            position: "bottom",
+          });
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [token],
+  );
+
+  // Refresh tickets when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Use silent refresh if not first load
+      fetchTickets(!isFirstLoad.current);
+      isFirstLoad.current = false;
+    }, [fetchTickets]),
+  );
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [fetchTickets]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchTickets();
+    fetchTickets(true);
   };
 
   const filteredTickets = useMemo(() => {

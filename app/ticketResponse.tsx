@@ -289,7 +289,7 @@ export default function TicketDetails() {
             <TextInput
               value={remark}
               onChangeText={setRemark}
-                    placeholder="Add remarks..."
+              placeholder="Add remarks..."
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
               multiline
               textAlignVertical="top"
