@@ -137,7 +137,7 @@ export default function UsageScreen() {
       const data = res.data;
       if (Array.isArray(data)) {
         setUserLeaderboard(data);
-        console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
+        // console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
       } else {
         console.warn("⚠️ Unexpected leaderboard data format", data);
         setUserLeaderboard([]);
