@@ -36,6 +36,8 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { Calendar } from "react-native-calendars";
+import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { exportILRsToExcel } from "../utils/ilrExcel";
@@ -78,6 +80,11 @@ const ILRs = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Date Filter Modal State
+  const [dateFilterVisible, setDateFilterVisible] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState<string | null>(null);
+  const [tempEndDate, setTempEndDate] = useState<string | null>(null);
+
   // Track if it's the first load to show global spinner
   const isFirstLoad = useRef(true);
 
@@ -93,8 +100,81 @@ const ILRs = () => {
     endDate,
     setFilter,
     setSearchQuery,
+    setStartDate,
+    setEndDate,
     reset,
   } = useILRFilterStore();
+
+  const onDayPress = (day: any) => {
+    const dateString = day.dateString;
+    if (!tempStartDate || (tempStartDate && tempEndDate)) {
+      setTempStartDate(dateString);
+      setTempEndDate(null);
+    } else {
+      if (dateString < tempStartDate) {
+        setTempStartDate(dateString);
+        setTempEndDate(null);
+      } else {
+        setTempEndDate(dateString);
+      }
+    }
+  };
+
+  const applyDateFilter = () => {
+    setStartDate(tempStartDate ? new Date(tempStartDate) : null);
+    setEndDate(tempEndDate ? new Date(tempEndDate) : null);
+    setDateFilterVisible(false);
+  };
+
+  const openDateFilterModal = () => {
+    setTempStartDate(startDate ? startDate.toISOString().split("T")[0] : null);
+    setTempEndDate(endDate ? endDate.toISOString().split("T")[0] : null);
+    setDateFilterVisible(true);
+  };
+
+  const markedDates = useMemo(() => {
+    const marks: any = {};
+    if (tempStartDate) {
+      marks[tempStartDate] = {
+        startingDay: true,
+        color: "#5B4CCC",
+        textColor: "white",
+        customStyles: {
+          container: {
+            borderRadius: 8,
+          },
+        },
+      };
+    }
+    if (tempEndDate) {
+      marks[tempEndDate] = {
+        endingDay: true,
+        color: "#5B4CCC",
+        textColor: "white",
+        customStyles: {
+          container: {
+            borderRadius: 8,
+          },
+        },
+      };
+
+      // Fill range
+      let start = new Date(tempStartDate!);
+      let end = new Date(tempEndDate);
+      let curr = new Date(start);
+      curr.setDate(curr.getDate() + 1);
+
+      while (curr < end) {
+        const dStr = curr.toISOString().split("T")[0];
+        marks[dStr] = {
+          color: isDarkMode ? "#5B4CCC44" : "#E0E7FF",
+          textColor: isDarkMode ? "white" : "#4338CA",
+        };
+        curr.setDate(curr.getDate() + 1);
+      }
+    }
+    return marks;
+  }, [tempStartDate, tempEndDate, isDarkMode]);
 
   const fetchILRs = useCallback(
     async (background = false) => {
@@ -169,9 +249,17 @@ const ILRs = () => {
     const filtered = ilrs.filter((ilr) => {
       if (filter !== "  All  " && ilr.status !== filter) return false;
 
-      const target = new Date(ilr.targetDate);
-      if (startDate && target < new Date(startDate)) return false;
-      if (endDate && target > new Date(endDate)) return false;
+      const target = new Date(ilr.createdAt || ilr.targetDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (target < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (target > end) return false;
+      }
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -607,16 +695,52 @@ const ILRs = () => {
       <View className="pb-3">
         <View className="flex-row items-center gap-2 pl-4">
           {/* Date Picker Button */}
-          <TouchableOpacity className="flex-row items-center bg-[#F5F5F5] dark:bg-[#1A1A1A] px-4 py-2 rounded-[8px] border border-[#F1F5F9] dark:border-zinc-800">
-            <Text className="text-[14px] font-poppinsMedium text-black dark:text-white mr-2">
-              Date
-            </Text>
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
-              size={16}
-              color={isDarkMode ? "#94A3B8" : "#64748B"}
-            />
-          </TouchableOpacity>
+          <View
+            className={`flex-row items-center px-4 py-2 rounded-[8px] border ${
+              startDate || endDate
+                ? "bg-[#EEF2FF] border-[#566FEC]"
+                : "bg-[#F5F5F5] dark:bg-[#1A1A1A] border-[#F1F5F9] dark:border-zinc-800"
+            }`}
+          >
+            <TouchableOpacity
+              onPress={openDateFilterModal}
+              className="flex-row items-center"
+            >
+              <Text
+                className={`text-[14px] font-poppinsMedium mr-2 ${
+                  startDate || endDate
+                    ? "text-[#566FEC]"
+                    : "text-black dark:text-white"
+                }`}
+              >
+                {startDate || endDate
+                  ? `${startDate ? startDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "..."} - ${endDate ? endDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "..."}`
+                  : "Date"}
+              </Text>
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={16}
+                color={
+                  startDate || endDate
+                    ? "#566FEC"
+                    : isDarkMode
+                      ? "#94A3B8"
+                      : "#64748B"
+                }
+              />
+            </TouchableOpacity>
+            {(startDate || endDate) && (
+              <TouchableOpacity
+                onPress={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+                className="ml-2 pl-2 border-l border-[#566FEC]/30"
+              >
+                <Ionicons name="close-circle" size={18} color="#566FEC" />
+              </TouchableOpacity>
+            )}
+          </View>
 
           {/* Status Pills */}
           <FlatList
@@ -758,6 +882,96 @@ const ILRs = () => {
       >
         <HugeiconsIcon icon={Add01Icon} size={28} color="white" />
       </TouchableOpacity>
+      <Modal
+        isVisible={dateFilterVisible}
+        onBackdropPress={() => setDateFilterVisible(false)}
+        onBackButtonPress={() => setDateFilterVisible(false)}
+        backdropOpacity={0.5}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={{ margin: 0, justifyContent: "flex-end" }}
+      >
+        <View className="bg-white dark:bg-[#1A1A1A] rounded-t-[32px] p-6 pb-10">
+          <View className="items-center mb-2">
+            <View className="w-12 h-1 bg-gray-200 dark:bg-zinc-800 rounded-full" />
+          </View>
+
+          <Text className="text-[22px] font-dmBold text-black dark:text-white text-center mb-6">
+            Custom date range
+          </Text>
+
+          <Calendar
+            markingType={"period"}
+            markedDates={markedDates}
+            onDayPress={onDayPress}
+            renderHeader={(date) => {
+              const month = date.toString("MMM");
+              const year = date.toString("yyyy");
+              return (
+                <View className="flex-row items-center gap-2">
+                  <View className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
+                    <Text className="text-[15px] font-poppinsMedium text-black dark:text-white mr-1.5">
+                      {month}
+                    </Text>
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={14}
+                      color={isDarkMode ? "#94A3B8" : "#64748B"}
+                    />
+                  </View>
+                  <View className="flex-row items-center bg-white dark:bg-[#262626] border border-gray-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl">
+                    <Text className="text-[15px] font-poppinsMedium text-black dark:text-white mr-1.5">
+                      {year}
+                    </Text>
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={14}
+                      color={isDarkMode ? "#94A3B8" : "#64748B"}
+                    />
+                  </View>
+                </View>
+              );
+            }}
+            renderArrow={(direction) => (
+              <HugeiconsIcon
+                icon={direction === "left" ? ArrowLeft01Icon : ArrowDown01Icon}
+                size={20}
+                color="#000"
+                style={{
+                  transform: [
+                    { rotate: direction === "right" ? "-90deg" : "0deg" },
+                  ],
+                }}
+              />
+            )}
+            theme={{
+              backgroundColor: "transparent",
+              calendarBackground: "transparent",
+              textSectionTitleColor: "#94A3B8",
+              selectedDayBackgroundColor: "#5B4CCC",
+              selectedDayTextColor: "#ffffff",
+              todayTextColor: "#5B4CCC",
+              dayTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
+              textDisabledColor: isDarkMode ? "#4A5568" : "#CBD5E0",
+              monthTextColor: isDarkMode ? "#E2E8F0" : "#2D3748",
+              arrowColor: "#000",
+              textDayFontFamily: "Poppins-Medium",
+              textMonthFontFamily: "DM-Sans-Bold",
+              textDayHeaderFontFamily: "Poppins-Regular",
+              textDayFontSize: 16,
+              textMonthFontSize: 18,
+              textDayHeaderFontSize: 14,
+            }}
+          />
+
+          <TouchableOpacity
+            onPress={applyDateFilter}
+            className="w-full py-4 mt-6 items-center justify-center rounded-[20px] bg-[#5B4CCC]"
+          >
+            <Text className="text-[18px] font-dmBold text-white">Apply</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };

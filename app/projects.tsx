@@ -563,7 +563,7 @@ const ProjectsScreen = () => {
                       <Text className="text-gray-500 font-poppins text-center px-10 mt-2">
                         {searchQuery
                           ? `No results found for "${searchQuery}"`
-                          : "You don't have any strictly assigned projects yet."}
+                          : `You don't have any assigned projects yet in ${tab}`}
                       </Text>
                     </View>
                   ) : (
