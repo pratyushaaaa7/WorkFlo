@@ -628,10 +628,21 @@ export default function UsageScreen() {
             <View className="w-12 h-1 bg-gray-200 dark:bg-zinc-800 rounded-full" />
           </View>
 
-          <View className="pb-4 border-b border-gray-100 dark:border-zinc-800 mb-2">
+          <View className="pb-4 border-b border-gray-100 dark:border-zinc-800 mb-2 flex-row items-center justify-between">
+            <View className="w-10" />
             <Text className="text-[20px] font-dmSemiBold text-black dark:text-white text-center">
               Date Range
             </Text>
+            <TouchableOpacity
+              onPress={() => setDateFilterVisible(false)}
+              className="w-10 h-10 items-center justify-center"
+            >
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={24}
+                color={isDarkMode ? "#D2D2D2" : "#454545"}
+              />
+            </TouchableOpacity>
           </View>
 
           {modalView === "MENU" ? (
@@ -821,21 +832,26 @@ export default function UsageScreen() {
                 </View>
               )}
 
-              <View className="flex-row gap-4 mt-6">
+              <View className="mt-6 flex-row gap-3">
+                {/* Cancel Button */}
                 <TouchableOpacity
-                  onPress={() => setModalView("MENU")}
+                  onPress={() => setDateFilterVisible(false)}
+                  activeOpacity={0.85}
                   className="flex-1 py-4 items-center justify-center rounded-[20px] bg-gray-100 dark:bg-zinc-800"
                 >
                   <Text className="text-[18px] font-poppins text-black dark:text-white">
-                    Back
+                    Cancel
                   </Text>
                 </TouchableOpacity>
+
+                {/* Apply Button */}
                 <TouchableOpacity
                   onPress={() => {
                     applyDateFilter();
                     setSelectedTab("Custom");
                     setDateFilterVisible(false);
                   }}
+                  activeOpacity={0.85}
                   className="flex-1 rounded-[20px] overflow-hidden"
                 >
                   <LinearGradient
@@ -843,7 +859,7 @@ export default function UsageScreen() {
                     locations={[0, 0.5183, 1]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0.1 }}
-                    className="w-full py-4 items-center justify-center"
+                    className="py-4 items-center justify-center"
                   >
                     <Text className="text-[18px] font-poppins text-white">
                       Apply
