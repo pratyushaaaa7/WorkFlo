@@ -10,7 +10,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import moment from "moment";
 import { AnimatePresence, MotiView } from "moti";
 import React, {
@@ -23,6 +25,7 @@ import React, {
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   RefreshControl,
   StatusBar,
   Text,
@@ -33,7 +36,7 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
-import { exportSupportToExcel } from "../utils/supportExcel";
+// import { exportSupportToExcel } from "../utils/supportExcel";
 
 const FILTERS = ["All", "Open", "Unpublished", "Published"];
 
@@ -50,6 +53,7 @@ const AppSupport = () => {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   // Track if it's the first load to show global spinner
   const isFirstLoad = useRef(true);
@@ -62,6 +66,7 @@ const AppSupport = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTickets(response.data.supports || []);
+        console.log(response.data.supports)
       } catch (err) {
         console.error("❌ Error fetching tickets:", err);
         if (!silent) {
@@ -96,6 +101,66 @@ const AppSupport = () => {
   const onRefresh = () => {
     setRefreshing(true);
     fetchTickets(true);
+  };
+
+  const handleExportExcel = async () => {
+    if (downloadingExcel) return;
+    setDownloadingExcel(true);
+
+    try {
+      const response = await api.get("/support/export", {
+        responseType: "blob",
+        headers: { Authorization: "Bearer " + token },
+      });
+
+      const fileName = `SupportTickets_${moment().format("DDMMMYYYY")}.xlsx`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+        } else {
+          Toast.show({
+            type: "info",
+            text1: "Export complete",
+            text2: "Sharing is not available on this device",
+          });
+        }
+      }
+    } catch (err) {
+      console.error("❌ Excel export error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Export Failed",
+        text2: "Could not export support tickets to Excel.",
+      });
+    } finally {
+      setDownloadingExcel(false);
+    }
   };
 
   const filteredTickets = useMemo(() => {
@@ -266,13 +331,21 @@ const AppSupport = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => exportSupportToExcel(filteredTickets)}
+            onPress={handleExportExcel}
+            disabled={downloadingExcel}
           >
-            <HugeiconsIcon
-              icon={Xsl01Icon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
-            />
+            {downloadingExcel ? (
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={Xsl01Icon}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
