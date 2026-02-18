@@ -10,7 +10,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 import { useNavigation } from "expo-router";
+import * as Sharing from "expo-sharing";
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -44,6 +46,7 @@ export default function UsageScreen() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   const [userLeaderboard, setUserLeaderboard] = useState<any[]>([]);
 
@@ -92,6 +95,7 @@ export default function UsageScreen() {
       const data = res.data;
       if (Array.isArray(data)) {
         setUserLeaderboard(data);
+        console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
       } else {
         console.warn("⚠️ Unexpected leaderboard data format", data);
         setUserLeaderboard([]);
@@ -102,6 +106,67 @@ export default function UsageScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  // -------------------------------------
+  // 📥 Export Excel
+  // -------------------------------------
+  const handleExportExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+
+      const typeMap: any = {
+        Today: "day",
+        Week: "week",
+        Month: "month",
+        Custom: "custom",
+      };
+
+      const response = await api.get("/usage/users/leaderboard/export", {
+        params: { type: typeMap[selectedTab] },
+        responseType: "blob",
+        headers: { Authorization: "Bearer " + token },
+      });
+
+      const fileName = `UsageLeaderboard_${selectedTab}_${moment().format("DDMMMYYYY")}.xlsx`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+        } else {
+          console.warn("Sharing is not available on this device");
+        }
+      }
+    } catch (err) {
+      console.error("❌ Excel export error:", err);
+    } finally {
+      setDownloadingExcel(false);
     }
   };
 
@@ -275,12 +340,22 @@ export default function UsageScreen() {
             />
           </TouchableOpacity>
           {/* Excel Icon Placeholder */}
-          <TouchableOpacity>
-            <HugeiconsIcon
-              icon={Xsl01Icon}
-              size={24}
-              color={isDarkMode ? "#D2D2D2" : "#454545"}
-            />
+          <TouchableOpacity
+            disabled={downloadingExcel}
+            onPress={handleExportExcel}
+          >
+            {downloadingExcel ? (
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "#D2D2D2" : "#454545"}
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={Xsl01Icon}
+                size={24}
+                color={isDarkMode ? "#D2D2D2" : "#454545"}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
