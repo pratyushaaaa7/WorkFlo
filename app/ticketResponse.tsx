@@ -136,7 +136,8 @@ export default function TicketDetails() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const {
     id,
     ticketId,
@@ -254,25 +255,30 @@ export default function TicketDetails() {
         </View>
 
         {/* Status Section */}
-        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
-          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
-            Status
-          </Text>
-
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-base font-dmMedium text-black dark:text-white">
-              Fixed
+        {isAdmin && (
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
+            <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
+              Status
             </Text>
-            <CustomToggle value={isFixed} onValueChange={setIsFixed} />
-          </View>
 
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base font-dmMedium text-black dark:text-white">
-              Published
-            </Text>
-            <CustomToggle value={isPublished} onValueChange={setIsPublished} />
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-base font-dmMedium text-black dark:text-white">
+                Fixed
+              </Text>
+              <CustomToggle value={isFixed} onValueChange={setIsFixed} />
+            </View>
+
+            <View className="flex-row justify-between items-center">
+              <Text className="text-base font-dmMedium text-black dark:text-white">
+                Published
+              </Text>
+              <CustomToggle
+                value={isPublished}
+                onValueChange={setIsPublished}
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Remarks Section */}
         <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
@@ -283,10 +289,11 @@ export default function TicketDetails() {
             <TextInput
               value={remark}
               onChangeText={setRemark}
-              placeholder="Add remarks..."
+                    placeholder="Add remarks..."
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
               multiline
               textAlignVertical="top"
+              editable={isAdmin}
               className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
             />
           </View>
@@ -337,34 +344,36 @@ export default function TicketDetails() {
       </KeyboardAwareScrollView>
 
       {/* Sticky Save Button at the Bottom */}
-      <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
-        <TouchableOpacity
-          onPress={handleUpdate}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="py-4 rounded-2xl items-center justify-center shadow-lg"
-            style={{
-              shadowColor: "#5B4CCC",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.3,
-              shadowRadius: 15,
-              elevation: 8,
-              borderRadius: 12,
-            }}
+      {isAdmin && (
+        <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
+          <TouchableOpacity
+            onPress={handleUpdate}
+            disabled={loading}
+            activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white text-lg font-dmBold">Submit</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="py-4 rounded-2xl items-center justify-center shadow-lg"
+              style={{
+                shadowColor: "#5B4CCC",
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.3,
+                shadowRadius: 15,
+                elevation: 8,
+                borderRadius: 12,
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-lg font-dmBold">Submit</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

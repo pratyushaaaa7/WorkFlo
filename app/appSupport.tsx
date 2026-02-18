@@ -113,7 +113,7 @@ const AppSupport = () => {
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() =>
-          isAdmin &&
+          //  isAdmin &&
           router.push({
             pathname: "/ticketResponse",
             params: {
