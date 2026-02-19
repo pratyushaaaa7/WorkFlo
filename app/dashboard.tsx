@@ -12,8 +12,8 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useNavigation, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -81,6 +81,14 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Skip the very first load because useEffect handles it
+      // or we can just call it silently
+      fetchDashboardData(true);
+    }, [token]),
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
