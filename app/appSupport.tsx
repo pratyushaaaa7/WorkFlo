@@ -15,6 +15,7 @@ import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import moment from "moment";
 import { AnimatePresence, MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, {
   useCallback,
   useEffect,
@@ -39,6 +40,77 @@ import { useAuth } from "../context/AuthContext";
 // import { exportSupportToExcel } from "../utils/supportExcel";
 
 const FILTERS = ["All", "Open", "Unpublished", "Published"];
+
+const TicketSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-3 py-4 shadow-sm"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row justify-between items-center mb-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={140}
+        height={16}
+        radius={4}
+      />
+      <View className="flex-row gap-2">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={80}
+          height={16}
+          radius={4}
+        />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={60}
+          height={16}
+          radius={4}
+        />
+      </View>
+    </View>
+
+    <View className="mb-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="60%"
+        height={22}
+        radius={6}
+      />
+    </View>
+
+    <View className="mb-4">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="100%"
+        height={14}
+        radius={4}
+      />
+      <View className="mt-1.5">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="80%"
+          height={14}
+          radius={4}
+        />
+      </View>
+    </View>
+
+    <View className="flex-row justify-between items-center">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={120}
+        height={14}
+        radius={4}
+      />
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={90}
+        height={14}
+        radius={4}
+      />
+    </View>
+  </View>
+);
 
 const AppSupport = () => {
   const router = useRouter();
@@ -66,7 +138,7 @@ const AppSupport = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTickets(response.data.supports || []);
-        console.log(response.data.supports)
+        // console.log(response.data.supports);
       } catch (err) {
         console.error("❌ Error fetching tickets:", err);
         if (!silent) {
@@ -440,12 +512,12 @@ const AppSupport = () => {
       {/* 🔹 TICKETS LIST */}
       <View className="flex-1">
         {loading && !refreshing ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#5B4CCC" />
-            <Text className="mt-4 text-[#8E8E8E] font-poppins">
-              Loading tickets...
-            </Text>
-          </View>
+          <FlatList
+            data={[1, 2, 3,4]}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => <TicketSkeleton isDarkMode={isDarkMode} />}
+            showsVerticalScrollIndicator={false}
+          />
         ) : (
           <FlatList
             data={filteredTickets}
