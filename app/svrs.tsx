@@ -1,20 +1,20 @@
-import React, { useEffect, useState, useContext } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
   Text,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Linking,
-  Alert,
+  View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
-import { LinearGradient } from "expo-linear-gradient";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
+import api from "../lib/api";
 
 type SVRItem = {
   _id: string;
@@ -39,6 +39,8 @@ const SVRs = () => {
 
   const [svrs, setSvrs] = useState<SVRItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const isDownloadingRef = useRef(false);
 
   // Fetch DPR/SVR list
   const fetchSVRs = async () => {
@@ -71,32 +73,53 @@ const SVRs = () => {
 
   const goToForm = (type: any) => {
     router.push(
-      `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`
+      `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`,
     );
   };
 
-  // ✅ Open PDF in browser
-  const openPDF = (url: string) => {
-    Linking.openURL(url).catch(() =>
-      Alert.alert("Error", "Unable to open PDF link")
-    );
-  };
-
-  const downloadSVR = async (url: string, fileName: string) => {
+  const downloadSVR = async (id: string, url: string, fileName: string) => {
+    if (isDownloadingRef.current) return; // Prevent multiple downloads (ref avoids stale closure)
+    isDownloadingRef.current = true;
+    setDownloadingId(id);
     try {
-      const downloadUri = FileSystem.documentDirectory + fileName;
+      // Sanitize filename: remove special chars like # that break file URIs
+      let safeName = fileName.replace(/[#?&=%]/g, "_");
+      // Ensure the filename ends with .pdf
+      if (!safeName.toLowerCase().endsWith(".pdf")) {
+        safeName = `${safeName}.pdf`;
+      }
+      const downloadUri = FileSystem.documentDirectory + safeName;
 
-      const { uri } = await FileSystem.downloadAsync(url, downloadUri);
+      const result = await FileSystem.downloadAsync(url, downloadUri);
+
+      if (result.status !== 200) {
+        Alert.alert("Error", `Download failed with status ${result.status}`);
+        return;
+      }
+
+      // Verify file exists
+      const fileInfo = await FileSystem.getInfoAsync(result.uri);
+      if (!fileInfo.exists) {
+        Alert.alert("Error", "Downloaded file not found");
+        return;
+      }
 
       // Open share sheet (Save to Files / Drive / Downloads)
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
+        Sharing.shareAsync(result.uri, {
+          mimeType: "application/pdf",
+          UTI: "com.adobe.pdf",
+          dialogTitle: safeName,
+        }).catch((err) => console.warn("Share dismissed:", err));
       } else {
         Alert.alert("Downloaded", "File downloaded successfully");
       }
     } catch (error) {
       console.error("Download failed:", error);
       Alert.alert("Error", "Failed to download file");
+    } finally {
+      isDownloadingRef.current = false;
+      setDownloadingId(null);
     }
   };
 
@@ -108,7 +131,7 @@ const SVRs = () => {
           <TouchableOpacity
             onPress={() =>
               router.push(
-                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`
+                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
               )
             }
             className="flex-row items-center"
@@ -135,7 +158,7 @@ const SVRs = () => {
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => openPDF(item.url)}
+                onPress={() => Linking.openURL(item.url)}
                 className="bg-white p-4 rounded-2xl mb-3 flex-row items-center justify-between shadow-sm border border-gray-100"
               >
                 {/* Left: File Info */}
@@ -154,10 +177,19 @@ const SVRs = () => {
 
                 {/* Right: Download Button */}
                 <TouchableOpacity
-                  onPress={() => downloadSVR(item.url, item.fileName)}
+                  onPress={() => downloadSVR(item._id, item.url, item.fileName)}
+                  disabled={downloadingId === item._id}
                   className="bg-green-50 p-3 rounded-xl ml-3"
                 >
-                  <Ionicons name="download-outline" size={22} color="#16A34A" />
+                  {downloadingId === item._id ? (
+                    <ActivityIndicator size={22} color="#16A34A" />
+                  ) : (
+                    <Ionicons
+                      name="download-outline"
+                      size={22}
+                      color="#16A34A"
+                    />
+                  )}
                 </TouchableOpacity>
               </TouchableOpacity>
             )}
