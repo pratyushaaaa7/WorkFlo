@@ -24,8 +24,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Keyboard,
   LayoutAnimation,
+  Linking,
   Platform,
   Pressable,
   RefreshControl,
@@ -112,6 +114,7 @@ const IlrActivities = () => {
       ? JSON.parse(params.attachments as string)
       : [],
     projectId: "",
+    delayDays: params.delayDays ? Number(params.delayDays) : undefined,
   });
 
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
@@ -188,7 +191,9 @@ const IlrActivities = () => {
         ilrNumber: ilrData.ilrNumber,
         attachments: ilrData.attachments || [],
         projectId: ilrData.projectId || ilrData.project || "",
+        delayDays: ilrData.delayDays,
       });
+      console.log("ILR Data:", ilrData);
 
       const mappedActivities = (ilrData.activities || [])
         .map((act: any) => {
@@ -672,26 +677,28 @@ const IlrActivities = () => {
                       className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
                     >
                       {ilr.targetDate
-                        ? new Date(ilr.targetDate).toLocaleDateString("en-US", {
-                            day: "numeric",
+                        ? new Date(ilr.targetDate).toLocaleDateString("en-GB", {
+                            day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })
                         : "Set Date"}
                     </Text>
                   </View>
-                  <View className="items-end">
-                    <Text
-                      className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                    >
-                      {daysLeft.label}
-                    </Text>
-                    <Text
-                      className={`text-sm font-poppinsMedium ${daysLeft.isOverdue ? "text-red-500" : "text-green-500"}`}
-                    >
-                      {daysLeft.count}
-                    </Text>
-                  </View>
+                  {ilr.delayDays && ilr.delayDays > 0 ? (
+                    <View className="items-end">
+                      <Text
+                        className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                      >
+                        Delay Days
+                      </Text>
+                      <Text
+                        className={`text-sm font-poppinsMedium text-red-500`}
+                      >
+                        {ilr.delayDays}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
@@ -745,34 +752,35 @@ const IlrActivities = () => {
                       showsHorizontalScrollIndicator={false}
                       className="flex-row"
                     >
-                      {ilr.attachments.map((item: any, index: number) => (
-                        <View
-                          key={index}
-                          className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
-                          style={{ width: 140 }}
-                        >
-                          <View className="h-24 bg-gray-300 w-full items-center justify-center">
-                            <Ionicons
-                              name="image-outline"
-                              size={30}
-                              color="#6B7280"
+                      {ilr.attachments.map((item: any, index: number) => {
+                        const url =
+                          typeof item === "string" ? item : item?.url || "";
+                        const fileName =
+                          url.split("/").pop() || `Attachment ${index + 1}`;
+                        return (
+                          <TouchableOpacity
+                            key={index}
+                            className={`mr-3 rounded-xl overflow-hidden ${isDark ? "bg-gray-800" : "bg-gray-100"}`}
+                            style={{ width: 140 }}
+                            activeOpacity={0.7}
+                            onPress={() => Linking.openURL(url)}
+                          >
+                            <Image
+                              source={{ uri: url }}
+                              style={{ width: "100%", height: 96 }}
+                              resizeMode="cover"
                             />
-                          </View>
-                          <View className="p-2">
-                            <Text
-                              className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
-                              numberOfLines={1}
-                            >
-                              {item.name || `Attachment ${index + 1}`}
-                            </Text>
-                            <Text className="text-xs text-gray-500">
-                              {item.date
-                                ? new Date(item.date).toLocaleDateString()
-                                : "No Date"}
-                            </Text>
-                          </View>
-                        </View>
-                      ))}
+                            <View className="p-2">
+                              <Text
+                                className={`text-xs font-medium ${isDark ? "text-white" : "text-black"}`}
+                                numberOfLines={1}
+                              >
+                                {fileName}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </ScrollView>
                   </View>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />

@@ -420,8 +420,15 @@ const ILRs = () => {
     if (item.status === "Closed") return null;
 
     if (item.overdueDays && item.overdueDays > 0) {
+      const target = new Date(item.targetDate);
       return {
-        text: `Overdue - ${item.overdueDays}`,
+        text: !isNaN(target.getTime())
+          ? target.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "N/A",
         color: "text-red-500",
         icon: Calendar03Icon,
       };

@@ -134,7 +134,11 @@ export default function AnnotateImage() {
       <View style={styles.canvasWrapper}>
         <ViewShot
           ref={viewShotRef}
-          options={{ format: "jpg", quality: 0.9 }}
+          options={{
+            format: "jpg",
+            quality: 0.9,
+            fileName: `Annotated_Image_${Date.now()}`,
+          }}
           style={styles.viewShot}
         >
           <Image
