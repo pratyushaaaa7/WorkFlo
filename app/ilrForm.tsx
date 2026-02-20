@@ -1,8 +1,14 @@
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  MinusSignCircleIcon,
+  PlusSignCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
@@ -10,11 +16,12 @@ import {
   ActivityIndicator,
   Image,
   Keyboard,
+  LayoutAnimation,
   Platform,
-  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
@@ -46,8 +53,20 @@ const ILRForm = () => {
     projectName: string;
   }>();
 
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
   const auth = useContext(AuthContext);
   const token = auth?.token;
+
+  const [collapsedIndices, setCollapsedIndices] = useState<number[]>([]);
+
+  const toggleCollapse = (index: number) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCollapsedIndices((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+    );
+  };
 
   // const [token, setToken] = useState<string | null>(null);
 
@@ -270,8 +289,10 @@ const ILRForm = () => {
         position: "bottom",
       });
 
-      // Clear image store
+      // Clear image store and draft storage
       clearAll();
+      await AsyncStorage.removeItem(`ilr_form_${projectId}`);
+      await AsyncStorage.removeItem(`ilr_images_${projectId}`);
 
       setIssues([
         {
@@ -325,71 +346,93 @@ const ILRForm = () => {
     fetchUsers();
   }, [projectId]);
 
-  const STORAGE_KEY = `ilr_form_${projectId}`;
   // Add this new state
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Load ILR form data when projectId changes
+  // Load ILR form data and images when projectId changes
   useEffect(() => {
     if (!projectId) return;
-    const loadFormData = async () => {
+    const loadDraft = async () => {
       try {
-        const savedData = await AsyncStorage.getItem(`ilr_form_${projectId}`);
-        if (savedData) {
-          const parsedData = JSON.parse(savedData);
-          if (Array.isArray(parsedData)) {
-            setIssues(parsedData);
+        // Load issues
+        const savedIssues = await AsyncStorage.getItem(`ilr_form_${projectId}`);
+        if (savedIssues) {
+          const parsed = JSON.parse(savedIssues);
+          if (Array.isArray(parsed)) {
+            setIssues(parsed);
           }
         }
+
+        // Load images into Zustand store
+        const savedImages = await AsyncStorage.getItem(
+          `ilr_images_${projectId}`,
+        );
+        if (savedImages) {
+          const parsedImages = JSON.parse(savedImages);
+          // Only populate if store is currently empty for this project to avoid overwrites
+          Object.entries(parsedImages).forEach(([idx, uris]) => {
+            const index = Number(idx);
+            const currentUris =
+              useTempImageStore.getState().images[index] || [];
+            (uris as string[]).forEach((uri) => {
+              if (!currentUris.includes(uri)) {
+                useTempImageStore.getState().addImageToIssue(index, uri);
+              }
+            });
+          });
+        }
       } catch (error) {
-        console.log("Error loading ILR data:", error);
+        console.log("Error loading draft data:", error);
       } finally {
-        setDataLoaded(true); // mark loaded
+        setDataLoaded(true);
       }
     };
-    loadFormData();
+    loadDraft();
   }, [projectId]);
 
+  // Save issues and images whenever they change
   useEffect(() => {
-    if (!projectId) return; // ✅ guard
-    const saveFormData = async () => {
+    if (!projectId || !dataLoaded) return;
+    const saveDraft = async () => {
       try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+        await AsyncStorage.setItem(
+          `ilr_form_${projectId}`,
+          JSON.stringify(issues),
+        );
+        await AsyncStorage.setItem(
+          `ilr_images_${projectId}`,
+          JSON.stringify(images),
+        );
       } catch (error) {
-        console.log("Error saving ILR data:", error);
+        console.log("Error saving draft data:", error);
       }
     };
-    saveFormData();
-  }, [issues]);
+    saveDraft();
+  }, [issues, images, projectId, dataLoaded]);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-white"}`}>
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-            zIndex: 10,
-          }}
+      <View
+        className={`pt-16 pb-4 px-4 flex-row items-center ${isDarkMode ? "bg-black" : "bg-white"}`}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="p-2"
+          activeOpacity={0.7}
         >
-          {/* Back Button + Title */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              Create ILR
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#FFF" : "#000"}
+          />
+        </TouchableOpacity>
+        <Text
+          className={`text-[20px] font-dmSemiBold ml-2 ${isDarkMode ? "text-white" : "text-black"}`}
+        >
+          Create ILR
+        </Text>
+      </View>
 
       {/* Scrollable Content */}
       <KeyboardAwareScrollView
@@ -401,209 +444,330 @@ const ILRForm = () => {
           paddingBottom: 60,
         }}
       >
-        <Text className="text-2xl py-4 font-extrabold text-gray-800 my-2 text-center">
-          {projectName || ""} ILR
-        </Text>
-
         {/* Issues Section */}
-        {issues.map((issue, index) => (
-          <View key={index} className="bg-white rounded-2xl p-4 shadow-sm mb-6">
-            <Text className="font-bold text-lg text-blue-600 mb-4">
-              Issue {issue.serialNo}
-            </Text>
-
-            <View className="gap-1">
-              <TextInput
-                placeholder="Issue Title *"
-                value={issue.description}
-                onChangeText={(text) => updateIssue(index, "description", text)}
-                className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base"
-                placeholderTextColor="#999"
-                multiline
-              />
-
-              <TouchableOpacity onPress={() => openDatePicker(index)}>
-                <TextInput
-                  placeholder="Target Date (DD-MM-YYYY) *"
-                  value={
-                    issue.targetDate
-                      ? new Date(issue.targetDate).toLocaleDateString("en-GB") // ✅ formats as DD/MM/YYYY
-                      : ""
-                  }
-                  editable={false}
-                  pointerEvents="none"
-                  className="border border-gray-200 rounded-lg px-3 mb-2 py-2 bg-gray-50 text-base text-gray-800"
-                  placeholderTextColor="#999"
+        {issues.map((issue, index) => {
+          const isCollapsed = collapsedIndices.includes(index);
+          return (
+            <View
+              key={index}
+              className={`rounded-3xl mb-6 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
+              style={{
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#333" : "#E5E7EB",
+                overflow: "hidden",
+              }}
+            >
+              {/* Issue Header/Title */}
+              <TouchableOpacity
+                onPress={() => toggleCollapse(index)}
+                activeOpacity={0.8}
+                className={`flex-row items-center justify-between px-5 py-5 ${
+                  !isCollapsed
+                    ? isDarkMode
+                      ? "border-b border-[#333]"
+                      : "border-b border-gray-100"
+                    : ""
+                }`}
+              >
+                <Text
+                  className={`font-semibold text-lg ${isDarkMode ? "text-white" : "text-gray-700"}`}
+                >
+                  Issue {issue.serialNo}
+                </Text>
+                <HugeiconsIcon
+                  icon={isCollapsed ? ArrowDown01Icon : ArrowDown01Icon} // design shows chevron-down for both, wait, image shows down arrow
+                  size={20}
+                  color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
+                  style={{
+                    transform: [{ rotate: isCollapsed ? "0deg" : "180deg" }],
+                  }}
                 />
               </TouchableOpacity>
 
-              {/* Date Picker Modal */}
-              {/* <DateTimePickerModal
-                isVisible={datePickerVisible}
-                mode="date"
-                date={new Date()}
-                onConfirm={(date) => {
-                  setDatePickerVisible(false);
-                  handleDateSelect({ type: "set" }, date);
-                }}
-                onCancel={() => setDatePickerVisible(false)}
-              /> */}
-
-              {/* Responsibility MultiSelect */}
-              <MultiSelect
-                style={{
-                  height: 35,
-                  borderColor: "#E5E7EB",
-                  borderWidth: 1,
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  backgroundColor: "#F9FAFB",
-                  marginBottom: 2,
-                }}
-                placeholderStyle={{ fontSize: 14, color: "#888" }}
-                selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
-                selectedStyle={{
-                  borderRadius: 10,
-                  backgroundColor: "#b9EBF1",
-                  padding: 5,
-                }}
-                containerStyle={{
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  backgroundColor: "#fff",
-                }}
-                activeColor="#E0F7FA"
-                inputSearchStyle={{ fontSize: 14 }}
-                search
-                labelField="label"
-                valueField="value"
-                data={users}
-                value={(issue.responsibility || []).map((r) => r._id)} // array of IDs
-                placeholder="Select responsible users *"
-                searchPlaceholder="Search..."
-                onChange={(selectedIds: string[]) => {
-                  const selectedObjects = users
-                    .filter((u) => selectedIds.includes(u.value))
-                    .map((u) => ({ _id: u.value, name: u.label })); // full objects
-                  updateIssue(index, "responsibility", selectedObjects);
-                }}
-              />
-              <TextInput
-                placeholder="Issue Description *"
-                value={issue.remarks}
-                onChangeText={(text) => updateIssue(index, "remarks", text)}
-                className="border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-base mb-2"
-                placeholderTextColor="#999"
-                multiline
-              />
-
-              {/* Image Picker Buttons */}
-              <View className="flex-row justify-between my-4">
-                <TouchableOpacity
-                  onPress={() => takePhoto(index)}
-                  className="flex-1 flex-row items-center justify-center bg-indigo-100 py-3 rounded-xl mr-2"
+              {!isCollapsed && (
+                <View
+                  className={`p-4 gap-3 ${isDarkMode ? "bg-[#111]" : "bg-white"}`}
                 >
-                  <Ionicons name="camera" size={20} color="#4F46E5" />
-                  <Text className="ml-2 text-indigo-600 font-semibold">
-                    Camera
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => pickImage(index)}
-                  className="flex-1 flex-row items-center justify-center bg-indigo-100 py-3 rounded-xl"
-                >
-                  <Ionicons name="images" size={20} color="#4F46E5" />
-                  <Text className="ml-2 text-indigo-600 font-semibold">
-                    Gallery
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  <TextInput
+                    placeholder="e.g. Describe the title"
+                    value={issue.description}
+                    onChangeText={(text) =>
+                      updateIssue(index, "description", text)
+                    }
+                    className={`rounded-2xl px-4 py-4 text-base ${
+                      isDarkMode
+                        ? "bg-black text-white"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                    placeholderTextColor={isDarkMode ? "#4B5563" : "#6B7280"}
+                  />
 
-              {/* Image Thumbnails */}
-              <View className="flex-row flex-wrap gap-3">
-                {(images[index] || []).map((uri, imgIdx) => (
-                  <View key={imgIdx} className="relative">
-                    <Image
-                      source={{ uri }}
-                      style={{ width: 85, height: 85, borderRadius: 12 }}
-                    />
-                    <TouchableOpacity
-                      onPress={() => deleteImage(index, uri)}
-                      className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-sm"
+                  {/* Assignee MultiSelect */}
+                  <MultiSelect
+                    style={{
+                      height: 56,
+                      backgroundColor: isDarkMode ? "black" : "#F3F4F6",
+                      borderRadius: 16,
+                      paddingHorizontal: 16,
+                    }}
+                    placeholderStyle={{
+                      fontSize: 16,
+                      color: isDarkMode ? "#4B5563" : "#6B7280",
+                    }}
+                    selectedTextStyle={{
+                      fontSize: 14,
+                      color: isDarkMode ? "white" : "#1F2937",
+                    }}
+                    selectedStyle={{
+                      borderRadius: 12,
+                      backgroundColor: isDarkMode ? "#333" : "#E5E7EB",
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                    }}
+                    containerStyle={{
+                      borderRadius: 16,
+                      marginTop: 8,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "white",
+                      borderColor: isDarkMode ? "#333" : "#E5E7EB",
+                    }}
+                    itemTextStyle={{ color: isDarkMode ? "white" : "black" }}
+                    activeColor={isDarkMode ? "#333" : "#F3F4F6"}
+                    inputSearchStyle={{ fontSize: 16 }}
+                    search
+                    labelField="label"
+                    valueField="value"
+                    data={users}
+                    value={(issue.responsibility || []).map((r) => r._id)}
+                    placeholder="Assignee"
+                    searchPlaceholder="Search..."
+                    onChange={(selectedIds: string[]) => {
+                      const selectedObjects = users
+                        .filter((u) => selectedIds.includes(u.value))
+                        .map((u) => ({ _id: u.value, name: u.label }));
+                      updateIssue(index, "responsibility", selectedObjects);
+                    }}
+                    renderRightIcon={() => (
+                      <HugeiconsIcon
+                        icon={ArrowDown01Icon}
+                        size={20}
+                        color="#9CA3AF"
+                      />
+                    )}
+                  />
+
+                  <TouchableOpacity onPress={() => openDatePicker(index)}>
+                    <View
+                      className={`flex-row items-center justify-between rounded-2xl px-4 py-4 ${
+                        isDarkMode ? "bg-black" : "bg-gray-100"
+                      }`}
                     >
-                      <Ionicons name="close" size={16} color="white" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: "/annotateImage",
-                          params: {
-                            imageUri: uri,
-                            issueIndex: index.toString(),
-                          },
-                        })
-                      }
-                      className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-2 shadow-md"
+                      <Text
+                        className={`text-base ${
+                          issue.targetDate
+                            ? isDarkMode
+                              ? "text-white"
+                              : "text-gray-800"
+                            : isDarkMode
+                              ? "#4B5563"
+                              : "text-gray-500"
+                        }`}
+                        style={{
+                          color:
+                            !issue.targetDate && isDarkMode
+                              ? "#4B5563"
+                              : undefined,
+                        }}
+                      >
+                        {issue.targetDate
+                          ? moment(issue.targetDate).format("DD-MM-YYYY")
+                          : "DD-MM-YYYY"}
+                      </Text>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={20}
+                        color="#9CA3AF"
+                      />
+                    </View>
+                  </TouchableOpacity>
+
+                  <TextInput
+                    placeholder="e.g. Describe the issue"
+                    value={issue.remarks}
+                    onChangeText={(text) => updateIssue(index, "remarks", text)}
+                    className={`rounded-2xl px-4 py-4 text-base ${
+                      isDarkMode
+                        ? "bg-black text-white"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                    placeholderTextColor={isDarkMode ? "#4B5563" : "#6B7280"}
+                    multiline
+                    numberOfLines={4}
+                    style={{ textAlignVertical: "top", minHeight: 120 }}
+                  />
+
+                  {/* Image Picker Section */}
+                  <View className="mt-4">
+                    <View
+                      className={`rounded-2xl p-8 items-center justify-center border-dashed border-2 ${
+                        isDarkMode
+                          ? "bg-black border-[#333]"
+                          : "bg-gray-100 border-gray-200"
+                      }`}
+                      style={{ minHeight: 160 }}
                     >
-                      <Ionicons name="pencil" size={14} color="white" />
+                      <TouchableOpacity
+                        onPress={() => pickImage(index)}
+                        className={`rounded-xl px-6 py-3 flex-row items-center mb-2 ${
+                          isDarkMode ? "bg-[#1A1A1A]" : "bg-black"
+                        }`}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name="arrow-up-outline"
+                          size={20}
+                          color="white"
+                        />
+                        <Text className="text-white font-semibold ml-2">
+                          Upload
+                        </Text>
+                      </TouchableOpacity>
+                      <Text className="text-gray-500 font-medium">
+                        Choose Image
+                      </Text>
+                    </View>
+
+                    {/* Camera Option */}
+                    <TouchableOpacity
+                      onPress={() => takePhoto(index)}
+                      className={`absolute top-2 right-2 p-2 rounded-full shadow-sm ${
+                        isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                      }`}
+                    >
+                      <Ionicons
+                        name="camera"
+                        size={20}
+                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                      />
                     </TouchableOpacity>
+
+                    {/* Image Thumbnails */}
+                    {(images[index] || []).length > 0 && (
+                      <View className="flex-row flex-wrap gap-3 mt-4">
+                        {images[index].map((uri, imgIdx) => (
+                          <View key={imgIdx} className="relative">
+                            <TouchableOpacity
+                              onPress={() =>
+                                router.push({
+                                  pathname: "/annotateImage",
+                                  params: {
+                                    imageUri: uri,
+                                    issueIndex: index.toString(),
+                                  },
+                                })
+                              }
+                              activeOpacity={0.8}
+                            >
+                              <Image
+                                source={{ uri }}
+                                style={{
+                                  width: 80,
+                                  height: 80,
+                                  borderRadius: 16,
+                                }}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => deleteImage(index, uri)}
+                              className={`absolute -top-2 -right-2 rounded-full p-1 shadow-md border ${
+                                isDarkMode
+                                  ? "bg-[#1A1A1A] border-[#333]"
+                                  : "bg-white border-gray-100"
+                              }`}
+                              style={{ zIndex: 10 }}
+                            >
+                              <Ionicons
+                                name="close"
+                                size={14}
+                                color="#EF4444"
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        ))}
+                      </View>
+                    )}
                   </View>
-                ))}
-              </View>
-            </View>
 
-            {issues.length > 1 && (
-              <Pressable
-                onPress={() => removeIssue(index)}
-                className="pt-5 flex-row items-center"
-              >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                <Text className="text-red-500 font-medium text-lg ml-2">
-                  Delete Issue
-                </Text>
-              </Pressable>
-            )}
-          </View>
-        ))}
+                  {/* Remove Issue Button */}
+                  {issues.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => removeIssue(index)}
+                      className="mt-6 flex-row items-center justify-end"
+                    >
+                      <HugeiconsIcon
+                        icon={MinusSignCircleIcon}
+                        size={24}
+                        color="#EF4444"
+                      />
+                      <Text
+                        className={`font-dmSemiBold text-base ml-2 ${
+                          isDarkMode ? "text-white" : "text-black"
+                        }`}
+                      >
+                        Remove
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        })}
 
         {/* Add Issue Button */}
-        <Pressable
+        <TouchableOpacity
           onPress={addIssue}
-          className="bg-emerald-500 py-3 rounded-2xl mb-6 items-center active:scale-95"
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
+          className={`py-4 rounded-2xl mb-4 flex-row items-center justify-center ${
+            isDarkMode ? "bg-[#1A1A1A]" : "bg-gray-100"
+          }`}
+          activeOpacity={0.7}
         >
-          <Text className="text-white font-semibold text-lg">+ Add Issue</Text>
-        </Pressable>
+          <HugeiconsIcon
+            icon={PlusSignCircleIcon}
+            size={22}
+            color={isDarkMode ? "white" : "black"}
+          />
+          <Text
+            className={`font-dmSemiBold text-base ml-2 ${isDarkMode ? "text-white" : "text-black"}`}
+          >
+            Add Issue
+          </Text>
+        </TouchableOpacity>
 
         {/* Submit Button */}
-        <Pressable
+        <TouchableOpacity
           onPress={handleSubmit}
           disabled={saving}
-          android_ripple={{ color: "rgba(255,255,255,0.2)" }}
-          className={`py-4 rounded-2xl items-center mb-20
-    ${saving ? "bg-gray-400" : "bg-blue-700"}
-  `}
-          style={({ pressed }) => [
-            { transform: [{ scale: pressed ? 0.97 : 1 }] },
-          ]}
+          className={`py-4 rounded-2xl items-center mb-10 ${
+            saving ? "bg-gray-400" : ""
+          }`}
+          style={{
+            backgroundColor: saving
+              ? "#9CA3AF"
+              : isDarkMode
+                ? "#7C3AED" // Purple for dark mode
+                : "#6366F1", // Indigo for light mode
+          }}
+          activeOpacity={0.8}
         >
           {saving ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text className="text-white font-bold text-lg">Submit ILR</Text>
+            <Text className="text-white font-dmSemiBold text-lg">Submit</Text>
           )}
-        </Pressable>
+        </TouchableOpacity>
       </KeyboardAwareScrollView>
 
       {/* Date Picker */}
-      {/* {datePickerVisible && (
-        <DateTimePicker
-          mode="date"
-          value={new Date()}
-          onChange={handleDateSelect}
-        />
-      )} */}
-
       <DateTimePickerModal
         isVisible={datePickerVisible}
         mode="date"
@@ -613,11 +777,9 @@ const ILRForm = () => {
             : new Date()
         }
         onConfirm={(date) => {
-          // Close picker FIRST
           setDatePickerVisible(false);
           setSelectedIssueIndex(null);
 
-          // Small delay ensures modal is gone
           setTimeout(() => {
             if (moment(date).isBefore(moment(), "day")) {
               Toast.show({
@@ -639,6 +801,7 @@ const ILRForm = () => {
           setDatePickerVisible(false);
           setSelectedIssueIndex(null);
         }}
+        isDarkModeEnabled={isDarkMode}
       />
     </View>
   );
