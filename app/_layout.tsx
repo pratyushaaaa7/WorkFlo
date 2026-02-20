@@ -1,5 +1,3 @@
-import logoDark from "@/assets/images/logoDark.png";
-import logoLight from "@/assets/images/logoLight.png";
 import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
 import {
   DMSans_400Regular,
@@ -216,13 +214,6 @@ function AppLayout() {
         ),
       },
       {
-        name: "masterProjectList",
-        label: "Project List",
-        icon: ({ color, size }: any) => (
-          <HugeiconsIcon icon={ProfileIcon} size={size} color={color} />
-        ),
-      },
-      {
         name: "centralEmployeeDirectory",
         label: "Employee Directory",
         icon: ({ color, size }: any) => (
@@ -246,6 +237,14 @@ function AppLayout() {
     ];
 
     if (user?.role === "admin") {
+      items.push({
+        name: "masterProjectList",
+        label: "Project List",
+        icon: ({ color, size }: any) => (
+          <HugeiconsIcon icon={ProfileIcon} size={size} color={color} />
+        ),
+      });
+
       items.push({
         name: "usage",
         label: "Usage",
