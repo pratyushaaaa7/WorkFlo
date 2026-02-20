@@ -1739,26 +1739,26 @@ const RegisterUserScreen = () => {
           onPress={() => setShowCancelModal(true)}
           className="flex-1 bg-transparent border border-[#BBB] dark:border-[#333] rounded-xl py-4 items-center"
         >
-          <Text className="text-[#777777] dark:text-[#919191] font-poppinsMedium text-base">
+          <Text className="text-[#777777] dark:text-[#919191] font-poppins text-lg">
             Cancel
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleRegister}
           disabled={loading}
-          className="flex-1 rounded-xl"
-          // style={{ borderRadius: 20 }}
+          className="flex-1 "
         >
           <LinearGradient
-            colors={["#5B4CCC", "#4539A0"]}
+            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            className=" py-4 items-center shadow-lg"
+            end={{ x: 1, y: 1 }}
+            className=" py-4 items-center rounded-xl shadow-lg"
+            style={{ borderRadius: 10 }}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white font-poppinsSemiBold text-base">
+              <Text className="text-white font-poppins text-lg">
                 {userId ? "Update" : "Register"}
               </Text>
             )}
