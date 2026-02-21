@@ -504,7 +504,7 @@ const ILRForm = () => {
                     className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
                   >
                     <TextInput
-                      placeholder="e.g. Issue Subject"
+                      placeholder="Issue Subject *"
                       value={issue.description}
                       onChangeText={(text) =>
                         updateIssue(index, "description", text)
@@ -571,7 +571,7 @@ const ILRForm = () => {
                       valueField="value"
                       data={users}
                       value={(issue.responsibility || []).map((r) => r._id)}
-                      placeholder="Responsibility"
+                      placeholder="Responsibility *"
                       searchPlaceholder="Search users..."
                       visibleSelectedItem={false}
                       onChange={(selectedIds: string[]) => {
@@ -660,7 +660,7 @@ const ILRForm = () => {
                     </TouchableOpacity>
 
                     <TextInput
-                      placeholder="e.g. Issue Description"
+                      placeholder="Issue Description *"
                       value={issue.remarks}
                       onChangeText={(text) =>
                         updateIssue(index, "remarks", text)
