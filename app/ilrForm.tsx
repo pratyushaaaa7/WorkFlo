@@ -48,8 +48,8 @@ type Responsibility = {
 type Issue = {
   serialNo: number;
   description: string;
-  targetDate: string;
-  originalTargetDate: string;
+  targetDate?: string;
+  originalTargetDate?: string;
   responsibility: Responsibility[]; // now array of objects
   remarks: string;
 };
@@ -107,6 +107,15 @@ const ILRForm = () => {
   const [issueIndexToDelete, setIssueIndexToDelete] = useState<number | null>(
     null,
   );
+
+  const [errors, setErrors] = useState<{
+    [key: number]: {
+      description?: boolean;
+      responsibility?: boolean;
+      remarks?: boolean;
+      [key: string]: boolean | undefined;
+    };
+  }>({});
 
   // Add Issue
   const addIssue = () => {
@@ -167,6 +176,17 @@ const ILRForm = () => {
     const updatedIssues = [...issues];
     updatedIssues[index][field] = value;
     setIssues(updatedIssues);
+
+    // Clear error for this field
+    if (errors[index]?.[field as any]) {
+      setErrors((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          [field]: false,
+        },
+      }));
+    }
   };
 
   // Handle Date Selection
@@ -242,34 +262,59 @@ const ILRForm = () => {
       }
 
       // 🔹 Validate each issue before submitting
-      for (const issue of issues) {
-        if (
-          !issue.description.trim() ||
-          !issue.targetDate ||
-          !issue.responsibility.length ||
-          !issue.remarks.trim()
-        ) {
-          Toast.show({
-            type: "error",
-            text1: "Validation Error",
-            text2: "Please fill all required fields for every issue.",
-            position: "bottom",
-          });
-          setSaving(false);
-          return; // stop submission
+      const newErrors: {
+        [key: number]: {
+          description?: boolean;
+          responsibility?: boolean;
+          remarks?: boolean;
+        };
+      } = {};
+      let hasError = false;
+
+      issues.forEach((issue, index) => {
+        const issueErrors: any = {};
+        if (!issue.description.trim()) issueErrors.description = true;
+        if (!issue.responsibility.length) issueErrors.responsibility = true;
+        if (!issue.remarks.trim()) issueErrors.remarks = true;
+
+        if (Object.keys(issueErrors).length > 0) {
+          newErrors[index] = issueErrors;
+          hasError = true;
         }
+      });
+
+      if (hasError) {
+        setErrors(newErrors);
+        Toast.show({
+          type: "error",
+          text1: "Validation Error",
+          text2:
+            "Please fill all mandatory fields (Issue Subject, Responsibility, and Description) for all issues.",
+          position: "bottom",
+        });
+        setSaving(false);
+        return;
       }
+
+      setErrors({});
 
       for (let index = 0; index < issues.length; index++) {
         const issue = issues[index];
         const formData = new FormData();
         formData.append("projectId", projectId);
         formData.append("description", issue.description);
-        formData.append(
-          "originalTargetDate",
-          new Date(issue.originalTargetDate || issue.targetDate).toISOString(),
-        );
-        formData.append("targetDate", new Date(issue.targetDate).toISOString());
+        if (issue.originalTargetDate) {
+          formData.append(
+            "originalTargetDate",
+            new Date(issue.originalTargetDate).toISOString(),
+          );
+        }
+        if (issue.targetDate) {
+          formData.append(
+            "targetDate",
+            new Date(issue.targetDate).toISOString(),
+          );
+        }
         formData.append("responsibility", JSON.stringify(issue.responsibility));
         formData.append("remarks", issue.remarks);
 
@@ -511,8 +556,12 @@ const ILRForm = () => {
                       }
                       className={`rounded-xl px-4 py-4 font-poppins text-base ${
                         isDarkMode
-                          ? "bg-black text-white"
-                          : "bg-[#F0F3F7] text-gray-800"
+                          ? errors[index]?.description
+                            ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                            : "bg-black text-white"
+                          : errors[index]?.description
+                            ? "bg-[#FFF5F5] text-gray-800 border border-[#DF5B5B]"
+                            : "bg-[#F0F3F7] text-gray-800"
                       }`}
                       placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                     />
@@ -525,6 +574,10 @@ const ILRForm = () => {
                         backgroundColor: isDarkMode ? "#000000" : "#F0F3F7",
                         borderRadius: 11,
                         paddingHorizontal: 16,
+                        borderWidth: errors[index]?.responsibility ? 1 : 0,
+                        borderColor: errors[index]?.responsibility
+                          ? "#DF5B5B"
+                          : "transparent",
                       }}
                       placeholderStyle={{
                         fontSize: 14,
@@ -667,8 +720,12 @@ const ILRForm = () => {
                       }
                       className={`rounded-xl px-4 py-4 text-base font-poppins ${
                         isDarkMode
-                          ? "bg-black text-white"
-                          : "bg-[#F0F3F7] text-gray-800"
+                          ? errors[index]?.remarks
+                            ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                            : "bg-black text-white"
+                          : errors[index]?.remarks
+                            ? "bg-[#FFF5F5] text-gray-800 border border-[#DF5B5B]"
+                            : "bg-[#F0F3F7] text-gray-800"
                       }`}
                       placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                       multiline
