@@ -12,6 +12,7 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -43,6 +44,55 @@ type User = {
   designation?: string; // Added based on UI image
   profileImage?: string; // Added based on UI image
 };
+
+const EmployeeDirectorySkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-4 shadow-sm overflow-hidden"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row items-center mb-3">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={48}
+        height={48}
+        radius={12}
+      />
+      <View className="flex-1 ml-4">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="70%"
+          height={18}
+          radius={4}
+        />
+        <View className="mt-2">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width="40%"
+            height={14}
+            radius={4}
+          />
+        </View>
+      </View>
+    </View>
+
+    <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-3" />
+
+    <View className="flex-row items-center justify-between">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="45%"
+        height={14}
+        radius={4}
+      />
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="35%"
+        height={14}
+        radius={4}
+      />
+    </View>
+  </View>
+);
 
 export default function CentralEmployeeDirectory() {
   const colorScheme = useColorScheme();
@@ -407,12 +457,14 @@ export default function CentralEmployeeDirectory() {
       {/* 🔹 EMPLOYEE LIST */}
       <View className="flex-1 pt-4">
         {loading && !refreshing ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#5B4CCC" />
-            <Text className="mt-4 text-[#8E8E8E] font-poppinsSmall">
-              Loading employees...
-            </Text>
-          </View>
+          <FlatList
+            data={[1, 2, 3, 4, 5, 6]}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => (
+              <EmployeeDirectorySkeleton isDarkMode={isDarkMode} />
+            )}
+            showsVerticalScrollIndicator={false}
+          />
         ) : (
           <FlatList
             data={filteredUsers}

@@ -7,6 +7,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,6 +36,56 @@ const getDisplayName = (user: any) => {
 
   return user.individualName;
 };
+
+const UserDirectorySkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="mb-3 mx-4 rounded-2xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-4"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row items-center flex-wrap mb-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={60}
+        height={16}
+        radius={4}
+      />
+      <View className="ml-3">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={140}
+          height={20}
+          radius={4}
+        />
+      </View>
+      <View className="ml-3">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={80}
+          height={16}
+          radius={4}
+        />
+      </View>
+    </View>
+
+    <View className="flex-row items-center flex-wrap">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={100}
+        height={14}
+        radius={4}
+      />
+      <View className="mx-2">
+       
+      </View>
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={120}
+        height={14}
+        radius={4}
+      />
+    </View>
+  </View>
+);
 
 export default function CentralUserDirectory() {
   const colorScheme = useColorScheme();
@@ -312,9 +363,12 @@ export default function CentralUserDirectory() {
       {/* 🔹 USER LIST */}
       <View className="flex-1 bg-[#FBFCFD] dark:bg-black pt-3">
         {loading ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#6366F1" />
-          </View>
+          <FlatList
+            data={[1, 2, 3, 4, 5, 6]}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => <UserDirectorySkeleton isDarkMode={isDarkMode} />}
+            showsVerticalScrollIndicator={false}
+          />
         ) : (
           <FlatList
             data={filteredUsers}

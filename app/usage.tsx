@@ -19,6 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "expo-router";
 import * as Sharing from "expo-sharing";
 import moment from "moment";
+import { Skeleton } from "moti/skeleton";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -40,6 +41,92 @@ import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 
 const TABS = ["Today", "Week", "Month", "Custom"];
+
+const UsageSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row justify-between px-4 items-center py-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={60}
+        height={14}
+        radius={4}
+      />
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width={100}
+        height={12}
+        radius={4}
+      />
+    </View>
+
+    <View className="bg-[#F6F8FA] dark:bg-[#0D0D0D] p-5 rounded-[16px]">
+      <View className="flex-row items-center mb-5">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={44}
+          height={44}
+          radius={8}
+        />
+        <View className="ml-3 flex-1">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width="60%"
+            height={20}
+            radius={4}
+          />
+          <View className="mt-1">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="40%"
+              height={14}
+              radius={4}
+            />
+          </View>
+        </View>
+        <View className="items-end">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={40}
+            height={24}
+            radius={4}
+          />
+          <View className="mt-1">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={50}
+              height={12}
+              radius={4}
+            />
+          </View>
+        </View>
+      </View>
+
+      <View className="gap-2">
+        {[1, 2, 3].map((i) => (
+          <View key={i} className="flex-row items-center">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={18}
+              height={18}
+              radius={4}
+            />
+            <View className="ml-2">
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={120}
+                height={14}
+                radius={4}
+              />
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  </View>
+);
 
 export default function UsageScreen() {
   const navigation = useNavigation();
@@ -603,9 +690,12 @@ export default function UsageScreen() {
 
       {/* 🔹 LIST */}
       {loading && !refreshing ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#5B4CCC" />
-        </View>
+        <FlatList
+          data={[1, 2, 3]}
+          keyExtractor={(item) => `skeleton-${item}`}
+          renderItem={() => <UsageSkeleton isDarkMode={isDarkMode} />}
+          showsVerticalScrollIndicator={false}
+        />
       ) : (
         <FlatList
           data={filteredLeaderboard}

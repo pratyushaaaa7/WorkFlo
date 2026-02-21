@@ -16,6 +16,7 @@ import * as FileSystem from "expo-file-system";
 import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { AnimatePresence, MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -38,6 +39,53 @@ import api from "../lib/api";
 import { Project } from "../types/Project";
 
 const TABS = ["ALL", "WP", "WALL", "WCORP"];
+
+const MasterProjectSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <View
+    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl mx-4 mb-3 p-4 border border-gray-100 dark:border-zinc-800"
+    style={{ opacity: 0.6 }}
+  >
+    <View className="flex-row justify-between items-center mb-3">
+      <View className="flex-row items-center gap-2">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={70}
+          height={20}
+          radius="round"
+        />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width={100}
+          height={20}
+          radius="round"
+        />
+      </View>
+    </View>
+
+    <Skeleton
+      colorMode={isDarkMode ? "dark" : "light"}
+      width="70%"
+      height={24}
+      radius={6}
+    />
+    <View className="mt-2">
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        width="100%"
+        height={16}
+        radius={4}
+      />
+      <View className="mt-1">
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="50%"
+          height={16}
+          radius={4}
+        />
+      </View>
+    </View>
+  </View>
+);
 
 const MasterProjectList = () => {
   const router = useRouter();
@@ -602,9 +650,12 @@ const MasterProjectList = () => {
 
       {/* List */}
       {loading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#4F46E5" />
-        </View>
+        <FlatList
+          data={[1, 2, 3, 4, 5]}
+          keyExtractor={(item) => `skeleton-${item}`}
+          renderItem={() => <MasterProjectSkeleton isDarkMode={isDarkMode} />}
+          showsVerticalScrollIndicator={false}
+        />
       ) : (
         <FlatList
           data={filteredProjects}
@@ -634,7 +685,7 @@ const MasterProjectList = () => {
               <Text className="text-black dark:text-white font-dmSemiBold text-lg">
                 No Projects
               </Text>
-              <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center mt-2">
+              <Text className="text-[#454545] font-poppins dark:text-[#919191] text-center mt-2">
                 {selectedStatus === "ALL"
                   ? `You don't have any project in ${
                       activeTab === "ALL"
