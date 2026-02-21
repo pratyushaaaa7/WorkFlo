@@ -1,13 +1,14 @@
 import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
+  Calendar03Icon,
+  Cancel01Icon,
   MinusSignCircleIcon,
   PlusSignCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
@@ -411,10 +412,10 @@ const ILRForm = () => {
   }, [issues, images, projectId, dataLoaded]);
 
   return (
-    <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-white"}`}>
+    <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}>
       {/* Header */}
       <View
-        className={`pt-16 pb-4 px-4 flex-row items-center ${isDarkMode ? "bg-black" : "bg-white"}`}
+        className={`pt-14 pb-4 px-2 flex-row items-center ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}
       >
         <TouchableOpacity
           onPress={() => router.back()}
@@ -424,7 +425,7 @@ const ILRForm = () => {
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
             size={24}
-            color={isDarkMode ? "#FFF" : "#000"}
+            color={isDarkMode ? "#D2D2D2" : "#454545"}
           />
         </TouchableOpacity>
         <Text
@@ -450,10 +451,10 @@ const ILRForm = () => {
           return (
             <View
               key={index}
-              className={`rounded-3xl mb-6 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
+              className={`rounded-xl mb-3 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
               style={{
                 borderWidth: 1,
-                borderColor: isDarkMode ? "#333" : "#E5E7EB",
+                borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
                 overflow: "hidden",
               }}
             >
@@ -461,23 +462,23 @@ const ILRForm = () => {
               <TouchableOpacity
                 onPress={() => toggleCollapse(index)}
                 activeOpacity={0.8}
-                className={`flex-row items-center justify-between px-5 py-5 ${
+                className={`flex-row items-center justify-between px-4 py-3 ${
                   !isCollapsed
                     ? isDarkMode
-                      ? "border-b border-[#333]"
-                      : "border-b border-gray-100"
+                      ? "border-b border-[#413E47]"
+                      : "border-b border-[#E0E5EB]"
                     : ""
                 }`}
               >
                 <Text
-                  className={`font-semibold text-lg ${isDarkMode ? "text-white" : "text-gray-700"}`}
+                  className={`font-poppinsMedium  ${isDarkMode ? "text-[#919191]" : "text-[#454545]"}`}
                 >
                   Issue {issue.serialNo}
                 </Text>
                 <HugeiconsIcon
                   icon={isCollapsed ? ArrowDown01Icon : ArrowDown01Icon} // design shows chevron-down for both, wait, image shows down arrow
                   size={20}
-                  color={isDarkMode ? "#9CA3AF" : "#9CA3AF"}
+                  color={isDarkMode ? "#454545" : "#919191"}
                   style={{
                     transform: [{ rotate: isCollapsed ? "0deg" : "180deg" }],
                   }}
@@ -486,7 +487,7 @@ const ILRForm = () => {
 
               {!isCollapsed && (
                 <View
-                  className={`p-4 gap-3 ${isDarkMode ? "bg-[#111]" : "bg-white"}`}
+                  className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#111]" : "bg-white"}`}
                 >
                   <TextInput
                     placeholder="e.g. Describe the title"
@@ -494,52 +495,70 @@ const ILRForm = () => {
                     onChangeText={(text) =>
                       updateIssue(index, "description", text)
                     }
-                    className={`rounded-2xl px-4 py-4 text-base ${
+                    className={`rounded-xl px-4 py-4 font-poppins text-base ${
                       isDarkMode
                         ? "bg-black text-white"
-                        : "bg-gray-100 text-gray-800"
+                        : "bg-[#F0F3F7] text-gray-800"
                     }`}
-                    placeholderTextColor={isDarkMode ? "#4B5563" : "#6B7280"}
+                    placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                   />
 
                   {/* Assignee MultiSelect */}
                   <MultiSelect
                     style={{
-                      height: 56,
-                      backgroundColor: isDarkMode ? "black" : "#F3F4F6",
-                      borderRadius: 16,
+                      minHeight: 48,
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                      borderRadius: 11,
                       paddingHorizontal: 16,
                     }}
                     placeholderStyle={{
-                      fontSize: 16,
-                      color: isDarkMode ? "#4B5563" : "#6B7280",
+                      fontSize: 14,
+                      fontFamily: "Poppins_400Regular",
+                      color: isDarkMode ? "#919191" : "#454545",
                     }}
                     selectedTextStyle={{
                       fontSize: 14,
-                      color: isDarkMode ? "white" : "#1F2937",
+                      fontFamily: "Poppins_400Regular",
+                      color: isDarkMode ? "#FFFFFF" : "#000000",
                     }}
                     selectedStyle={{
-                      borderRadius: 12,
-                      backgroundColor: isDarkMode ? "#333" : "#E5E7EB",
+                      borderRadius: 10,
+                      backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
                       paddingHorizontal: 8,
                       paddingVertical: 4,
+                      marginRight: 4,
+                      marginTop: 4,
+                      borderWidth: 0,
                     }}
                     containerStyle={{
                       borderRadius: 16,
-                      marginTop: 8,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "white",
-                      borderColor: isDarkMode ? "#333" : "#E5E7EB",
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                      borderWidth: 0,
                     }}
-                    itemTextStyle={{ color: isDarkMode ? "white" : "black" }}
-                    activeColor={isDarkMode ? "#333" : "#F3F4F6"}
-                    inputSearchStyle={{ fontSize: 16 }}
+                    itemTextStyle={{
+                      fontSize: 14,
+                      fontFamily: "Poppins_400Regular",
+                      color: isDarkMode ? "#FFFFFF" : "#000000",
+                    }}
+                    activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+                    inputSearchStyle={{
+                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                      borderRadius: 14,
+                      borderColor: "grey",
+                      fontSize: 14,
+                      color: isDarkMode ? "#FFFFFF" : "#000000",
+                    }}
+                    searchPlaceholderTextColor={
+                      isDarkMode ? "#919191" : "#454545"
+                    }
                     search
                     labelField="label"
                     valueField="value"
                     data={users}
                     value={(issue.responsibility || []).map((r) => r._id)}
                     placeholder="Assignee"
-                    searchPlaceholder="Search..."
+                    searchPlaceholder="Search users..."
+                    visibleSelectedItem={false}
                     onChange={(selectedIds: string[]) => {
                       const selectedObjects = users
                         .filter((u) => selectedIds.includes(u.value))
@@ -549,41 +568,75 @@ const ILRForm = () => {
                     renderRightIcon={() => (
                       <HugeiconsIcon
                         icon={ArrowDown01Icon}
-                        size={20}
-                        color="#9CA3AF"
+                        size={18}
+                        color={isDarkMode ? "#454545" : "#919191"}
                       />
                     )}
                   />
 
+                  {/* Selected Assignees Chips */}
+                  {(issue.responsibility || []).length > 0 && (
+                    <View className="flex-row flex-wrap gap-2">
+                      {(issue.responsibility || []).map((res: any) => (
+                        <TouchableOpacity
+                          key={res._id}
+                          onPress={() => {
+                            const newResponsibility = (
+                              issue.responsibility || []
+                            ).filter((r: any) => r._id !== res._id);
+                            updateIssue(
+                              index,
+                              "responsibility",
+                              newResponsibility,
+                            );
+                          }}
+                          className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                            isDarkMode
+                              ? "bg-[#1A1A1A] border-[#413E47]"
+                              : "bg-white border-[#E0E5EB]"
+                          }`}
+                        >
+                          <Text
+                            className={`mr-2 font-poppins text-sm ${
+                              isDarkMode ? "text-white" : "text-black"
+                            }`}
+                          >
+                            {res.name}
+                          </Text>
+                          <HugeiconsIcon
+                            icon={Cancel01Icon}
+                            size={14}
+                            strokeWidth={2}
+                            color={isDarkMode ? "#FFF" : "#000"}
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+
                   <TouchableOpacity onPress={() => openDatePicker(index)}>
                     <View
-                      className={`flex-row items-center justify-between rounded-2xl px-4 py-4 ${
-                        isDarkMode ? "bg-black" : "bg-gray-100"
+                      className={`flex-row items-center justify-between rounded-xl px-4 py-4 ${
+                        isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <Text
-                        className={`text-base ${
+                        className={`text-base font-poppins ${
                           issue.targetDate
                             ? isDarkMode
                               ? "text-white"
                               : "text-gray-800"
                             : isDarkMode
-                              ? "#4B5563"
-                              : "text-gray-500"
+                              ? "text-[#919191]"
+                              : "text-[#454545]"
                         }`}
-                        style={{
-                          color:
-                            !issue.targetDate && isDarkMode
-                              ? "#4B5563"
-                              : undefined,
-                        }}
                       >
                         {issue.targetDate
                           ? moment(issue.targetDate).format("DD-MM-YYYY")
                           : "DD-MM-YYYY"}
                       </Text>
-                      <Ionicons
-                        name="calendar-outline"
+                      <HugeiconsIcon
+                        icon={Calendar03Icon}
                         size={20}
                         color="#9CA3AF"
                       />
@@ -594,12 +647,12 @@ const ILRForm = () => {
                     placeholder="e.g. Describe the issue"
                     value={issue.remarks}
                     onChangeText={(text) => updateIssue(index, "remarks", text)}
-                    className={`rounded-2xl px-4 py-4 text-base ${
+                    className={`rounded-xl px-4 py-4 text-base font-poppins ${
                       isDarkMode
                         ? "bg-black text-white"
-                        : "bg-gray-100 text-gray-800"
+                        : "bg-[#F0F3F7] text-gray-800"
                     }`}
-                    placeholderTextColor={isDarkMode ? "#4B5563" : "#6B7280"}
+                    placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                     multiline
                     numberOfLines={4}
                     style={{ textAlignVertical: "top", minHeight: 120 }}
@@ -608,22 +661,22 @@ const ILRForm = () => {
                   {/* Image Picker Section */}
                   <View className="mt-4">
                     <View
-                      className={`rounded-2xl p-8 items-center justify-center border-dashed border-2 ${
+                      className={`rounded-xl p-8 items-center justify-center ${
                         isDarkMode
                           ? "bg-black border-[#333]"
-                          : "bg-gray-100 border-gray-200"
+                          : "bg-[#F0F3F7] border-gray-200"
                       }`}
                       style={{ minHeight: 160 }}
                     >
                       <TouchableOpacity
                         onPress={() => pickImage(index)}
                         className={`rounded-xl px-6 py-3 flex-row items-center mb-2 ${
-                          isDarkMode ? "bg-[#1A1A1A]" : "bg-black"
+                          isDarkMode ? "bg-[#0D0D0D]" : "bg-[#0D0D0D]"
                         }`}
                         activeOpacity={0.8}
                       >
-                        <Ionicons
-                          name="arrow-up-outline"
+                        <HugeiconsIcon
+                          icon={PlusSignCircleIcon} // Reusing Plus for now as "Add"
                           size={20}
                           color="white"
                         />
@@ -637,7 +690,7 @@ const ILRForm = () => {
                     </View>
 
                     {/* Camera Option */}
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       onPress={() => takePhoto(index)}
                       className={`absolute top-2 right-2 p-2 rounded-full shadow-sm ${
                         isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
@@ -648,7 +701,7 @@ const ILRForm = () => {
                         size={20}
                         color={isDarkMode ? "#9CA3AF" : "#6B7280"}
                       />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     {/* Image Thumbnails */}
                     {(images[index] || []).length > 0 && (
@@ -678,15 +731,15 @@ const ILRForm = () => {
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => deleteImage(index, uri)}
-                              className={`absolute -top-2 -right-2 rounded-full p-1 shadow-md border ${
+                              className={`absolute -top-2 -right-2 rounded-full p-1  border ${
                                 isDarkMode
                                   ? "bg-[#1A1A1A] border-[#333]"
                                   : "bg-white border-gray-100"
                               }`}
                               style={{ zIndex: 10 }}
                             >
-                              <Ionicons
-                                name="close"
+                              <HugeiconsIcon
+                                icon={Cancel01Icon}
                                 size={14}
                                 color="#EF4444"
                               />
@@ -726,8 +779,8 @@ const ILRForm = () => {
         {/* Add Issue Button */}
         <TouchableOpacity
           onPress={addIssue}
-          className={`py-4 rounded-2xl mb-4 flex-row items-center justify-center ${
-            isDarkMode ? "bg-[#1A1A1A]" : "bg-gray-100"
+          className={`py-4 rounded-lg mb-4 flex-row items-center justify-center ${
+            isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
           }`}
           activeOpacity={0.7}
         >
@@ -747,7 +800,7 @@ const ILRForm = () => {
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={saving}
-          className={`py-4 rounded-2xl items-center mb-10 ${
+          className={`py-4 rounded-lg items-center mb-10 ${
             saving ? "bg-gray-400" : ""
           }`}
           style={{
