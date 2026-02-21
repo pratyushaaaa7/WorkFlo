@@ -708,7 +708,7 @@ const ILRForm = () => {
                             size={18}
                             color="white"
                           />
-                          <Text className="text-white font-poppins text-sm ml-2">
+                          <Text className="text-white font-poppins  ml-3">
                             Upload
                           </Text>
                         </TouchableOpacity>
