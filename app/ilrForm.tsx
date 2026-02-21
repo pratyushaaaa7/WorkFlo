@@ -117,6 +117,9 @@ const ILRForm = () => {
     };
   }>({});
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const issueLayouts = useRef<{ [key: number]: number }>({});
+
   // Add Issue
   const addIssue = () => {
     setIssues((prev) => [
@@ -285,6 +288,29 @@ const ILRForm = () => {
 
       if (hasError) {
         setErrors(newErrors);
+
+        // Find first error index to scroll to
+        const errorIndices = Object.keys(newErrors)
+          .map(Number)
+          .sort((a, b) => a - b);
+        const firstErrorIndex = errorIndices[0];
+
+        // Ensure the first error issue is expanded
+        if (collapsedIndices.includes(firstErrorIndex)) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setCollapsedIndices((prev) =>
+            prev.filter((idx) => idx !== firstErrorIndex),
+          );
+        }
+
+        // Scroll to the first error issue
+        setTimeout(() => {
+          const yOffset = issueLayouts.current[firstErrorIndex];
+          if (yOffset !== undefined) {
+            scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
+          }
+        }, 100);
+
         Toast.show({
           type: "error",
           text1: "Validation Error",
@@ -500,6 +526,7 @@ const ILRForm = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <ScrollView
+          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -513,6 +540,9 @@ const ILRForm = () => {
             return (
               <View
                 key={index}
+                onLayout={(e) => {
+                  issueLayouts.current[index] = e.nativeEvent.layout.y;
+                }}
                 className={`rounded-xl mb-3 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
                 style={{
                   borderWidth: 1,
