@@ -3,13 +3,16 @@ import {
   ArrowLeft01Icon,
   Calendar03Icon,
   Cancel01Icon,
+  Delete03Icon,
   MinusSignCircleIcon,
   PlusSignCircleIcon,
+  Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
@@ -27,6 +30,7 @@ import {
 } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Modal from "react-native-modal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -92,6 +96,10 @@ const ILRForm = () => {
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedIssueIndex, setSelectedIssueIndex] = useState<number | null>(
+    null,
+  );
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [issueIndexToDelete, setIssueIndexToDelete] = useState<number | null>(
     null,
   );
 
@@ -454,7 +462,7 @@ const ILRForm = () => {
               className={`rounded-xl mb-3 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
               style={{
                 borderWidth: 1,
-                borderColor: isDarkMode ? "#413E47" : "#E0E5EB",
+                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
                 overflow: "hidden",
               }}
             >
@@ -465,7 +473,7 @@ const ILRForm = () => {
                 className={`flex-row items-center justify-between px-4 py-3 ${
                   !isCollapsed
                     ? isDarkMode
-                      ? "border-b border-[#413E47]"
+                      ? "border-b border-[#262626]"
                       : "border-b border-[#E0E5EB]"
                     : ""
                 }`}
@@ -487,7 +495,7 @@ const ILRForm = () => {
 
               {!isCollapsed && (
                 <View
-                  className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#111]" : "bg-white"}`}
+                  className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
                 >
                   <TextInput
                     placeholder="e.g. Describe the title"
@@ -507,7 +515,7 @@ const ILRForm = () => {
                   <MultiSelect
                     style={{
                       minHeight: 48,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                      backgroundColor:isDarkMode ? "#000000" : "#F0F3F7",
                       borderRadius: 11,
                       paddingHorizontal: 16,
                     }}
@@ -532,7 +540,7 @@ const ILRForm = () => {
                     }}
                     containerStyle={{
                       borderRadius: 16,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                      backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                       borderWidth: 0,
                     }}
                     itemTextStyle={{
@@ -655,57 +663,57 @@ const ILRForm = () => {
                     placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                     multiline
                     numberOfLines={4}
-                    style={{ textAlignVertical: "top", minHeight: 120 }}
+                    style={{ textAlignVertical: "top", minHeight: 90 }}
                   />
 
                   {/* Image Picker Section */}
-                  <View className="mt-4">
-                    <View
-                      className={`rounded-xl p-8 items-center justify-center ${
-                        isDarkMode
-                          ? "bg-black border-[#333]"
-                          : "bg-[#F0F3F7] border-gray-200"
+                  <View
+                    className={`rounded-2xl p-4 gap-3 ${
+                      isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
+                    }`}
+                  >
+                    <Text
+                      className={`font-poppinsMedium text-base ${
+                        isDarkMode ? "text-white" : "text-gray-800"
                       }`}
-                      style={{ minHeight: 160 }}
+                    >
+                      Images
+                    </Text>
+
+                    <View
+                      className={`rounded-2xl p-5 items-center justify-center ${
+                        isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                      }`}
+                      style={{ minHeight: 100 }}
                     >
                       <TouchableOpacity
                         onPress={() => pickImage(index)}
-                        className={`rounded-xl px-6 py-3 flex-row items-center mb-2 ${
-                          isDarkMode ? "bg-[#0D0D0D]" : "bg-[#0D0D0D]"
+                        className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${
+                          isDarkMode ? "bg-black" : "bg-black"
                         }`}
                         activeOpacity={0.8}
                       >
                         <HugeiconsIcon
-                          icon={PlusSignCircleIcon} // Reusing Plus for now as "Add"
-                          size={20}
+                          icon={Upload01Icon}
+                          size={18}
                           color="white"
                         />
-                        <Text className="text-white font-semibold ml-2">
+                        <Text className="text-white font-poppins text-sm ml-2">
                           Upload
                         </Text>
                       </TouchableOpacity>
-                      <Text className="text-gray-500 font-medium">
+                      <Text
+                        className={`font-poppins text-base ${
+                          isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                        }`}
+                      >
                         Choose Image
                       </Text>
                     </View>
 
-                    {/* Camera Option */}
-                    {/* <TouchableOpacity
-                      onPress={() => takePhoto(index)}
-                      className={`absolute top-2 right-2 p-2 rounded-full shadow-sm ${
-                        isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
-                      }`}
-                    >
-                      <Ionicons
-                        name="camera"
-                        size={20}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                      />
-                    </TouchableOpacity> */}
-
                     {/* Image Thumbnails */}
                     {(images[index] || []).length > 0 && (
-                      <View className="flex-row flex-wrap gap-3 mt-4">
+                      <View className="flex-row py-1 flex-wrap gap-2">
                         {images[index].map((uri, imgIdx) => (
                           <View key={imgIdx} className="relative">
                             <TouchableOpacity
@@ -723,25 +731,22 @@ const ILRForm = () => {
                               <Image
                                 source={{ uri }}
                                 style={{
-                                  width: 80,
-                                  height: 80,
-                                  borderRadius: 16,
+                                  width: 85,
+                                  height: 85,
+                                  borderRadius: 20,
                                 }}
                               />
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => deleteImage(index, uri)}
-                              className={`absolute -top-2 -right-2 rounded-full p-1  border ${
-                                isDarkMode
-                                  ? "bg-[#1A1A1A] border-[#333]"
-                                  : "bg-white border-gray-100"
-                              }`}
+                              className="absolute top-2 right-2 rounded-full p-1 bg-white/50"
                               style={{ zIndex: 10 }}
                             >
                               <HugeiconsIcon
                                 icon={Cancel01Icon}
-                                size={14}
-                                color="#EF4444"
+                                size={12}
+                                color="black"
+                                strokeWidth={3}
                               />
                             </TouchableOpacity>
                           </View>
@@ -753,12 +758,15 @@ const ILRForm = () => {
                   {/* Remove Issue Button */}
                   {issues.length > 1 && (
                     <TouchableOpacity
-                      onPress={() => removeIssue(index)}
-                      className="mt-6 flex-row items-center justify-end"
+                      onPress={() => {
+                        setIssueIndexToDelete(index);
+                        setDeleteModalVisible(true);
+                      }}
+                      className="mt-2 flex-row items-center justify-end"
                     >
                       <HugeiconsIcon
                         icon={MinusSignCircleIcon}
-                        size={24}
+                        size={18}
                         color="#EF4444"
                       />
                       <Text
@@ -779,7 +787,7 @@ const ILRForm = () => {
         {/* Add Issue Button */}
         <TouchableOpacity
           onPress={addIssue}
-          className={`py-4 rounded-lg mb-4 flex-row items-center justify-center ${
+          className={`py-4 rounded-lg mb-4 mt-4 flex-row items-center justify-center ${
             isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
           }`}
           activeOpacity={0.7}
@@ -800,23 +808,29 @@ const ILRForm = () => {
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={saving}
-          className={`py-4 rounded-lg items-center mb-10 ${
-            saving ? "bg-gray-400" : ""
-          }`}
-          style={{
-            backgroundColor: saving
-              ? "#9CA3AF"
-              : isDarkMode
-                ? "#7C3AED" // Purple for dark mode
-                : "#6366F1", // Indigo for light mode
-          }}
+          className="mb-10 "
           activeOpacity={0.8}
         >
-          {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text className="text-white font-dmSemiBold text-lg">Submit</Text>
-          )}
+          <LinearGradient
+            colors={
+              saving
+                ? ["#9CA3AF", "#9CA3AF"]
+                : ["#5B4CCC", "#6347C2", "#8056D1"]
+            }
+            locations={saving ? [0, 1] : [0, 0.5183, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            className="py-4 rounded-xl items-center"
+            style={{borderRadius:11}}
+
+          >
+
+            {saving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text className="text-white font-poppins text-lg">Submit</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
 
@@ -851,11 +865,66 @@ const ILRForm = () => {
           }, 150);
         }}
         onCancel={() => {
+          if (selectedIssueIndex !== null) {
+            updateIssue(selectedIssueIndex, "targetDate", "");
+          }
           setDatePickerVisible(false);
           setSelectedIssueIndex(null);
         }}
         isDarkModeEnabled={isDarkMode}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isVisible={deleteModalVisible}
+        onBackdropPress={() => setDeleteModalVisible(false)}
+        onBackButtonPress={() => setDeleteModalVisible(false)}
+        backdropOpacity={0.8}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+        useNativeDriver
+      >
+        <View className="bg-white dark:bg-black w-full p-5 dark:border dark:border-[#262626] rounded-[24px]">
+          <View className="bg-[#FDE6E6] dark:bg-[#5E1010]  self-start p-3 rounded-full mb-4">
+            <HugeiconsIcon icon={Delete03Icon} size={24} color="#DF5B5B" />
+          </View>
+
+          <Text className="text-black dark:text-white font-dmSemiBold text-xl mb-2">
+            Remove this item
+          </Text>
+          <Text className="text-[#454545] dark:text-[#919191] font-poppins text-[14px] mb-6">
+            Are you sure you want to remove this element?
+          </Text>
+
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={() => setDeleteModalVisible(false)}
+              className="flex-1 border border-gray-200 dark:border-white/20 py-4 rounded-xl items-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-black dark:text-white font-poppins text-lg">
+                Cancel
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (issueIndexToDelete !== null) {
+                  removeIssue(issueIndexToDelete);
+                }
+                setDeleteModalVisible(false);
+                setIssueIndexToDelete(null);
+              }}
+              className="flex-1 bg-[#DF5B5B] py-4 rounded-xl items-center"
+              activeOpacity={0.7}
+            >
+              <Text className="text-white font-poppins text-[16px]">
+                Confirm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
