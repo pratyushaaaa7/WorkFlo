@@ -1,6 +1,7 @@
 import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
+  ArrowUp01Icon,
   Calendar03Icon,
   Cancel01Icon,
   Delete03Icon,
@@ -15,13 +16,15 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -29,7 +32,7 @@ import {
   View,
 } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 import Modal from "react-native-modal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from "react-native-toast-message";
@@ -57,6 +60,8 @@ const ILRForm = () => {
     projectId: string;
     projectName: string;
   }>();
+
+  const multiSelectRef = useRef<any>(null);
 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -444,395 +449,399 @@ const ILRForm = () => {
       </View>
 
       {/* Scrollable Content */}
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 60,
-        }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        {/* Issues Section */}
-        {issues.map((issue, index) => {
-          const isCollapsed = collapsedIndices.includes(index);
-          return (
-            <View
-              key={index}
-              className={`rounded-xl mb-3 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
-              style={{
-                borderWidth: 1,
-                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
-                overflow: "hidden",
-              }}
-            >
-              {/* Issue Header/Title */}
-              <TouchableOpacity
-                onPress={() => toggleCollapse(index)}
-                activeOpacity={0.8}
-                className={`flex-row items-center justify-between px-4 py-3 ${
-                  !isCollapsed
-                    ? isDarkMode
-                      ? "border-b border-[#262626]"
-                      : "border-b border-[#E0E5EB]"
-                    : ""
-                }`}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 60,
+          }}
+        >
+          {/* Issues Section */}
+          {issues.map((issue, index) => {
+            const isCollapsed = collapsedIndices.includes(index);
+            return (
+              <View
+                key={index}
+                className={`rounded-xl mb-3 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
+                style={{
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? "#262626" : "#E0E5EB",
+                  overflow: "hidden",
+                }}
               >
-                <Text
-                  className={`font-poppinsMedium  ${isDarkMode ? "text-[#919191]" : "text-[#454545]"}`}
+                {/* Issue Header/Title */}
+                <TouchableOpacity
+                  onPress={() => toggleCollapse(index)}
+                  activeOpacity={0.8}
+                  className={`flex-row items-center justify-between px-4 py-3 ${
+                    !isCollapsed
+                      ? isDarkMode
+                        ? "border-b border-[#262626]"
+                        : "border-b border-[#E0E5EB]"
+                      : ""
+                  }`}
                 >
-                  Issue {issue.serialNo}
-                </Text>
-                <HugeiconsIcon
-                  icon={isCollapsed ? ArrowDown01Icon : ArrowDown01Icon} // design shows chevron-down for both, wait, image shows down arrow
-                  size={20}
-                  color={isDarkMode ? "#454545" : "#919191"}
-                  style={{
-                    transform: [{ rotate: isCollapsed ? "0deg" : "180deg" }],
-                  }}
-                />
-              </TouchableOpacity>
-
-              {!isCollapsed && (
-                <View
-                  className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
-                >
-                  <TextInput
-                    placeholder="e.g. Describe the title"
-                    value={issue.description}
-                    onChangeText={(text) =>
-                      updateIssue(index, "description", text)
-                    }
-                    className={`rounded-xl px-4 py-4 font-poppins text-base ${
-                      isDarkMode
-                        ? "bg-black text-white"
-                        : "bg-[#F0F3F7] text-gray-800"
-                    }`}
-                    placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                  <Text
+                    className={`font-poppinsMedium  ${isDarkMode ? "text-[#919191]" : "text-[#454545]"}`}
+                  >
+                    Issue {issue.serialNo}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={isCollapsed ? ArrowDown01Icon : ArrowUp01Icon}
+                    size={20}
+                    color={isDarkMode ? "#454545" : "#919191"}
                   />
+                </TouchableOpacity>
 
-                  {/* Assignee MultiSelect */}
-                  <MultiSelect
-                    style={{
-                      minHeight: 48,
-                      backgroundColor:isDarkMode ? "#000000" : "#F0F3F7",
-                      borderRadius: 11,
-                      paddingHorizontal: 16,
-                    }}
-                    placeholderStyle={{
-                      fontSize: 14,
-                      fontFamily: "Poppins_400Regular",
-                      color: isDarkMode ? "#919191" : "#454545",
-                    }}
-                    selectedTextStyle={{
-                      fontSize: 14,
-                      fontFamily: "Poppins_400Regular",
-                      color: isDarkMode ? "#FFFFFF" : "#000000",
-                    }}
-                    selectedStyle={{
-                      borderRadius: 10,
-                      backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      marginRight: 4,
-                      marginTop: 4,
-                      borderWidth: 0,
-                    }}
-                    containerStyle={{
-                      borderRadius: 16,
-                      backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
-                      borderWidth: 0,
-                    }}
-                    itemTextStyle={{
-                      fontSize: 14,
-                      fontFamily: "Poppins_400Regular",
-                      color: isDarkMode ? "#FFFFFF" : "#000000",
-                    }}
-                    activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
-                    inputSearchStyle={{
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                      borderRadius: 14,
-                      borderColor: "grey",
-                      fontSize: 14,
-                      color: isDarkMode ? "#FFFFFF" : "#000000",
-                    }}
-                    searchPlaceholderTextColor={
-                      isDarkMode ? "#919191" : "#454545"
-                    }
-                    search
-                    labelField="label"
-                    valueField="value"
-                    data={users}
-                    value={(issue.responsibility || []).map((r) => r._id)}
-                    placeholder="Assignee"
-                    searchPlaceholder="Search users..."
-                    visibleSelectedItem={false}
-                    onChange={(selectedIds: string[]) => {
-                      const selectedObjects = users
-                        .filter((u) => selectedIds.includes(u.value))
-                        .map((u) => ({ _id: u.value, name: u.label }));
-                      updateIssue(index, "responsibility", selectedObjects);
-                    }}
-                    renderRightIcon={() => (
-                      <HugeiconsIcon
-                        icon={ArrowDown01Icon}
-                        size={18}
-                        color={isDarkMode ? "#454545" : "#919191"}
-                      />
-                    )}
-                  />
+                {!isCollapsed && (
+                  <View
+                    className={`py-4 px-3 gap-2 ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"}`}
+                  >
+                    <TextInput
+                      placeholder="e.g. Describe the title"
+                      value={issue.description}
+                      onChangeText={(text) =>
+                        updateIssue(index, "description", text)
+                      }
+                      className={`rounded-xl px-4 py-4 font-poppins text-base ${
+                        isDarkMode
+                          ? "bg-black text-white"
+                          : "bg-[#F0F3F7] text-gray-800"
+                      }`}
+                      placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                    />
 
-                  {/* Selected Assignees Chips */}
-                  {(issue.responsibility || []).length > 0 && (
-                    <View className="flex-row flex-wrap gap-2">
-                      {(issue.responsibility || []).map((res: any) => (
-                        <TouchableOpacity
-                          key={res._id}
-                          onPress={() => {
-                            const newResponsibility = (
-                              issue.responsibility || []
-                            ).filter((r: any) => r._id !== res._id);
-                            updateIssue(
-                              index,
-                              "responsibility",
-                              newResponsibility,
-                            );
-                          }}
-                          className={`flex-row items-center px-4 py-2 rounded-lg border ${
-                            isDarkMode
-                              ? "bg-[#1A1A1A] border-[#413E47]"
-                              : "bg-white border-[#E0E5EB]"
-                          }`}
-                        >
-                          <Text
-                            className={`mr-2 font-poppins text-sm ${
-                              isDarkMode ? "text-white" : "text-black"
+                    {/* Assignee MultiSelect */}
+                    <MultiSelect
+                      ref={multiSelectRef}
+                      style={{
+                        minHeight: 48,
+                        backgroundColor: isDarkMode ? "#000000" : "#F0F3F7",
+                        borderRadius: 11,
+                        paddingHorizontal: 16,
+                      }}
+                      placeholderStyle={{
+                        fontSize: 14,
+                        fontFamily: "Poppins_400Regular",
+                        color: isDarkMode ? "#919191" : "#454545",
+                      }}
+                      selectedTextStyle={{
+                        fontSize: 14,
+                        fontFamily: "Poppins_400Regular",
+                        color: isDarkMode ? "#FFFFFF" : "#000000",
+                      }}
+                      selectedStyle={{
+                        borderRadius: 10,
+                        backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        marginRight: 4,
+                        marginTop: 4,
+                        borderWidth: 0,
+                      }}
+                      containerStyle={{
+                        borderRadius: 16,
+                        backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
+                        borderWidth: 0,
+                      }}
+                      itemTextStyle={{
+                        fontSize: 14,
+                        fontFamily: "Poppins_400Regular",
+                        color: isDarkMode ? "#FFFFFF" : "#000000",
+                      }}
+                      activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+                      inputSearchStyle={{
+                        backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                        borderRadius: 14,
+                        borderColor: "grey",
+                        fontSize: 14,
+                        color: isDarkMode ? "#FFFFFF" : "#000000",
+                      }}
+                      searchPlaceholderTextColor={
+                        isDarkMode ? "#919191" : "#454545"
+                      }
+                      search
+                      labelField="label"
+                      valueField="value"
+                      data={users}
+                      value={(issue.responsibility || []).map((r) => r._id)}
+                      placeholder="Assignee"
+                      searchPlaceholder="Search users..."
+                      visibleSelectedItem={false}
+                      onChange={(selectedIds: string[]) => {
+                        const selectedObjects = users
+                          .filter((u) => selectedIds.includes(u.value))
+                          .map((u) => ({ _id: u.value, name: u.label }));
+                        updateIssue(index, "responsibility", selectedObjects);
+                        multiSelectRef.current?.close();
+                      }}
+                      renderRightIcon={() => (
+                        <HugeiconsIcon
+                          icon={ArrowDown01Icon}
+                          size={18}
+                          color={isDarkMode ? "#454545" : "#919191"}
+                        />
+                      )}
+                    />
+
+                    {/* Selected Assignees Chips */}
+                    {(issue.responsibility || []).length > 0 && (
+                      <View className="flex-row flex-wrap gap-2">
+                        {(issue.responsibility || []).map((res: any) => (
+                          <TouchableOpacity
+                            key={res._id}
+                            onPress={() => {
+                              const newResponsibility = (
+                                issue.responsibility || []
+                              ).filter((r: any) => r._id !== res._id);
+                              updateIssue(
+                                index,
+                                "responsibility",
+                                newResponsibility,
+                              );
+                            }}
+                            className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                              isDarkMode
+                                ? "bg-[#1A1A1A] border-[#413E47]"
+                                : "bg-white border-[#E0E5EB]"
                             }`}
                           >
-                            {res.name}
-                          </Text>
-                          <HugeiconsIcon
-                            icon={Cancel01Icon}
-                            size={14}
-                            strokeWidth={2}
-                            color={isDarkMode ? "#FFF" : "#000"}
-                          />
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
+                            <Text
+                              className={`mr-2 font-poppins text-sm ${
+                                isDarkMode ? "text-white" : "text-black"
+                              }`}
+                            >
+                              {res.name}
+                            </Text>
+                            <HugeiconsIcon
+                              icon={Cancel01Icon}
+                              size={14}
+                              strokeWidth={2}
+                              color={isDarkMode ? "#FFF" : "#000"}
+                            />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
 
-                  <TouchableOpacity onPress={() => openDatePicker(index)}>
+                    <TouchableOpacity onPress={() => openDatePicker(index)}>
+                      <View
+                        className={`flex-row items-center justify-between rounded-xl px-4 py-4 ${
+                          isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
+                        }`}
+                      >
+                        <Text
+                          className={`text-base font-poppins ${
+                            issue.targetDate
+                              ? isDarkMode
+                                ? "text-white"
+                                : "text-gray-800"
+                              : isDarkMode
+                                ? "text-[#919191]"
+                                : "text-[#454545]"
+                          }`}
+                        >
+                          {issue.targetDate
+                            ? moment(issue.targetDate).format("DD-MM-YYYY")
+                            : "DD-MM-YYYY"}
+                        </Text>
+                        <HugeiconsIcon
+                          icon={Calendar03Icon}
+                          size={20}
+                          color="#9CA3AF"
+                        />
+                      </View>
+                    </TouchableOpacity>
+
+                    <TextInput
+                      placeholder="e.g. Describe the issue"
+                      value={issue.remarks}
+                      onChangeText={(text) =>
+                        updateIssue(index, "remarks", text)
+                      }
+                      className={`rounded-xl px-4 py-4 text-base font-poppins ${
+                        isDarkMode
+                          ? "bg-black text-white"
+                          : "bg-[#F0F3F7] text-gray-800"
+                      }`}
+                      placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                      multiline
+                      numberOfLines={4}
+                      style={{ textAlignVertical: "top", minHeight: 90 }}
+                    />
+
+                    {/* Image Picker Section */}
                     <View
-                      className={`flex-row items-center justify-between rounded-xl px-4 py-4 ${
+                      className={`rounded-2xl p-4 gap-3 ${
                         isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <Text
-                        className={`text-base font-poppins ${
-                          issue.targetDate
-                            ? isDarkMode
-                              ? "text-white"
-                              : "text-gray-800"
-                            : isDarkMode
-                              ? "text-[#919191]"
-                              : "text-[#454545]"
+                        className={`font-poppinsMedium text-base ${
+                          isDarkMode ? "text-white" : "text-gray-800"
                         }`}
                       >
-                        {issue.targetDate
-                          ? moment(issue.targetDate).format("DD-MM-YYYY")
-                          : "DD-MM-YYYY"}
+                        Images
                       </Text>
-                      <HugeiconsIcon
-                        icon={Calendar03Icon}
-                        size={20}
-                        color="#9CA3AF"
-                      />
-                    </View>
-                  </TouchableOpacity>
 
-                  <TextInput
-                    placeholder="e.g. Describe the issue"
-                    value={issue.remarks}
-                    onChangeText={(text) => updateIssue(index, "remarks", text)}
-                    className={`rounded-xl px-4 py-4 text-base font-poppins ${
-                      isDarkMode
-                        ? "bg-black text-white"
-                        : "bg-[#F0F3F7] text-gray-800"
-                    }`}
-                    placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
-                    multiline
-                    numberOfLines={4}
-                    style={{ textAlignVertical: "top", minHeight: 90 }}
-                  />
-
-                  {/* Image Picker Section */}
-                  <View
-                    className={`rounded-2xl p-4 gap-3 ${
-                      isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
-                    }`}
-                  >
-                    <Text
-                      className={`font-poppinsMedium text-base ${
-                        isDarkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      Images
-                    </Text>
-
-                    <View
-                      className={`rounded-2xl p-5 items-center justify-center ${
-                        isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
-                      }`}
-                      style={{ minHeight: 100 }}
-                    >
-                      <TouchableOpacity
-                        onPress={() => pickImage(index)}
-                        className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${
-                          isDarkMode ? "bg-black" : "bg-black"
+                      <View
+                        className={`rounded-2xl p-5 items-center justify-center ${
+                          isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
                         }`}
-                        activeOpacity={0.8}
+                        style={{ minHeight: 100 }}
+                      >
+                        <TouchableOpacity
+                          onPress={() => pickImage(index)}
+                          className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${
+                            isDarkMode ? "bg-black" : "bg-black"
+                          }`}
+                          activeOpacity={0.8}
+                        >
+                          <HugeiconsIcon
+                            icon={Upload01Icon}
+                            size={18}
+                            color="white"
+                          />
+                          <Text className="text-white font-poppins text-sm ml-2">
+                            Upload
+                          </Text>
+                        </TouchableOpacity>
+                        <Text
+                          className={`font-poppins text-base ${
+                            isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                          }`}
+                        >
+                          Choose Image
+                        </Text>
+                      </View>
+
+                      {/* Image Thumbnails */}
+                      {(images[index] || []).length > 0 && (
+                        <View className="flex-row py-1 flex-wrap gap-2">
+                          {images[index].map((uri, imgIdx) => (
+                            <View key={imgIdx} className="relative">
+                              <TouchableOpacity
+                                onPress={() =>
+                                  router.push({
+                                    pathname: "/annotateImage",
+                                    params: {
+                                      imageUri: uri,
+                                      issueIndex: index.toString(),
+                                    },
+                                  })
+                                }
+                                activeOpacity={0.8}
+                              >
+                                <Image
+                                  source={{ uri }}
+                                  style={{
+                                    width: 85,
+                                    height: 85,
+                                    borderRadius: 20,
+                                  }}
+                                />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() => deleteImage(index, uri)}
+                                className="absolute top-2 right-2 rounded-full p-1 bg-white/50"
+                                style={{ zIndex: 10 }}
+                              >
+                                <HugeiconsIcon
+                                  icon={Cancel01Icon}
+                                  size={12}
+                                  color="black"
+                                  strokeWidth={3}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Remove Issue Button */}
+                    {issues.length > 1 && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setIssueIndexToDelete(index);
+                          setDeleteModalVisible(true);
+                        }}
+                        className="mt-2 flex-row items-center justify-end"
                       >
                         <HugeiconsIcon
-                          icon={Upload01Icon}
+                          icon={MinusSignCircleIcon}
                           size={18}
-                          color="white"
+                          color="#EF4444"
                         />
-                        <Text className="text-white font-poppins text-sm ml-2">
-                          Upload
+                        <Text
+                          className={`font-dmSemiBold text-base ml-2 ${
+                            isDarkMode ? "text-white" : "text-black"
+                          }`}
+                        >
+                          Remove
                         </Text>
                       </TouchableOpacity>
-                      <Text
-                        className={`font-poppins text-base ${
-                          isDarkMode ? "text-[#919191]" : "text-[#454545]"
-                        }`}
-                      >
-                        Choose Image
-                      </Text>
-                    </View>
-
-                    {/* Image Thumbnails */}
-                    {(images[index] || []).length > 0 && (
-                      <View className="flex-row py-1 flex-wrap gap-2">
-                        {images[index].map((uri, imgIdx) => (
-                          <View key={imgIdx} className="relative">
-                            <TouchableOpacity
-                              onPress={() =>
-                                router.push({
-                                  pathname: "/annotateImage",
-                                  params: {
-                                    imageUri: uri,
-                                    issueIndex: index.toString(),
-                                  },
-                                })
-                              }
-                              activeOpacity={0.8}
-                            >
-                              <Image
-                                source={{ uri }}
-                                style={{
-                                  width: 85,
-                                  height: 85,
-                                  borderRadius: 20,
-                                }}
-                              />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => deleteImage(index, uri)}
-                              className="absolute top-2 right-2 rounded-full p-1 bg-white/50"
-                              style={{ zIndex: 10 }}
-                            >
-                              <HugeiconsIcon
-                                icon={Cancel01Icon}
-                                size={12}
-                                color="black"
-                                strokeWidth={3}
-                              />
-                            </TouchableOpacity>
-                          </View>
-                        ))}
-                      </View>
                     )}
                   </View>
+                )}
+              </View>
+            );
+          })}
 
-                  {/* Remove Issue Button */}
-                  {issues.length > 1 && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setIssueIndexToDelete(index);
-                        setDeleteModalVisible(true);
-                      }}
-                      className="mt-2 flex-row items-center justify-end"
-                    >
-                      <HugeiconsIcon
-                        icon={MinusSignCircleIcon}
-                        size={18}
-                        color="#EF4444"
-                      />
-                      <Text
-                        className={`font-dmSemiBold text-base ml-2 ${
-                          isDarkMode ? "text-white" : "text-black"
-                        }`}
-                      >
-                        Remove
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+          {/* Add Issue Button */}
+          <TouchableOpacity
+            onPress={addIssue}
+            className={`py-4 rounded-xl mb-4 mt-4 flex-row items-center justify-center ${
+              isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+            }`}
+            activeOpacity={0.7}
+          >
+            <HugeiconsIcon
+              icon={PlusSignCircleIcon}
+              size={22}
+              color={isDarkMode ? "white" : "black"}
+            />
+            <Text
+              className={`font-dmSemiBold text-base ml-2 ${isDarkMode ? "text-white" : "text-black"}`}
+            >
+              Add Issue
+            </Text>
+          </TouchableOpacity>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={saving}
+            className="mb-10 "
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={
+                saving
+                  ? ["#9CA3AF", "#9CA3AF"]
+                  : ["#5B4CCC", "#6347C2", "#8056D1"]
+              }
+              locations={saving ? [0, 1] : [0, 0.5183, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              className="py-4 rounded-xl items-center"
+              style={{ borderRadius: 11 }}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text className="text-white font-poppins text-lg">Submit</Text>
               )}
-            </View>
-          );
-        })}
-
-        {/* Add Issue Button */}
-        <TouchableOpacity
-          onPress={addIssue}
-          className={`py-4 rounded-lg mb-4 mt-4 flex-row items-center justify-center ${
-            isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-          }`}
-          activeOpacity={0.7}
-        >
-          <HugeiconsIcon
-            icon={PlusSignCircleIcon}
-            size={22}
-            color={isDarkMode ? "white" : "black"}
-          />
-          <Text
-            className={`font-dmSemiBold text-base ml-2 ${isDarkMode ? "text-white" : "text-black"}`}
-          >
-            Add Issue
-          </Text>
-        </TouchableOpacity>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={saving}
-          className="mb-10 "
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={
-              saving
-                ? ["#9CA3AF", "#9CA3AF"]
-                : ["#5B4CCC", "#6347C2", "#8056D1"]
-            }
-            locations={saving ? [0, 1] : [0, 0.5183, 1]}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            className="py-4 rounded-xl items-center"
-            style={{borderRadius:11}}
-
-          >
-
-            {saving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-white font-poppins text-lg">Submit</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </KeyboardAwareScrollView>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Date Picker */}
       <DateTimePickerModal
