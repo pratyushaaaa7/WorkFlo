@@ -39,6 +39,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import GlobalAvatar from "../components/GlobalAvatar";
@@ -167,12 +168,14 @@ const CustomDrawerContent = (props: any) => {
 
 export default function RootLayout() {
   return (
-    <KeyboardProvider>
-      <AuthProvider>
-        <AppLayout />
-        <Toast config={toastConfig} />
-      </AuthProvider>
-    </KeyboardProvider>
+    <SafeAreaProvider>
+      <KeyboardProvider>
+        <AuthProvider>
+          <AppLayout />
+          <Toast config={toastConfig} />
+        </AuthProvider>
+      </KeyboardProvider>
+    </SafeAreaProvider>
   );
 }
 
