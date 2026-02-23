@@ -41,19 +41,19 @@ export default function AnnotateImage() {
 
   // Drawing state
   const [paths, setPaths] = useState<StrokePath[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [selectedBrushSize, setSelectedBrushSize] = useState(BRUSH_SIZES[1]);
 
   // Reset drawing state when a different image is opened
   useEffect(() => {
     setPaths([]);
-    setCurrentPath("");
     activePathRef.current = "";
+    currentPathRef.current?.setNativeProps({ d: "" });
   }, [imageUri]);
 
   // Refs to avoid stale closures in PanResponder
   const activePathRef = useRef<string>("");
+  const currentPathRef = useRef<any>(null); // Ref for direct native prop updates
   const selectedColorRef = useRef(selectedColor);
   const selectedBrushSizeRef = useRef(selectedBrushSize);
   selectedColorRef.current = selectedColor;
@@ -67,12 +67,12 @@ export default function AnnotateImage() {
         const { locationX, locationY } = evt.nativeEvent;
         const d = `M${locationX.toFixed(1)},${locationY.toFixed(1)}`;
         activePathRef.current = d;
-        setCurrentPath(d);
+        currentPathRef.current?.setNativeProps({ d });
       },
       onPanResponderMove: (evt) => {
         const { locationX, locationY } = evt.nativeEvent;
         activePathRef.current += ` L${locationX.toFixed(1)},${locationY.toFixed(1)}`;
-        setCurrentPath(activePathRef.current);
+        currentPathRef.current?.setNativeProps({ d: activePathRef.current });
       },
       onPanResponderRelease: () => {
         const finished = activePathRef.current;
@@ -87,7 +87,7 @@ export default function AnnotateImage() {
           ]);
         }
         activePathRef.current = "";
-        setCurrentPath("");
+        currentPathRef.current?.setNativeProps({ d: "" });
       },
     }),
   ).current;
@@ -110,8 +110,8 @@ export default function AnnotateImage() {
 
   const handleClear = () => {
     setPaths([]);
-    setCurrentPath("");
     activePathRef.current = "";
+    currentPathRef.current?.setNativeProps({ d: "" });
   };
 
   return (
@@ -159,16 +159,16 @@ export default function AnnotateImage() {
                   strokeLinejoin="round"
                 />
               ))}
-              {currentPath !== "" && (
-                <Path
-                  d={currentPath}
-                  stroke={selectedColor}
-                  strokeWidth={selectedBrushSize}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              )}
+              {/* Current drawing path */}
+              <Path
+                ref={currentPathRef}
+                d=""
+                stroke={selectedColor}
+                strokeWidth={selectedBrushSize}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </Svg>
           </View>
         </ViewShot>

@@ -581,7 +581,7 @@ const ILRs = () => {
             numberOfLines={2}
             className="text-[13px] font-poppins text-gray-500 dark:text-gray-400 mb-4 leading-[20px]"
           >
-            {item.description || "No Description added"}
+            {item.remarks || "No Description added"}
           </Text>
 
           <View className="flex-row items-center justify-between">
