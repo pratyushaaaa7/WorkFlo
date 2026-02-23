@@ -31,6 +31,7 @@ import React, { useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -171,6 +172,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <KeyboardProvider>
         <AuthProvider>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="dark-content"
+          />
           <AppLayout />
           <Toast config={toastConfig} />
         </AuthProvider>
