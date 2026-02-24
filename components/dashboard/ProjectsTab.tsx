@@ -361,12 +361,13 @@ const ProjectsTab = ({
       if (!token) return;
       const company = getCompanyValue(activeSubTab);
 
-      // If we already have projects, we might not want to show a skeleton again
-      // but for swipeable tabs, it's often better to fetch in background or
-      // only fetch if empty. For now, let's fetch every time but manage loading per tab.
+      // If we already have projects, don't show skeleton again, just update in background
+      const hasData = projectsMap[company] && projectsMap[company].length > 0;
 
       try {
-        setLoadingMap((prev) => ({ ...prev, [company]: true }));
+        if (!hasData) {
+          setLoadingMap((prev) => ({ ...prev, [company]: true }));
+        }
         const res = await api.get("/projects", {
           headers: { Authorization: `Bearer ${token}` },
           params: { company },
@@ -386,10 +387,7 @@ const ProjectsTab = ({
     fetchProjects();
   }, [token, activeSubTab, refreshing]);
 
-  // Progressive Rendering Effect (Initial load and Tab Switch)
-  useEffect(() => {
-    setVisibleCount(5);
-  }, [activeSubTab]);
+  // Removed resetting visibleCount on tab switch to avoid layout jumps
 
   const flatListRef = React.useRef<FlatList>(null);
 
