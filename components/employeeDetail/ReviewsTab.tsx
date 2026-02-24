@@ -2,6 +2,7 @@ import { Edit03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import moment from "moment";
+import { Skeleton } from "moti/skeleton";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -23,9 +24,14 @@ import api from "../../lib/api";
 interface ReviewsTabProps {
   userData: any;
   onRefresh?: () => void;
+  loading: boolean;
 }
 
-const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
+const ReviewsTab: React.FC<ReviewsTabProps> = ({
+  userData,
+  onRefresh,
+  loading,
+}) => {
   const isDarkMode = useColorScheme() === "dark";
   const [modalVisible, setModalVisible] = useState(false);
   const [newStars, setNewStars] = useState<number | null>(null);
@@ -96,105 +102,125 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
       {!isAdmin ? (
         /* USER VIEW: Eyes + Write Review */
         <View className="py-10">
-          <View className="items-center justify-center mb-10">
-            <Image
-              source={require("../../assets/images/reviewEyes.png")}
-              style={{ width: 80, height: 60 }}
-              resizeMode="contain"
-            />
-            <Text className="text-lg font-dmMedium text-black dark:text-white mt-4">
-              You won't see the reviews
-            </Text>
-          </View>
-
-          <View className="px-4">
-            <LinearGradient
-              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 16 }}
-            >
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.85}
-                className="flex-row items-center justify-center py-4"
-              >
-                <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
-                <Text className="text-white font-dmBold text-base ml-3">
-                  Write a review
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            show={loading && !userData}
+            width="100%"
+            height={200}
+            radius={24}
+          >
+            <View>
+              <View className="items-center justify-center mb-10">
+                <Image
+                  source={require("../../assets/images/reviewEyes.png")}
+                  style={{ width: 80, height: 60 }}
+                  resizeMode="contain"
+                />
+                <Text className="text-lg font-dmMedium text-black dark:text-white mt-4">
+                  You won't see the reviews
                 </Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
+              </View>
+
+              <View className="px-4">
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ borderRadius: 16 }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(true)}
+                    activeOpacity={0.85}
+                    className="flex-row items-center justify-center py-4"
+                  >
+                    <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
+                    <Text className="text-white font-dmBold text-base ml-3">
+                      Write a review
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+            </View>
+          </Skeleton>
         </View>
       ) : (
         /* ADMIN VIEW: Matching UserDetail UI Structure */
         <View>
           {/* Rating Summary Section */}
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-4">
-            <View className="flex-row items-start mb-5">
-              <View className="w-[30%] items-start border-r border-[#E0E5EB] dark:border-[#413E47] pr-4">
-                <Text className="text-4xl font-dmBold text-black dark:text-white">
-                  {averageRating ? averageRating.toFixed(1) : "N/A"}
-                </Text>
-                <Text className="text-gray-500 text-xs mt-1">Out of 5</Text>
-              </View>
-
-              <View className="flex-1 pl-6">
-                {[5, 4, 3, 2, 1].map((starCount) => {
-                  const count = reviews.filter(
-                    (r: any) => r.stars === starCount,
-                  ).length;
-                  const percentage =
-                    reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                  return (
-                    <View
-                      key={starCount}
-                      className="flex-row items-center h-4 mb-1"
-                    >
-                      <View className="flex-row w-[65px] justify-end mr-3">
-                        {[...Array(starCount)].map((_, i) => (
-                          <Image
-                            key={i}
-                            source={
-                              isDarkMode
-                                ? require("../../assets/images/Rating White Star.png")
-                                : require("../../assets/images/Rating Black Star.png")
-                            }
-                            style={{ width: 10, height: 10, marginLeft: 2 }}
-                            resizeMode="contain"
-                          />
-                        ))}
-                      </View>
-                      <View className="flex-1 h-1.5 bg-[#D2D2D2] dark:bg-[#4E4E4E] rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-black dark:bg-white rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-
-            <LinearGradient
-              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 16 }}
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              show={loading && !userData}
+              width="100%"
+              height={140}
+              radius={24}
             >
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.85}
-                className="flex-row items-center justify-center py-4 rounded-2xl"
-              >
-                <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
-                <Text className="text-white font-dmMedium ml-3">
-                  Write a review
-                </Text>
-              </TouchableOpacity>
-            </LinearGradient>
+              <View>
+                <View className="flex-row items-start mb-5">
+                  <View className="w-[30%] items-start border-r border-[#E0E5EB] dark:border-[#413E47] pr-4">
+                    <Text className="text-4xl font-dmBold text-black dark:text-white">
+                      {averageRating ? averageRating.toFixed(1) : "N/A"}
+                    </Text>
+                    <Text className="text-gray-500 text-xs mt-1">Out of 5</Text>
+                  </View>
+
+                  <View className="flex-1 pl-6">
+                    {[5, 4, 3, 2, 1].map((starCount) => {
+                      const count = reviews.filter(
+                        (r: any) => r.stars === starCount,
+                      ).length;
+                      const percentage =
+                        reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                      return (
+                        <View
+                          key={starCount}
+                          className="flex-row items-center h-4 mb-1"
+                        >
+                          <View className="flex-row w-[65px] justify-end mr-3">
+                            {[...Array(starCount)].map((_, i) => (
+                              <Image
+                                key={i}
+                                source={
+                                  isDarkMode
+                                    ? require("../../assets/images/Rating White Star.png")
+                                    : require("../../assets/images/Rating Black Star.png")
+                                }
+                                style={{ width: 10, height: 10, marginLeft: 2 }}
+                                resizeMode="contain"
+                              />
+                            ))}
+                          </View>
+                          <View className="flex-1 h-1.5 bg-[#D2D2D2] dark:bg-[#4E4E4E] rounded-full overflow-hidden">
+                            <View
+                              className="h-full bg-black dark:bg-white rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ borderRadius: 16 }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(true)}
+                    activeOpacity={0.85}
+                    className="flex-row items-center justify-center py-4 rounded-2xl"
+                  >
+                    <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
+                    <Text className="text-white font-dmMedium ml-3">
+                      Write a review
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+            </Skeleton>
           </View>
 
           {reviews && reviews.length > 0 && (
@@ -203,60 +229,71 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ userData, onRefresh }) => {
             </Text>
           )}
 
-          {reviews &&
-            reviews.length > 0 &&
-            reviews
-              .sort((a: any, b: any) =>
-                moment(b.createdAt).diff(moment(a.createdAt)),
-              )
-              .map((r: any, idx: number) => (
-                <View
-                  key={idx}
-                  className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
-                >
-                  <View className="flex-row items-start">
-                    <GlobalAvatar
-                      name={r.givenBy?.fullName || "Unknown"}
-                      size={44}
-                      fontSize={16}
-                      borderRadius={22}
-                      className="mr-3 mt-1"
-                    />
+          {loading && reviews.length === 0
+            ? [1, 2].map((i) => (
+                <View key={i} className="mb-3">
+                  <Skeleton
+                    colorMode={isDarkMode ? "dark" : "light"}
+                    width="100%"
+                    height={100}
+                    radius={16}
+                  />
+                </View>
+              ))
+            : reviews &&
+              reviews.length > 0 &&
+              reviews
+                .sort((a: any, b: any) =>
+                  moment(b.createdAt).diff(moment(a.createdAt)),
+                )
+                .map((r: any, idx: number) => (
+                  <View
+                    key={idx}
+                    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
+                  >
+                    <View className="flex-row items-start">
+                      <GlobalAvatar
+                        name={r.givenBy?.fullName || "Unknown"}
+                        size={44}
+                        fontSize={16}
+                        borderRadius={22}
+                        className="mr-3 mt-1"
+                      />
 
-                    <View className="flex-1">
-                      <View className="flex-row justify-between items-start">
-                        <Text className="text-black dark:text-white font-dmSemiBold text-base flex-1 mr-2">
-                          {r.givenBy?.fullName || "Unknown"}
-                        </Text>
-                        <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
-                          {moment(r.createdAt).format("DD MMM YYYY")}
-                        </Text>
+                      <View className="flex-1">
+                        <View className="flex-row justify-between items-start">
+                          <Text className="text-black dark:text-white font-dmSemiBold text-base flex-1 mr-2">
+                            {r.givenBy?.fullName || "Unknown"}
+                          </Text>
+                          <Text className="text-[#6D6D6D] dark:text-[#919191] text-sm font-dmMedium">
+                            {moment(r.createdAt).format("DD MMM YYYY")}
+                          </Text>
+                        </View>
+
+                        <View className="flex-row mt-1 mb-2">
+                          {[...Array(r.stars || 0)].map((_, i) => (
+                            <Image
+                              key={i}
+                              source={
+                                isDarkMode
+                                  ? require("../../assets/images/Rating White Star.png")
+                                  : require("../../assets/images/Rating Black Star.png")
+                              }
+                              style={{ width: 12, height: 12, marginRight: 2 }}
+                              resizeMode="contain"
+                            />
+                          ))}
+                        </View>
+
+                        {r.note && (
+                          <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
+                            {r.note}
+                          </Text>
+                        )}
                       </View>
-
-                      <View className="flex-row mt-1 mb-2">
-                        {[...Array(r.stars || 0)].map((_, i) => (
-                          <Image
-                            key={i}
-                            source={
-                              isDarkMode
-                                ? require("../../assets/images/Rating White Star.png")
-                                : require("../../assets/images/Rating Black Star.png")
-                            }
-                            style={{ width: 12, height: 12, marginRight: 2 }}
-                            resizeMode="contain"
-                          />
-                        ))}
-                      </View>
-
-                      {r.note && (
-                        <Text className="text-[#1C1C1C] dark:text-[#D2D2D2] text-sm font-poppins leading-5">
-                          {r.note}
-                        </Text>
-                      )}
                     </View>
                   </View>
-                </View>
-              ))}
+                ))}
         </View>
       )}
 

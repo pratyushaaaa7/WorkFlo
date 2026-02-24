@@ -10,6 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, {
   useCallback,
   useContext,
@@ -18,7 +19,6 @@ import React, {
   useState,
 } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Linking,
   RefreshControl,
@@ -109,18 +109,9 @@ const EmployeeDetail = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-        <ActivityIndicator size="large" color="#5B4CCC" />
-        <Text className="mt-4 text-[#8E8E8E] font-poppins">
-          Loading employee details...
-        </Text>
-      </View>
-    );
-  }
+  // Removed early activity indicator return
 
-  if (!userData) {
+  if (!userData && !loading) {
     return (
       <View className="flex-1 justify-center items-center bg-white dark:bg-black">
         <Text className="text-[#8E8E8E] font-poppins">Employee not found</Text>
@@ -307,77 +298,117 @@ const EmployeeDetail = () => {
           style={{ opacity: bodyOpacity }}
           className="items-center px-4 pb-8 bg-white dark:bg-black pt-4"
         >
-          <GlobalAvatar
-            name={userData?.fullName || ""}
-            size={120}
-            fontSize={40}
-            borderRadius={32}
-            className="mb-4"
-          />
-          <Text className="text-2xl font-dmBold text-black dark:text-white mb-1 text-center">
-            {userData?.fullName}
-          </Text>
-          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] mb-6">
-            {userData?.designation}
-          </Text>
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            show={loading && !userData}
+            width={120}
+            height={120}
+            radius={32}
+          >
+            <GlobalAvatar
+              name={userData?.fullName || ""}
+              size={120}
+              fontSize={40}
+              borderRadius={32}
+              className="mb-4"
+            />
+          </Skeleton>
+
+          <View className="mb-1 mt-4">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              show={loading && !userData}
+              width={200}
+              height={32}
+              radius={8}
+            >
+              <Text className="text-2xl font-dmBold text-black dark:text-white text-center">
+                {userData?.fullName}
+              </Text>
+            </Skeleton>
+          </View>
+
+          <View className="mb-6">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              show={loading && !userData}
+              width={150}
+              height={20}
+              radius={6}
+            >
+              <Text className="text-base font-poppins text-[#606060] dark:text-[#919191]">
+                {userData?.designation}
+              </Text>
+            </Skeleton>
+          </View>
 
           {/* Action Buttons */}
           <View className="flex-row pb-6 justify-center gap-4">
-            {userData?.contactNumbers?.[0] && (
-              <>
-                <TouchableOpacity
-                  onPress={handleSMS}
-                  className="w-16 h-16 rounded-2xl bg-[#E5D4EB] items-center justify-center"
-                >
-                  <HugeiconsIcon
-                    icon={BubbleChatIcon}
-                    size={24}
-                    color={"#7122A8"}
-                    stroke={2}
-                  />
-                </TouchableOpacity>
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              show={loading && !userData}
+              radius={16}
+              height={64}
+              width={250}
+            >
+              <View className="flex-row gap-4">
+                {userData?.contactNumbers?.[0] && (
+                  <>
+                    <TouchableOpacity
+                      onPress={handleSMS}
+                      className="w-16 h-16 rounded-2xl bg-[#E5D4EB] items-center justify-center"
+                    >
+                      <HugeiconsIcon
+                        icon={BubbleChatIcon}
+                        size={24}
+                        color={"#7122A8"}
+                        stroke={2}
+                      />
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={handleWhatsApp}
-                  className="w-16 h-16 rounded-2xl bg-[#E3F8EB] items-center justify-center"
-                >
-                  <HugeiconsIcon
-                    icon={WhatsappIcon}
-                    size={24}
-                    color={"#17825A"}
-                    stroke={2}
-                  />
-                </TouchableOpacity>
-              </>
-            )}
+                    <TouchableOpacity
+                      onPress={handleWhatsApp}
+                      className="w-16 h-16 rounded-2xl bg-[#E3F8EB] items-center justify-center"
+                    >
+                      <HugeiconsIcon
+                        icon={WhatsappIcon}
+                        size={24}
+                        color={"#17825A"}
+                        stroke={2}
+                      />
+                    </TouchableOpacity>
+                  </>
+                )}
 
-            {userData?.email && (
-              <TouchableOpacity
-                onPress={handleEmail}
-                className="w-16 h-16 rounded-2xl bg-[#E0F7FE] items-center justify-center"
-              >
-                <HugeiconsIcon
-                  icon={Mail01Icon}
-                  size={24}
-                  color={"#0A8CAD"}
-                  stroke={2}
-                />
-              </TouchableOpacity>
-            )}
+                {userData?.email && (
+                  <TouchableOpacity
+                    onPress={handleEmail}
+                    className="w-16 h-16 rounded-2xl bg-[#E0F7FE] items-center justify-center"
+                  >
+                    <HugeiconsIcon
+                      icon={Mail01Icon}
+                      size={24}
+                      color={"#0A8CAD"}
+                      stroke={2}
+                    />
+                  </TouchableOpacity>
+                )}
 
-            {userData?.contactNumbers?.[0] && (
-              <TouchableOpacity
-                onPress={handleCall}
-                className="w-16 h-16 rounded-2xl bg-[#E0ECFE] items-center justify-center"
-              >
-                <HugeiconsIcon
-                  icon={Call02Icon}
-                  size={24}
-                  color={"#0073CB"}
-                  stroke={2}
-                />
-              </TouchableOpacity>
-            )}
+                {userData?.contactNumbers?.[0] && (
+                  <TouchableOpacity
+                    onPress={handleCall}
+                    className="w-16 h-16 rounded-2xl bg-[#E0ECFE] items-center justify-center"
+                  >
+                    <HugeiconsIcon
+                      icon={Call02Icon}
+                      size={24}
+                      color={"#0073CB"}
+                      stroke={2}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </Skeleton>
           </View>
         </Animated.View>
 
@@ -423,10 +454,18 @@ const EmployeeDetail = () => {
 
         {/* Child 2: Tab Content */}
         <View className="bg-white dark:bg-black flex-1">
-          {activeTab === "Profile" && <AboutTab userData={userData} />}
-          {activeTab === "Projects" && <ProjectsTab userData={userData} />}
+          {activeTab === "Profile" && (
+            <AboutTab userData={userData} loading={loading} />
+          )}
+          {activeTab === "Projects" && (
+            <ProjectsTab userData={userData} loading={loading} />
+          )}
           {activeTab === "Reviews" && (
-            <ReviewsTab userData={userData} onRefresh={fetchUser} />
+            <ReviewsTab
+              userData={userData}
+              onRefresh={fetchUser}
+              loading={loading}
+            />
           )}
           <View className="h-24" />
         </View>
