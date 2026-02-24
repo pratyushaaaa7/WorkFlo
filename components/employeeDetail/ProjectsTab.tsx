@@ -1,6 +1,7 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext } from "react";
 import {
   Image,
@@ -13,9 +14,10 @@ import { AuthContext } from "../../context/AuthContext";
 
 interface ProjectsTabProps {
   userData: any;
+  loading: boolean;
 }
 
-const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
+const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData, loading }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
   const { user } = useContext(AuthContext) || {};
@@ -46,7 +48,18 @@ const ProjectsTab: React.FC<ProjectsTabProps> = ({ userData }) => {
         </View>
       </View>
 
-      {Array.isArray(projects) && projects.length > 0 ? (
+      {loading && projects.length === 0 ? (
+        [1, 2, 3].map((i) => (
+          <View key={i} className="mb-4">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="100%"
+              height={72}
+              radius={12}
+            />
+          </View>
+        ))
+      ) : Array.isArray(projects) && projects.length > 0 ? (
         projects.map((project: any, index: number) => (
           <TouchableOpacity
             key={project._id || index}

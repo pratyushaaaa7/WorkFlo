@@ -9,6 +9,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import moment from "moment";
+import { Skeleton } from "moti/skeleton";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
 import Toast from "react-native-toast-message";
@@ -16,6 +17,7 @@ import GlobalAvatar from "../GlobalAvatar";
 
 interface AboutTabProps {
   userData: any;
+  loading: boolean;
 }
 
 const toProperCase = (name: any) => {
@@ -27,7 +29,7 @@ const toProperCase = (name: any) => {
     .join(" ");
 };
 
-const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
+const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
@@ -41,34 +43,42 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
       <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
-      {copyable && value ? (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onLongPress={async () => {
-            await Clipboard.setStringAsync(String(value));
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            Toast.show({
-              type: "success",
-              text1: "Copied",
-              text2: `${label} copied to clipboard`,
-              position: "bottom",
-            });
-          }}
-        >
+      <Skeleton
+        colorMode={isDarkMode ? "dark" : "light"}
+        show={loading && !value}
+        width={label === "About" ? "100%" : 150}
+        height={20}
+        radius={4}
+      >
+        {copyable && value ? (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onLongPress={async () => {
+              await Clipboard.setStringAsync(String(value));
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Toast.show({
+                type: "success",
+                text1: "Copied",
+                text2: `${label} copied to clipboard`,
+                position: "bottom",
+              });
+            }}
+          >
+            <Text className="text-black dark:text-white text-base font-dmMedium">
+              {value}
+            </Text>
+          </TouchableOpacity>
+        ) : (
           <Text className="text-black dark:text-white text-base font-dmMedium">
-            {value}
+            {value || "N/A"}
           </Text>
-        </TouchableOpacity>
-      ) : (
-        <Text className="text-black dark:text-white text-base font-dmMedium">
-          {value || "N/A"}
-        </Text>
-      )}
+        )}
+      </Skeleton>
     </View>
   );
 
   const renderUserRefField = (label: string, user: any) => {
-    if (!user) return null;
+    if (!user && !loading) return null;
 
     const isObject = typeof user === "object" && user !== null;
     const displayName = isObject ? user.fullName : user;
@@ -80,42 +90,50 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData }) => {
         <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
           {label}
         </Text>
-        <TouchableOpacity
-          onPress={() => {
-            if (isObject && user._id) {
-              router.push({
-                pathname: "/employeeDetail" as any,
-                params: { userId: user._id },
-              });
-            }
-          }}
-          activeOpacity={0.7}
-          className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          show={loading && !user}
+          width="100%"
+          height={70}
+          radius={16}
         >
-          <GlobalAvatar
-            name={displayName || "User"}
-            fontSize={18}
-            // uri={profileImage}
-            size={48}
-            borderRadius={12}
-            className="mr-3"
-          />
+          <TouchableOpacity
+            onPress={() => {
+              if (isObject && user._id) {
+                router.push({
+                  pathname: "/employeeDetail" as any,
+                  params: { userId: user._id },
+                });
+              }
+            }}
+            activeOpacity={0.7}
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+          >
+            <GlobalAvatar
+              name={displayName || "User"}
+              fontSize={18}
+              // uri={profileImage}
+              size={48}
+              borderRadius={12}
+              className="mr-3"
+            />
 
-          <View className="flex-1">
-            <Text className="text-black dark:text-white text-base font-dmBold">
-              {displayName || "N/A"}
-            </Text>
-            <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
-              {displayDesignation}
-            </Text>
-          </View>
+            <View className="flex-1">
+              <Text className="text-black dark:text-white text-base font-dmBold">
+                {displayName || "N/A"}
+              </Text>
+              <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
+                {displayDesignation}
+              </Text>
+            </View>
 
-          <HugeiconsIcon
-            icon={ArrowRight01Icon}
-            size={20}
-            color={isDarkMode ? "#919191" : "#606060"}
-          />
-        </TouchableOpacity>
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              size={20}
+              color={isDarkMode ? "#919191" : "#606060"}
+            />
+          </TouchableOpacity>
+        </Skeleton>
       </View>
     );
   };

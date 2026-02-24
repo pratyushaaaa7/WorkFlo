@@ -1,6 +1,8 @@
-import { LogoutCircle01Icon, Menu02Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeft01Icon,
+  LogoutCircle01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import React, {
   useCallback,
@@ -10,7 +12,6 @@ import React, {
   useState,
 } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Modal,
   RefreshControl,
@@ -33,7 +34,7 @@ const ProfileScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(user || null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Profile");
   const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
@@ -49,7 +50,9 @@ const ProfileScreen = () => {
   const fetchUser = useCallback(async () => {
     if (!user?._id || !token) return;
     try {
-      setLoading(true);
+      // Keep loading as true if we don't have userData yet,
+      // otherwise we can just let it update in the background.
+      if (!userData) setLoading(true);
       const res = await api.get(`/users/${user._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -64,7 +67,7 @@ const ProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id, token]);
+  }, [user?._id, token, userData]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -92,17 +95,6 @@ const ProfileScreen = () => {
     });
     // router.replace("/login");
   };
-
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
-        <ActivityIndicator size="large" color="#5B4CCC" />
-        <Text className="mt-4 text-[#8E8E8E] font-poppins">
-          Loading your profile...
-        </Text>
-      </View>
-    );
-  }
 
   // Header Animations
   // Header Animations
@@ -302,8 +294,12 @@ const ProfileScreen = () => {
 
         {/* Child 2: Content */}
         <View className="bg-white dark:bg-black flex-1">
-          {activeTab === "Profile" && <AboutTab userData={userData} />}
-          {activeTab === "Projects" && <ProjectsTab userData={userData} />}
+          {activeTab === "Profile" && (
+            <AboutTab userData={userData} loading={loading} />
+          )}
+          {activeTab === "Projects" && (
+            <ProjectsTab userData={userData} loading={loading} />
+          )}
           <View className="h-24" />
         </View>
       </Animated.ScrollView>
