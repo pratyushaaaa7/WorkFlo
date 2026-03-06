@@ -53,6 +53,7 @@
     "moment": "^2.30.1",
     "moti": "^0.30.0",
     "nativewind": "^4.1.23",
+    "pdf-lib": "^1.17.1",
     "react": "19.0.0",
     "react-datepicker": "^8.7.0",
     "react-dom": "19.0.0",

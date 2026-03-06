@@ -1,41 +1,39 @@
 // ReportForm.tsx
-import React, { useState, useContext, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  Image,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Dimensions,
-  Linking,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import uuid from "react-native-uuid";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import * as Print from "expo-print";
-import * as FileSystem from "expo-file-system";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Print from "expo-print";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  Linking,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
-import * as Sharing from "expo-sharing";
+import uuid from "react-native-uuid";
 import api from "../lib/api";
 // import logoWP from "../assets/images/logoWPcrop.png";
 // import logoWAL from "../assets/images/logoWALL.png";
 // import logoFallback from "../assets/images/react-logo.png";
 // Adjust this to your actual AuthContext hook type
-import { useAuth } from "./../context/AuthContext";
-import * as ImageManipulator from "expo-image-manipulator";
 import { Asset } from "expo-asset";
+import * as ImageManipulator from "expo-image-manipulator";
+import { useAuth } from "./../context/AuthContext";
 // import logoW from "../assets/images/logoW.png";
 // import { getBase64ImageFromAsset } from "../utils/getBase64Image";
 // Define this function in ReportForm.tsx (or ensure your utility function uses this logic)
 const getBase64ImageFromAsset = async (
-  imageModule: number
+  imageModule: number,
 ): Promise<string> => {
   try {
     const asset = Asset.fromModule(imageModule);
@@ -190,7 +188,7 @@ const ReportForm: React.FC = () => {
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
         [{ resize: { width: 1024 } }],
-        { compress: dynamicCompress, format: ImageManipulator.SaveFormat.JPEG }
+        { compress: dynamicCompress, format: ImageManipulator.SaveFormat.JPEG },
       );
       return manipResult.uri;
     } catch (error) {
@@ -212,7 +210,7 @@ const ReportForm: React.FC = () => {
       setLoadingImages(true);
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         quality: 0.3,
       });
@@ -262,7 +260,7 @@ const ReportForm: React.FC = () => {
               text: "Open Settings",
               onPress: () => Linking.openSettings(),
             },
-          ]
+          ],
         );
         return;
       }
@@ -343,7 +341,7 @@ const ReportForm: React.FC = () => {
         if (!base64 || base64.length < 100) {
           console.warn("⚠️ Main logo load failed, trying fallback");
           base64 = await getBase64ImageFromAsset(
-            require("../assets/images/react-logo.png")
+            require("../assets/images/react-logo.png"),
           );
         }
 
@@ -352,7 +350,7 @@ const ReportForm: React.FC = () => {
       } catch (err) {
         console.error("❌ Failed to load company logo:", err);
         const fallback = await getBase64ImageFromAsset(
-          require("../assets/images/react-logo.png")
+          require("../assets/images/react-logo.png"),
         );
         setLogoBase64(fallback);
       }
@@ -472,7 +470,7 @@ const ReportForm: React.FC = () => {
                   <td>${v.name || "-"}</td>
                   <td>${v.expertise || "-"}</td>
                   <td>${v.laborCount || 0}</td>
-                </tr>`
+                </tr>`,
               )
               .join("")}
             <tr>
@@ -621,7 +619,7 @@ const ReportForm: React.FC = () => {
         console.error("❌ Logo not loaded properly or missing.");
         Alert.alert(
           "Logo Error",
-          "Unable to load the company logo. Please reopen the report screen or check your logo asset file."
+          "Unable to load the company logo. Please reopen the report screen or check your logo asset file.",
         );
         Toast.show({
           type: "error",
@@ -701,7 +699,7 @@ const ReportForm: React.FC = () => {
       console.error("Upload error:", err);
       Alert.alert(
         "Upload Error",
-        err?.response?.data?.error || err?.message || "Something went wrong."
+        err?.response?.data?.error || err?.message || "Something went wrong.",
       );
       Toast.show({
         type: "error",

@@ -1,46 +1,67 @@
-// changed pdf layout
-import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  Dimensions,
-  Linking,
-  Platform,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import uuid from "react-native-uuid";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+  ArrowLeft01Icon,
+  Camera01Icon,
+  Edit03Icon,
+  Image03Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Toast from "react-native-toast-message";
-import { useAuth } from "./../context/AuthContext";
-import * as ImageManipulator from "expo-image-manipulator";
 import { Asset } from "expo-asset";
-import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import * as Print from "expo-print";
-import api from "@/lib/api";
+import { Image as ExpoImage } from "expo-image";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  InteractionManager,
+  Keyboard,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import uuid from "react-native-uuid";
+import { SvrPhoto, useSvrStore } from "../store/svrStore";
+import { useAuth } from "./../context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
 const getBase64ImageFromAsset = async (
-  imageModule: number
+  imageModule: number,
 ): Promise<string> => {
   try {
     const asset = Asset.fromModule(imageModule);
     await asset.downloadAsync(); // Download if not present
 
     let localUri = asset.localUri;
+    const docDir = FileSystem.documentDirectory;
     if (!localUri || !localUri.startsWith("file://")) {
       // In production, asset.localUri may be undefined, so copy asset.uri to local FS
-      const dest = FileSystem.documentDirectory + asset.name;
+      if (!docDir) throw new Error("Document directory not available");
+      const dest = docDir + asset.name;
       await FileSystem.copyAsync({
         from: asset.uri,
         to: dest,
@@ -65,9 +86,12 @@ const getBase64ImageFromAsset = async (
 };
 
 const cleanupLocalPhotos = async (photos: PhotoItem[]) => {
+  const docDir = FileSystem.documentDirectory;
+  if (!docDir) return;
+
   for (const p of photos) {
     try {
-      if (p.uri?.startsWith(FileSystem.documentDirectory)) {
+      if (p.uri?.startsWith(docDir)) {
         await FileSystem.deleteAsync(p.uri, { idempotent: true });
       }
     } catch {}
@@ -110,15 +134,79 @@ const SVRPhotoReport: React.FC = () => {
     mode,
   } = params || {};
 
+  const isDarkMode = useColorScheme() === "dark";
+
   // console.log(caseStudyRemarks);
+  // console.log(params);
 
-  console.log(params);
+  const {
+    photosByProject,
+    setPhotos,
+    addPhoto,
+    removePhoto,
+    updatePhoto,
+    clearPhotos,
+  } = useSvrStore();
+  const insets = useSafeAreaInsets();
+  const projectIdStr = (projectId as string) || "default";
+  const photos = useMemo(
+    () => photosByProject[projectIdStr] || [],
+    [photosByProject, projectIdStr],
+  );
 
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const thumbnailListRef = useRef<FlatList>(null);
+  const isProgrammaticScroll = useRef(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const captionInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  // Auto-focus when index changes IF keyboard was already open
+  useEffect(() => {
+    if (isKeyboardVisible) {
+      InteractionManager.runAfterInteractions(() => {
+        captionInputRef.current?.focus();
+      });
+    }
+  }, [currentIndex, isKeyboardVisible]);
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+
+  // Use useCallback to stabilize the visibility handler
+  const onViewableItemsChanged = useCallback(({ viewableItems }: any) => {
+    if (viewableItems.length > 0 && !isProgrammaticScroll.current) {
+      const nextIndex = viewableItems[0].index || 0;
+      setCurrentIndex(nextIndex);
+
+      // Also scroll thumbnail strip to keep active thumbnail visible
+      thumbnailListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    }
+  }, []);
 
   const teamLeadersStr = Array.isArray(teamLeaders)
     ? teamLeaders[0]
@@ -161,70 +249,148 @@ const SVRPhotoReport: React.FC = () => {
 
   const STORAGE_KEY = `@svr_photos_${projectId || "default"}`;
 
-  const uriToBase64 = async (uri: string): Promise<string> => {
+  const uriToBase64 = useCallback(async (uri: string): Promise<string> => {
     // readAsStringAsync returns the file content as base64 with this encoding option
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
     // using jpeg as default — if you support png, you can inspect extension
     return `data:image/jpeg;base64,${base64}`;
-  };
+  }, []);
 
-  const compressImage = async (uri: string): Promise<string> => {
+  const compressImage = useCallback(async (uri: string): Promise<string> => {
     try {
-      const dynamicCompress = photos.length > 15 ? 0.3 : 0.5;
-
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 1024 } }],
-        { compress: dynamicCompress, format: ImageManipulator.SaveFormat.JPEG }
+        [{ resize: { width: 800 } }], // Smaller width for thumbnails/previews
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG },
       );
-      return manipResult.uri;
+
+      // Move from temporary cache to persistent document directory
+      const destDir = `${FileSystem.documentDirectory}svr/compressed/`;
+      await FileSystem.makeDirectoryAsync(destDir, { intermediates: true });
+      const destPath = `${destDir}Compressed_${uuid.v4().toString()}.jpg`;
+      await FileSystem.copyAsync({ from: manipResult.uri, to: destPath });
+
+      // Clean up temporary ImageManipulator cache file
+      await FileSystem.deleteAsync(manipResult.uri, { idempotent: true });
+
+      return destPath;
     } catch (error) {
       console.warn("Image compression failed:", error);
-      return uri; // fallback
+      return uri;
     }
-  };
+  }, []);
 
-  const savePhotos = async (arr: PhotoItem[]) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    } catch (e) {
-      console.warn("Failed to save photos", e);
-    }
-  };
+  const saveImageToDocuments = useCallback(
+    async (tempUri: string, id: string) => {
+      const fileName = `svr_${id}.jpg`;
+      const dest = `${FileSystem.documentDirectory}svr/photos/${fileName}`;
 
-  const pickImage = async () => {
+      await FileSystem.makeDirectoryAsync(
+        `${FileSystem.documentDirectory}svr/photos`,
+        { intermediates: true },
+      );
+
+      await FileSystem.copyAsync({
+        from: tempUri,
+        to: dest,
+      });
+
+      return dest;
+    },
+    [],
+  );
+
+  const savePhotos = useCallback(
+    async (arr: PhotoItem[]) => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      } catch (e) {
+        console.warn("Failed to save photos", e);
+      }
+    },
+    [STORAGE_KEY],
+  );
+
+  const updateCaption = useCallback(
+    (id: string, caption: string) => {
+      updatePhoto(projectIdStr, id, { caption });
+      if (showCaptionError === id && caption.trim().length > 0) {
+        setShowCaptionError(null);
+      }
+    },
+    [projectIdStr, updatePhoto, showCaptionError],
+  );
+
+  const removePhotoItem = useCallback(
+    (id: string) => {
+      removePhoto(projectIdStr, id);
+      if (currentIndex >= photos.length - 1 && currentIndex > 0) {
+        setCurrentIndex((prev) => prev - 1);
+      }
+    },
+    [projectIdStr, removePhoto, currentIndex, photos.length],
+  );
+
+  const pickImage = useCallback(async () => {
     try {
       setLoadingImages(true);
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         quality: 0.3,
       });
 
       if (!result.canceled && (result as any).assets?.length > 0) {
         const assets = (result as any).assets as Array<any>;
+        const initialPhotos: PhotoItem[] = [];
 
+        // 1. Immediately create temporary photo objects with raw URIs
         for (const asset of assets) {
-          const persistedUri = await saveImageToDocuments(asset.uri);
-
-          const newPhoto: PhotoItem = {
-            id: uuid.v4().toString(),
-            uri: persistedUri, // ✅ SAFE
+          const photoId = uuid.v4().toString();
+          initialPhotos.push({
+            id: photoId,
+            uri: asset.uri,
             caption: "",
-          };
-          // Add each image one by one to state
-          setPhotos((prev) => {
-            const updated = [...prev, newPhoto];
-            savePhotos(updated); // save to AsyncStorage
-            return updated;
           });
-
-          // Optional: give the UI a tiny break to render
-          await new Promise((r) => setTimeout(r, 50));
         }
+
+        // 2. Add them to the store instantly so the UI can render them
+        setPhotos(projectIdStr, [...photos, ...initialPhotos]);
+
+        // 3. Process them sequentially in the background
+        setTimeout(async () => {
+          const updatedPhotos = [...photos, ...initialPhotos];
+          for (let i = 0; i < initialPhotos.length; i++) {
+            const photo = initialPhotos[i];
+            try {
+              const compressed = await compressImage(photo.uri);
+              const persistedUri = await saveImageToDocuments(
+                compressed,
+                photo.id,
+              );
+
+              // Update the local reference
+              const foundIdx = updatedPhotos.findIndex(
+                (p) => p.id === photo.id,
+              );
+              if (foundIdx !== -1) {
+                updatedPhotos[foundIdx] = {
+                  ...updatedPhotos[foundIdx],
+                  uri: persistedUri,
+                };
+              }
+            } catch (err) {
+              console.warn("Background compression failed for", photo.id, err);
+            }
+            // Yield briefly
+            await new Promise((r) => setTimeout(r, 30));
+          }
+          // Update the store ONCE with all persisted URIs
+          setPhotos(projectIdStr, updatedPhotos);
+        }, 100);
       }
     } catch (e) {
       console.error("pickImage error:", e);
@@ -232,9 +398,16 @@ const SVRPhotoReport: React.FC = () => {
     } finally {
       setLoadingImages(false);
     }
-  };
+  }, [
+    projectIdStr,
+    photos,
+    setPhotos,
+    compressImage,
+    saveImageToDocuments,
+    updatePhoto,
+  ]);
 
-  const takePhoto = async () => {
+  const takePhoto = useCallback(async () => {
     try {
       // 1️⃣ Ask for camera permission
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -250,7 +423,7 @@ const SVRPhotoReport: React.FC = () => {
               text: "Open Settings",
               onPress: () => Linking.openSettings(),
             },
-          ]
+          ],
         );
         return;
       }
@@ -262,66 +435,25 @@ const SVRPhotoReport: React.FC = () => {
 
       if (!result.canceled && (result as any).assets?.length > 0) {
         const asset = (result as any).assets[0];
-        const persistedUri = await saveImageToDocuments(asset.uri);
+        const photoId = uuid.v4().toString();
+
+        // ⚡ COMPRESS BEFORE SAVING
+        const compressed = await compressImage(asset.uri);
+        const persistedUri = await saveImageToDocuments(compressed, photoId);
 
         const newPhoto: PhotoItem = {
-          id: uuid.v4().toString(),
+          id: photoId,
           uri: persistedUri,
           caption: "",
         };
 
-        const updated = [...photos, newPhoto];
-        setPhotos(updated);
-        savePhotos(updated);
+        addPhoto(projectIdStr, newPhoto);
       }
     } catch (e) {
       console.error("takePhoto error:", e);
       Alert.alert("Error", "Could not take photo.");
     }
-  };
-
-  const updateCaption = (id: string, caption: string) => {
-    const updated = photos.map((p) => (p.id === id ? { ...p, caption } : p));
-    setPhotos(updated);
-    savePhotos(updated);
-  };
-
-  const removePhoto = (id: string) => {
-    const updated = photos.filter((p) => p.id !== id);
-    setPhotos(updated);
-    savePhotos(updated);
-  };
-
-  const saveImageToDocuments = async (tempUri: string) => {
-    const fileName = `svr_${Date.now()}.jpg`;
-    const dest = `${FileSystem.documentDirectory}svr/photos/${fileName}`;
-
-    // Ensure folder exists
-    await FileSystem.makeDirectoryAsync(
-      `${FileSystem.documentDirectory}svr/photos`,
-      { intermediates: true }
-    );
-
-    await FileSystem.copyAsync({
-      from: tempUri,
-      to: dest,
-    });
-
-    return dest; // 🔥 SAFE URI
-  };
-
-  // Load saved photos from AsyncStorage
-  useEffect(() => {
-    const loadSavedPhotos = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (saved) setPhotos(JSON.parse(saved));
-      } catch (e) {
-        console.warn("Failed to load saved photos", e);
-      }
-    };
-    loadSavedPhotos();
-  }, [projectId]);
+  }, [projectIdStr, addPhoto, compressImage, saveImageToDocuments]);
 
   useEffect(() => {
     const loadLogoBase64 = async () => {
@@ -349,7 +481,7 @@ const SVRPhotoReport: React.FC = () => {
         if (!base64 || base64.length < 100) {
           console.warn("⚠️ Main logo load failed, trying fallback");
           base64 = await getBase64ImageFromAsset(
-            require("../assets/images/react-logo.png")
+            require("../assets/images/react-logo.png"),
           );
         }
 
@@ -358,7 +490,7 @@ const SVRPhotoReport: React.FC = () => {
       } catch (err) {
         console.error("❌ Failed to load company logo:", err);
         const fallback = await getBase64ImageFromAsset(
-          require("../assets/images/react-logo.png")
+          require("../assets/images/react-logo.png"),
         );
         setLogoBase64(fallback);
       }
@@ -372,632 +504,563 @@ const SVRPhotoReport: React.FC = () => {
     try {
       setUploading(true);
 
-      // console.log(logoBase64);
+      // 0. Validation: All images must have a caption
+      for (let i = 0; i < photos.length; i++) {
+        if (!photos[i].caption || photos[i].caption.trim().length === 0) {
+          setUploading(false);
+          setCurrentIndex(i);
+          setShowCaptionError(photos[i].id);
+          flatListRef.current?.scrollToIndex({ index: i, animated: true });
+
+          Toast.show({
+            type: "error",
+            text1: "Validation",
+            text2: "Please add caption for all images.",
+            position: "bottom",
+          });
+          return;
+        }
+      }
+
       if (!logoBase64 || logoBase64.length < 100) {
         Toast.show({
           type: "info",
           text1: "Loading logo...",
           text2: "Please wait a moment and try again.",
         });
-        await new Promise((resolve) => setTimeout(resolve, 300)); // give it a short delay
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setUploading(false);
         return;
       }
 
-      // setUploading(true);  (already called once)
+      // 1. Storage Pre-Check
+      const freeStore = await FileSystem.getFreeDiskStorageAsync();
+      if (freeStore < 50 * 1024 * 1024) {
+        // 50MB safety
+        Alert.alert(
+          "Low Storage",
+          "You need at least 50MB of free space to generate this report.",
+        );
+        setUploading(false);
+        return;
+      }
 
       const createdBy = user?.fullName || "Unknown";
 
-      // Inside handleSubmit()
+      // --- Optimized Image Processing with Batching for Low-End Devices ---
+      let photosWithBase64: (SvrPhoto & { base64: string })[] | null = [];
+      const PROCESSING_BATCH_SIZE = 1; // Ultra-safe: 1 at a time for low-end logic
 
-      // --- Convert logo to Base64 safely ---
-
-      // Convert photos to base64 with visible progress
-      const photosWithBase64: PhotoItem[] = [];
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
-        const compressedUri = await compressImage(p.uri);
-        const base64 = await uriToBase64(compressedUri);
-        photosWithBase64.push({ ...p, base64 });
+        try {
+          const compressedUri = await compressImage(p.uri);
+          const b64 = await uriToBase64(compressedUri);
+
+          if (photosWithBase64) {
+            photosWithBase64.push({ ...p, base64: b64 });
+          }
+
+          // 2. Yield to UI thread every image
+          await new Promise((r) => setTimeout(r, 50));
+        } catch (err) {
+          console.error(`Failed to process image ${p.id}:`, err);
+        }
+
         setProgress(((i + 1) / photos.length) * 100);
       }
 
-      const today = new Date();
-      const dateStr = today.toLocaleDateString();
-      const timeStr = today.toLocaleTimeString();
+      const { PdfEngine } = require("../lib/PdfEngine");
+      const engine = new PdfEngine({
+        projectName: projectName || "",
+        createdBy: createdBy,
+        company: company || "",
+        logoBase64: logoBase64!,
+      });
 
-      // Split into batches to prevent memory overload
-      const batchSize = 4;
-      const batches = [];
-      for (let i = 0; i < photosWithBase64.length; i += batchSize) {
-        batches.push(photosWithBase64.slice(i, i + batchSize));
-      }
+      engine.addCoverPage({
+        leaders,
+        members,
+        mode,
+        attendees: attendeeList,
+        svrEntries: svr,
+        caseStudyRemarks,
+      });
 
-      // ------------------ HTML START ------------------
-      let htmlParts = [];
-
-      // --- PAGE 1: PROJECT INFO ---
-      htmlParts.push(`
-      <div class="page">
-        <div class="header-right">
-         <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
-        </div>
-
-        <h2>Project Information</h2>
-        <p><strong>Project Name:</strong> ${projectName || ""}</p>
-        <p><strong>Created By:</strong> ${createdBy}</p>
-        <p><strong>Company:</strong> ${company || ""}</p>
-        <p><strong>Date:</strong> ${dateStr}</p>
-        <p><strong>Time:</strong> ${timeStr}</p>
-
-        <h3 style="margin-top: 20px;">Team Leaders</h3>
-        <ul>
-          ${
-            leaders.length > 0
-              ? leaders.map((l: any) => `<li>${l.fullName}</li>`).join("")
-              : "<li>None</li>"
-          }
-        </ul>
-
-        <h3 style="margin-top: 20px;">Team Members</h3>
-        <ul>
-          ${
-            members.length > 0
-              ? members.map((m: any) => `<li>${m.fullName}</li>`).join("")
-              : "<li>None</li>"
-          }
-        </ul>
-      </div>
-    `);
-
-      // PAGE 2: Conditional content
-      if (mode === "svr") {
-        htmlParts.push(`
-        <div class="page">
-          <div class="header-left">
-            <div><strong>Project:</strong> ${projectName || ""}</div>
-            <div><strong>Created By:</strong> ${createdBy || ""}</div>
-          </div>
-          <div class="header-right">
-            <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
-          </div>
-
-          <!-- Attendees Table -->
-          <h2  style="margin-top:40px;padding-top:10px;">Attendees</h2>
-          <table>
-            <tr>
-              <th>S.No</th>
-              <th>Name</th>
-              <th>Designation</th>
-              <th>Company</th>
-              <th>Email</th>
-            </tr>
-            ${
-              attendeeList.length > 0
-                ? attendeeList
-                    .map(
-                      (a, idx) => `
-                  <tr>
-                    <td>${idx + 1}</td>
-                    <td>${a.attendeeName || "-"}</td>
-                    <td>${a.designation || "-"}</td>
-                    <td>${a.organization || "-"}</td>
-                    <td>${a.email || "-"}</td>
-                  </tr>
-                `
-                    )
-                    .join("")
-                : `<tr><td colspan="5" style="text-align:center;">No attendees recorded</td></tr>`
-            }
-          </table>
-
-          <!-- SVR Table -->
-          <h2 >Site Visit Report</h2>
-          <table>
-            <tr>
-              <th>S.No</th>
-              <th>Agenda</th>
-              <th>Discussion</th>
-              <th>Responsibility</th>
-              <th>Remarks</th>
-            </tr>
-            ${svr
-              .map(
-                (v, idx) => `
-              <tr>
-                <td>${idx + 1}</td>
-                <td>${v.agenda || "-"}</td>
-                <td>${v.discussion || "-"}</td>
-                <td>${v.responsibility || "-"}</td>
-                <td>${v.remarks || "-"}</td>
-              </tr>
-            `
-              )
-              .join("")}
-          </table>
-        </div>
-      `);
-      } else if (mode === "case-study") {
-        htmlParts.push(`
-        <div class="page">
-          <h2 style="text-align:center; margin-top:40px;padding-top:10px; ">Case Study Remarks</h2>
-          <pre style="
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        font-size: 16px;
-        line-height: 1.6;
-        margin: 0;
-        padding: 10px 0;
-        font-family: Arial, sans-serif;
-      ">
-${caseStudyRemarks}
-      </pre>
-        </div>
-      `);
-      }
-
-      // --- PHOTO BATCHES ---
-      for (const batch of batches) {
-        for (const p of batch) {
-          htmlParts.push(`
-          <div class="page photo">
-            <div class="header-left">
-              <div><strong>Project:</strong> ${projectName || ""}</div>
-              <div><strong>Created By:</strong> ${createdBy || ""}</div>
-            </div>
-            <div class="header-right">
-            <img src="${logoBase64}" style="width:160px;height:auto;object-fit:contain;" />
-
-            </div>
-
-  <div class="image-container">
-
-              <img src="${p.base64}" style="
-                max-height: 100%;
-                max-width: 100%;
-                object-fit: contain;
-                display: block;
-                margin: 0 auto;      /* centers the image horizontally */
-              " />
-            </div>
-            
-            
-          <div class="caption" style=" text-align: left;">
-            <p style="margin: 0;  padding: 0 0 0 12px;  ">${
-              p.caption?.trimStart() || ""
-            }</p>
-          </div>
-      </div>
-
-        `);
+      if (photosWithBase64) {
+        for (const p of photosWithBase64) {
+          engine.addPhotoPage({
+            base64: p.base64,
+            caption: p.caption,
+          });
         }
+        // 3. NULLIFY Base64 early to free up RAM
+        photosWithBase64 = null;
       }
 
-      // --- WRAP ALL PAGES ---
-      const html = `
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <style>
-     
-         @page {
-              size: A4 portrait;
-            }
+      const uri = await engine.finalize();
 
-                 * {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-               box-sizing: border-box;
-            }
-
-         body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-      }    
-
-       .page {
-              position: relative;
-       page-break-after: always;
-          padding: 90px 20px 20px 20px; /* header-safe */
-            break-after: page; 
-            }
-
-      .page:last-child {
-  page-break-after: auto;
-   break-after: auto;
-}        
-
-
-      .header-left {
-          position: absolute;
-        top: 10px;
-        left: 10px;
-        font-size: 14px;
-        font-weight: bold;
-        color: #000;
-        line-height: 1.4;
-        background: white;
-        padding: 4px 8px;
-      }
-      .header-right {
-       position: absolute;
-        top: 10px;
-        right: 10px;
-      }
-
-      .header-left,
-.header-right {
-  z-index: 10;
-}
-
-      .header-right img {
-        width: 160px;
-         object-fit: contain;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        page-break-inside: auto; 
-      }
-      tr {
-        page-break-inside: avoid; /* prevent row from splitting */
-        page-break-after: auto;
-      }
-      th, td {
-        border: 1px solid #999;
-        padding: 4px 6px;
-        font-size: 13px;
-        text-align: left;
-      }
-      th {
-        background-color: #f0f0f0;
-      }
-      td {
-         white-space: pre-wrap;
-        word-wrap: break-word;
-      }
-
-  
-
-.image-container {
-  width: 94%;
-  height: 500pt;              /* FIXED – iOS safe */
-  border: 2px solid #000;     /* SINGLE BORDER */
-  border-radius: 8px;
-  margin: 20pt auto 0 auto;
-  padding: 6pt;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-    padding: 0;                /* IMPORTANT */
-  overflow: hidden;          /*  IMPORTANT */
-  background: #fff;
-}
-
-.image-container img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-
-   border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-
-      .caption {
-        font-size: 18px;
-        color: #222;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-      }
-    </style>
-  </head>
-  <body>
-    ${htmlParts.join("")}
-  </body>
-</html>
-`;
-
-      // console.log("✅ Checking logoBase64 length:", logoBase64?.length);
-
-      if (
-        !logoBase64 ||
-        !logoBase64.startsWith("data:image") ||
-        logoBase64.length < 100
-      ) {
-        console.error("❌ Logo not loaded properly or missing.");
-        Alert.alert(
-          "Logo Error",
-          "Unable to load the company logo. Please reopen the report screen or check your logo asset file."
-        );
-        Toast.show({
-          type: "error",
-          text1: "Logo Missing",
-          text2: "Could not load logo image. Try again.",
-          position: "bottom",
-        });
-        setUploading(false);
-        return; // stop PDF generation
-      }
-
-      // ------------------ GENERATE PDF ------------------
-
-      const printOptions: Print.FilePrintOptions =
-        Platform.OS === "ios"
-          ? {
-              html,
-              width: 595.28, // A4 width (pt)
-              height: 841.89, // A4 height (pt)
-              margins: {
-                top: 36,
-                right: 36,
-                bottom: 36,
-                left: 36,
-              },
-            }
-          : {
-              html,
-            };
-
-      const { uri } = await Print.printToFileAsync(printOptions);
-      const newFileName = `SVR_${
-        projectName || "Project"
-      }_${getFormattedDate()}.pdf`;
+      const newFileName = `SVR_${projectName || "Project"}_${getFormattedDate()}.pdf`;
       const newUri = `${FileSystem.documentDirectory}svr/pdfs/${newFileName}`;
-
       await FileSystem.makeDirectoryAsync(
         `${FileSystem.documentDirectory}svr/pdfs`,
-        { intermediates: true }
+        { intermediates: true },
       );
+      await FileSystem.moveAsync({ from: uri, to: newUri });
 
-      await FileSystem.moveAsync({
-        from: uri,
-        to: newUri,
-      });
-
-      //TO DIRECTLY UPLOAD
-      //Prepare FormData for backend upload
-      const formData = new FormData();
-      formData.append("projectName", projectName);
-      formData.append("projectId", projectId);
-      formData.append("createdBy", createdBy);
-      formData.append("mode", mode); // ✅ ADD THIS
-
-      formData.append("file", {
-        uri: newUri, // local file URI from Expo DocumentPicker or FileSystem
-        name: newFileName, // e.g., "SVR_01.pdf"
-        type: "application/pdf",
-      } as any);
-
-      // 🔹 Upload to your backend (which sends it to object storage)
-      const response = await api.post("/svr", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.data.success) {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: "SVR uploaded successfully",
-          position: "bottom",
-        });
-
-        // 🔥 DELETE PHOTO FILES ONLY ON SUCCESS
-        await cleanupLocalPhotos(photos);
-
-        await AsyncStorage.removeItem(STORAGE_KEY);
-        await AsyncStorage.removeItem("SVR_FORM_DATA");
-        setPhotos([]);
-
-        try {
-          await FileSystem.deleteAsync(
-            FileSystem.cacheDirectory + "ImageManipulator",
-            { idempotent: true }
-          );
-        } catch {}
-
-        // Optional: navigate after delay
-        setTimeout(() => {
-          router.push(
-            `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`
-          );
-        }, 200);
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Upload failed",
-          position: "bottom",
+      // Sharing logic for offline use
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(newUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share SVR Report",
+          UTI: "com.adobe.pdf",
         });
       }
 
-      // 🔹 Cleanup after upload
-      // await AsyncStorage.removeItem(STORAGE_KEY);
-      // await AsyncStorage.removeItem("SVR_FORM_DATA");
-      // setPhotos([]);
-      // try {
-      //   await FileSystem.deleteAsync(
-      //     FileSystem.cacheDirectory + "ImageManipulator",
-      //     { idempotent: true }
-      //   );
-      // } catch (e) {
-      //   console.warn("Cache cleanup failed", e);
+      // Optional upload
+      // if (token && Platform.OS !== "web") {
+      //   const formData = new FormData();
+      //   formData.append("projectName", projectName || "");
+      //   formData.append("projectId", projectId || "");
+      //   formData.append("createdBy", createdBy);
+      //   formData.append("mode", mode || "");
+      //   formData.append("file", {
+      //     uri: newUri,
+      //     name: newFileName,
+      //     type: "application/pdf",
+      //   } as any);
+
+      //   try {
+      //     await api.post("/svr", formData, {
+      //       headers: {
+      //         "Content-Type": "multipart/form-data",
+      //         Authorization: `Bearer ${token}`,
+      //       },
+      //     });
+      //     Toast.show({
+      //       type: "success",
+      //       text1: "Uploaded",
+      //       text2: "Successfully synced with server",
+      //     });
+      //   } catch (e) {
+      //     console.warn("Upload failed but PDF saved locally", e);
+      //   }
       // }
+
+      // // Success cleanup
+      // await cleanupLocalPhotos(photos);
+      // clearPhotos(projectIdStr);
+      // const docDir = FileSystem.documentDirectory;
+      // if (docDir) {
+      //   const path = `${docDir}svr_draft_${projectId || "default"}.json`;
+      //   await FileSystem.deleteAsync(path, { idempotent: true });
+      // }
+      // await FileSystem.deleteAsync(
+      //   FileSystem.cacheDirectory + "ImageManipulator",
+      //   { idempotent: true },
+      // );
+
+      // Toast.show({
+      //   type: "success",
+      //   text1: "Report Complete",
+      //   text2: "PDF saved in storage.",
+      // });
+
+      // setTimeout(() => {
+      //   router.push(
+      //     `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
+      //   );
+      // }, 500);
     } catch (err: any) {
-      console.error("Upload error:", err);
-      Alert.alert(
-        "Upload Error",
-        err?.response?.data?.error || err?.message || "Something went wrong."
-      );
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Failed to upload SVR",
-        position: "bottom",
-      });
+      console.error("Report generation error:", err);
+      Alert.alert("Error", err?.message || "Something went wrong.");
     } finally {
       setUploading(false);
     }
-
-    //FOR DOWNLOAD IN LOCAL STORAGE
-    //   console.log("PDF generated at:", newUri);
-
-    //   // // Optional sharing
-    //   if (await Sharing.isAvailableAsync()) {
-    //     await Sharing.shareAsync(newUri, {
-    //       mimeType: "application/pdf",
-    //       dialogTitle: "Share or Save Photo Report",
-    //       UTI: "com.adobe.pdf",
-    //     });
-    //   } else {
-    //     Alert.alert("PDF generated", `Saved at: ${newUri}`);
-    //   }
-
-    //   Toast.show({
-    //     type: "success",
-    //     text1: "PDF Generated",
-    //     text2: "Photo report saved locally.",
-    //     position: "bottom",
-    //   });
-    //   // CLEANUP AFTER DOWNLOAD
-
-    //   // 🔥 CLEAR FORM ONLY ON SUCCESS
-    //   await AsyncStorage.removeItem(STORAGE_KEY);
-    //   await AsyncStorage.removeItem("SVR_FORM_DATA");
-    //   setPhotos([]);
-    // } catch (err: any) {
-    //   console.error("PDF generation error:", err);
-    //   Alert.alert("Error", err?.message || "Failed to generate PDF.");
-    // } finally {
-    //   setUploading(false);
-    //   try {
-    //     await FileSystem.deleteAsync(
-    //       FileSystem.cacheDirectory + "ImageManipulator",
-    //       {
-    //         idempotent: true,
-    //       }
-    //     );
-    //   } catch (e) {
-    //     console.warn("Cleanup failed:", e);
-    //   }
-    // }
   };
 
-  return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-bold text-white ml-4">
-              Site Visit Report
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
-      <KeyboardAwareScrollView
-        className="flex-1 p-4"
-        enableOnAndroid
-        extraHeight={120}
-        enableAutomaticScroll
-        keyboardShouldPersistTaps="always"
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        {/* Photo Buttons */}
-        <View className="flex-row justify-around mb-6">
-          <TouchableOpacity
-            onPress={takePhoto}
-            className="bg-indigo-500 px-6 py-3 rounded-xl flex-row items-center"
-          >
-            <Ionicons name="camera" size={20} color="#fff" />
-            <Text className="text-white ml-2 font-semibold">Camera</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={pickImage}
-            className="bg-green-500 px-6 py-3 rounded-xl flex-row items-center"
-          >
-            <Ionicons name="images" size={20} color="#fff" />
-            <Text className="text-white ml-2 font-semibold">Gallery</Text>
-          </TouchableOpacity>
-        </View>
-
-        {loadingImages && (
-          <View className="flex-row justify-center items-center my-4">
-            <ActivityIndicator size="large" color="#4f46e5" />
-            <Text className="ml-2 text-gray-700 font-semibold">
-              Loading images...
-            </Text>
-          </View>
-        )}
-
-        {photos.map((item) => (
+  const renderCarouselItem = useCallback(
+    ({ item, index }: { item: SvrPhoto; index: number }) => (
+      <View style={{ width }} className="px-4">
+        <View className="bg-[#F0F3F7] rounded-[16px]  p-2">
           <View
-            key={item.id}
-            className="bg-white rounded-2xl shadow p-3 mb-4 relative"
+            className="relative  rounded-[12px]  overflow-hidden"
+            style={{ height: 300 }}
           >
-            <Image
-              source={{ uri: item.uri }}
-              className="w-full"
-              style={{ height: undefined, aspectRatio: 1 }}
-              resizeMode="contain"
+            <ExpoImage
+              source={item.uri}
+              style={{ width: "100%", height: "100%", borderRadius: 12 }}
+              contentFit="cover"
+              transition={350}
+              cachePolicy="memory-disk"
             />
-            <TextInput
-              placeholder="Write caption..."
-              placeholderTextColor="#888"
-              value={item.caption}
-              onChangeText={(t) => updateCaption(item.id, t)}
-              multiline
-              className="border rounded-2xl px-4 py-3 bg-gray-50 mt-2"
-            />
+            <View className="absolute top-3 left-3 bg-white/20 px-3 py-1 rounded-full">
+              <Text className="text-black text-sm font-poppinsMedium">
+                {index + 1} of {photos.length}
+              </Text>
+            </View>
             <TouchableOpacity
-              onPress={() => removePhoto(item.id)}
-              className="absolute top-3 right-3 bg-red-500 p-2 rounded-full"
+              onPress={() => removePhotoItem(item.id)}
+              className="absolute top-3 right-3 bg-white/50 p-1 rounded-full "
             >
-              <Ionicons name="trash" size={18} color="#fff" />
+              <Ionicons name="close" size={16} color="#000" strokeWidth={3} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/annotateImage",
+                  params: {
+                    imageUri: item.uri,
+                    issueIndex: "-1",
+                    svrPhotoId: item.id,
+                    projectId: projectIdStr,
+                  },
+                })
+              }
+              className="absolute bottom-3 right-3 bg-[#2F76E6]/90 px-4 py-1 rounded-xl flex-row items-center"
+            >
+              <HugeiconsIcon icon={Edit03Icon} size={14} color="#fff" />
+              <Text className="text-white ml-2 font-poppins text-[14px]">
+                Edit
+              </Text>
             </TouchableOpacity>
           </View>
-        ))}
+        </View>
+      </View>
+    ),
+    [width, photos.length, projectIdStr, removePhotoItem, router],
+  );
 
+  return (
+    <View className="flex-1 bg-[#FBFCFD]">
+      <View className="pt-16 pb-6 px-4 flex-row items-center">
         <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={uploading || photos.length === 0}
-          className={`mt-6 p-4 rounded-2xl flex-row justify-center items-center ${
-            uploading || photos.length === 0 ? "bg-gray-400" : "bg-red-500"
-          }`}
+          onPress={() => router.back()}
+          className="flex-row items-center"
         >
-          {uploading ? (
-            <>
-              <ActivityIndicator size="small" color="#fff" />
-              <Text className="text-white font-semibold ml-2">
-                Processing {progress.toFixed(0)}%
-              </Text>
-            </>
-          ) : (
-            <>
-              <MaterialCommunityIcons
-                name="file-image-outline"
-                size={22}
-                color="#fff"
-              />
-              <Text className="text-white font-semibold ml-2">
-                Upload Report
-              </Text>
-            </>
-          )}
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+          <Text className="text-xl font-dmSemiBold text-black ml-2">SVR</Text>
         </TouchableOpacity>
-      </KeyboardAwareScrollView>
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="always"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 0 }} // no extra padding if the keyboard is closed
+        >
+          <View className="px-4 mt-4">
+            {/* <View className="flex-row justify-around mb-6">
+              <TouchableOpacity
+                onPress={takePhoto}
+                className="bg-indigo-500 px-6 py-3 rounded-xl flex-row items-center"
+              >
+                <Ionicons name="camera" size={20} color="#fff" />
+                <Text className="text-white ml-2 font-dmSemiBold">Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={pickImage}
+                className="bg-green-500 px-6 py-3 rounded-xl flex-row items-center"
+              >
+                <Ionicons name="images" size={20} color="#fff" />
+                <Text className="text-white ml-2 font-dmSemiBold">Gallery</Text>
+              </TouchableOpacity>
+            </View> */}
+
+            {loadingImages && (
+              <View className="flex-row justify-center items-center my-4">
+                <ActivityIndicator size="large" color="#4f46e5" />
+                <Text className="ml-2 text-gray-700 font-dmBold">
+                  Loading images...
+                </Text>
+              </View>
+            )}
+
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className=" font-dmSemiBold text-gray-800">
+                Report Images ({photos.length})
+              </Text>
+              {/* {photos.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    clearPhotos(projectIdStr);
+                    setCurrentIndex(0);
+                  }}
+                >
+                  <Text className="text-red-500 font-dmMedium">Clear All</Text>
+                </TouchableOpacity>
+              )} */}
+            </View>
+
+            {photos.length === 0 && (
+              <View className="bg-white rounded-3xl p-10 items-center border border-dashed border-gray-300 mb-6">
+                <Ionicons name="images-outline" size={48} color="#9CA3AF" />
+                <Text className="text-gray-500 mt-4 font-dmMedium text-center">
+                  Upload site images to document today's progress
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {photos.length > 0 && (
+            <View>
+              <FlatList
+                ref={flatListRef}
+                data={photos}
+                extraData={photos} // important for re-renders
+                horizontal
+                pagingEnabled
+                keyboardShouldPersistTaps="always"
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.id}
+                renderItem={renderCarouselItem}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={viewabilityConfig}
+                className="mb-4"
+                initialNumToRender={width > 0 ? 3 : 1}
+                windowSize={5}
+                maxToRenderPerBatch={5}
+                removeClippedSubviews={false} // Prevents disappearing items on Android
+                getItemLayout={(data, index) => ({
+                  length: width,
+                  offset: width * index,
+                  index,
+                })}
+                onMomentumScrollEnd={() => {
+                  isProgrammaticScroll.current = false;
+                }}
+                onScrollToIndexFailed={(info) => {
+                  const wait = new Promise((resolve) =>
+                    setTimeout(resolve, 500),
+                  );
+                  wait.then(() => {
+                    flatListRef.current?.scrollToIndex({
+                      index: info.index,
+                      animated: true,
+                    });
+                  });
+                }}
+              />
+
+              <View
+                style={{
+                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                  borderTopLeftRadius: 32,
+                  borderTopRightRadius: 32,
+                  paddingTop: 24,
+                  flex: 1,
+                }}
+              >
+                {/* Thumbnail Preview Strip */}
+                <View className="mb-4">
+                  <Text
+                    className={`px-5 text-sm font-poppinsMedium mb-3 ${
+                      isDarkMode ? "text-white" : "text-black"
+                    }`}
+                  >
+                    Viewing ({currentIndex + 1}/{photos.length})
+                  </Text>
+                  <FlatList
+                    ref={thumbnailListRef}
+                    data={photos}
+                    horizontal
+                    keyboardShouldPersistTaps="always"
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                    keyExtractor={(item) => item.id + "_thumb"}
+                    onScrollToIndexFailed={(info) => {
+                      thumbnailListRef.current?.scrollToIndex({
+                        index: info.index,
+                        animated: true,
+                        viewPosition: 0.5,
+                      });
+                    }}
+                    renderItem={({ item, index }) => (
+                      <TouchableOpacity
+                        onPress={() => {
+                          isProgrammaticScroll.current = true;
+                          setCurrentIndex(index);
+                          flatListRef.current?.scrollToIndex({
+                            index,
+                            animated: true,
+                          });
+                          thumbnailListRef.current?.scrollToIndex({
+                            index,
+                            animated: true,
+                            viewPosition: 0.5,
+                          });
+                        }}
+                        className={`rounded-[16px] overflow-hidden border-[2px] mr-3 ${
+                          index === currentIndex
+                            ? "border-indigo-600"
+                            : "border-transparent"
+                        }`}
+                        style={{ width: 64, height: 64 }}
+                      >
+                        <ExpoImage
+                          source={item.uri}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: 12,
+                          }}
+                          contentFit="cover"
+                          cachePolicy="memory-disk"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+
+                {photos[currentIndex] && (
+                  <View className="px-4 mb-3">
+                    <TextInput
+                      ref={captionInputRef}
+                      placeholder="Describe the image..."
+                      placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                      value={photos[currentIndex].caption}
+                      onChangeText={(t) =>
+                        updateCaption(photos[currentIndex].id, t)
+                      }
+                      multiline
+                      textAlignVertical="top" //for placeholder on the top left
+                      className={`rounded-2xl px-4 py-3 font-poppins border ${
+                        showCaptionError === photos[currentIndex].id
+                          ? "border-red-500"
+                          : "border-transparent"
+                      } ${
+                        isDarkMode
+                          ? "bg-white/10 text-white"
+                          : "bg-white text-gray-800"
+                      }`}
+                      style={{ minHeight: 80 }}
+                    />
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Footer Buttons */}
+        <View
+          className="px-4 bg-[#F0F3F7]"
+          style={{
+            paddingTop: 16,
+            paddingBottom: Math.max(insets.bottom, 16),
+          }}
+        >
+          <View className="flex-row items-center justify-between gap-3">
+            <TouchableOpacity
+              onPress={() => setIsPickerVisible(true)}
+              className="flex-1 bg-black dark:bg-white rounded-2xl h-[48px] justify-center items-center"
+              activeOpacity={0.7}
+            >
+              <Text
+                className={`font-poppins text-lg ${
+                  isDarkMode ? "text-black" : "text-white"
+                }`}
+              >
+                Add Image
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={photos.length === 0 || uploading}
+              className="flex-1 overflow-hidden rounded-2xl h-[48px]"
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={
+                  uploading
+                    ? ["#9CA3AF", "#9CA3AF"]
+                    : photos.length === 0
+                      ? ["#BBBBBB", "#BBBBBB"]
+                      : ["#4F46E5", "#7C3AED"]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                className="w-full h-full flex-row justify-center items-center"
+              >
+                {uploading ? (
+                  <View className="flex-row items-center">
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text className="text-white font-dmBold text-base ml-2">
+                      {progress.toFixed(0)}%
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-white font-poppins text-lg">
+                    Submit
+                  </Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Image Picker Modal */}
+      <Modal
+        visible={isPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsPickerVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/20 justify-end"
+          onPress={() => setIsPickerVisible(false)}
+        >
+          <View className="bg-[#F0F3F7] rounded-t-[24px] px-6 pt-6 pb-12 ">
+            <View className="flex-row justify-between gap-4">
+              <TouchableOpacity
+                onPress={() => {
+                  setIsPickerVisible(false);
+                  setTimeout(takePhoto, 300);
+                }}
+                className="flex-1 bg-white rounded-[16px] py-2 items-center "
+              >
+                <HugeiconsIcon icon={Camera01Icon} size={24} color="#000" />
+                <Text className="mt-2 font-poppins text-black text-sm">
+                  Take Photo
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setIsPickerVisible(false);
+                  setTimeout(pickImage, 300);
+                }}
+                className="flex-1 bg-white rounded-[16px] py-2 items-center"
+              >
+                <HugeiconsIcon icon={Image03Icon} size={24} color="#000" />
+                <Text className="mt-2 font-poppins text-black text-sm">
+                  Select Image
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* <TouchableOpacity
+              onPress={() => setIsPickerVisible(false)}
+              className="mt-8 py-4 bg-white/50 rounded-2xl"
+            >
+              <Text className="text-center font-poppins text-gray-500 text-base">
+                Cancel
+              </Text>
+            </TouchableOpacity> */}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };

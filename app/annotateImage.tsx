@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import ViewShot from "react-native-view-shot";
 
+import { useSvrStore } from "../store/svrStore";
 import { useTempImageStore } from "../store/tempImageStore";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -28,14 +30,17 @@ interface StrokePath {
 
 export default function AnnotateImage() {
   const router = useRouter();
-  const { imageUri, issueIndex } = useLocalSearchParams<{
+  const { imageUri, issueIndex, svrPhotoId, projectId } = useLocalSearchParams<{
     imageUri: string;
     issueIndex: string;
+    svrPhotoId?: string;
+    projectId?: string;
   }>();
 
   const updateImageForIssue = useTempImageStore(
     (state) => state.updateImageForIssue,
   );
+  const updateSvrPhoto = useSvrStore((state) => state.updatePhoto);
 
   const viewShotRef = useRef<ViewShot>(null);
 
@@ -96,7 +101,24 @@ export default function AnnotateImage() {
     try {
       if (viewShotRef.current?.capture) {
         const uri = await viewShotRef.current.capture();
-        updateImageForIssue(Number(issueIndex), imageUri, uri);
+
+        // ⚡ Ensure the annotated image is saved to the persistent document directory
+        const destDir = `${FileSystem.documentDirectory}annotated/`;
+        await FileSystem.makeDirectoryAsync(destDir, { intermediates: true });
+        const destPath = `${destDir}Annotated_${Date.now()}.jpg`;
+        await FileSystem.copyAsync({ from: uri, to: destPath });
+
+        if (svrPhotoId && projectId) {
+          // Update SVR Store with persistent URI and projectId
+          updateSvrPhoto(projectId, svrPhotoId, { uri: destPath });
+        } else if (svrPhotoId) {
+          // Fallback if projectId missing but svrPhotoId exists
+          updateSvrPhoto("default", svrPhotoId, { uri: destPath });
+        } else {
+          // Standard issue update with persistent URI
+          updateImageForIssue(Number(issueIndex), imageUri, destPath);
+        }
+
         router.back();
       }
     } catch (err) {
