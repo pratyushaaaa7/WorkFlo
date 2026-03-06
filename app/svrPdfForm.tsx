@@ -335,8 +335,6 @@ const SVRPhotoReport: React.FC = () => {
 
   const pickImage = useCallback(async () => {
     try {
-      setLoadingImages(true);
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
@@ -344,68 +342,60 @@ const SVRPhotoReport: React.FC = () => {
       });
 
       if (!result.canceled && (result as any).assets?.length > 0) {
+        setLoadingImages(true);
         const assets = (result as any).assets as Array<any>;
-        const initialPhotos: PhotoItem[] = [];
+        const BATCH_SIZE = 1; // Load one by one for instantaneous feedback
+        let currentPhotos = [...photos]; // keep track of local state
 
-        // 1. Immediately create temporary photo objects with raw URIs
-        for (const asset of assets) {
-          const photoId = uuid.v4().toString();
-          initialPhotos.push({
-            id: photoId,
-            uri: asset.uri,
-            caption: "",
-          });
-        }
-
-        // 2. Add them to the store instantly so the UI can render them
-        setPhotos(projectIdStr, [...photos, ...initialPhotos]);
-
-        // 3. Process them sequentially in the background
         setTimeout(async () => {
-          const updatedPhotos = [...photos, ...initialPhotos];
-          for (let i = 0; i < initialPhotos.length; i++) {
-            const photo = initialPhotos[i];
-            try {
-              const compressed = await compressImage(photo.uri);
-              const persistedUri = await saveImageToDocuments(
-                compressed,
-                photo.id,
-              );
+          try {
+            for (let i = 0; i < assets.length; i += BATCH_SIZE) {
+              const batch = assets.slice(i, i + BATCH_SIZE);
+              const processedBatch: PhotoItem[] = [];
 
-              // Update the local reference
-              const foundIdx = updatedPhotos.findIndex(
-                (p) => p.id === photo.id,
-              );
-              if (foundIdx !== -1) {
-                updatedPhotos[foundIdx] = {
-                  ...updatedPhotos[foundIdx],
-                  uri: persistedUri,
-                };
+              for (const asset of batch) {
+                const photoId = uuid.v4().toString();
+                try {
+                  const compressed = await compressImage(asset.uri);
+                  const persistedUri = await saveImageToDocuments(
+                    compressed,
+                    photoId,
+                  );
+                  processedBatch.push({
+                    id: photoId,
+                    uri: persistedUri,
+                    caption: "",
+                  });
+                } catch (e) {
+                  console.warn("Compression fallback", e);
+                  processedBatch.push({
+                    id: photoId,
+                    uri: asset.uri,
+                    caption: "",
+                  });
+                }
               }
-            } catch (err) {
-              console.warn("Background compression failed for", photo.id, err);
+
+              // Append newly processed batch to the current list incrementally
+              currentPhotos = [...currentPhotos, ...processedBatch];
+              setPhotos(projectIdStr, currentPhotos);
+
+              // Yield briefly to UI thread
+              await new Promise((r) => setTimeout(r, 50));
             }
-            // Yield briefly
-            await new Promise((r) => setTimeout(r, 30));
+          } catch (batchError) {
+            console.error("Batch processing error:", batchError);
+          } finally {
+            setLoadingImages(false);
           }
-          // Update the store ONCE with all persisted URIs
-          setPhotos(projectIdStr, updatedPhotos);
-        }, 100);
+        }, 50);
       }
     } catch (e) {
       console.error("pickImage error:", e);
       Alert.alert("Error", "Could not pick image.");
-    } finally {
       setLoadingImages(false);
     }
-  }, [
-    projectIdStr,
-    photos,
-    setPhotos,
-    compressImage,
-    saveImageToDocuments,
-    updatePhoto,
-  ]);
+  }, [projectIdStr, photos, setPhotos, compressImage, saveImageToDocuments]);
 
   const takePhoto = useCallback(async () => {
     try {
@@ -787,7 +777,7 @@ const SVRPhotoReport: React.FC = () => {
               <View className="flex-row justify-center items-center my-4">
                 <ActivityIndicator size="large" color="#4f46e5" />
                 <Text className="ml-2 text-black dark:text-white font-dmBold">
-                  Loading images...
+                  Processing images...
                 </Text>
               </View>
             )}
