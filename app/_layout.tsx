@@ -321,7 +321,7 @@ function AppLayout() {
 
           const commonOptions = {
             swipeEnabled: true,
-            swipeEdgeWidth: 120, // 👈 Controls the swipe trigger width from the edge
+            swipeEdgeWidth: 70, // 👈 Controls the swipe trigger width from the edge
             drawerType: "slide" as const,
             overlayColor: "rgba(0,0,0,0.5)",
             drawerStyle: {
