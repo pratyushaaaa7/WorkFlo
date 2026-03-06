@@ -966,7 +966,11 @@ const SVRPhotoReport: React.FC = () => {
 
         {/* Footer Buttons */}
         <View
-          className="px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+          className={`px-4 ${
+            photos.length === 0
+              ? "bg-transparent"
+              : "bg-[#F0F3F7] dark:bg-[#1A1A1A]"
+          }`}
           style={{
             paddingTop: 16,
             paddingBottom: Math.max(insets.bottom, 16),
@@ -996,10 +1000,10 @@ const SVRPhotoReport: React.FC = () => {
               <LinearGradient
                 colors={
                   uploading
-                    ? ["#9CA3AF", "#9CA3AF"]
+                    ? ["#9CA3AF", "#9CA3AF", "#9CA3AF"]
                     : photos.length === 0
-                      ? ["#BBBBBB", "#BBBBBB"]
-                      : ["#4F46E5", "#7C3AED"]
+                      ? ["#2F2F2F", "#2F2F2F", "#2F2F2F"]
+                      : ["#5B4CCC", "#6347C2", "#8056D1"]
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -1008,12 +1012,12 @@ const SVRPhotoReport: React.FC = () => {
                 {uploading ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#fff" />
-                    <Text className="text-white font-dmBold text-base ml-2">
+                    <Text className="text-[#fff] font-dmBold text-base ml-2">
                       {progress.toFixed(0)}%
                     </Text>
                   </View>
                 ) : (
-                  <Text className="text-white font-poppins text-lg">
+                  <Text className="text-[#919191] font-poppins text-lg">
                     Submit
                   </Text>
                 )}
@@ -1034,8 +1038,8 @@ const SVRPhotoReport: React.FC = () => {
           className="flex-1 bg-black/20 justify-end"
           onPress={() => setIsPickerVisible(false)}
         >
-          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-6 pt-6 pb-12 ">
-            <View className="flex-row justify-between gap-4">
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-4 pt-6 pb-12 ">
+            <View className="flex-row justify-between gap-2">
               <TouchableOpacity
                 onPress={() => {
                   setIsPickerVisible(false);
