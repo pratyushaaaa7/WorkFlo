@@ -809,13 +809,13 @@ const SVRPhotoReport: React.FC = () => {
             </View>
 
             {photos.length === 0 && (
-              <View className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-10 items-center border border-dashed border-gray-300 dark:border-gray-700 mb-6">
+              <View className="bg-white dark:bg-[#000000] rounded-3xl p-10 items-center border border-dashed border-[#E0E5EB] dark:border-[#262626] mb-6">
                 <Ionicons
                   name="images-outline"
                   size={48}
-                  color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  color={isDarkMode ? "#5B5B5B" : "#E0E5EB"}
                 />
-                <Text className="text-gray-500 dark:text-gray-400 mt-4 font-dmMedium text-center">
+                <Text className="text-black dark:text-white mt-4 font-dmMedium text-center">
                   Upload site images to document today's progress
                 </Text>
               </View>
@@ -953,7 +953,7 @@ const SVRPhotoReport: React.FC = () => {
                       } ${
                         isDarkMode
                           ? "bg-[#0D0D0D] text-white"
-                          : "bg-white text-gray-800"
+                          : "bg-white text-black"
                       }`}
                       style={{ minHeight: 80 }}
                     />
