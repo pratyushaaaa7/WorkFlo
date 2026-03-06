@@ -682,7 +682,7 @@ const SVRPhotoReport: React.FC = () => {
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: SvrPhoto; index: number }) => (
       <View style={{ width }} className="px-4">
-        <View className="bg-[#F0F3F7] rounded-[16px]  p-2">
+        <View className="bg-[#F0F3F7] dark:bg-[#1F1F1F] rounded-[16px]  p-2">
           <View
             className="relative  rounded-[12px]  overflow-hidden"
             style={{ height: 300 }}
@@ -694,16 +694,21 @@ const SVRPhotoReport: React.FC = () => {
               transition={350}
               cachePolicy="memory-disk"
             />
-            <View className="absolute top-3 left-3 bg-white/20 px-3 py-1 rounded-full">
-              <Text className="text-black text-sm font-poppinsMedium">
+            <View className="absolute top-3 left-3 bg-white/20  px-3 py-1 rounded-full">
+              <Text className="text-black  text-sm font-poppinsMedium">
                 {index + 1} of {photos.length}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => removePhotoItem(item.id)}
-              className="absolute top-3 right-3 bg-white/50 p-1 rounded-full "
+              className="absolute top-3 right-3 bg-white/50  p-1 rounded-full "
             >
-              <Ionicons name="close" size={16} color="#000" strokeWidth={3} />
+              <Ionicons
+                name="close"
+                size={16}
+                color={isDarkMode ? "#000" : "#000"}
+                strokeWidth={3}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
@@ -732,7 +737,7 @@ const SVRPhotoReport: React.FC = () => {
   );
 
   return (
-    <View className="flex-1 bg-[#FBFCFD]">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000000]">
       <View className="pt-16 pb-6 px-4 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -743,7 +748,9 @@ const SVRPhotoReport: React.FC = () => {
             size={24}
             color={isDarkMode ? "#fff" : "#000"}
           />
-          <Text className="text-xl font-dmSemiBold text-black ml-2">SVR</Text>
+          <Text className="text-xl font-dmSemiBold text-black dark:text-white ml-2">
+            SVR
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -779,14 +786,14 @@ const SVRPhotoReport: React.FC = () => {
             {loadingImages && (
               <View className="flex-row justify-center items-center my-4">
                 <ActivityIndicator size="large" color="#4f46e5" />
-                <Text className="ml-2 text-gray-700 font-dmBold">
+                <Text className="ml-2 text-black dark:text-white font-dmBold">
                   Loading images...
                 </Text>
               </View>
             )}
 
             <View className="flex-row items-center justify-between mb-3">
-              <Text className=" font-dmSemiBold text-gray-800">
+              <Text className=" font-dmSemiBold text-black dark:text-white">
                 Report Images ({photos.length})
               </Text>
               {/* {photos.length > 0 && (
@@ -802,14 +809,20 @@ const SVRPhotoReport: React.FC = () => {
             </View>
 
             {photos.length === 0 && (
-              <View className="bg-white rounded-3xl p-10 items-center border border-dashed border-gray-300 mb-6">
-                <Ionicons name="images-outline" size={48} color="#9CA3AF" />
-                <Text className="text-gray-500 mt-4 font-dmMedium text-center">
+              <View className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-10 items-center border border-dashed border-gray-300 dark:border-gray-700 mb-6">
+                <Ionicons
+                  name="images-outline"
+                  size={48}
+                  color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                />
+                <Text className="text-gray-500 dark:text-gray-400 mt-4 font-dmMedium text-center">
                   Upload site images to document today's progress
                 </Text>
               </View>
             )}
           </View>
+
+          {/* ... carousel logic ... */}
 
           {photos.length > 0 && (
             <View>
@@ -939,7 +952,7 @@ const SVRPhotoReport: React.FC = () => {
                           : "border-transparent"
                       } ${
                         isDarkMode
-                          ? "bg-white/10 text-white"
+                          ? "bg-[#0D0D0D] text-white"
                           : "bg-white text-gray-800"
                       }`}
                       style={{ minHeight: 80 }}
@@ -953,7 +966,7 @@ const SVRPhotoReport: React.FC = () => {
 
         {/* Footer Buttons */}
         <View
-          className="px-4 bg-[#F0F3F7]"
+          className="px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A]"
           style={{
             paddingTop: 16,
             paddingBottom: Math.max(insets.bottom, 16),
@@ -962,12 +975,12 @@ const SVRPhotoReport: React.FC = () => {
           <View className="flex-row items-center justify-between gap-3">
             <TouchableOpacity
               onPress={() => setIsPickerVisible(true)}
-              className="flex-1 bg-black dark:bg-white rounded-2xl h-[48px] justify-center items-center"
+              className="flex-1 border border-black dark:border-white bg-transparent rounded-2xl h-[48px] justify-center items-center"
               activeOpacity={0.7}
             >
               <Text
                 className={`font-poppins text-lg ${
-                  isDarkMode ? "text-black" : "text-white"
+                  isDarkMode ? "text-white" : "text-black"
                 }`}
               >
                 Add Image
@@ -1021,17 +1034,21 @@ const SVRPhotoReport: React.FC = () => {
           className="flex-1 bg-black/20 justify-end"
           onPress={() => setIsPickerVisible(false)}
         >
-          <View className="bg-[#F0F3F7] rounded-t-[24px] px-6 pt-6 pb-12 ">
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-6 pt-6 pb-12 ">
             <View className="flex-row justify-between gap-4">
               <TouchableOpacity
                 onPress={() => {
                   setIsPickerVisible(false);
                   setTimeout(takePhoto, 300);
                 }}
-                className="flex-1 bg-white rounded-[16px] py-2 items-center "
+                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-2 items-center "
               >
-                <HugeiconsIcon icon={Camera01Icon} size={24} color="#000" />
-                <Text className="mt-2 font-poppins text-black text-sm">
+                <HugeiconsIcon
+                  icon={Camera01Icon}
+                  size={24}
+                  color={isDarkMode ? "#fff" : "#000"}
+                />
+                <Text className="mt-2 font-poppins text-black dark:text-white text-sm">
                   Take Photo
                 </Text>
               </TouchableOpacity>
@@ -1041,10 +1058,14 @@ const SVRPhotoReport: React.FC = () => {
                   setIsPickerVisible(false);
                   setTimeout(pickImage, 300);
                 }}
-                className="flex-1 bg-white rounded-[16px] py-2 items-center"
+                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-2 items-center"
               >
-                <HugeiconsIcon icon={Image03Icon} size={24} color="#000" />
-                <Text className="mt-2 font-poppins text-black text-sm">
+                <HugeiconsIcon
+                  icon={Image03Icon}
+                  size={24}
+                  color={isDarkMode ? "#fff" : "#000"}
+                />
+                <Text className="mt-2 font-poppins text-black dark:text-white text-sm">
                   Select Image
                 </Text>
               </TouchableOpacity>
