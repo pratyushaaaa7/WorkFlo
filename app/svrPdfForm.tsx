@@ -1002,7 +1002,9 @@ const SVRPhotoReport: React.FC = () => {
                   uploading
                     ? ["#9CA3AF", "#9CA3AF", "#9CA3AF"]
                     : photos.length === 0
-                      ? ["#2F2F2F", "#2F2F2F", "#2F2F2F"]
+                      ? isDarkMode
+                        ? ["#2F2F2F", "#2F2F2F", "#2F2F2F"]
+                        : ["#BBBBBB", "#BBBBBB", "#BBBBBB"]
                       : ["#5B4CCC", "#6347C2", "#8056D1"]
                 }
                 start={{ x: 0, y: 0 }}
@@ -1017,7 +1019,13 @@ const SVRPhotoReport: React.FC = () => {
                     </Text>
                   </View>
                 ) : (
-                  <Text className="text-[#919191] font-poppins text-lg">
+                  <Text
+                    className={`${
+                      photos.length === 0
+                        ? "dark:text-[#919191] text-[#777777]"
+                        : "text-white"
+                    } font-poppins text-lg`}
+                  >
                     Submit
                   </Text>
                 )}
