@@ -1,21 +1,46 @@
 import { Ionicons } from "@expo/vector-icons";
+import {
+  ArrowLeft01Icon,
+  Delete03Icon,
+  Download01Icon,
+  Pdf01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { BlurView } from "@react-native-community/blur";
+import * as FileSystem from "expo-file-system";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Linking,
+  Modal,
+  Pressable,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import api from "../lib/api";
 // import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Sharing from "expo-sharing";
 import { AuthContext } from "../context/AuthContext";
+
+type DprItem = {
+  _id: string;
+  fileName: string;
+  url: string;
+  uploadedBy?: {
+    fullName: string;
+  };
+  // add other fields if needed
+};
+
+type FocusedDPR = DprItem & {
+  layout: { x: number; y: number; width: number; height: number };
+};
 
 const DPRs = () => {
   const router = useRouter();
@@ -24,21 +49,15 @@ const DPRs = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
-  type DprItem = {
-    _id: string;
-    fileName: string;
-    url: string;
-    uploadedBy?: {
-      fullName: string;
-    };
-    // add other fields if needed
-  };
-
   // const [uploading, setUploading] = useState(false);
   const [dprs, setDprs] = useState<DprItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [focusedDPR, setFocusedDPR] = useState<FocusedDPR | null>(null);
   const isDownloadingRef = useRef(false);
+  const isDark = useColorScheme() === "dark";
+  const itemRefs = useRef<{ [key: string]: View | null }>({});
 
   // ✅ Fetch DPRs for this project
   const fetchDPRs = async () => {
@@ -173,78 +192,156 @@ const DPRs = () => {
 
   useEffect(() => {
     fetchDPRs();
-  }, []);
+  }, [projectId]);
+
+  // Long press handler — measures card position, shows blur modal
+  const handleLongPress = (item: DprItem) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const ref = itemRefs.current[item._id];
+    if (ref) {
+      ref.measureInWindow((x, y, width, height) => {
+        setFocusedDPR({ ...item, layout: { x, y, width, height } });
+      });
+    }
+  };
+
+  // Confirm and execute delete
+  const handleConfirmDelete = async () => {
+    if (!focusedDPR) return;
+    const id = focusedDPR._id;
+    setFocusedDPR(null);
+    setDeletingId(id);
+    try {
+      await api.delete(`/dpr/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDprs((prev) => prev.filter((d) => d._id !== id));
+    } catch (err) {
+      console.error("Delete DPR failed:", err);
+      Alert.alert("Error", "Failed to delete DPR");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Reusable DPR card UI
+  const DPRCard = ({ item }: { item: DprItem }) => (
+    <View
+      className="rounded-2xl flex-row items-center px-4 py-4"
+      style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA" }}
+    >
+      {/* PDF Icon Badge */}
+      <View
+        className="rounded-xl items-center justify-center mr-3"
+        style={{
+          width: 44,
+          height: 44,
+          backgroundColor: isDark ? "#2F2F2F" : "#F0F3F7",
+        }}
+      >
+        <HugeiconsIcon
+          icon={Pdf01Icon}
+          size={22}
+          color={isDark ? "#F5F5F5" : "#454545"}
+        />
+      </View>
+
+      {/* File Info */}
+      <View className="flex-1 pr-3">
+        <Text
+          style={{ color: isDark ? "#FFF" : "#000" }}
+          className="font-poppinsMedium"
+          numberOfLines={1}
+        >
+          {item.fileName}
+        </Text>
+        <Text
+          style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}
+          className="text-xs font-poppins mt-0.5"
+        >
+          Uploaded by : {item.uploadedBy?.fullName || "Unknown"}
+        </Text>
+      </View>
+
+      {/* Download Button */}
+      <TouchableOpacity
+        onPress={() => downloadDPR(item._id, item.url, item.fileName)}
+        disabled={downloadingId === item._id}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        {downloadingId === item._id ? (
+          <ActivityIndicator size={20} color="#6366F1" />
+        ) : (
+          <HugeiconsIcon
+            icon={Download01Icon}
+            size={22}
+            color={isDark ? "#BBBBBB" : "#454545"}
+          />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#FBFCFD" }}>
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between shadow-md">
-          <TouchableOpacity
-            onPress={() =>
-              router.push(
-                `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
-              )
-            }
-            className="flex-row items-center"
-            activeOpacity={0.7}
+      <View
+        style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
+        className="pt-14 pb-6 px-5 flex-row items-center"
+      >
+        <TouchableOpacity
+          onPress={() =>
+            router.push(
+              `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
+            )
+          }
+          className="flex-row items-center"
+          activeOpacity={0.7}
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDark ? "#fff" : "#000"}
+          />
+          <Text
+            style={{ color: isDark ? "#fff" : "#000" }}
+            className="text-xl font-dmSemiBold ml-3"
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {/* {projectName}  */}
-              DPRs
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+            DPR
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* DPR List */}
-      <View className="flex-1 px-4 pt-4">
+      {/* Content */}
+      <View className="flex-1 px-4">
         {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" />
+          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : dprs.length === 0 ? (
-          <Text className="text-center text-gray-500 mt-10">
+          <Text
+            style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
+            className="text-center font-medium mt-16"
+          >
             No DPRs found.
           </Text>
         ) : (
           <FlatList
             data={dprs}
             keyExtractor={(item) => item._id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
             renderItem={({ item }) => (
               <TouchableOpacity
+                ref={(el) => {
+                  itemRefs.current[item._id] = el;
+                }}
                 onPress={() => Linking.openURL(item.url)}
-                className="bg-white p-4 rounded-2xl mb-3 flex-row items-center justify-between shadow-sm border border-gray-100"
+                onLongPress={() => handleLongPress(item)}
+                delayLongPress={300}
+                activeOpacity={0.9}
+                className="mb-3"
+                style={{ opacity: deletingId === item._id ? 0.4 : 1 }}
               >
-                {/* Left: File Info */}
-                <View className="flex-1 pr-3">
-                  <Text
-                    className="text-gray-900 font-semibold text-base"
-                    numberOfLines={1}
-                  >
-                    {item.fileName}
-                  </Text>
-
-                  <Text className="text-gray-500 text-xs mt-1">
-                    Uploaded by: {item.uploadedBy?.fullName || "Unknown"}
-                  </Text>
-                </View>
-
-                {/* Right: Download Button */}
-                <TouchableOpacity
-                  onPress={() => downloadDPR(item._id, item.url, item.fileName)}
-                  disabled={downloadingId === item._id}
-                  className="bg-green-50 p-3 rounded-xl ml-3"
-                >
-                  {downloadingId === item._id ? (
-                    <ActivityIndicator size={22} color="#16A34A" />
-                  ) : (
-                    <Ionicons
-                      name="download-outline"
-                      size={22}
-                      color="#16A34A"
-                    />
-                  )}
-                </TouchableOpacity>
+                <DPRCard item={item} />
               </TouchableOpacity>
             )}
           />
@@ -271,22 +368,83 @@ const DPRs = () => {
             `/dprLaborForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`,
           )
         }
-        className="bg-indigo-600"
         style={{
           position: "absolute",
           bottom: 44,
           right: 20,
-          // backgroundColor: "#6366F1",
-          width: 56,
-          height: 56,
+          width: 54,
+          height: 54,
           borderRadius: 28,
           alignItems: "center",
           justifyContent: "center",
-          elevation: 10,
+          backgroundColor: "#5B4CCC",
+          shadowColor: "#5B4CCC",
+          shadowOffset: { width: 0, height: 15 },
+          shadowOpacity: 0.5,
+          shadowRadius: 20,
+          elevation: 20,
         }}
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
+
+      {/* Long-press Delete Modal — same pattern as userDirectory */}
+      <Modal
+        visible={!!focusedDPR}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFocusedDPR(null)}
+      >
+        <View style={{ flex: 1 }}>
+          {/* Blurred backdrop — tap to dismiss */}
+          <Pressable style={{ flex: 1 }} onPress={() => setFocusedDPR(null)}>
+            <BlurView
+              blurType={isDark ? "dark" : "light"}
+              blurAmount={2}
+              reducedTransparencyFallbackColor={isDark ? "black" : "white"}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+              }}
+            />
+          </Pressable>
+
+          {/* Focused card + delete button, positioned exactly over original */}
+          {focusedDPR && focusedDPR.layout && (
+            <View
+              style={{
+                position: "absolute",
+                top: focusedDPR.layout.y,
+                left: focusedDPR.layout.x,
+                width: focusedDPR.layout.width,
+              }}
+            >
+              <DPRCard item={focusedDPR} />
+
+              <TouchableOpacity
+                onPress={handleConfirmDelete}
+                activeOpacity={0.9}
+                className="mt-2 flex-row items-center justify-center self-end bg-white dark:bg-[#0D0D0D] dark:border-[#262626] border border-[#E0E5EB] px-5 py-4 rounded-2xl"
+                // style={{
+                //   shadowColor: "#000",
+                //   shadowOffset: { width: 0, height: 4 },
+                //   shadowOpacity: 0.15,
+                //   shadowRadius: 12,
+                //   elevation: 5,
+                // }}
+              >
+                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
