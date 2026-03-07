@@ -18,6 +18,8 @@ export interface CoverPageData {
   attendees?: any[];
   svrEntries?: any[];
   caseStudyRemarks?: string;
+  vendors?: any[];
+  totalLabor?: number;
 }
 
 export interface PhotoData {
@@ -42,11 +44,11 @@ export class PdfEngine {
         .page { padding: 10px; width: 100%; }
         
         /* Shared Header Styles */
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: none; }
-        .header-table th, .header-table td { border: none; padding: 0; background: none; vertical-align: top; }
-        .header-left { font-size: 14px; font-weight: bold; text-align: left; }
-        .header-right { text-align: right; }
-        .header-right img { width: 160px; object-fit: contain; }
+        .page-header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .page-header-table td { border: none; vertical-align: top; }
+        .header-left { font-size: 14px; font-weight: bold; }
+        .header-right { text-align: right; width: 200px; }
+        .header-right img { width: 160px; object-fit: contain; display: block; margin: 0 0 0 auto; }
         
         /* Standard Tables */
         .content-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -57,6 +59,7 @@ export class PdfEngine {
         /* Photo Layout (Repeating Headers) */
         table.photo-layout { width: 100%; border-collapse: collapse; border: none; }
         table.photo-layout th, table.photo-layout td { border: none; padding: 0; background: none; text-align: left; }
+        table.photo-layout thead.photo-header th { padding: 10px 10px 0 10px; }
         thead.photo-header { display: table-header-group; }
         
         .image-container { width: 100%; height: 500pt; border: 2px solid #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fff; overflow: hidden; margin-bottom: 15px; page-break-inside: avoid; }
@@ -75,7 +78,7 @@ export class PdfEngine {
     // Page 1: Project Info
     this.pages.push(`
       <div class="page">
-        <table class="header-table">
+        <table class="page-header-table">
           <tr>
             <td class="header-left"></td>
             <td class="header-right">
@@ -100,17 +103,17 @@ export class PdfEngine {
     if (data.mode === "svr") {
       this.pages.push(`
         <div class="page">
-          <table class="header-table">
-            <tr>
-              <td class="header-left">
-                <div style="margin-bottom: 4px;"><strong>Project:</strong> ${projectName || ""}</div>
-                <div><strong>Created By:</strong> ${createdBy || ""}</div>
-              </td>
-              <td class="header-right">
-                <img src="${logoBase64}" />
-              </td>
-            </tr>
-          </table>
+        <table class="page-header-table">
+          <tr>
+            <td class="header-left">
+              <div style="margin-bottom:4px;"><strong>Project:</strong> ${projectName || ""}</div>
+              <div><strong>Created By:</strong> ${createdBy || ""}</div>
+            </td>
+            <td class="header-right">
+              <img src="${logoBase64}" />
+            </td>
+          </tr>
+        </table>
           <h2 style="margin-top:20px;">Attendees</h2>
           <table class="content-table">
             <tr><th>S.No</th><th>Name</th><th>Designation</th><th>Company</th><th>Email</th></tr>
@@ -142,19 +145,68 @@ export class PdfEngine {
     } else if (data.mode === "case-study") {
       this.pages.push(`
         <div class="page">
-          <table class="header-table">
-            <tr>
-              <td class="header-left">
-                <div style="margin-bottom: 4px;"><strong>Project:</strong> ${projectName || ""}</div>
-                <div><strong>Created By:</strong> ${createdBy || ""}</div>
-              </td>
-              <td class="header-right">
-                <img src="${logoBase64}" />
-              </td>
-            </tr>
-          </table>
+        <table class="page-header-table">
+          <tr>
+            <td class="header-left">
+              <div style="margin-bottom:4px;"><strong>Project:</strong> ${projectName || ""}</div>
+              <div><strong>Created By:</strong> ${createdBy || ""}</div>
+            </td>
+            <td class="header-right">
+              <img src="${logoBase64}" />
+            </td>
+          </tr>
+        </table>
           <h2 style="text-align:center; margin-top:20px;">Case Study Remarks</h2>
           <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.6; margin: 0; padding: 10px 0; font-family: Arial, sans-serif;">${data.caseStudyRemarks || ""}</pre>
+        </div>
+      `);
+    } else if (data.mode === "dpr") {
+      this.pages.push(`
+        <div class="page">
+        <table class="page-header-table">
+          <tr>
+            <td class="header-left">
+              <div style="margin-bottom:4px;"><strong>Project:</strong> ${projectName || ""}</div>
+              <div><strong>Created By:</strong> ${createdBy || ""}</div>
+            </td>
+            <td class="header-right">
+              <img src="${logoBase64}" />
+            </td>
+          </tr>
+        </table>
+          <h2 style="margin-top:20px;">Labor Report</h2>
+          <table class="content-table">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Vendor Name</th>
+                <th>Expertise</th>
+                <th>No. of Labours</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                (data.vendors || []).length > 0
+                  ? (data.vendors || [])
+                      .map(
+                        (v: any, idx: number) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td>${v.name || "-"}</td>
+                  <td>${v.expertise || "-"}</td>
+                  <td>${v.laborCount || 0}</td>
+                </tr>
+              `,
+                      )
+                      .join("")
+                  : "<tr><td colspan='4' style='text-align:center;'>No labor recorded</td></tr>"
+              }
+              <tr>
+                <td colspan="3" style="text-align:right; font-weight:bold; background-color: #f0f0f0;">Total Labours</td>
+                <td style="font-weight:bold; background-color: #f0f0f0;">${data.totalLabor || 0}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       `);
     }
@@ -164,33 +216,19 @@ export class PdfEngine {
     const { projectName, createdBy, logoBase64 } = this.config;
     this.pages.push(`
       <div class="page">
-        <table class="photo-layout">
-          <thead class="photo-header">
-            <tr>
-              <th>
-                <table class="header-table">
-                  <tr>
-                    <td class="header-left">
-                      <div style="margin-bottom: 4px;"><strong>Project:</strong> ${projectName || ""}</div>
-                      <div><strong>Created By:</strong> ${createdBy || ""}</div>
-                    </td>
-                    <td class="header-right">
-                      <img src="${logoBase64}" />
-                    </td>
-                  </tr>
-                </table>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div class="image-container"><img src="${photo.base64}" /></div>
-                <div class="caption"><p>${photo.caption?.trimStart() || ""}</p></div>
-              </td>
-            </tr>
-          </tbody>
+        <table class="page-header-table">
+          <tr>
+            <td class="header-left">
+              <div style="margin-bottom:4px;"><strong>Project:</strong> ${projectName || ""}</div>
+              <div><strong>Created By:</strong> ${createdBy || ""}</div>
+            </td>
+            <td class="header-right">
+              <img src="${logoBase64}" />
+            </td>
+          </tr>
         </table>
+        <div class="image-container"><img src="${photo.base64}" /></div>
+        <div class="caption"><p>${photo.caption?.trimStart() || ""}</p></div>
       </div>
     `);
   }
