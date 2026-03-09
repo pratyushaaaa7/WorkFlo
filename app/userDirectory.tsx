@@ -250,6 +250,7 @@ const UserList = () => {
         }));
 
         setUsers(formattedUsers);
+        // console.log("Users:", formattedUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
         Toast.show({

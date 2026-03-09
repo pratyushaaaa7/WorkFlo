@@ -4,7 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -17,8 +17,11 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { Dropdown } from "react-native-element-dropdown";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import uuid from "react-native-uuid";
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 interface Vendor {
   id: string;
@@ -38,12 +41,16 @@ const FieldRow = ({
   onChangeText,
   keyboardType = "default",
   isDark,
+  isDropdown = false,
+  dropdownData = [],
 }: {
   placeholder: string;
   value: string;
   onChangeText: (t: string) => void;
   keyboardType?: "default" | "number-pad";
   isDark: boolean;
+  isDropdown?: boolean;
+  dropdownData?: { label: string; value: string }[];
 }) => (
   <View
     style={{
@@ -51,27 +58,67 @@ const FieldRow = ({
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      // borderWidth: 1,
-      // borderColor: isDark ? "#262626" : "#E5E7EB",
       borderRadius: 10,
       paddingHorizontal: 8,
       paddingVertical: 2,
       backgroundColor: isDark ? "#1A1A1A" : "#F0F3F7",
+      minHeight: 45,
     }}
   >
-    <TextInput
-      placeholder={placeholder}
-      placeholderTextColor={isDark ? "#555" : "#9CA3AF"}
-      value={value === "0" ? "" : value}
-      onChangeText={onChangeText}
-      keyboardType={keyboardType}
-      style={{
-        flex: 1,
-        color: isDark ? "#FFF" : "#111",
-        fontSize: 15,
-        fontFamily: "Poppins_400Regular",
-      }}
-    />
+    {isDropdown ? (
+      <Dropdown
+        style={{
+          flex: 1,
+          height: 40,
+        }}
+        placeholderStyle={{
+          fontSize: 15,
+          fontFamily: "Poppins_400Regular",
+          color: isDark ? "#555" : "#9CA3AF",
+        }}
+        selectedTextStyle={{
+          fontSize: 15,
+          fontFamily: "Poppins_400Regular",
+          color: isDark ? "#FFF" : "#111",
+        }}
+        itemTextStyle={{
+          fontSize: 14,
+          fontFamily: "Poppins_400Regular",
+          color: isDark ? "#FFF" : "#000",
+        }}
+        containerStyle={{
+          borderRadius: 12,
+          backgroundColor: isDark ? "#1A1A1A" : "#FFFFFF",
+          borderWidth: 0,
+          elevation: 5,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+        }}
+        activeColor={isDark ? "#252525" : "#F3F4F6"}
+        data={dropdownData}
+        labelField="label"
+        valueField="value"
+        placeholder={placeholder}
+        value={value}
+        onChange={(item) => onChangeText(item.value)}
+      />
+    ) : (
+      <TextInput
+        placeholder={placeholder}
+        placeholderTextColor={isDark ? "#555" : "#9CA3AF"}
+        value={value === "0" ? "" : value}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        style={{
+          flex: 1,
+          color: isDark ? "#FFF" : "#111",
+          fontSize: 15,
+          fontFamily: "Poppins_400Regular",
+        }}
+      />
+    )}
   </View>
 );
 
@@ -94,6 +141,47 @@ const LaborForm = () => {
   const [vendors, setVendors] = useState<Vendor[]>([defaultVendor()]);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  const auth = useContext(AuthContext);
+  const token = auth?.token;
+
+  const [projectVendors, setProjectVendors] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [rawProjectVendors, setRawProjectVendors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchProjectVendors = async () => {
+      if (!projectId || !token) return;
+      try {
+        const res = await api.get(`/projects/${projectId}/project-vendors`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // console.log("Raw project vendors response:", JSON.stringify(res.data));
+
+        // Robustly find the vendors array
+        let vendorsArr = [];
+        if (Array.isArray(res.data.vendors)) {
+          vendorsArr = res.data.vendors;
+        } else if (Array.isArray(res.data.projectVendors)) {
+          vendorsArr = res.data.projectVendors;
+        } else if (Array.isArray(res.data)) {
+          vendorsArr = res.data;
+        }
+        setRawProjectVendors(vendorsArr);
+
+        const mapped = vendorsArr.map((v: any) => ({
+          label: v.individualName || v.name || "Unknown",
+          value: v.individualName || v.name || "",
+        }));
+        setProjectVendors(mapped);
+        // console.log("Mapped project vendors:", mapped);
+      } catch (err) {
+        console.error("Error fetching project vendors:", err);
+      }
+    };
+    fetchProjectVendors();
+  }, [projectId, token]);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -366,8 +454,33 @@ const LaborForm = () => {
                 <FieldRow
                   placeholder="Select vendor"
                   value={item.name}
-                  onChangeText={(t) => updateVendor(item.id, "name", t)}
+                  onChangeText={(t) => {
+                    updateVendor(item.id, "name", t);
+                    // Find vendor in rawProjectVendors to auto-fill expertise
+                    const found = rawProjectVendors.find(
+                      (v) => (v.individualName || v.name) === t,
+                    );
+                    if (found && found.expertise) {
+                      let expertiseValue = "";
+                      if (Array.isArray(found.expertise)) {
+                        expertiseValue = found.expertise
+                          .filter((e: string) => e && e !== "-")
+                          .join(", ");
+                      } else if (
+                        typeof found.expertise === "string" &&
+                        found.expertise !== "-"
+                      ) {
+                        expertiseValue = found.expertise;
+                      }
+
+                      if (expertiseValue) {
+                        updateVendor(item.id, "expertise", expertiseValue);
+                      }
+                    }
+                  }}
                   isDark={isDark}
+                  isDropdown={true}
+                  dropdownData={projectVendors}
                 />
 
                 {/* Expertise */}
@@ -473,12 +586,12 @@ const LaborForm = () => {
           style={{
             flex: 1,
             borderRadius: 14,
-            shadowColor: "#5B4CCC",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 8,
-            marginBottom: 4,
+            // shadowColor: "#5B4CCC",
+            // shadowOffset: { width: 0, height: 4 },
+            // shadowOpacity: 0.3,
+            // shadowRadius: 8,
+            // elevation: 8,
+            // marginBottom: 4,
           }}
         >
           <LinearGradient
