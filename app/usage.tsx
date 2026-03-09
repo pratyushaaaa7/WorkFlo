@@ -16,7 +16,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { DrawerActions } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import moment from "moment";
 import { Skeleton } from "moti/skeleton";
@@ -130,6 +130,7 @@ const UsageSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
 
 export default function UsageScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
   const { token, user } = useAuth();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -224,7 +225,7 @@ export default function UsageScreen() {
       const data = res.data;
       if (Array.isArray(data)) {
         setUserLeaderboard(data);
-        // console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
+        console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
       } else {
         console.warn("⚠️ Unexpected leaderboard data format", data);
         setUserLeaderboard([]);
@@ -490,7 +491,11 @@ export default function UsageScreen() {
               : "th";
 
     return (
-      <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]">
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => router.push(`/usageSummary?userId=${item.userId._id}`)}
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]"
+      >
         {/* Header Row: Rank & Last Active */}
         <View className="flex-row justify-between px-4 items-center py-2">
           <Text className="text-black dark:text-white font-dmBold text-sm">
@@ -570,7 +575,7 @@ export default function UsageScreen() {
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
