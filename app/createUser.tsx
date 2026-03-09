@@ -409,14 +409,13 @@ const AddUserForm: React.FC = () => {
         });
       }
 
+      // 🧱 Reset form after successful save/update
+      resetForm();
+
       // 🟣 Redirect
       if (isEditMode) {
-        router.replace({
-          pathname: "/centralUserDirectory" as any,
-          params: { refresh: Date.now().toString() },
-        });
+        router.back();
       } else {
-        resetForm();
         router.replace({
           pathname: "/centralUserDirectory" as any,
           params: { refresh: Date.now().toString() },
