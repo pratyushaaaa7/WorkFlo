@@ -560,12 +560,23 @@ const ReportForm: React.FC = () => {
         logoBase64: logoBase64!,
       });
 
+      const totalSkilled = vendors.reduce(
+        (sum, v) => sum + (Number(v.skillLabor) || 0),
+        0,
+      );
+      const totalUnskilled = vendors.reduce(
+        (sum, v) => sum + (Number(v.unskillLabor) || 0),
+        0,
+      );
+
       engine.addCoverPage({
         leaders,
         members,
         mode: "dpr",
         vendors,
         totalLabor,
+        totalSkilled,
+        totalUnskilled,
       });
 
       if (photosWithBase64) {

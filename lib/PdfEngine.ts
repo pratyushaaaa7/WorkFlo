@@ -20,6 +20,8 @@ export interface CoverPageData {
   caseStudyRemarks?: string;
   vendors?: any[];
   totalLabor?: number;
+  totalSkilled?: number;
+  totalUnskilled?: number;
 }
 
 export interface PhotoData {
@@ -181,7 +183,9 @@ export class PdfEngine {
                 <th>S.No</th>
                 <th>Vendor Name</th>
                 <th>Expertise</th>
-                <th>No. of Labours</th>
+                <th>Skilled</th>
+                <th>Unskilled</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>
@@ -194,16 +198,20 @@ export class PdfEngine {
                   <td>${idx + 1}</td>
                   <td>${v.name || "-"}</td>
                   <td>${v.expertise || "-"}</td>
-                  <td>${v.laborCount || 0}</td>
+                  <td>${v.skillLabor || 0}</td>
+                  <td>${v.unskillLabor || 0}</td>
+                  <td>${(Number(v.skillLabor) || 0) + (Number(v.unskillLabor) || 0)}</td>
                 </tr>
               `,
                       )
                       .join("")
-                  : "<tr><td colspan='4' style='text-align:center;'>No labor recorded</td></tr>"
+                  : "<tr><td colspan='6' style='text-align:center;'>No labor recorded</td></tr>"
               }
-              <tr>
-                <td colspan="3" style="text-align:right; font-weight:bold; background-color: #f0f0f0;">Total Labours</td>
-                <td style="font-weight:bold; background-color: #f0f0f0;">${data.totalLabor || 0}</td>
+              <tr style="font-weight:bold; background-color: #f0f0f0;">
+                <td colspan="3" style="text-align:right;">Grand Totals</td>
+                <td>${data.totalSkilled || 0}</td>
+                <td>${data.totalUnskilled || 0}</td>
+                <td>${data.totalLabor || 0}</td>
               </tr>
             </tbody>
           </table>
