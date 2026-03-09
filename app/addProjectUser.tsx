@@ -86,9 +86,11 @@ export default function AddProjectUsersPage() {
 
       const projectUserIds = (
         projectUsersRes.data.project?.projectUsers || []
-      ).map((u: any) => u.directoryUser._id);
+      ).map((u: any) => u.directoryUser?._id);
 
-      const usersWithStatus = allUsersRes.data.map((u: DirectoryUser) => ({
+      const allUsers = allUsersRes.data.users || []; // Backend returns { users: [], total: ... }
+
+      const usersWithStatus = allUsers.map((u: DirectoryUser) => ({
         ...u,
         alreadyAdded: projectUserIds.includes(u._id),
       }));
