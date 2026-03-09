@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
+  Cancel01Icon,
   Delete03Icon,
   Download01Icon,
   Pdf01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
@@ -11,6 +13,7 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,12 +22,55 @@ import {
   Linking,
   Modal,
   Pressable,
+  RefreshControl,
   Text,
+  TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import api from "../lib/api";
+
+const ReportSkeleton = ({ isDark }: { isDark: boolean }) => (
+  <View
+    className="rounded-2xl flex-row items-center px-4 py-4 mb-3"
+    style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA", opacity: 0.6 }}
+  >
+    <View
+      className="rounded-xl items-center justify-center mr-3"
+      style={{ width: 44, height: 44 }}
+    >
+      <Skeleton
+        colorMode={isDark ? "dark" : "light"}
+        width={44}
+        height={44}
+        radius={12}
+      />
+    </View>
+    <View className="flex-1 pr-3">
+      <Skeleton
+        colorMode={isDark ? "dark" : "light"}
+        width="70%"
+        height={16}
+        radius={4}
+      />
+      <View className="mt-2">
+        <Skeleton
+          colorMode={isDark ? "dark" : "light"}
+          width="40%"
+          height={12}
+          radius={4}
+        />
+      </View>
+    </View>
+    <Skeleton
+      colorMode={isDark ? "dark" : "light"}
+      width={22}
+      height={22}
+      radius={4}
+    />
+  </View>
+);
 // import * as DocumentPicker from "expo-document-picker";
 import { AuthContext } from "../context/AuthContext";
 
@@ -35,6 +81,7 @@ type DprItem = {
   uploadedBy?: {
     fullName: string;
   };
+  captions?: string[];
   // add other fields if needed
 };
 
@@ -52,6 +99,9 @@ const DPRs = () => {
   // const [uploading, setUploading] = useState(false);
   const [dprs, setDprs] = useState<DprItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedDPR, setFocusedDPR] = useState<FocusedDPR | null>(null);
@@ -62,15 +112,17 @@ const DPRs = () => {
   // ✅ Fetch DPRs for this project
   const fetchDPRs = async () => {
     try {
+      setLoading(true);
       const response = await api.get(`/dpr?projectId=${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDprs(response.data || []);
     } catch (err) {
       console.error("Fetch DPRs failed:", err);
-      Alert.alert("Error", "Failed to fetch DPRs");
+      // Alert.alert("Error", "Failed to fetch DPRs");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -194,6 +246,24 @@ const DPRs = () => {
     fetchDPRs();
   }, [projectId]);
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchDPRs();
+  };
+
+  const filteredDPRs = React.useMemo(() => {
+    if (!searchQuery.trim()) return dprs;
+    const q = searchQuery.toLowerCase();
+    return dprs.filter((d) => {
+      const matchFile = d.fileName?.toLowerCase().includes(q);
+      const matchUser = d.uploadedBy?.fullName?.toLowerCase().includes(q);
+      const matchCaption = d.captions?.some((c) =>
+        c?.toLowerCase().includes(q),
+      );
+      return matchFile || matchUser || matchCaption;
+    });
+  }, [dprs, searchQuery]);
+
   // Long press handler — measures card position, shows blur modal
   const handleLongPress = (item: DprItem) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -287,11 +357,12 @@ const DPRs = () => {
       {/* Header */}
       <View
         style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
-        className="pt-14 pb-6 px-5 flex-row items-center"
+        className="pt-14 pb-4 px-5 flex-row items-center justify-between"
       >
         <TouchableOpacity
           onPress={() =>
             router.push(
+              // @ts-ignore
               `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
             )
           }
@@ -310,13 +381,55 @@ const DPRs = () => {
             DPR
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            if (searchVisible) setSearchQuery("");
+            setSearchVisible(!searchVisible);
+          }}
+          activeOpacity={0.7}
+        >
+          <HugeiconsIcon
+            icon={searchVisible ? Cancel01Icon : Search01Icon}
+            size={24}
+            color={isDark ? "#fff" : "#000"}
+          />
+        </TouchableOpacity>
       </View>
+
+      {searchVisible && (
+        <View
+          className="px-5 pb-4"
+          style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
+        >
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-3">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={20}
+              color={isDark ? "#A1A1A1" : "#606060"}
+            />
+            <TextInput
+              placeholder="Search by name, uploader, or captions..."
+              placeholderTextColor={isDark ? "#606060" : "#9CA3AF"}
+              className="ml-2 flex-1 font-dm text-black dark:text-white text-base"
+              autoFocus
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+      )}
 
       {/* Content */}
       <View className="flex-1 px-4">
-        {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
-        ) : dprs.length === 0 ? (
+        {loading && !refreshing ? (
+          <FlatList
+            data={[1, 2, 3, 4, 5, 6]}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => <ReportSkeleton isDark={isDark} />}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : filteredDPRs.length === 0 ? (
           <Text
             style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
             className="text-center font-medium mt-16"
@@ -325,10 +438,18 @@ const DPRs = () => {
           </Text>
         ) : (
           <FlatList
-            data={dprs}
+            data={filteredDPRs}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#5B4CCC"]}
+                tintColor={isDark ? "#FFF" : "#5B4CCC"}
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 ref={(el) => {

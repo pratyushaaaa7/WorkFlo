@@ -44,6 +44,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
+import api from "../lib/api";
 import { SvrPhoto, useSvrStore } from "../store/svrStore";
 import { useAuth } from "./../context/AuthContext";
 
@@ -608,59 +609,86 @@ const SVRPhotoReport: React.FC = () => {
       }
 
       // Optional upload
-      // if (token && Platform.OS !== "web") {
-      //   const formData = new FormData();
-      //   formData.append("projectName", projectName || "");
-      //   formData.append("projectId", projectId || "");
-      //   formData.append("createdBy", createdBy);
-      //   formData.append("mode", mode || "");
-      //   formData.append("file", {
-      //     uri: newUri,
-      //     name: newFileName,
-      //     type: "application/pdf",
-      //   } as any);
+      if (token && Platform.OS !== "web") {
+        const formData = new FormData();
+        formData.append("projectName", projectName || "");
+        formData.append("projectId", projectId || "");
+        formData.append("createdBy", createdBy);
+        formData.append("mode", mode || "");
+        formData.append("file", {
+          uri: newUri,
+          name: newFileName,
+          type: "application/pdf",
+        } as any);
 
-      //   try {
-      //     await api.post("/svr", formData, {
-      //       headers: {
-      //         "Content-Type": "multipart/form-data",
-      //         Authorization: `Bearer ${token}`,
-      //       },
-      //     });
-      //     Toast.show({
-      //       type: "success",
-      //       text1: "Uploaded",
-      //       text2: "Successfully synced with server",
-      //     });
-      //   } catch (e) {
-      //     console.warn("Upload failed but PDF saved locally", e);
-      //   }
-      // }
+        // --- Accumulate searchable text ---
+        let searchableText: string[] = [];
+        photos.forEach((p) => {
+          if (p.caption) searchableText.push(p.caption);
+        });
 
-      // // Success cleanup
-      // await cleanupLocalPhotos(photos);
-      // clearPhotos(projectIdStr);
-      // const docDir = FileSystem.documentDirectory;
-      // if (docDir) {
-      //   const path = `${docDir}svr_draft_${projectId || "default"}.json`;
-      //   await FileSystem.deleteAsync(path, { idempotent: true });
-      // }
-      // await FileSystem.deleteAsync(
-      //   FileSystem.cacheDirectory + "ImageManipulator",
-      //   { idempotent: true },
-      // );
+        if (attendeeList && Array.isArray(attendeeList)) {
+          attendeeList.forEach((a: any) => {
+            if (a.attendeeName) searchableText.push(a.attendeeName);
+            if (a.organization) searchableText.push(a.organization);
+          });
+        }
 
-      // Toast.show({
-      //   type: "success",
-      //   text1: "Report Complete",
-      //   text2: "PDF saved in storage.",
-      // });
+        if (svr && Array.isArray(svr)) {
+          svr.forEach((e: any) => {
+            if (e.agenda) searchableText.push(e.agenda);
+            if (e.discussion) searchableText.push(e.discussion);
+          });
+        }
 
-      // setTimeout(() => {
-      //   router.push(
-      //     `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
-      //   );
-      // }, 500);
+        if (caseStudyRemarks && typeof caseStudyRemarks === "string") {
+          searchableText.push(caseStudyRemarks);
+        }
+
+        formData.append("captions", JSON.stringify(searchableText));
+
+        try {
+          await api.post("/svr", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          Toast.show({
+            type: "success",
+            text1: "Uploaded",
+            text2: "Successfully synced with server",
+          });
+        } catch (e) {
+          console.warn("Upload failed but PDF saved locally", e);
+        }
+      }
+
+      // Success cleanup
+      await cleanupLocalPhotos(photos);
+      clearPhotos(projectIdStr);
+      const docDir = FileSystem.documentDirectory;
+      if (docDir) {
+        const path = `${docDir}svr_draft_${projectId || "default"}.json`;
+        await FileSystem.deleteAsync(path, { idempotent: true });
+      }
+      await FileSystem.deleteAsync(
+        FileSystem.cacheDirectory + "ImageManipulator",
+        { idempotent: true },
+      );
+
+      Toast.show({
+        type: "success",
+        text1: "Report Complete",
+        text2: "PDF saved in storage.",
+      });
+
+      setTimeout(() => {
+        router.push(
+          // @ts-ignore
+          `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
+        );
+      }, 500);
     } catch (err: any) {
       console.error("Report generation error:", err);
       Alert.alert("Error", err?.message || "Something went wrong.");

@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
+  Cancel01Icon,
   Delete03Icon,
   Download01Icon,
   Pdf01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
@@ -11,6 +13,7 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,13 +22,56 @@ import {
   Linking,
   Modal,
   Pressable,
+  RefreshControl,
   Text,
+  TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
+
+const ReportSkeleton = ({ isDark }: { isDark: boolean }) => (
+  <View
+    className="rounded-2xl flex-row items-center px-4 py-4 mb-3"
+    style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA", opacity: 0.6 }}
+  >
+    <View
+      className="rounded-xl items-center justify-center mr-3"
+      style={{ width: 44, height: 44 }}
+    >
+      <Skeleton
+        colorMode={isDark ? "dark" : "light"}
+        width={44}
+        height={44}
+        radius={12}
+      />
+    </View>
+    <View className="flex-1 pr-3">
+      <Skeleton
+        colorMode={isDark ? "dark" : "light"}
+        width="70%"
+        height={16}
+        radius={4}
+      />
+      <View className="mt-2">
+        <Skeleton
+          colorMode={isDark ? "dark" : "light"}
+          width="40%"
+          height={12}
+          radius={4}
+        />
+      </View>
+    </View>
+    <Skeleton
+      colorMode={isDark ? "dark" : "light"}
+      width={22}
+      height={22}
+      radius={4}
+    />
+  </View>
+);
 
 type SVRItem = {
   _id: string;
@@ -34,6 +80,7 @@ type SVRItem = {
   svrNumber?: number;
   uploadedBy?: { fullName?: string };
   caseStudyNumber?: number;
+  captions?: string[];
 };
 
 type FocusedSVR = SVRItem & {
@@ -54,6 +101,9 @@ const SVRs = () => {
 
   const [svrs, setSvrs] = useState<SVRItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedSVR, setFocusedSVR] = useState<FocusedSVR | null>(null);
@@ -64,22 +114,42 @@ const SVRs = () => {
   // Fetch SVR list
   const fetchSVRs = async () => {
     try {
+      setLoading(true);
       const response = await api.get(`/svr?projectId=${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setSvrs(response.data || []);
     } catch (err) {
-      console.error("Fetch DPRs failed:", err);
-      Alert.alert("Error", "Failed to fetch SVRs");
+      console.error("Fetch SVRs failed:", err);
+      // Alert.alert("Error", "Failed to fetch SVRs"); // Optional: handle silently on UX
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchSVRs();
   }, [projectId]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchSVRs();
+  };
+
+  const filteredSVRs = React.useMemo(() => {
+    if (!searchQuery.trim()) return svrs;
+    const q = searchQuery.toLowerCase();
+    return svrs.filter((s) => {
+      const matchFile = s.fileName?.toLowerCase().includes(q);
+      const matchUser = s.uploadedBy?.fullName?.toLowerCase().includes(q);
+      const matchCaption = s.captions?.some((c) =>
+        c?.toLowerCase().includes(q),
+      );
+      return matchFile || matchUser || matchCaption;
+    });
+  }, [svrs, searchQuery]);
 
   const openTypeSelector = () => {
     setModalVisible(true);
@@ -235,11 +305,12 @@ const SVRs = () => {
       {/* Header */}
       <View
         style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
-        className="pt-14 pb-6 px-5 flex-row items-center"
+        className="pt-14 pb-4 px-5 flex-row items-center justify-between"
       >
         <TouchableOpacity
           onPress={() =>
             router.push(
+              // @ts-ignore
               `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
             )
           }
@@ -258,13 +329,55 @@ const SVRs = () => {
             SVR
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            if (searchVisible) setSearchQuery("");
+            setSearchVisible(!searchVisible);
+          }}
+          activeOpacity={0.7}
+        >
+          <HugeiconsIcon
+            icon={searchVisible ? Cancel01Icon : Search01Icon}
+            size={24}
+            color={isDark ? "#fff" : "#000"}
+          />
+        </TouchableOpacity>
       </View>
+
+      {searchVisible && (
+        <View
+          className="px-5 pb-4"
+          style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
+        >
+          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-3">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={20}
+              color={isDark ? "#A1A1A1" : "#606060"}
+            />
+            <TextInput
+              placeholder="Search by name, uploader, or captions..."
+              placeholderTextColor={isDark ? "#606060" : "#9CA3AF"}
+              className="ml-2 flex-1 font-dm text-black dark:text-white text-base"
+              autoFocus
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+      )}
 
       {/* Content */}
       <View className="flex-1 px-4">
-        {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
-        ) : svrs.length === 0 ? (
+        {loading && !refreshing ? (
+          <FlatList
+            data={[1, 2, 3, 4, 5, 6]}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => <ReportSkeleton isDark={isDark} />}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : filteredSVRs.length === 0 ? (
           <Text
             style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
             className="text-center font-medium mt-16"
@@ -273,10 +386,18 @@ const SVRs = () => {
           </Text>
         ) : (
           <FlatList
-            data={svrs}
+            data={filteredSVRs}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#5B4CCC"]}
+                tintColor={isDark ? "#FFF" : "#5B4CCC"}
+              />
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
                 ref={(el) => {
