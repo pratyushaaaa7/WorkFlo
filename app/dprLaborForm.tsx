@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -292,10 +293,18 @@ const LaborForm = () => {
   const totalLabor = totalSkilled + totalUnskilled;
 
   const saveAndNext = async () => {
-    if (vendors.length === 0) {
-      alert("Please add at least one vendor or press Skip.");
+    // 🧱 Validation: If vendors exist, each must have a name
+    const invalidVendor = vendors.find((v) => !v.name || v.name.trim() === "");
+    if (invalidVendor) {
+      Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Please select a vendor or skip",
+        position: "bottom",
+      });
       return;
     }
+
     await AsyncStorage.setItem(
       storageKey,
       JSON.stringify({ vendors, projectName }),

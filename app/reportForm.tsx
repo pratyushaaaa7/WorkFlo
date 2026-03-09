@@ -589,6 +589,55 @@ const ReportForm: React.FC = () => {
       );
       await FileSystem.moveAsync({ from: uri, to: newUri });
 
+      // --- BACKEND SYNC ---
+      if (token) {
+        try {
+          const formData = new FormData();
+          formData.append("projectName", projectName || "");
+          formData.append("projectId", projectId || "");
+          formData.append("createdBy", createdBy);
+          formData.append("vendors", JSON.stringify(vendors || []));
+
+          // Use "captions" as expected by the backend controller
+          const photoData = photos.map((p) => ({
+            id: p.id,
+            caption: p.caption,
+          }));
+          formData.append("captions", JSON.stringify(photoData));
+
+          formData.append("file", {
+            uri: newUri,
+            name: newFileName,
+            type: "application/pdf",
+          } as any);
+
+          const { default: api } = require("../lib/api");
+          await api.post("/dpr", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          console.log("DPR successfully synced with backend");
+          Toast.show({
+            type: "success",
+            text1: "Synced",
+            text2: "Report data synced with server",
+            position: "bottom",
+          });
+        } catch (syncErr) {
+          console.error("Backend sync failed:", syncErr);
+          // Don't block the user, as the PDF is already saved locally
+          Toast.show({
+            type: "info",
+            text1: "Sync Issue",
+            text2: "PDF saved, but server sync failed.",
+            position: "bottom",
+          });
+        }
+      }
+
       // Share the PDF
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(newUri, {
