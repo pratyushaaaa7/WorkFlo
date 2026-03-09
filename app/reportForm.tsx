@@ -699,7 +699,7 @@ const ReportForm: React.FC = () => {
                   params: {
                     imageUri: item.uri,
                     issueIndex: "-1",
-                    svrPhotoId: item.id,
+                    dprPhotoId: item.id,
                     projectId: projectIdStr,
                   },
                 })

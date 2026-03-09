@@ -14,6 +14,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import ViewShot from "react-native-view-shot";
 
+import { useDprStore } from "../store/dprStore";
 import { useSvrStore } from "../store/svrStore";
 import { useTempImageStore } from "../store/tempImageStore";
 
@@ -30,17 +31,20 @@ interface StrokePath {
 
 export default function AnnotateImage() {
   const router = useRouter();
-  const { imageUri, issueIndex, svrPhotoId, projectId } = useLocalSearchParams<{
-    imageUri: string;
-    issueIndex: string;
-    svrPhotoId?: string;
-    projectId?: string;
-  }>();
+  const { imageUri, issueIndex, svrPhotoId, dprPhotoId, projectId } =
+    useLocalSearchParams<{
+      imageUri: string;
+      issueIndex: string;
+      svrPhotoId?: string;
+      dprPhotoId?: string;
+      projectId?: string;
+    }>();
 
   const updateImageForIssue = useTempImageStore(
     (state) => state.updateImageForIssue,
   );
   const updateSvrPhoto = useSvrStore((state) => state.updatePhoto);
+  const updateDprPhoto = useDprStore((state) => state.updatePhoto);
 
   const viewShotRef = useRef<ViewShot>(null);
 
@@ -111,9 +115,15 @@ export default function AnnotateImage() {
         if (svrPhotoId && projectId) {
           // Update SVR Store with persistent URI and projectId
           updateSvrPhoto(projectId, svrPhotoId, { uri: destPath });
+        } else if (dprPhotoId && projectId) {
+          // Update DPR Store with persistent URI and projectId
+          updateDprPhoto(projectId, dprPhotoId, { uri: destPath });
         } else if (svrPhotoId) {
           // Fallback if projectId missing but svrPhotoId exists
           updateSvrPhoto("default", svrPhotoId, { uri: destPath });
+        } else if (dprPhotoId) {
+          // Fallback if projectId missing but dprPhotoId exists
+          updateDprPhoto("default", dprPhotoId, { uri: destPath });
         } else {
           // Standard issue update with persistent URI
           updateImageForIssue(Number(issueIndex), imageUri, destPath);
