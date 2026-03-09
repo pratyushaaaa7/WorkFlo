@@ -15,10 +15,16 @@ import { BlurView } from "@react-native-community/blur";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -215,58 +221,61 @@ const UserList = () => {
     }
   };
 
-  const fetchUsers = async (showLoader = true) => {
-    if (!projectId || !token) return;
+  const fetchUsers = useCallback(
+    async (showLoader = true) => {
+      if (!projectId || !token) return;
 
-    try {
-      if (showLoader) setLoading(true);
-      const res = await api.get(`/projects/${projectId}/project-users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        if (showLoader) setLoading(true);
+        const res = await api.get(`/projects/${projectId}/project-users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const projectUsers = [
-        ...(res.data.users.leaders || []),
-        ...(res.data.users.members || []),
-        ...(res.data.users.others || []),
-      ];
+        const projectUsers = [
+          ...(res.data.users.leaders || []),
+          ...(res.data.users.members || []),
+          ...(res.data.users.others || []),
+        ];
 
-      const formattedUsers: IUser[] = projectUsers.map((pu: any) => ({
-        _id: pu._id || "",
-        individualName: pu.individualName || pu.fullName || "N/A",
-        designation: pu.designation || "-",
-        expertise: pu.expertise || "-",
-        role: pu.role || "-",
-        roleDescription: pu.roleDescription || "-",
-        firmName: pu.firmName || "-",
-        email: pu.email || "-",
-        phone: pu.phone || "-",
-      }));
+        const formattedUsers: IUser[] = projectUsers.map((pu: any) => ({
+          _id: pu._id || "",
+          individualName: pu.individualName || pu.fullName || "N/A",
+          designation: pu.designation || "-",
+          expertise: pu.expertise || "-",
+          role: pu.role || "-",
+          roleDescription: pu.roleDescription || "-",
+          firmName: pu.firmName || "-",
+          email: pu.email || "-",
+          phone: pu.phone || "-",
+        }));
 
-      setUsers(formattedUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      Toast.show({
-        type: "error",
-        text1: "Failed to Load Users",
-        text2: "Unable to load users for this project.",
-        position: "bottom",
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+        setUsers(formattedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        Toast.show({
+          type: "error",
+          text1: "Failed to Load Users",
+          text2: "Unable to load users for this project.",
+          position: "bottom",
+        });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [projectId, token],
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchUsers(false);
   };
 
-  useEffect(() => {
-    if (projectId && token) {
-      fetchUsers();
-    }
-  }, [projectId, token]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers(true);
+    }, [fetchUsers]),
+  );
 
   const filteredUsers = useMemo(() => {
     let result = users;
