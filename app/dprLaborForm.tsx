@@ -141,6 +141,9 @@ const LaborForm = () => {
   const [vendors, setVendors] = useState<Vendor[]>([defaultVendor()]);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const isInitialLoadDone = React.useRef(false);
+
+  const storageKey = `reportData_${projectId}`;
 
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -199,17 +202,22 @@ const LaborForm = () => {
 
   useEffect(() => {
     const loadSaved = async () => {
+      // 🧱 Reset state immediately when projectId changes to prevent data bleeding
+      isInitialLoadDone.current = false;
+      setVendors([defaultVendor()]);
+
       try {
-        const saved = await AsyncStorage.getItem("reportData");
+        const saved = await AsyncStorage.getItem(storageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.vendors && parsed.vendors.length > 0) {
             setVendors(parsed.vendors);
           }
-          // If saved vendors is empty, keep the default open card
         }
       } catch (err) {
         console.log("Error loading saved vendors:", err);
+      } finally {
+        isInitialLoadDone.current = true;
       }
     };
     loadSaved();
@@ -220,7 +228,24 @@ const LaborForm = () => {
       duration: 600,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [projectId]);
+
+  // Auto-save whenever vendors change
+  useEffect(() => {
+    const autoSave = async () => {
+      if (isInitialLoadDone.current && vendors.length > 0) {
+        try {
+          await AsyncStorage.setItem(
+            storageKey,
+            JSON.stringify({ vendors, projectName }),
+          );
+        } catch (err) {
+          console.error("Auto-save failed:", err);
+        }
+      }
+    };
+    autoSave();
+  }, [vendors, projectId]);
 
   const addVendor = () => {
     setVendors((prev) => [
@@ -272,7 +297,7 @@ const LaborForm = () => {
       return;
     }
     await AsyncStorage.setItem(
-      "reportData",
+      storageKey,
       JSON.stringify({ vendors, projectName }),
     );
     router.push({
@@ -291,7 +316,7 @@ const LaborForm = () => {
 
   const skipAndNext = async () => {
     await AsyncStorage.setItem(
-      "reportData",
+      storageKey,
       JSON.stringify({ vendors: [], projectName }),
     );
     router.push({
@@ -485,7 +510,7 @@ const LaborForm = () => {
 
                 {/* Expertise */}
                 <FieldRow
-                  placeholder="Select expertise"
+                  placeholder="Enter expertise"
                   value={item.expertise}
                   onChangeText={(t) => updateVendor(item.id, "expertise", t)}
                   isDark={isDark}
