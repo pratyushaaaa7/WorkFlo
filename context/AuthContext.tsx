@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { AppState, AppStateStatus } from "react-native";
 // import { router } from "expo-router";
 
 type User = {
@@ -32,7 +33,7 @@ type AuthContextType = {
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const authRef = { current: null as any };
@@ -47,14 +48,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // NEW: Loading state so we do not expose wrong auth state
   const [authLoading, setAuthLoading] = useState(true);
 
+  // LOGOUT
+  const logout = useCallback(async () => {
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
   const isTokenExpired = (token: string) => {
     try {
       const decoded: any = jwtDecode(token);
-      return decoded.exp < Date.now() / 1000;
+      if (!decoded.exp) return false; // If no exp, assume it doesn't expire
+      const currentTime = Date.now() / 1000;
+      return decoded.exp < currentTime;
     } catch {
       return true;
     }
   };
+
+  const checkTokenExpiration = useCallback(async () => {
+    if (token && isTokenExpired(token)) {
+      console.log("⏰ Token expired (auto-check) → Logging out");
+      await logout();
+    }
+  }, [token, logout]);
+
+  // Check on App State Change (Foregrounding)
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppStateStatus: AppStateStatus) => {
+        if (nextAppStateStatus === "active") {
+          console.log("📱 App back to foreground → Checking token...");
+          checkTokenExpiration();
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [checkTokenExpiration]);
 
   useEffect(() => {
     const loadAuth = async () => {
@@ -104,30 +140,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // LOGOUT – FIXED WITH useCallback()
-  const logout = useCallback(async () => {
-    await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-  }, []);
-
   useEffect(() => {
     authRef.current = {
       logout,
     };
   }, [logout]);
-
-  // const getToken = async (): Promise<string | null> => {
-  //   console.log("🔍 getToken:", token);
-  //   return token;
-  // };
-
-  // const getUser = async (): Promise<User | null> => {
-  //   console.log("🔍 getUser:", user);
-  //   return user;
-  // };
 
   const getToken = async () => token;
   const getUser = async () => user;
