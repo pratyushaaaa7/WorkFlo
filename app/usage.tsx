@@ -493,7 +493,11 @@ export default function UsageScreen() {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => router.push(`/usageSummary?userId=${item.userId._id}`)}
+        onPress={() =>
+          router.push(
+            `/usageSummary?userId=${item.userId._id}&fullName=${encodeURIComponent(name)}&designation=${encodeURIComponent(designation)}&totalRequests=${requests}&totalSessions=${sessions}&totalDuration=${item.totalDuration || 0}&profileImage=${encodeURIComponent(item.userId.profileImage || "")}`,
+          )
+        }
         className="bg-[#F0F3F7] dark:bg-[#1A1A1A] mx-4 mb-4 rounded-[16px]"
       >
         {/* Header Row: Rank & Last Active */}

@@ -8,9 +8,10 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import moment from "moment";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -43,13 +44,47 @@ type SummaryData = {
 
 export default function UsageSummaryScreen() {
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
+  const {
+    userId,
+    fullName,
+    designation,
+    totalRequests,
+    totalSessions,
+    totalDuration: prefillDuration,
+    profileImage,
+  } = useLocalSearchParams<{
+    userId: string;
+    fullName?: string;
+    designation?: string;
+    totalRequests?: string;
+    totalSessions?: string;
+    totalDuration?: string;
+    profileImage?: string;
+  }>();
   const { token } = useContext(AuthContext) || {};
 
   const isDark = useColorScheme() === "dark";
 
   const [loading, setLoading] = useState(true);
-  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(() => {
+    if (fullName) {
+      return {
+        user: {
+          fullName: decodeURIComponent(fullName),
+          designation: designation ? decodeURIComponent(designation) : "User",
+          profileImage: profileImage
+            ? decodeURIComponent(profileImage)
+            : undefined,
+        },
+        totalRequests: totalRequests ? parseInt(totalRequests) : 0,
+        totalDuration: prefillDuration ? parseInt(prefillDuration) : 0,
+        totalSessions: totalSessions ? parseInt(totalSessions) : 0,
+        screens: [],
+      };
+    }
+    return null;
+  });
 
   // Filter state
   const [selectedFilter, setSelectedFilter] = useState("Custom");
@@ -85,9 +120,11 @@ export default function UsageSummaryScreen() {
     "Dec",
   ];
 
-  const fetchSummary = async () => {
+  const fetchSummary = async (showRefresh = false) => {
     try {
-      setLoading(true);
+      if (showRefresh) setRefreshing(true);
+      else setLoading(true);
+
       const params: any = { type: selectedFilter };
       if (selectedFilter === "Custom" && startDate && endDate) {
         params.startDate = moment(startDate).startOf("day").toISOString();
@@ -103,8 +140,13 @@ export default function UsageSummaryScreen() {
       console.error("Failed to fetch usage summary", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = React.useCallback(() => {
+    fetchSummary(true);
+  }, [userId, selectedFilter, startDate, endDate, token]);
 
   useEffect(() => {
     if (userId) {
@@ -249,28 +291,12 @@ export default function UsageSummaryScreen() {
     return `${m}m`;
   };
 
-  if (loading && !summaryData) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: isDark ? "#000" : "#FBFCFD",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color="#5B4CCC" />
-      </View>
-    );
-  }
-
   const data = summaryData;
-  const maxScreenDuration = data?.screens.length
-    ? Math.max(...data.screens.map((s) => s.duration))
-    : 1;
-  const mostUsedScreen = data?.screens.length
+  const mostUsedScreen = data?.screens?.length
     ? data.screens[0].screenName
-    : "None";
+    : loading
+      ? ""
+      : "None";
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? "#000" : "#FBFCFD" }}>
@@ -291,7 +317,17 @@ export default function UsageSummaryScreen() {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 50 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5B4CCC"]}
+            tintColor="#5B4CCC"
+          />
+        }
+      >
         {data && (
           <>
             {/* Profile Section */}
@@ -342,7 +378,7 @@ export default function UsageSummaryScreen() {
                   Total Time
                 </Text>
                 <Text className="text-black dark:text-white font-dmSemiBold text-lg">
-                  {formatDuration(data.totalDuration)}
+                  {data ? formatDuration(data.totalDuration) : "0m"}
                 </Text>
               </View>
             </View>
@@ -353,8 +389,8 @@ export default function UsageSummaryScreen() {
               style={{
                 backgroundColor: isDark ? "#111111" : "#FFF",
                 shadowColor: "#000",
-                shadowOpacity: 0.05,
-                shadowRadius: 10,
+                shadowOpacity: 0.01,
+                shadowRadius: 5,
                 elevation: 2,
               }}
             >
@@ -364,14 +400,25 @@ export default function UsageSummaryScreen() {
                     Time Spent by Page
                   </Text>
                   <Text className="text-black dark:text-white font-dmBold text-3xl">
-                    {formatDuration(data.totalDuration)}
+                    {data ? formatDuration(data.totalDuration) : "0m"}
                   </Text>
-                  <Text className="text-black dark:text-[#D2D2D2] font-poppinsMedium text-xs mt-1">
-                    Most used page{" "}
-                    <Text className="text-[#6B7280] font-poppins">
-                      - {mostUsedScreen}
-                    </Text>
-                  </Text>
+                  <View className="mt-1">
+                    {loading && !mostUsedScreen ? (
+                      <Skeleton
+                        colorMode={isDark ? "dark" : "light"}
+                        width={150}
+                        height={14}
+                        radius={4}
+                      />
+                    ) : (
+                      <Text className="text-black dark:text-[#D2D2D2] font-poppinsMedium text-xs">
+                        Most used page{" "}
+                        <Text className="text-[#6B7280] font-poppins">
+                          - {mostUsedScreen}
+                        </Text>
+                      </Text>
+                    )}
+                  </View>
                 </View>
 
                 {/* Filter Dropdown */}
@@ -400,47 +447,80 @@ export default function UsageSummaryScreen() {
               </View>
 
               <View className="mt-8 gap-5">
-                {data.screens.map((screen, idx) => {
-                  // Map percentage to the total duration of ALL screens instead of the max individual screen
-                  const percentage =
-                    data.totalDuration > 0
-                      ? Math.min(
-                          (screen.duration / data.totalDuration) * 100,
-                          100,
-                        )
-                      : 0;
-
-                  return (
-                    <View key={idx}>
+                {loading &&
+                (!data || !data.screens || data.screens.length === 0) ? (
+                  [1, 2, 3, 4].map((i) => (
+                    <View key={i} className="mb-4">
                       <View className="flex-row justify-between mb-2">
-                        <Text className="text-black dark:text-[#D2D2D2] font-poppinsMedium text-sm">
-                          {screen.screenName}
-                        </Text>
-                        <Text className="text-[#6B7280] font-poppins text-xs">
-                          {formatDuration(screen.duration)} - Visit{" "}
-                          {screen.visits}
-                        </Text>
+                        <Skeleton
+                          colorMode={isDark ? "dark" : "light"}
+                          width={120}
+                          height={16}
+                          radius={4}
+                        />
+                        <Skeleton
+                          colorMode={isDark ? "dark" : "light"}
+                          width={80}
+                          height={14}
+                          radius={4}
+                        />
                       </View>
-                      <LinearGradient
-                        colors={["#F0E7F8", "#E1D2F9"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        className="h-3 rounded-full overflow-hidden w-full flex-row"
-                        style={{
-                          backgroundColor: isDark ? "#2A0066" : "#EAE0FC",
-                        }}
-                      >
+                      <Skeleton
+                        colorMode={isDark ? "dark" : "light"}
+                        width="100%"
+                        height={12}
+                        radius={6}
+                      />
+                    </View>
+                  ))
+                ) : data?.screens?.length === 0 ? (
+                  <View className="items-center py-10">
+                    <Text className="text-[#6B7280] font-poppins">
+                      No usage data
+                    </Text>
+                  </View>
+                ) : (
+                  data?.screens.map((screen, idx) => {
+                    const percentage =
+                      data.totalDuration > 0
+                        ? Math.min(
+                            (screen.duration / data.totalDuration) * 100,
+                            100,
+                          )
+                        : 0;
+
+                    return (
+                      <View key={idx}>
+                        <View className="flex-row justify-between mb-2">
+                          <Text className="text-black dark:text-[#D2D2D2] font-poppinsMedium text-sm">
+                            {screen.screenName}
+                          </Text>
+                          <Text className="text-[#6B7280] font-poppins text-xs">
+                            {formatDuration(screen.duration)} - Visit{" "}
+                            {screen.visits}
+                          </Text>
+                        </View>
                         <LinearGradient
-                          colors={["#C08EFF", "#6A28D8"]}
+                          colors={["#F0E7F8", "#E1D2F9"]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
-                          className="h-full rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </LinearGradient>
-                    </View>
-                  );
-                })}
+                          className="h-3 rounded-full overflow-hidden w-full flex-row"
+                          style={{
+                            backgroundColor: isDark ? "#2A0066" : "#EAE0FC",
+                          }}
+                        >
+                          <LinearGradient
+                            colors={["#C08EFF", "#6A28D8"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            className="h-full rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </LinearGradient>
+                      </View>
+                    );
+                  })
+                )}
               </View>
             </View>
           </>
@@ -683,7 +763,7 @@ export default function UsageSummaryScreen() {
 
               {/* Month Picker Overlay */}
               {showMonthPicker && (
-                <View className="absolute top-[80px] left-0 right-0 bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-zinc-800 rounded-2xl p-4 shadow-xl z-50">
+                <View className="absolute top-[80px] left-0 right-0 bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-zinc-800 rounded-2xl p-4 z-50">
                   <View className="flex-row flex-wrap justify-between">
                     {months.map((m, index) => {
                       const d = new Date(currentCalendarDate);
@@ -756,7 +836,7 @@ export default function UsageSummaryScreen() {
         <TouchableOpacity
           onPress={() => setDateFilterVisible(false)}
           activeOpacity={0.9}
-          className="w-[40%] py-3 mt-4 rounded-full bg-white dark:bg-[#1A1A1A] items-center justify-center shadow-lg"
+          className="w-[40%] py-3 mt-4 rounded-full bg-white dark:bg-[#1A1A1A] items-center justify-center "
         >
           <Text className="text-[16px] font-poppins text-black dark:text-white">
             Close
