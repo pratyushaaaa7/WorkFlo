@@ -126,7 +126,14 @@ const Dashboard = () => {
           />
         );
       case "Calendar":
-        return <CalendarTab />;
+        return (
+          <CalendarTab
+            loading={loading}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            responsibleItems={dashboardData?.myResponsibleItems || []}
+          />
+        );
       case "Notes":
         return <NotesTab refreshing={refreshing} onRefresh={onRefresh} />;
       default:
@@ -340,8 +347,8 @@ const Dashboard = () => {
         <View className="flex-1">{renderTabContent()}</View>
       </View>
 
-      {/* 🔹 FLOATING ACTION BUTTON (ONLY FOR NOTES) */}
-      {activeTab === "Notes" && (
+      {/* 🔹 FLOATING ACTION BUTTON (ONLY FOR NOTES & CALENDAR) */}
+      {(activeTab === "Notes" || activeTab === "Calendar") && (
         <View className="absolute bottom-10 right-6 z-50">
           <TouchableOpacity
             activeOpacity={0.8}

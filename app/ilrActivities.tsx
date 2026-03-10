@@ -193,7 +193,7 @@ const IlrActivities = () => {
         projectId: ilrData.projectId || ilrData.project || "",
         delayDays: ilrData.delayDays,
       });
-      console.log("ILR Data:", ilrData);
+      // console.log("ILR Data:", ilrData);
 
       const mappedActivities = (ilrData.activities || [])
         .map((act: any) => {
