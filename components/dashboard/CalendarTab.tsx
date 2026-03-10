@@ -174,36 +174,15 @@ const TaskItem = ({ task }: { task: any }) => {
       className="mb-4 mx-4 p-4 rounded-2xl"
       style={{ backgroundColor: getBackgroundColor() }}
     >
-      <View className="flex-row items-center mb-2">
-        {task.status === "Completed" || task.status === "Closed" ? (
-          <View className="bg-blue-500 dark:bg-blue-600 rounded-md p-0.5 mr-2">
-            <HugeiconsIcon
-              icon={CheckmarkCircle02Icon}
-              size={14}
-              color="white"
-            />
-          </View>
-        ) : task.time ? (
-          <View className="bg-blue-500 dark:bg-blue-600 rounded-md p-0.5 mr-2">
-            <HugeiconsIcon icon={Clock01Icon} size={14} color="white" />
-          </View>
-        ) : null}
-
-        {task.time && (
-          <Text className="text-xs font-poppinsMedium text-blue-600 dark:text-blue-300">
-            {task.time}
-          </Text>
-        )}
-      </View>
-
-      <Text className="text-[15px] font-poppinsSemiBold text-black mb-2 leading-tight">
+      
+      <Text className="text-[15px] font-poppinsMedium text-black mb-2 leading-tight">
         {task.title}
       </Text>
 
       {task.projectName && (
         <View className="flex-row items-center">
           <Text
-            className="text-xs font-poppinsMedium"
+            className="text-xs font-poppins"
             style={{ color: getTextColor() }}
           >
             {task.projectName} ({task.type})
@@ -228,11 +207,6 @@ const DateSection = ({ group }: { group: any }) => {
   const monthName = format(dateObj, "MMM");
   const dayNumber = format(dateObj, "d");
 
-  const completedCount = group.tasks.filter(
-    (t: any) => t.status === "Completed" || t.status === "Closed",
-  ).length;
-  const progress =
-    group.tasks.length > 0 ? (completedCount / group.tasks.length) * 100 : 0;
 
   return (
     <View className="mb-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl mx-1 ">
@@ -243,17 +217,17 @@ const DateSection = ({ group }: { group: any }) => {
       >
         <View className="flex-row items-center mr-4 w-12 border-r border-gray-200 dark:border-gray-800 pr-4">
           <View className="items-center">
-            <Text className="text-[10px] font-poppinsMedium text-gray-500 uppercase leading-none mb-1">
+            <Text className="text-[10px] font-poppins text-[#454545] dark:text-[#919191] uppercase leading-none mb-1">
               {monthName}
             </Text>
-            <Text className="text-2xl font-poppinsBold text-gray-900 dark:text-white leading-tight">
+            <Text className="text-2xl font-dmSemiBold text-gray-900 dark:text-white leading-tight">
               {dayNumber}
             </Text>
           </View>
         </View>
 
         <View className="flex-1">
-          <Text className="text-xl font-poppinsSemiBold text-gray-900 dark:text-white">
+          <Text className="text-xl font-dmSemiBold text-gray-900 dark:text-white">
             {dayName}
           </Text>
         </View>
@@ -262,7 +236,7 @@ const DateSection = ({ group }: { group: any }) => {
           <HugeiconsIcon
             icon={ArrowDown01Icon}
             size={20}
-            color={isDarkMode ? "#606060" : "#919191"}
+            color={isDarkMode ? "#BBBBBB" : "#919191"}
             style={{ transform: [{ rotate: isExpanded ? "180deg" : "0deg" }] }}
           />
         </View>
