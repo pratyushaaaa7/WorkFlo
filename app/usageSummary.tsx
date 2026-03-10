@@ -23,6 +23,7 @@ import Modal from "react-native-modal";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
+import { getReadableScreenName } from "../utils/screenNames";
 
 type ScreenStat = {
   screenName: string;
@@ -136,6 +137,7 @@ export default function UsageSummaryScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSummaryData(res.data);
+      // console.log("✅ Usage summary data:", JSON.stringify(res.data, null, 2));
     } catch (err) {
       console.error("Failed to fetch usage summary", err);
     } finally {
@@ -293,7 +295,7 @@ export default function UsageSummaryScreen() {
 
   const data = summaryData;
   const mostUsedScreen = data?.screens?.length
-    ? data.screens[0].screenName
+    ? getReadableScreenName(data.screens[0].screenName)
     : loading
       ? ""
       : "None";
@@ -493,7 +495,7 @@ export default function UsageSummaryScreen() {
                       <View key={idx}>
                         <View className="flex-row justify-between mb-2">
                           <Text className="text-black dark:text-[#D2D2D2] font-poppinsMedium text-sm">
-                            {screen.screenName}
+                            {getReadableScreenName(screen.screenName)}
                           </Text>
                           <Text className="text-[#6B7280] font-poppins text-xs">
                             {formatDuration(screen.duration)} - Visit{" "}

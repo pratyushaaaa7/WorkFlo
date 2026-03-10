@@ -39,6 +39,7 @@ import { Calendar } from "react-native-calendars";
 import Modal from "react-native-modal";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
+import { getReadableScreenName } from "../utils/screenNames";
 
 const TABS = ["Today", "Week", "Month", "Custom"];
 
@@ -225,7 +226,7 @@ export default function UsageScreen() {
       const data = res.data;
       if (Array.isArray(data)) {
         setUserLeaderboard(data);
-        console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
+        // console.log("✅ Leaderboard data:", JSON.stringify(data, null, 2));
       } else {
         console.warn("⚠️ Unexpected leaderboard data format", data);
         setUserLeaderboard([]);
@@ -574,7 +575,7 @@ export default function UsageScreen() {
                 color={isDarkMode ? "#919191" : "#454545"}
               />
               <Text className="ml-2 text-[#454545] dark:text-[#D2D2D2] text-sm font-poppinsMedium">
-                Most used page - {mostUsed}
+                Most used page - {getReadableScreenName(mostUsed)}
               </Text>
             </View>
           </View>
