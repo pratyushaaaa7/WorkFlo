@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
-  Book02Icon,
-  Cancel01Icon,
   BookOpen01Icon,
+  Cancel01Icon,
   Delete03Icon,
   Download01Icon,
   Note01Icon,
@@ -32,6 +31,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -112,6 +112,7 @@ const SVRs = () => {
   const [focusedSVR, setFocusedSVR] = useState<FocusedSVR | null>(null);
   const isDownloadingRef = useRef(false);
   const isDark = useColorScheme() === "dark";
+  const insets = useSafeAreaInsets();
   const itemRefs = useRef<{ [key: string]: View | null }>({});
 
   // Fetch SVR list
@@ -434,7 +435,8 @@ const SVRs = () => {
         >
           <View
             onStartShouldSetResponder={() => true}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-4 pt-4 pb-12"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-4 pt-4"
+            style={{ paddingBottom: Math.max(insets.bottom, 48) }}
           >
             <View className="flex-row justify-between gap-3">
               <TouchableOpacity
