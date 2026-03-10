@@ -16,6 +16,7 @@ import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  BackHandler,
   Image,
   Pressable,
   ScrollView,
@@ -84,9 +85,25 @@ const Dashboard = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // Handle back button / gesture on Android
+      const onBackPress = () => {
+        // Exit the app instead of showing the "GO_BACK" warning
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress,
+      );
+
       // Skip the very first load because useEffect handles it
       // or we can just call it silently
       fetchDashboardData(true);
+
+      return () => {
+        backHandler.remove();
+      };
     }, [token]),
   );
 
