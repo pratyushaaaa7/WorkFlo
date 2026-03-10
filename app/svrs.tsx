@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
+  Book02Icon,
   Cancel01Icon,
+  BookOpen01Icon,
   Delete03Icon,
   Download01Icon,
+  Note01Icon,
   Pdf01Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
@@ -418,58 +421,53 @@ const SVRs = () => {
       </View>
 
       {/* Type Selection Modal */}
-      {modalVisible && (
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
-          className="absolute inset-0 bg-black/40 flex items-center justify-center px-6"
+          className="flex-1 bg-black/30 justify-end"
         >
           <View
             onStartShouldSetResponder={() => true}
-            className="w-full bg-white rounded-3xl p-6  max-w-sm relative"
+            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-t-[24px] px-4 pt-4 pb-12"
           >
-            {/* Close Button */}
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              className="absolute top-4 right-4 p-1"
-            >
-              <Ionicons name="close" size={26} color="#555" />
-            </TouchableOpacity>
-
-            {/* Title */}
-            <Text className="text-xl font-bold text-gray-800 text-center mb-6 mt-2">
-              Select Report Type
-            </Text>
-
-            {/* Buttons */}
-            <View className="gap-4">
+            <View className="flex-row justify-between gap-3">
               <TouchableOpacity
-                onPress={() => goAndClose("svr")}
-                className="flex-row items-center bg-indigo-600 py-4 px-4 rounded-2xl"
+                onPress={() => goAndClose("case-study")}
+                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-4 items-center "
               >
-                <Ionicons
-                  name="document-text-outline"
+                <HugeiconsIcon
+                  icon={BookOpen01Icon}
                   size={24}
-                  color="white"
+                  color={isDark ? "#fff" : "#000"}
                 />
-                <Text className="text-white text-lg font-semibold ml-3">
-                  SVR
+                <Text className="mt-1 font-poppins text-black dark:text-white text-base">
+                  Case Study
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => goAndClose("case-study")}
-                className="flex-row items-center bg-purple-600 py-4 px-4 rounded-2xl"
+                onPress={() => goAndClose("svr")}
+                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-4 items-center "
               >
-                <Ionicons name="book-outline" size={24} color="white" />
-                <Text className="text-white text-lg font-semibold ml-3">
-                  Case Study
+                <HugeiconsIcon
+                  icon={Note01Icon}
+                  size={24}
+                  color={isDark ? "#fff" : "#000"}
+                />
+                <Text className="mt-1 font-poppins text-black dark:text-white text-base">
+                  SVR
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </TouchableOpacity>
-      )}
+      </Modal>
 
       {/* Floating + Button */}
       <TouchableOpacity
