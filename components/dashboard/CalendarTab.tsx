@@ -1,8 +1,4 @@
-import {
-  ArrowDown01Icon,
-  CheckmarkCircle02Icon,
-  Clock01Icon,
-} from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid } from "date-fns";
 import { useRouter } from "expo-router";
@@ -174,7 +170,6 @@ const TaskItem = ({ task }: { task: any }) => {
       className="mb-4 mx-4 p-4 rounded-2xl"
       style={{ backgroundColor: getBackgroundColor() }}
     >
-      
       <Text className="text-[15px] font-poppinsMedium text-black mb-2 leading-tight">
         {task.title}
       </Text>
@@ -194,7 +189,8 @@ const TaskItem = ({ task }: { task: any }) => {
 };
 
 const DateSection = ({ group }: { group: any }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const today = format(new Date(), "yyyy-MM-dd");
+  const [isExpanded, setIsExpanded] = useState(group.date === today);
   const isDarkMode = useColorScheme() === "dark";
 
   const toggleExpand = () => {
@@ -207,15 +203,14 @@ const DateSection = ({ group }: { group: any }) => {
   const monthName = format(dateObj, "MMM");
   const dayNumber = format(dateObj, "d");
 
-
   return (
-    <View className="mb-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl mx-1 ">
+    <View className="mb-2 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg mx-1 ">
       <TouchableOpacity
         onPress={toggleExpand}
         activeOpacity={0.7}
         className="flex-row items-center px-4 py-3"
       >
-        <View className="flex-row items-center mr-4 w-12 border-r border-gray-200 dark:border-gray-800 pr-4">
+        <View className="flex-row items-center mr-4 w-12 border-r border-gray-200 dark:border-[#2B2B2B] pr-4">
           <View className="items-center">
             <Text className="text-[10px] font-poppins text-[#454545] dark:text-[#919191] uppercase leading-none mb-1">
               {monthName}
