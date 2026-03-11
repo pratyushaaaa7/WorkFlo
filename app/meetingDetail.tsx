@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -18,6 +24,7 @@ import {
   Location01Icon,
   UserCircleIcon,
   MoreHorizontalIcon,
+  ArrowRight01Icon,
   Pdf01Icon,
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
@@ -33,6 +40,7 @@ import * as Sharing from "expo-sharing";
 import Toast from "react-native-toast-message";
 import { useScrollStore } from "@/store/meetingScrollStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import GlobalAvatar from "../components/GlobalAvatar";
 
 const capitalizeFirst = (str: string) => {
   if (!str) return "";
@@ -142,13 +150,13 @@ const MinutesDetail = () => {
         setRefreshing(false);
       }
     },
-    [meetingId, token]
+    [meetingId, token],
   );
 
   useFocusEffect(
     useCallback(() => {
       fetchMeeting(true);
-    }, [fetchMeeting])
+    }, [fetchMeeting]),
   );
 
   const onRefresh = useCallback(() => {
@@ -499,46 +507,19 @@ const MinutesDetail = () => {
                 Attendees
               </Text>
               {meeting.attendees?.map((attendee: any, index: number) => {
-                const initials = attendee.attendeeName
-                  ? attendee.attendeeName.substring(0, 1).toUpperCase()
-                  : "?";
-                const colors = [
-                  {
-                    bg: isDarkMode ? "#3F1D1D" : "#FFE5E5",
-                    text: isDarkMode ? "#FFB3B3" : "#D92D20",
-                  },
-                  {
-                    bg: isDarkMode ? "#1A2E4D" : "#E5F0FF",
-                    text: isDarkMode ? "#99C2FF" : "#175CD3",
-                  },
-                  {
-                    bg: isDarkMode ? "#271711" : "#FFEADD",
-                    text: isDarkMode ? "#FFAB73" : "#D95D20",
-                  },
-                  {
-                    bg: isDarkMode ? "#173E2B" : "#E5FBED",
-                    text: isDarkMode ? "#8CE3B0" : "#039855",
-                  },
-                ];
-                const colorTheme = colors[index % colors.length];
-
                 return (
                   <View
                     key={attendee._id || index}
                     className="flex-row items-center justify-between mb-4"
                   >
                     <View className="flex-row items-center flex-1">
-                      <View
-                        className="w-10 h-10 rounded-full items-center justify-center mr-4"
-                        style={{ backgroundColor: colorTheme.bg }}
-                      >
-                        <Text
-                          className="font-dmMedium text-[16px]"
-                          style={{ color: colorTheme.text }}
-                        >
-                          {initials}
-                        </Text>
-                      </View>
+                      <GlobalAvatar
+                        name={attendee.attendeeName}
+                        size={40}
+                        fontSize={16}
+                        index={index}
+                        className="mr-4"
+                      />
                       <View className="flex-1">
                         <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
                           {attendee.attendeeName}
@@ -549,10 +530,10 @@ const MinutesDetail = () => {
                         </Text>
                       </View>
                     </View>
-                    <Ionicons
-                      name="chevron-forward"
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
                       size={20}
-                      color={isDarkMode ? "#606060" : "#94A3B8"}
+                      color={isDarkMode ? "#919191" : "#919191"}
                     />
                   </View>
                 );
@@ -637,12 +618,12 @@ const MinutesDetail = () => {
 
                       {minute.targetDate && !minute.targetDateForInfo && (
                         <View className="flex-row items-center">
-                          <Ionicons
-                            name="calendar-outline"
+                          <HugeiconsIcon
+                            name="Calendar03Icon"
                             size={12}
-                            color="#EF4444"
+                            color="#DF5B5B"
                           />
-                          <Text className="text-[11px] font-poppinsMedium text-[#EF4444] ml-1">
+                          <Text className="text-[11px] font-poppinsMedium text-[#DF5B5B] ml-1">
                             Delay - 52
                           </Text>
                         </View>
@@ -665,37 +646,15 @@ const MinutesDetail = () => {
                           minute.responsibility
                             .slice(0, 3)
                             .map((r: any, idx: number) => {
-                              const init = r.name
-                                ? r.name.substring(0, 1).toUpperCase()
-                                : "?";
-                              const colors = [
-                                {
-                                  bg: isDarkMode ? "#1A2E4D" : "#E5F0FF",
-                                  text: isDarkMode ? "#99C2FF" : "#175CD3",
-                                },
-                                {
-                                  bg: isDarkMode ? "#3F1D1D" : "#FFE5E5",
-                                  text: isDarkMode ? "#FFB3B3" : "#D92D20",
-                                },
-                                {
-                                  bg: isDarkMode ? "#173E2B" : "#E5FBED",
-                                  text: isDarkMode ? "#8CE3B0" : "#039855",
-                                },
-                              ];
-                              const theme = colors[idx % colors.length];
                               return (
-                                <View
+                                <GlobalAvatar
                                   key={idx}
-                                  className={`w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] ${idx > 0 ? "-ml-2" : ""}`}
-                                  style={{ backgroundColor: theme.bg }}
-                                >
-                                  <Text
-                                    className="text-[10px] font-dmMedium"
-                                    style={{ color: theme.text }}
-                                  >
-                                    {init}
-                                  </Text>
-                                </View>
+                                  name={r.name}
+                                  size={28}
+                                  fontSize={10}
+                                  index={idx}
+                                  className={`border-[1.5px] border-white dark:border-[#121212] ${idx > 0 ? "-ml-2" : ""}`}
+                                />
                               );
                             })}
                         {minute.responsibility &&
@@ -708,7 +667,7 @@ const MinutesDetail = () => {
                           )}
                       </View>
 
-                      <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1E1E1E] px-2 py-1.5 rounded-full">
+                      {/* <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1E1E1E] px-2 py-1.5 rounded-full">
                         <Ionicons
                           name="attach"
                           size={14}
@@ -718,7 +677,7 @@ const MinutesDetail = () => {
                         <Text className="text-[12px] font-poppinsMedium text-[#64748B] dark:text-[#919191] ml-0.5">
                           8
                         </Text>
-                      </View>
+                      </View> */}
                     </View>
                   </TouchableOpacity>
                 );
