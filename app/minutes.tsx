@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   ArrowLeft01Icon,
@@ -9,8 +10,10 @@ import {
   UserCircleIcon,
   UserIcon,
   DashedLineCircleIcon,
+  Delete03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { BlurView } from "@react-native-community/blur";
 import { format, isValid } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
@@ -22,6 +25,8 @@ import React, {
 } from "react";
 import {
   ActivityIndicator,
+  Modal,
+  Pressable,
   Alert,
   RefreshControl,
   ScrollView,
@@ -30,6 +35,7 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
+  Animated,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -44,6 +50,9 @@ const Minutes = () => {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const [focusedMeeting, setFocusedMeeting] = useState<any | null>(null);
+  const meetingRefs = useRef<{ [key: string]: View | null }>({});
 
   const isFirstLoad = useRef(true);
 
@@ -83,46 +92,61 @@ const Minutes = () => {
     fetchMeetings(true);
   };
 
-  const handleDeleteMeeting = (meetingId: any) => {
-    Alert.alert(
-      "Delete Meeting",
-      "This meeting will be permanently deleted. Continue?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/minutes/${meetingId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              setMeetings((prev) => prev.filter((m) => m._id !== meetingId));
-              Toast.show({
-                type: "success",
-                text1: "Meeting deleted",
-                text2: "The meeting was removed successfully",
-                position: "bottom",
-                visibilityTime: 2000,
-              });
-            } catch (err: any) {
-              console.error("Delete failed", err);
-              Toast.show({
-                type: "error",
-                text1: "Delete failed",
-                text2: "Please try again",
-                position: "bottom",
-              });
-            }
-          },
-        },
-      ],
-    );
+  const handleLongPress = (meeting: any) => {
+    const ref = meetingRefs.current[meeting._id];
+    if (ref) {
+      ref.measureInWindow((x, y, width, height) => {
+        setFocusedMeeting({ ...meeting, layout: { x, y, width, height } });
+      });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!focusedMeeting || !token) return;
+
+    try {
+      const meetingId = focusedMeeting._id;
+      setFocusedMeeting(null);
+      await api.delete(`/minutes/${meetingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // remove from UI
+      setMeetings((prev) => prev.filter((m) => m._id !== meetingId));
+      // ✅ SHOW TOAST
+      Toast.show({
+        type: "success",
+        text1: "Meeting deleted",
+        text2: "The meeting was removed successfully",
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+    } catch (err: any) {
+      setFocusedMeeting(null);
+      console.error("Delete failed", err);
+      if (err.response?.status === 418) {
+        // Not authorized
+        Toast.show({
+          type: "error",
+          text1: "Not Authorized",
+          text2: "Please contact Team leader or admin ",
+          position: "bottom",
+        });
+      } else {
+        // Generic error
+        Toast.show({
+          type: "error",
+          text1: "Delete failed",
+          text2: "Please try again",
+          position: "bottom",
+        });
+      }
+    }
   };
 
   const isDarkMode = useColorScheme() === "dark";
 
-  const MeetingCard = ({ meeting }: { meeting: any }) => {
+  const MeetingCard = ({ meeting, isFocused = false }: { meeting: any, isFocused?: boolean }) => {
     const total = meeting.totalMinutes || 0;
     const open = meeting.openCount || 0;
     const progress = total > 0 ? ((total - open) / total) * 100 : 0;
@@ -133,19 +157,11 @@ const Minutes = () => {
       : "No Date";
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() =>
-          meeting.meetingStage !== "mom_submitted"
-            ? router.push(
-                `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
-              )
-            : router.push(
-                `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
-              )
-        }
-        className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] p-3 mb-4 "
-       
+      <View
+        ref={(el) => {
+          if (!isFocused) meetingRefs.current[meeting._id] = el;
+        }}
+        className={`bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] p-3 ${isFocused ? "" : "mb-4"}`}
       >
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center gap-2">
@@ -229,7 +245,78 @@ const Minutes = () => {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderMeetingCard = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() =>
+        item.meetingStage !== "mom_submitted"
+          ? router.push(
+              `/createMeeting?meetingId=${item._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
+            )
+          : router.push(
+              `/meetingDetail?meetingId=${item._id}&meetingNumber=${item.meetingNumber}&meetingDate=${item.meetingDate}&meetingTime=${item.meetingTime}&meetingVenue=${item.meetingVenue}&projectName=${projectName}&company=${company}`,
+            )
+      }
+      onLongPress={() => handleLongPress(item)}
+      delayLongPress={300}
+    >
+      <MeetingCard meeting={item} />
+    </TouchableOpacity>
+  );
+
+  const MeetingSkeletonCard = () => {
+    const fadeAnim = useRef(new Animated.Value(0.5)).current;
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 0.5,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    }, [fadeAnim]);
+
+    const bgClass = isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F6F8FA]";
+    const pulseClass = isDarkMode ? "bg-[#333333]" : "bg-[#E2E8F0]";
+
+    return (
+      <Animated.View
+        style={{ opacity: fadeAnim }}
+        className={`${bgClass} rounded-[16px] p-4 mb-4`}
+      >
+        <View className="flex-row items-center justify-between mb-4">
+          <View className={`w-20 h-6 rounded-full ${pulseClass}`} />
+          <View className={`w-16 h-4 rounded-full ${pulseClass}`} />
+        </View>
+
+        <View className={`w-3/4 h-5 rounded mb-4 ${pulseClass}`} />
+
+        <View className="mb-5">
+          <View className="flex-row justify-between mb-2">
+            <View className={`w-16 h-4 rounded ${pulseClass}`} />
+            <View className={`w-12 h-4 rounded ${pulseClass}`} />
+          </View>
+          <View className={`w-full h-2 rounded-full ${pulseClass}`} />
+        </View>
+
+        <View className="gap-3">
+          <View className={`w-1/2 h-4 rounded ${pulseClass}`} />
+          <View className={`w-2/3 h-4 rounded ${pulseClass}`} />
+          <View className={`w-1/3 h-4 rounded ${pulseClass}`} />
+        </View>
+      </Animated.View>
     );
   };
 
@@ -272,7 +359,11 @@ const Minutes = () => {
         }
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" className="mt-20" />
+          <View className="mt-2">
+            {[1, 2, 3].map((key) => (
+              <MeetingSkeletonCard key={key} />
+            ))}
+          </View>
         ) : meetings.length === 0 ? (
           <View className="mt-20 items-center">
             <Text className="text-[#64748B] dark:text-[#94A3B8] text-lg font-poppinsMedium text-center">
@@ -281,7 +372,9 @@ const Minutes = () => {
           </View>
         ) : (
           meetings.map((meeting) => (
-            <MeetingCard key={meeting._id} meeting={meeting} />
+            <React.Fragment key={meeting._id}>
+              {renderMeetingCard({ item: meeting })}
+            </React.Fragment>
           ))
         )}
       </ScrollView>
@@ -298,6 +391,62 @@ const Minutes = () => {
       >
         <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
       </TouchableOpacity>
+
+      {/* Focused Meeting / Delete Modal */}
+      <Modal
+        visible={!!focusedMeeting}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFocusedMeeting(null)}
+      >
+        <View className="flex-1">
+          <Pressable style={{ flex: 1 }} onPress={() => setFocusedMeeting(null)}>
+            <BlurView
+              blurType={isDarkMode ? "dark" : "light"}
+              blurAmount={2}
+              reducedTransparencyFallbackColor={isDarkMode ? "black" : "white"}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+              }}
+            />
+          </Pressable>
+
+          {focusedMeeting && focusedMeeting.layout && (
+            <View
+              style={{
+                position: "absolute",
+                top: focusedMeeting.layout.y,
+                left: focusedMeeting.layout.x,
+                width: focusedMeeting.layout.width,
+              }}
+            >
+              <MeetingCard meeting={focusedMeeting} isFocused={true} />
+
+              <TouchableOpacity
+                onPress={handleConfirmDelete}
+                activeOpacity={0.9}
+                className="mt-4 flex-row items-center justify-center self-end bg-white dark:bg-[#1A1A1A] px-4 py-4 rounded-2xl"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 12,
+                  elevation: 5,
+                }}
+              >
+                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                <Text className="ml-3 text-[#DF5B5B] font-dmBold text-base">
+                  Delete Meeting
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
