@@ -384,10 +384,10 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   fab: {
     shadowColor: "#5B4CCC",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 20,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 25,
   },
 });
 
