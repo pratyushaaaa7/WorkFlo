@@ -2,7 +2,7 @@ import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid } from "date-fns";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   LayoutAnimation,
@@ -13,6 +13,11 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 
 // Enable LayoutAnimation for Android
@@ -193,6 +198,16 @@ const DateSection = ({ group }: { group: any }) => {
   const [isExpanded, setIsExpanded] = useState(group.date === today);
   const isDarkMode = useColorScheme() === "dark";
 
+  const rotation = useSharedValue(isExpanded ? 180 : 0);
+
+  useEffect(() => {
+    rotation.value = withTiming(isExpanded ? 180 : 0);
+  }, [isExpanded]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
@@ -228,12 +243,13 @@ const DateSection = ({ group }: { group: any }) => {
         </View>
 
         <View className="ml-4">
-          <HugeiconsIcon
-            icon={ArrowDown01Icon}
-            size={20}
-            color={isDarkMode ? "#BBBBBB" : "#919191"}
-            style={{ transform: [{ rotate: isExpanded ? "180deg" : "0deg" }] }}
-          />
+          <Animated.View style={animatedStyle}>
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={20}
+              color={isDarkMode ? "#BBBBBB" : "#919191"}
+            />
+          </Animated.View>
         </View>
       </TouchableOpacity>
 
