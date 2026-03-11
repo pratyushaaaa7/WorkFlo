@@ -406,14 +406,14 @@ const MinutesDetail = () => {
         ) : meeting ? (
           <View>
             {/* Title */}
-            <View className="px-5 pt-2 pb-2 ">
+            <View className="px-3 pt-2 pb-2 ">
               <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
                 {`Meeting #${meetingNumber}`}
               </Text>
             </View>
 
             {/* Details */}
-            <View className="px-4 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+            <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
               <View className="flex-row gap-4 items-center">
                 <View className="w-6 items-center">
                   <HugeiconsIcon
@@ -423,7 +423,7 @@ const MinutesDetail = () => {
                   />
                 </View>
                 <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
                     Date
                   </Text>
                   <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
@@ -447,7 +447,7 @@ const MinutesDetail = () => {
               </View>
             </View>
 
-            <View className="px-4 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+            <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
               <View className="flex-row gap-4 items-center">
                 <View className="w-6 items-center">
                   <HugeiconsIcon
@@ -457,7 +457,7 @@ const MinutesDetail = () => {
                   />
                 </View>
                 <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
                     Location
                   </Text>
                   <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
@@ -467,7 +467,7 @@ const MinutesDetail = () => {
               </View>
             </View>
 
-            <View className="px-4 py-2 border-b-[6px] border-[#F6F8FA] dark:border-[#413E47]">
+            <View className="px-3 py-2 ">
               <View className="flex-row gap-4 items-center">
                 <View className="w-6 items-center">
                   <HugeiconsIcon
@@ -477,7 +477,7 @@ const MinutesDetail = () => {
                   />
                 </View>
                 <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
                     Created by
                   </Text>
                   <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
@@ -494,8 +494,8 @@ const MinutesDetail = () => {
             <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
 
             {/* Attendees */}
-            <View className="px-5 pt-6 pb-2">
-              <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-5">
+            <View className="px-3 pt-4 pb-2">
+              <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
                 Attendees
               </Text>
               {meeting.attendees?.map((attendee: any, index: number) => {
@@ -525,7 +525,7 @@ const MinutesDetail = () => {
                 return (
                   <View
                     key={attendee._id || index}
-                    className="flex-row items-center justify-between mb-5"
+                    className="flex-row items-center justify-between mb-4"
                   >
                     <View className="flex-row items-center flex-1">
                       <View
@@ -540,7 +540,7 @@ const MinutesDetail = () => {
                         </Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white mb-0.5">
+                        <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
                           {attendee.attendeeName}
                         </Text>
                         <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
@@ -561,7 +561,7 @@ const MinutesDetail = () => {
 
             <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
             {/* Minutes */}
-            <View className="px-5 pt-6">
+            <View className="px-3 pt-4">
               <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
                 Minutes
               </Text>
@@ -609,7 +609,7 @@ const MinutesDetail = () => {
                       })
                     }
                     activeOpacity={0.7}
-                    className="bg-white dark:bg-[#121212] rounded-[16px] p-4 mb-4"
+                    className="bg-white dark:bg-[#121212] rounded-[16px] px-3 py-3 mb-3"
                     //  style={!isDarkMode ? {
                     //     shadowColor: "#000",
                     //     shadowOffset: { width: 0, height: 2 },
@@ -735,7 +735,7 @@ const MinutesDetail = () => {
       {/* Sticky Bottom Edit Button */}
       {isEditAllowed && (
         <View
-          className="px-3 pt-4 bg-[#FBFCFD] dark:bg-black border-t border-[#F1F5F9] dark:border-[#1A1A1A] flex-row items-center justify-between"
+          className="px-3 pt-4 bg-[#FBFCFD] dark:bg-black  flex-row items-center justify-between"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         >
           <Text className="text-[13px] font-poppins text-[#0F172A] dark:text-white leading-[18px]">
