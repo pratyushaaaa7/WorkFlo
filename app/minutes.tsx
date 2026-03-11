@@ -1,6 +1,17 @@
-import CircleProgress from "@/components/CircleProgress";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import {
+  Add01Icon,
+  ArrowLeft01Icon,
+  Calendar03Icon,
+  CheckmarkCircle02Icon,
+  Location01Icon,
+  Search01Icon,
+  Tick01Icon,
+  UserCircleIcon,
+  UserIcon,
+  DashedLineCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { format, isValid } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
   useCallback,
@@ -12,16 +23,17 @@ import React, {
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { AuthContext } from "../context/AuthContext"; // adjust path
-import api from "../lib/api"; // axios instance with baseURL
+import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 
 const Minutes = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
@@ -33,12 +45,8 @@ const Minutes = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // console.log(JSON.stringify(meetings, null, 2));
-
-  // Track if it's the first load to show global spinner
   const isFirstLoad = useRef(true);
 
-  // Reset first load if project changes
   useEffect(() => {
     isFirstLoad.current = true;
   }, [projectId]);
@@ -51,7 +59,6 @@ const Minutes = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeetings(res.data);
-        // console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch meetings", err);
       } finally {
@@ -62,11 +69,9 @@ const Minutes = () => {
     [projectId, token],
   );
 
-  // Refresh meetings when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       if (projectId) {
-        // Use silent refresh if not first load
         fetchMeetings(!isFirstLoad.current);
         isFirstLoad.current = false;
       }
@@ -75,7 +80,6 @@ const Minutes = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Silent fetch because RefreshControl handles the spinner
     fetchMeetings(true);
   };
 
@@ -93,10 +97,7 @@ const Minutes = () => {
               await api.delete(`/minutes/${meetingId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
-
-              // remove from UI
               setMeetings((prev) => prev.filter((m) => m._id !== meetingId));
-              // ✅ SHOW TOAST
               Toast.show({
                 type: "success",
                 text1: "Meeting deleted",
@@ -106,23 +107,12 @@ const Minutes = () => {
               });
             } catch (err: any) {
               console.error("Delete failed", err);
-              if (err.response?.status === 418) {
-                // Not authorized
-                Toast.show({
-                  type: "error",
-                  text1: "Not Authorized",
-                  text2: "Please contact Team leader or admin ",
-                  position: "bottom",
-                });
-              } else {
-                // Generic error
-                Toast.show({
-                  type: "error",
-                  text1: "Delete failed",
-                  text2: "Please try again",
-                  position: "bottom",
-                });
-              }
+              Toast.show({
+                type: "error",
+                text1: "Delete failed",
+                text2: "Please try again",
+                position: "bottom",
+              });
             }
           },
         },
@@ -130,38 +120,148 @@ const Minutes = () => {
     );
   };
 
-  return (
-    <View className="flex-1  bg-gray-50">
-      {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View
-          className="pt-16 pb-6 px-4 flex-row items-center justify-between"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 6,
-            zIndex: 10,
-          }}
-        >
-          {/* Back Button + Title */}
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {projectName} Minutes of Meeting
+  const isDarkMode = useColorScheme() === "dark";
+
+  const MeetingCard = ({ meeting }: { meeting: any }) => {
+    const total = meeting.totalMinutes || 0;
+    const open = meeting.openCount || 0;
+    const progress = total > 0 ? ((total - open) / total) * 100 : 0;
+    const progressText = total > 0 ? `${total - open}/${total}` : "0/0";
+
+    const dateStr = isValid(new Date(meeting.meetingDate))
+      ? format(new Date(meeting.meetingDate), "dd MMM yyyy")
+      : "No Date";
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() =>
+          meeting.meetingStage !== "mom_submitted"
+            ? router.push(
+                `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
+              )
+            : router.push(
+                `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
+              )
+        }
+        className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] p-3 mb-4 "
+       
+      >
+        <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-row items-center gap-2">
+            {meeting.meetingStage === "mom_submitted" && (
+              <View className="bg-[#E8F9ED] dark:bg-[#0A4230] px-3 py-1.5 rounded-full flex-row items-center">
+                <HugeiconsIcon
+                  icon={CheckmarkCircle02Icon}
+                  size={14}
+                  color="#1AA45B"
+                />
+                <Text className="text-[#1AA45B] text-[12px] font-poppinsMedium ml-1.5">
+                  Published
+                </Text>
+              </View>
+            )}
+            {meeting.agendaSubmitted && (
+              <View className="bg-[#EBEFF2] dark:bg-[#09225A] px-3 py-1.5 rounded-full flex-row items-center">
+                <HugeiconsIcon icon={Tick01Icon} size={14} color={isDarkMode ? "#88B6FF" : "#2F76E6"} />
+                <Text className="text-[#2F76E6] dark:text-[#88B6FF] text-[12px] font-poppinsMedium ml-1.5">
+                  Agenda
+                </Text>
+              </View>
+            )}
+            <View className="flex-1" />
+            {meeting.meetingStage === "draft" && (
+              <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-3  py-1.5 rounded-full flex-row items-center">
+                <HugeiconsIcon icon={DashedLineCircleIcon} size={14} color={isDarkMode ? "#BBBBBB" : "#454545"} />
+                <Text className="text-[#454545] dark:text-[#BBBBBB] text-[12px] font-poppinsMedium ml-1.5">
+                  Draft
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <Text className="text-[19px] font-dmMedium text-[#0F172A] dark:text-white mb-2 leading-tight">
+          #{meeting.meetingNumber}
+        </Text>
+
+        {meeting.meetingStage === "mom_submitted" && (
+          <View className="mb-4">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
+                Progress
+              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191] mr-1.5">
+                  {Math.round(progress)}%
+                </Text>
+                <Text className="text-[13px] font-poppinsMedium text-[#2F76E6]">
+                  ({progressText})
+                </Text>
+              </View>
+            </View>
+            <View className="h-2 bg-[#E0E5EB] dark:bg-[#2F2F2F] rounded-full overflow-hidden">
+              <View
+                className="h-full bg-[#1AA45B] rounded-full"
+                style={{ width: `${progress}%` }}
+              />
+            </View>
+          </View>
+        )}
+
+        <View className="gap-1">
+          <View className="flex-row items-center">
+            <HugeiconsIcon icon={Calendar03Icon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+              {dateStr} at {meeting.meetingTime}
             </Text>
+          </View>
+          <View className="flex-row items-center">
+            <HugeiconsIcon icon={Location01Icon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+              {meeting.meetingVenue || "No venue added"}
+            </Text>
+          </View>
+          <View className="flex-row items-center">
+            <HugeiconsIcon icon={UserCircleIcon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+              Created by {meeting.createdBy || "Admin"}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
+      <View className="pt-14 pb-4 px-4 flex-row items-center justify-between bg-[#FBFCFD] dark:bg-black ">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4 p-1">
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "white" : "#0F172A"}
+            />
+          </TouchableOpacity>
+          <Text className="text-[20px] font-dmSemiBold text-[#000] dark:text-white">
+            Meetings
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity className="p-1">
+            <HugeiconsIcon
+              icon={Search01Icon}
+              size={24}
+              color={isDarkMode ? "white" : "#0F172A"}
+            />
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
-        className="p-4  bg-gray-100"
-        contentContainerStyle={{ paddingBottom: 60 }}
+        className="flex-1 px-4 pt-2"
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -172,210 +272,44 @@ const Minutes = () => {
         }
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
+          <ActivityIndicator size="large" color="#6366F1" className="mt-20" />
         ) : meetings.length === 0 ? (
-          <Text className="text-gray-500 text-center mt-10">
-            No meetings found
-          </Text>
+          <View className="mt-20 items-center">
+            <Text className="text-[#64748B] dark:text-[#94A3B8] text-lg font-poppinsMedium text-center">
+              No meetings found for this project
+            </Text>
+          </View>
         ) : (
           meetings.map((meeting) => (
-            <Pressable
-              key={meeting._id}
-              className="bg-white rounded-2xl shadow-lg mb-5  overflow-hidden border-l-4"
-              onPress={() =>
-                meeting.meetingStage !== "mom_submitted"
-                  ? router.push(
-                      `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
-                    )
-                  : router.push(
-                      `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
-                    )
-              }
-              style={{
-                borderLeftColor:
-                  meeting.meetingStage === "mom_submitted"
-                    ? "#16A34A" // green
-                    : "#0284C7", // sky
-              }}
-            >
-              {/* Meeting Header */}
-              <View className="px-4 py-3 bg-gradient-to-r from-sky-50 to-sky-100 flex-row justify-between items-center">
-                {/* LEFT TEXT SECTION */}
-                <View className="flex-1">
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color="#0369A1"
-                    />
-                    <Text className="ml-2 text-lg font-bold text-sky-800">
-                      Meeting #{meeting.meetingNumber}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center mt-1">
-                    <Ionicons name="time-outline" size={16} color="#475569" />
-                    <Text className="ml-1 text-gray-700 text-sm">
-                      {new Date(meeting.meetingDate).toLocaleDateString()} •{" "}
-                      {meeting.meetingTime}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center mt-1">
-                    <Ionicons
-                      name="location-outline"
-                      size={16}
-                      color="#94A3B8"
-                    />
-                    <Text className="ml-1 text-gray-500 text-sm">
-                      {meeting.meetingVenue}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* RIGHT PIE GRAPH */}
-                <View className="items-center ml-3">
-                  <CircleProgress
-                    percentage={parseFloat(meeting.openPercentage)}
-                    size={55}
-                    label={`${meeting.openCount}/${meeting.totalMinutes}`}
-                  />
-
-                  <Text className="text-xs mt-1 text-gray-700 font-semibold">
-                    {meeting.openPercentage}% Open
-                  </Text>
-                </View>
-              </View>
-
-              <View className="flex-row  justify-between">
-                {/* Status Chips */}
-                <View className="flex-row flex-wrap px-4 py-2 gap-2">
-                  {meeting.agendaSubmitted && (
-                    <View className="bg-sky-100 px-3 py-1 rounded-full flex-row items-center">
-                      <Ionicons name="checkmark" size={14} color="#0369A1" />
-                      <Text className="text-sky-700 text-xs font-semibold ml-1">
-                        Agenda Submitted
-                      </Text>
-                    </View>
-                  )}
-
-                  {meeting.meetingStage === "mom_submitted" && (
-                    <View className="bg-green-100 px-3 py-1 rounded-full flex-row items-center">
-                      <Ionicons
-                        name="checkmark-done"
-                        size={14}
-                        color="#15803D"
-                      />
-                      <Text className="text-green-700 text-xs font-semibold ml-1">
-                        Minutes Published
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                {/* DELETE ICON */}
-                <TouchableOpacity
-                  onPress={() => handleDeleteMeeting(meeting._id)}
-                  className="p-2"
-                  hitSlop={10}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#DC2626" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Action Buttons */}
-              <View className="flex-row px-4 py-3 border-t border-gray-200 gap-3">
-                {/* View Agenda */}
-                {/* <TouchableOpacity
-                  onPress={() =>
-                    router.push(
-                      `/viewAgenda?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`
-                    )
-                  }
-                  className="flex-1 bg-sky-500 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
-                >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={18}
-                    color="white"
-                  />
-                  <Text className="ml-2 text-white font-medium">
-                    View Agenda
-                  </Text>
-                </TouchableOpacity> */}
-                {meeting.meetingStage === "draft" && (
-                  <View className="bg-yellow-100 px-3 py-1 rounded-full flex-row items-center">
-                    <Ionicons name="save-outline" size={14} color="#CA8A04" />
-                    <Text className="text-yellow-700 text-xs font-semibold ml-1">
-                      Draft Saved
-                    </Text>
-                  </View>
-                )}
-
-                {/* Publish / View Minutes */}
-                {meeting.meetingStage !== "mom_submitted" ? (
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push(
-                        `/createMeeting?meetingId=${meeting._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
-                      )
-                    }
-                    className="flex-1 bg-sky-700 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
-                  >
-                    <Ionicons name="pencil-outline" size={18} color="white" />
-                    <Text className="ml-2 text-white font-medium">
-                      Continue Minutes
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push(
-                        `/meetingDetail?meetingId=${meeting._id}&meetingNumber=${meeting.meetingNumber}&meetingDate=${meeting.meetingDate}&meetingTime=${meeting.meetingTime}&meetingVenue=${meeting.meetingVenue}&projectName=${projectName}&company=${company}`,
-                      )
-                    }
-                    className="flex-1 bg-green-600 flex-row justify-center items-center py-2.5 rounded-xl active:opacity-80 shadow"
-                  >
-                    <Ionicons name="eye-outline" size={18} color="white" />
-                    <Text className="ml-2 text-white font-medium">
-                      View Minutes
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </Pressable>
+            <MeetingCard key={meeting._id} meeting={meeting} />
           ))
         )}
       </ScrollView>
 
-      {/* Floating + Button */}
       <TouchableOpacity
+        activeOpacity={0.8}
         onPress={() =>
           router.push(
             `/createMeeting?projectId=${projectId}&projectName=${projectName}`,
           )
         }
-        className="bg-indigo-600"
-        style={{
-          position: "absolute",
-          bottom: 44,
-          right: 20,
-
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          alignItems: "center",
-          justifyContent: "center",
-          elevation: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3,
-        }}
+        style={styles.fab}
+        className="absolute bottom-10 right-6 w-16 h-16 bg-[#5B4CCC] rounded-full items-center justify-center z-50"
       >
-        <Ionicons name="add" size={30} color="white" />
+        <HugeiconsIcon icon={Add01Icon} size={32} color="white" />
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fab: {
+    shadowColor: "#5B4CCC",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 25,
+  },
+});
 
 export default Minutes;
