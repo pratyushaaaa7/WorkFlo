@@ -35,7 +35,7 @@ const TABS = ["ALL", "WP", "WALL", "WCORP"];
 
 const ProjectSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
   <View
-    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-zinc-800 mx-4"
+    className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4 mx-4"
     style={{ opacity: 0.6 }}
   >
     <View className="flex-row items-center justify-between mb-3">
@@ -294,7 +294,7 @@ const ProjectsScreen = () => {
           })
         }
         activeOpacity={0.7}
-        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4 border border-gray-100 dark:border-zinc-800 mx-4"
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-4  mx-4"
       >
         {/* Card Header: Badges & Date */}
         <View className="flex-row items-center justify-between mb-3">

@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +8,7 @@ import {
   Platform,
   useColorScheme,
   Alert,
+  RefreshControl,
 } from "react-native";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
@@ -22,7 +22,7 @@ import {
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { LinearGradient } from "expo-linear-gradient";
@@ -47,7 +47,7 @@ const handleDownloadMinutes = async (
   projectName: any,
   accountName: any,
   company: any,
-  token: any
+  token: any,
 ) => {
   try {
     const payload = {
@@ -124,25 +124,37 @@ const MinutesDetail = () => {
 
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchMeeting = async () => {
+  const fetchMeeting = useCallback(
+    async (showLoader = true) => {
+      if (!meetingId) return;
       try {
-        setLoading(true);
+        if (showLoader) setLoading(true);
         const res = await api.get(`/minutes/${meetingId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
-        console.log(JSON.stringify(res.data, null, 2));
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
-        setLoading(false);
+        if (showLoader) setLoading(false);
+        setRefreshing(false);
       }
-    };
+    },
+    [meetingId, token]
+  );
 
-    if (meetingId) fetchMeeting();
-  }, [meetingId, token]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMeeting(true);
+    }, [fetchMeeting])
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchMeeting(false);
+  }, [fetchMeeting]);
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [exportMenuVisible, setExportMenuVisible] = useState(false);
@@ -188,7 +200,10 @@ const MinutesDetail = () => {
       {/* Header */}
       <View className="pt-14 pb-4 px-2 flex-row items-center justify-between bg-[#FBFCFD] dark:bg-black">
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-2.5 p-1">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-2.5 p-1"
+          >
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
               size={24}
@@ -207,13 +222,16 @@ const MinutesDetail = () => {
               color={isDarkMode ? "white" : "#0F172A"}
             />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="p-1"
             disabled={isDownloading}
             onPress={() => setExportMenuVisible(true)}
           >
             {isDownloading ? (
-              <ActivityIndicator size="small" color={isDarkMode ? "white" : "#0F172A"} />
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "white" : "#0F172A"}
+              />
             ) : (
               <HugeiconsIcon
                 icon={MoreHorizontalIcon}
@@ -274,12 +292,12 @@ const MinutesDetail = () => {
                       {
                         responseType: "blob",
                         headers: { Authorization: `Bearer ${token}` },
-                      }
+                      },
                     );
                     const fileName = `Meeting_${meeting.meetingNumber}_Minutes.pdf`;
                     if (Platform.OS === "web") {
                       const url = window.URL.createObjectURL(
-                        new Blob([response.data], { type: "application/pdf" })
+                        new Blob([response.data], { type: "application/pdf" }),
                       );
                       const a = document.createElement("a");
                       a.href = url;
@@ -292,7 +310,9 @@ const MinutesDetail = () => {
                         new Promise<string>((resolve, reject) => {
                           const reader = new FileReader();
                           reader.onloadend = () =>
-                            resolve(reader.result?.toString().split(",")[1] || "");
+                            resolve(
+                              reader.result?.toString().split(",")[1] || "",
+                            );
                           reader.onerror = reject;
                           reader.readAsDataURL(blob);
                         });
@@ -339,7 +359,7 @@ const MinutesDetail = () => {
                       projectName,
                       auth?.user?.fullName ?? "Unknown",
                       company,
-                      token
+                      token,
                     );
                   } finally {
                     setIsDownloading(false);
@@ -361,224 +381,360 @@ const MinutesDetail = () => {
         </View>
       )}
 
-      {/* Content */}
       <ScrollView
-         className="flex-1"
-         contentContainerStyle={{ paddingBottom: 120 }}
-         ref={scrollRef}
-         onScroll={(e) => {
-           setScrollForMeeting(
-             meetingId as string,
-             e.nativeEvent.contentOffset.y
-           );
-         }}
-         scrollEventThrottle={16}
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 120 }}
+        ref={scrollRef}
+        onScroll={(e) => {
+          setScrollForMeeting(
+            meetingId as string,
+            e.nativeEvent.contentOffset.y,
+          );
+        }}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5B4CCC"]}
+            tintColor={isDarkMode ? "#ffffff" : "#5B4CCC"}
+          />
+        }
       >
         {loading ? (
-           <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
+          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
         ) : meeting ? (
-           <View>
-             {/* Title */}
-             <View className="px-5 pt-2 pb-5 ">
-               <Text className="text-[22px] font-dmSemiBold text-[#0F172A] dark:text-white leading-tight">
-                 {projectName || `Meeting #${meetingNumber}`}
-               </Text>
-             </View>
+          <View>
+            {/* Title */}
+            <View className="px-5 pt-2 pb-2 ">
+              <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
+                {`Meeting #${meetingNumber}`}
+              </Text>
+            </View>
 
-             {/* Details */}
-             <View className="px-5 py-4 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
-                <View className="flex-row gap-4 items-center">
-                   <View className="w-6 items-center">
-                     <HugeiconsIcon icon={Calendar03Icon} size={22} color={isDarkMode ? "#919191" : "#454545"} />
-                   </View>
-                   <View>
-                     <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">Date</Text>
-                     <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
-                       {meetingDate ? new Date(Array.isArray(meetingDate) ? meetingDate[0] : meetingDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).replace(' ', ' ').replace(' ', ' ') : ""} at {meetingTime}
-                     </Text>
-                   </View>
+            {/* Details */}
+            <View className="px-4 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+              <View className="flex-row gap-4 items-center">
+                <View className="w-6 items-center">
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={22}
+                    color={isDarkMode ? "#919191" : "#454545"}
+                  />
                 </View>
-             </View>
-
-             <View className="px-5 py-4 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
-                <View className="flex-row gap-4 items-center">
-                   <View className="w-6 items-center">
-                     <HugeiconsIcon icon={Location01Icon} size={22} color={isDarkMode ? "#919191" : "#454545"} />
-                   </View>
-                   <View>
-                     <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">Location</Text>
-                     <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">{meetingVenue || "No venue added"}</Text>
-                   </View>
+                <View>
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                    Date
+                  </Text>
+                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                    {meetingDate
+                      ? new Date(
+                          Array.isArray(meetingDate)
+                            ? meetingDate[0]
+                            : meetingDate,
+                        )
+                          .toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                          .replace(" ", " ")
+                          .replace(" ", " ")
+                      : ""}{" "}
+                    at {meetingTime}
+                  </Text>
                 </View>
-             </View>
+              </View>
+            </View>
 
-             <View className="px-5 py-4 border-b-[8px] border-[#F8FAFC] dark:border-[#1A1A1A]">
-                <View className="flex-row gap-4 items-center">
-                   <View className="w-6 items-center">
-                     <HugeiconsIcon icon={UserCircleIcon} size={22} color={isDarkMode ? "#919191" : "#454545"} />
-                   </View>
-                   <View>
-                     <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">Created by</Text>
-                     <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
-                       {meeting.createdBy?.fullName || meeting.createdBy?.username || (typeof meeting.createdBy === "string" ? meeting.createdBy : "Unknown")}
-                     </Text>
-                   </View>
+            <View className="px-4 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+              <View className="flex-row gap-4 items-center">
+                <View className="w-6 items-center">
+                  <HugeiconsIcon
+                    icon={Location01Icon}
+                    size={22}
+                    color={isDarkMode ? "#919191" : "#454545"}
+                  />
                 </View>
-             </View>
+                <View>
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                    Location
+                  </Text>
+                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                    {meetingVenue || "No venue added"}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-             {/* Attendees */}
-             <View className="px-5 pt-6 pb-2">
-                <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-5">Attendees</Text>
-                {meeting.attendees?.map((attendee: any, index: number) => {
-                   const initials = attendee.attendeeName ? attendee.attendeeName.substring(0, 1).toUpperCase() : "?";
-                   const colors = [
-                     { bg: isDarkMode ? "#3F1D1D" : "#FFE5E5", text: isDarkMode ? "#FFB3B3" : "#D92D20" },
-                     { bg: isDarkMode ? "#1A2E4D" : "#E5F0FF", text: isDarkMode ? "#99C2FF" : "#175CD3" },
-                     { bg: isDarkMode ? "#271711" : "#FFEADD", text: isDarkMode ? "#FFAB73" : "#D95D20" },
-                     { bg: isDarkMode ? "#173E2B" : "#E5FBED", text: isDarkMode ? "#8CE3B0" : "#039855" },
-                   ];
-                   const colorTheme = colors[index % colors.length];
+            <View className="px-4 py-2 border-b-[6px] border-[#F6F8FA] dark:border-[#413E47]">
+              <View className="flex-row gap-4 items-center">
+                <View className="w-6 items-center">
+                  <HugeiconsIcon
+                    icon={UserCircleIcon}
+                    size={22}
+                    color={isDarkMode ? "#919191" : "#454545"}
+                  />
+                </View>
+                <View>
+                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] mb-0.5">
+                    Created by
+                  </Text>
+                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                    {meeting.createdBy?.fullName ||
+                      meeting.createdBy?.username ||
+                      (typeof meeting.createdBy === "string"
+                        ? meeting.createdBy
+                        : "Unknown")}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-                   return (
-                     <View key={attendee._id || index} className="flex-row items-center justify-between mb-5">
-                       <View className="flex-row items-center flex-1">
-                         <View className="w-10 h-10 rounded-full items-center justify-center mr-4" style={{ backgroundColor: colorTheme.bg }}>
-                           <Text className="font-dmMedium text-[16px]" style={{ color: colorTheme.text }}>{initials}</Text>
-                         </View>
-                         <View className="flex-1">
-                           <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white mb-0.5">{attendee.attendeeName}</Text>
-                           <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">{attendee.designation || 'Role'} | {attendee.organization || 'Company'}</Text>
-                         </View>
-                       </View>
-                       <Ionicons name="chevron-forward" size={20} color={isDarkMode ? "#606060" : "#94A3B8"} />
-                     </View>
-                   );
-                })}
-             </View>
+            <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
 
-             <View className="h-[8px] bg-[#F8FAFC] dark:border-t dark:border-b dark:border-[#1A1A1A] dark:bg-black w-full" />
+            {/* Attendees */}
+            <View className="px-5 pt-6 pb-2">
+              <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-5">
+                Attendees
+              </Text>
+              {meeting.attendees?.map((attendee: any, index: number) => {
+                const initials = attendee.attendeeName
+                  ? attendee.attendeeName.substring(0, 1).toUpperCase()
+                  : "?";
+                const colors = [
+                  {
+                    bg: isDarkMode ? "#3F1D1D" : "#FFE5E5",
+                    text: isDarkMode ? "#FFB3B3" : "#D92D20",
+                  },
+                  {
+                    bg: isDarkMode ? "#1A2E4D" : "#E5F0FF",
+                    text: isDarkMode ? "#99C2FF" : "#175CD3",
+                  },
+                  {
+                    bg: isDarkMode ? "#271711" : "#FFEADD",
+                    text: isDarkMode ? "#FFAB73" : "#D95D20",
+                  },
+                  {
+                    bg: isDarkMode ? "#173E2B" : "#E5FBED",
+                    text: isDarkMode ? "#8CE3B0" : "#039855",
+                  },
+                ];
+                const colorTheme = colors[index % colors.length];
 
-             {/* Minutes */}
-             <View className="px-5 pt-6">
-                <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">Minutes</Text>
-                {meeting.minutes?.map((minute: any) => {
-                   let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
-                   let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
-                   let statusLabel = "In Progress";
+                return (
+                  <View
+                    key={attendee._id || index}
+                    className="flex-row items-center justify-between mb-5"
+                  >
+                    <View className="flex-row items-center flex-1">
+                      <View
+                        className="w-10 h-10 rounded-full items-center justify-center mr-4"
+                        style={{ backgroundColor: colorTheme.bg }}
+                      >
+                        <Text
+                          className="font-dmMedium text-[16px]"
+                          style={{ color: colorTheme.text }}
+                        >
+                          {initials}
+                        </Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white mb-0.5">
+                          {attendee.attendeeName}
+                        </Text>
+                        <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
+                          {attendee.designation || "Role"} |{" "}
+                          {attendee.organization || "Company"}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={isDarkMode ? "#606060" : "#94A3B8"}
+                    />
+                  </View>
+                );
+              })}
+            </View>
 
-                   if (minute.status === "closed") {
-                     badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
-                     badgeText = "#1AA45B";
-                     statusLabel = "Completed";
-                   } else if (minute.status === "open") {
-                     // In progress
-                   } else if (minute.status === "forInfo") {
-                     badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
-                     badgeText = isDarkMode ? "#BBBBBB" : "#475569";
-                     statusLabel = "For Info";
-                   }
+            <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
+            {/* Minutes */}
+            <View className="px-5 pt-6">
+              <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
+                Minutes
+              </Text>
+              {meeting.minutes?.map((minute: any) => {
+                let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
+                let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
+                let statusLabel = "In Progress";
 
-                   return (
-                     <TouchableOpacity
-                       key={minute._id}
-                       onPress={() => router.push({
-                         pathname: "/minuteDetail",
-                         params: {
-                           id: minute._id,
-                           meetingId: meeting._id,
-                           serialNo: minute.serialNo,
-                           issueSubject: minute.issueSubject,
-                           description: minute.description ?? "",
-                           raisedBy: JSON.stringify(minute.raisedBy),
-                           responsibility: JSON.stringify(minute.responsibility),
-                           responsibilityForInfo: minute.responsibilityForInfo ? "true" : "false",
-                           targetDate: minute.targetDate,
-                           targetDateForInfo: minute.targetDateForInfo ? "true" : "false",
-                           status: minute.status,
-                           remarks: minute.remarks ?? "",
-                         },
-                       })}
-                       activeOpacity={0.7}
-                       className="bg-white dark:bg-[#121212] rounded-[16px] p-4 mb-4"
-                      //  style={!isDarkMode ? {
-                      //     shadowColor: "#000",
-                      //     shadowOffset: { width: 0, height: 2 },
-                      //     shadowOpacity: 0.05,
-                      //     shadowRadius: 10,
-                      //     elevation: 2,
-                      //  } : { borderWidth: 1, borderColor: "#262626" }}
-                     >
-                       <View className="flex-row items-center justify-between mb-4">
-                         <View className="px-2.5 py-1.5 rounded-lg flex-row items-center" style={{ backgroundColor: badgeBg }}>
-                           <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: badgeText }} />
-                           <Text className="text-[11px] font-poppinsMedium" style={{ color: badgeText }}>{statusLabel}</Text>
-                         </View>
-                         
-                         {minute.targetDate && !minute.targetDateForInfo && (
-                           <View className="flex-row items-center">
-                             <Ionicons name="calendar-outline" size={12} color="#EF4444" />
-                             <Text className="text-[11px] font-poppinsMedium text-[#EF4444] ml-1">
-                               Delay - 52
-                             </Text>
-                           </View>
-                         )}
-                       </View>
+                if (minute.status === "closed") {
+                  badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
+                  badgeText = "#1AA45B";
+                  statusLabel = "Completed";
+                } else if (minute.status === "open") {
+                  // In progress
+                } else if (minute.status === "forInfo") {
+                  badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
+                  badgeText = isDarkMode ? "#BBBBBB" : "#475569";
+                  statusLabel = "For Info";
+                }
 
-                       <Text className="text-[16px] font-dmSemiBold text-[#0F172A] dark:text-white mb-1.5 leading-tight">
-                         {minute.serialNo}. {minute.issueSubject}
-                       </Text>
-                       
-                       {minute.description && (
-                         <Text className="text-[13px] font-poppins text-[#475569] dark:text-[#919191] mb-4 leading-relaxed line-clamp-2">
-                           {minute.description}
-                         </Text>
-                       )}
+                return (
+                  <TouchableOpacity
+                    key={minute._id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/minuteDetail",
+                        params: {
+                          id: minute._id,
+                          meetingId: meeting._id,
+                          serialNo: minute.serialNo,
+                          issueSubject: minute.issueSubject,
+                          description: minute.description ?? "",
+                          raisedBy: JSON.stringify(minute.raisedBy),
+                          responsibility: JSON.stringify(minute.responsibility),
+                          responsibilityForInfo: minute.responsibilityForInfo
+                            ? "true"
+                            : "false",
+                          targetDate: minute.targetDate,
+                          targetDateForInfo: minute.targetDateForInfo
+                            ? "true"
+                            : "false",
+                          status: minute.status,
+                          remarks: minute.remarks ?? "",
+                        },
+                      })
+                    }
+                    activeOpacity={0.7}
+                    className="bg-white dark:bg-[#121212] rounded-[16px] p-4 mb-4"
+                    //  style={!isDarkMode ? {
+                    //     shadowColor: "#000",
+                    //     shadowOffset: { width: 0, height: 2 },
+                    //     shadowOpacity: 0.05,
+                    //     shadowRadius: 10,
+                    //     elevation: 2,
+                    //  } : { borderWidth: 1, borderColor: "#262626" }}
+                  >
+                    <View className="flex-row items-center justify-between mb-4">
+                      <View
+                        className="px-2.5 py-1.5 rounded-lg flex-row items-center"
+                        style={{ backgroundColor: badgeBg }}
+                      >
+                        <View
+                          className="w-1.5 h-1.5 rounded-full mr-1.5"
+                          style={{ backgroundColor: badgeText }}
+                        />
+                        <Text
+                          className="text-[11px] font-poppinsMedium"
+                          style={{ color: badgeText }}
+                        >
+                          {statusLabel}
+                        </Text>
+                      </View>
 
-                       <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
-                         <View className="flex-row items-center">
-                           {minute.responsibility && minute.responsibility.slice(0, 3).map((r: any, idx: number) => {
-                             const init = r.name ? r.name.substring(0, 1).toUpperCase() : "?";
-                             const colors = [
-                               { bg: isDarkMode ? "#1A2E4D" : "#E5F0FF", text: isDarkMode ? "#99C2FF" : "#175CD3" },
-                               { bg: isDarkMode ? "#3F1D1D" : "#FFE5E5", text: isDarkMode ? "#FFB3B3" : "#D92D20" },
-                               { bg: isDarkMode ? "#173E2B" : "#E5FBED", text: isDarkMode ? "#8CE3B0" : "#039855" },
-                             ];
-                             const theme = colors[idx % colors.length];
-                             return (
-                               <View key={idx} className={`w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] ${idx > 0 ? '-ml-2' : ''}`} style={{ backgroundColor: theme.bg }}>
-                                 <Text className="text-[10px] font-dmMedium" style={{ color: theme.text }}>{init}</Text>
-                               </View>
-                             );
-                           })}
-                           {minute.responsibility && minute.responsibility.length > 3 && (
-                             <View className="w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] -ml-2 bg-[#F1F5F9] dark:bg-[#000]">
-                               <Text className="text-[10px] font-dmMedium text-[#64748B] dark:text-[#919191]">
-                                 +{minute.responsibility.length - 3}
-                               </Text>
-                             </View>
-                           )}
-                         </View>
+                      {minute.targetDate && !minute.targetDateForInfo && (
+                        <View className="flex-row items-center">
+                          <Ionicons
+                            name="calendar-outline"
+                            size={12}
+                            color="#EF4444"
+                          />
+                          <Text className="text-[11px] font-poppinsMedium text-[#EF4444] ml-1">
+                            Delay - 52
+                          </Text>
+                        </View>
+                      )}
+                    </View>
 
-                         <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1E1E1E] px-2 py-1.5 rounded-full">
-                           <Ionicons name="attach" size={14} color={isDarkMode ? "#919191" : "#64748B"} style={{ transform: [{rotate: '45deg'}] }} />
-                           <Text className="text-[12px] font-poppinsMedium text-[#64748B] dark:text-[#919191] ml-0.5">8</Text>
-                         </View>
-                       </View>
-                     </TouchableOpacity>
-                   );
-                })}
-             </View>
-           </View>
+                    <Text className="text-[16px] font-dmSemiBold text-[#0F172A] dark:text-white mb-1.5 leading-tight">
+                      {minute.serialNo}. {minute.issueSubject}
+                    </Text>
+
+                    {minute.description && (
+                      <Text className="text-[13px] font-poppins text-[#475569] dark:text-[#919191] mb-4 leading-relaxed line-clamp-2">
+                        {minute.description}
+                      </Text>
+                    )}
+
+                    <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
+                      <View className="flex-row items-center">
+                        {minute.responsibility &&
+                          minute.responsibility
+                            .slice(0, 3)
+                            .map((r: any, idx: number) => {
+                              const init = r.name
+                                ? r.name.substring(0, 1).toUpperCase()
+                                : "?";
+                              const colors = [
+                                {
+                                  bg: isDarkMode ? "#1A2E4D" : "#E5F0FF",
+                                  text: isDarkMode ? "#99C2FF" : "#175CD3",
+                                },
+                                {
+                                  bg: isDarkMode ? "#3F1D1D" : "#FFE5E5",
+                                  text: isDarkMode ? "#FFB3B3" : "#D92D20",
+                                },
+                                {
+                                  bg: isDarkMode ? "#173E2B" : "#E5FBED",
+                                  text: isDarkMode ? "#8CE3B0" : "#039855",
+                                },
+                              ];
+                              const theme = colors[idx % colors.length];
+                              return (
+                                <View
+                                  key={idx}
+                                  className={`w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] ${idx > 0 ? "-ml-2" : ""}`}
+                                  style={{ backgroundColor: theme.bg }}
+                                >
+                                  <Text
+                                    className="text-[10px] font-dmMedium"
+                                    style={{ color: theme.text }}
+                                  >
+                                    {init}
+                                  </Text>
+                                </View>
+                              );
+                            })}
+                        {minute.responsibility &&
+                          minute.responsibility.length > 3 && (
+                            <View className="w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] -ml-2 bg-[#F1F5F9] dark:bg-[#000]">
+                              <Text className="text-[10px] font-dmMedium text-[#64748B] dark:text-[#919191]">
+                                +{minute.responsibility.length - 3}
+                              </Text>
+                            </View>
+                          )}
+                      </View>
+
+                      <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1E1E1E] px-2 py-1.5 rounded-full">
+                        <Ionicons
+                          name="attach"
+                          size={14}
+                          color={isDarkMode ? "#919191" : "#64748B"}
+                          style={{ transform: [{ rotate: "45deg" }] }}
+                        />
+                        <Text className="text-[12px] font-poppinsMedium text-[#64748B] dark:text-[#919191] ml-0.5">
+                          8
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         ) : (
-           <Text className="text-center mt-10 text-gray-500">
-             Meeting not found
-           </Text>
+          <Text className="text-center mt-10 text-gray-500">
+            Meeting not found
+          </Text>
         )}
       </ScrollView>
 
       {/* Sticky Bottom Edit Button */}
       {isEditAllowed && (
-        <View 
+        <View
           className="px-3 pt-4 bg-[#FBFCFD] dark:bg-black border-t border-[#F1F5F9] dark:border-[#1A1A1A] flex-row items-center justify-between"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
         >
@@ -608,7 +764,9 @@ const MinutesDetail = () => {
               className="px-10 py-3 items-center justify-center"
               style={{ borderRadius: 8 }}
             >
-              <Text className="text-white font-poppins text-[16px]">Edit MOM</Text>
+              <Text className="text-white font-poppins text-[16px]">
+                Edit MOM
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

@@ -178,7 +178,7 @@ const OverviewTab = ({
             {[1, 2, 3].map((i) => (
               <View
                 key={i}
-                className="px-3 py-2 bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-[#2B2B2B]"
+                className="px-3 py-2 bg-white dark:bg-[#1A1A1A] rounded-2xl"
               >
                 <Skeleton
                   colorMode={isDarkMode ? "dark" : "light"}

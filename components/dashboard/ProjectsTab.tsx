@@ -42,8 +42,7 @@ const ProjectSkeleton = () => {
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
-        borderWidth: 1,
-        borderColor: isDarkMode ? "#222" : "#F3F4F6",
+     
       }}
     >
       <View className="flex-row items-center justify-between mb-4">
@@ -172,7 +171,7 @@ const ProjectCard = memo(
       <TouchableOpacity
         onPress={handlePress}
         activeOpacity={0.7}
-        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-gray-100 dark:border-zinc-800"
+        className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-4 mb-3"
       >
         {/* Header Row */}
         <View className="flex-row items-center justify-between mb-3">
