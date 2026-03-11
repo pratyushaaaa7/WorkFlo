@@ -232,27 +232,35 @@ const CreateNote = () => {
 
           <View className="flex-row items-center gap-4">
             {noteId ? (
-              <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
-                <HugeiconsIcon
-                  icon={Delete03Icon}
-                  size={24}
-                  color={iconColor}
-                />
-              </TouchableOpacity>
-            ) : !showTick ? (
-              <TouchableOpacity onPress={() => router.back()}>
-                <HugeiconsIcon
-                  icon={Delete03Icon}
-                  size={24}
-                  color={iconColor}
-                />
-              </TouchableOpacity>
-            ) : null}
-
-            {showTick && (
-              <TouchableOpacity onPress={handleSave} disabled={loading}>
-                <HugeiconsIcon icon={Tick02Icon} size={24} color={iconColor} />
-              </TouchableOpacity>
+              // Editing Mode
+              hasChanges ? (
+                <TouchableOpacity onPress={handleSave} disabled={loading}>
+                  <HugeiconsIcon
+                    icon={Tick02Icon}
+                    size={24}
+                    color={iconColor}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => setDeleteModalVisible(true)}>
+                  <HugeiconsIcon
+                    icon={Delete03Icon}
+                    size={24}
+                    color={iconColor}
+                  />
+                </TouchableOpacity>
+              )
+            ) : (
+              // Creation Mode
+              hasChanges && (
+                <TouchableOpacity onPress={handleSave} disabled={loading}>
+                  <HugeiconsIcon
+                    icon={Tick02Icon}
+                    size={24}
+                    color={iconColor}
+                  />
+                </TouchableOpacity>
+              )
             )}
           </View>
         </View>
