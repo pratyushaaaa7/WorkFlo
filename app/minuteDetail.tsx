@@ -1,24 +1,23 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
+  Text,
   // Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Pressable,
-  Platform,
-  Alert,
-  ActivityIndicator,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
-import { LinearGradient } from "expo-linear-gradient";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
-import Modal from "react-native-modal";
 
 const STATUS_OPTIONS = ["open", "closed", "forwarded", "forInfo"] as const;
 
@@ -98,29 +97,29 @@ const MinuteDetail = () => {
     params.targetDateForInfo === "true"
       ? "For Information"
       : _targetDateParam
-      ? fmtDate(_targetDateParam)
-      : "—";
+        ? fmtDate(_targetDateParam)
+        : "—";
 
   const responsibilityArr = useMemo(
     () =>
       params.responsibilityForInfo === "true"
         ? []
         : parseJsonSafe(params.responsibility).map(
-            (r: any) => r.individualName || r.name || r
+            (r: any) => r.individualName || r.name || r,
           ),
-    [params.responsibility, params.responsibilityForInfo]
+    [params.responsibility, params.responsibilityForInfo],
   );
   const raisedByArr = useMemo(
     () =>
       parseJsonSafe(params.raisedBy).map(
-        (r: any) => r.individualName || r.name || r
+        (r: any) => r.individualName || r.name || r,
       ),
-    [params.raisedBy]
+    [params.raisedBy],
   );
 
   // --- Status & notes ---
   const [status, setStatus] = useState<Status>(
-    (params.status as string as Status) || "open"
+    (params.status as string as Status) || "open",
   );
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +132,7 @@ const MinuteDetail = () => {
 
   const [newTargetDate, setNewTargetDate] = useState<Date | null>(null);
   const [isForInfoTarget, setIsForInfoTarget] = useState(
-    params.targetDateForInfo === "true"
+    params.targetDateForInfo === "true",
   );
   const [tempNoteText, setTempNoteText] = useState("");
   const [targetModalVisible, setTargetModalVisible] = useState(false);
@@ -179,9 +178,9 @@ const MinuteDetail = () => {
             a.fieldChanged === "status"
               ? "status"
               : a.fieldChanged === "targetDate" ||
-                a.fieldChanged === "targetDateForInfo"
-              ? "targetDate"
-              : "activity",
+                  a.fieldChanged === "targetDateForInfo"
+                ? "targetDate"
+                : "activity",
 
           fieldChanged: a.fieldChanged,
           action: a.action,
@@ -316,7 +315,7 @@ const MinuteDetail = () => {
   };
 
   const activityLog = [...notes, ...activities].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
   );
 
   // console.log("Fetching minute detail", { meetingId, minuteId, token: !!auth?.token });
@@ -390,8 +389,8 @@ const MinuteDetail = () => {
             {params.responsibilityForInfo === "true"
               ? "For Information"
               : responsibilityArr.length
-              ? responsibilityArr.join(", ")
-              : "—"}
+                ? responsibilityArr.join(", ")
+                : "—"}
           </Text>
           <Text className="text-sm text-gray-500 mt-2">
             <Text className="font-semibold text-gray-700">Target Date: </Text>
@@ -400,8 +399,8 @@ const MinuteDetail = () => {
                 ? minuteData.targetDateForInfo
                   ? "For Information"
                   : minuteData.targetDate
-                  ? fmtDate(minuteData.targetDate)
-                  : "—"
+                    ? fmtDate(minuteData.targetDate)
+                    : "—"
                 : targetDate // <-- SHOW PARAM BEFORE API LOADS
             }
           </Text>
@@ -501,7 +500,7 @@ const MinuteDetail = () => {
                   {/* Content */}
                   <View
                     className={`ml-3 flex-1 p-2 rounded-xl ${getActivityBg(
-                      item
+                      item,
                     )}`}
                   >
                     {/* Username */}
@@ -528,16 +527,16 @@ const MinuteDetail = () => {
                               ? item.fieldChanged === "status"
                                 ? item.oldValue
                                 : item.oldValue === "For Information"
-                                ? "For Information"
-                                : fmtDate(item.oldValue)
+                                  ? "For Information"
+                                  : fmtDate(item.oldValue)
                               : "—"
                           } → To: ${
                             item.newValue
                               ? item.fieldChanged === "status"
                                 ? item.newValue
                                 : item.newValue === "For Information"
-                                ? "For Information"
-                                : fmtDate(item.newValue)
+                                  ? "For Information"
+                                  : fmtDate(item.newValue)
                               : "—"
                           }`}
                         </Text>
@@ -624,37 +623,37 @@ const MinuteDetail = () => {
                   s === "open"
                     ? "bg-red-50"
                     : s === "closed"
-                    ? "bg-green-50"
-                    : s === "forwarded"
-                    ? "bg-yellow-50"
-                    : "bg-emerald-50";
+                      ? "bg-green-50"
+                      : s === "forwarded"
+                        ? "bg-yellow-50"
+                        : "bg-emerald-50";
 
                 const textColor =
                   s === "open"
                     ? "text-red-600"
                     : s === "closed"
-                    ? "text-green-600"
-                    : s === "forwarded"
-                    ? "text-yellow-600"
-                    : "text-emerald-700";
+                      ? "text-green-600"
+                      : s === "forwarded"
+                        ? "text-yellow-600"
+                        : "text-emerald-700";
 
                 const activeBg =
                   s === "open"
                     ? "bg-red-500"
                     : s === "closed"
-                    ? "bg-green-500"
-                    : s === "forwarded"
-                    ? "bg-yellow-500"
-                    : "bg-emerald-500";
+                      ? "bg-green-500"
+                      : s === "forwarded"
+                        ? "bg-yellow-500"
+                        : "bg-emerald-500";
 
                 const borderColor =
                   s === "open"
                     ? "#FCA5A5" // red-300
                     : s === "closed"
-                    ? "#86EFAC" // green-300
-                    : s === "forwarded"
-                    ? "#FDE047" // yellow-300
-                    : "#6EE7B7"; // emerald-300
+                      ? "#86EFAC" // green-300
+                      : s === "forwarded"
+                        ? "#FDE047" // yellow-300
+                        : "#6EE7B7"; // emerald-300
 
                 return (
                   <TouchableOpacity
