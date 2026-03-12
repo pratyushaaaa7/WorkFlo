@@ -39,6 +39,10 @@ import {
   useColorScheme,
 } from "react-native";
 import Modal from "react-native-modal";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GlobalAvatar from "@/components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
@@ -168,7 +172,7 @@ const MinuteDetail = () => {
   const auth = useContext(AuthContext);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const { top } = useSafeAreaInsets();
+  const { top, bottom } = useSafeAreaInsets();
 
   const minuteId = (params.id as string) || (params.minuteId as string);
   const meetingId =
@@ -244,10 +248,33 @@ const MinuteDetail = () => {
   const [projectUsers, setProjectUsers] = useState<any[]>([]);
   const [loadingProjectUsers, setLoadingProjectUsers] = useState(false);
   const [assigneeSearchQuery, setAssigneeSearchQuery] = useState("");
+  const [newNote, setNewNote] = useState("");
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
+  };
+
+  const noteInputRef = React.useRef<TextInput>(null);
+
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+    Keyboard.dismiss();
+    setSaving(true);
+    try {
+      await api.post(
+        `/minutes/${meetingId}/minutes/${minuteId}/notes`,
+        { text: newNote },
+        { headers: { Authorization: `Bearer ${auth?.token}` } },
+      );
+      setNewNote("");
+      fetchActivityLog();
+    } catch (err) {
+      console.error("Failed to add note:", err);
+      Alert.alert("Error", "Failed to add note. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const fetchProjectUsers = async () => {
@@ -509,7 +536,7 @@ const MinuteDetail = () => {
         </View>
       </View>
       <View className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
           className="px-4"
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
@@ -891,8 +918,7 @@ const MinuteDetail = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                setSelectedStatus(status);
-                setModalVisible(true);
+                noteInputRef.current?.focus();
               }}
               className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${isDark ? "bg-zinc-900" : "bg-gray-100"}`}
             >
@@ -1104,8 +1130,50 @@ const MinuteDetail = () => {
               })}
             </View>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
+
+      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+        <View
+          className="px-3 py-2 pb-6 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
+          style={{
+            borderColor: isDark ? "#413E47" : "#E0E5EB",
+            paddingBottom: bottom > 0 ? bottom : 0,
+          }}
+        >
+          <View className="flex-1 pb-4 flex-row items-end">
+            <TextInput
+              ref={noteInputRef}
+              value={newNote}
+              onChangeText={setNewNote}
+              placeholder="Write a Note..."
+              placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+              className="flex-1 text-black dark:text-white font-poppins text-[15px] max-h-[120px]"
+              multiline
+              style={{ paddingBottom: Platform.OS === "ios" ? 4 : 0 }}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={addNote}
+            disabled={!newNote.trim() || saving}
+            className={`ml-3 w-11 h-11 mb-2 rounded-full items-center justify-center shadow-lg ${
+              newNote.trim() && !saving ? "bg-[#5B4CCC]" : "bg-[#9CA3AF]"
+            }`}
+            activeOpacity={0.8}
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={20}
+                color="#FFFFFF"
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardStickyView>
 
       {/* Modal for status + note */}
       <Modal
