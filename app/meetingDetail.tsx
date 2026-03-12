@@ -143,6 +143,7 @@ const MinutesDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMeeting(res.data);
+        console.log("Meeting data:", res.data);
       } catch (err) {
         console.error("Failed to fetch meeting", err);
       } finally {
@@ -200,7 +201,7 @@ const MinutesDetail = () => {
       });
     });
   }, [meeting]);
-
+ 
   const isDarkMode = useColorScheme() === "dark";
 
   return (
@@ -506,38 +507,40 @@ const MinutesDetail = () => {
               <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
                 Attendees
               </Text>
-              {meeting.attendees?.map((attendee: any, index: number) => {
-                return (
-                  <View
-                    key={attendee._id || index}
-                    className="flex-row items-center justify-between mb-4"
-                  >
-                    <View className="flex-row items-center flex-1">
-                      <GlobalAvatar
-                        name={attendee.attendeeName}
-                        size={40}
-                        fontSize={16}
-                        index={index}
-                        className="mr-4"
-                      />
-                      <View className="flex-1">
-                        <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
-                          {attendee.attendeeName}
-                        </Text>
-                        <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
-                          {attendee.designation || "Role"} |{" "}
-                          {attendee.organization || "Company"}
-                        </Text>
+              {(Array.isArray(meeting.attendees) ? meeting.attendees : []).map(
+                (attendee: any, index: number) => {
+                  return (
+                    <View
+                      key={attendee._id || index}
+                      className="flex-row items-center justify-between mb-4"
+                    >
+                      <View className="flex-row items-center flex-1">
+                        <GlobalAvatar
+                          name={attendee.attendeeName}
+                          size={40}
+                          fontSize={16}
+                          index={index}
+                          className="mr-4"
+                        />
+                        <View className="flex-1">
+                          <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
+                            {attendee.attendeeName}
+                          </Text>
+                          <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
+                            {attendee.designation || "Role"} |{" "}
+                            {attendee.organization || "Company"}
+                          </Text>
+                        </View>
                       </View>
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={20}
+                        color={isDarkMode ? "#919191" : "#919191"}
+                      />
                     </View>
-                    <HugeiconsIcon
-                      icon={ArrowRight01Icon}
-                      size={20}
-                      color={isDarkMode ? "#919191" : "#919191"}
-                    />
-                  </View>
-                );
-              })}
+                  );
+                },
+              )}
             </View>
 
             <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
@@ -546,104 +549,109 @@ const MinutesDetail = () => {
               <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
                 Minutes
               </Text>
-              {meeting.minutes?.map((minute: any) => {
-                let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
-                let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
-                let statusLabel = "In Progress";
+              {(Array.isArray(meeting.minutes) ? meeting.minutes : []).map(
+                (minute: any) => {
+                  let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
+                  let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
+                  let statusLabel = "In Progress";
 
-                if (minute.status === "closed") {
-                  badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
-                  badgeText = "#1AA45B";
-                  statusLabel = "Completed";
-                } else if (minute.status === "open") {
-                  // In progress
-                } else if (minute.status === "forInfo") {
-                  badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
-                  badgeText = isDarkMode ? "#BBBBBB" : "#475569";
-                  statusLabel = "For Info";
-                }
+                  if (minute.status === "closed") {
+                    badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
+                    badgeText = "#1AA45B";
+                    statusLabel = "Completed";
+                  } else if (minute.status === "open") {
+                    // In progress
+                  } else if (minute.status === "forInfo") {
+                    badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
+                    badgeText = isDarkMode ? "#BBBBBB" : "#475569";
+                    statusLabel = "For Info";
+                  }
 
-                return (
-                  <TouchableOpacity
-                    key={minute._id}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/minuteDetail",
-                        params: {
-                          id: minute._id,
-                          meetingId: meeting._id,
-                          serialNo: minute.serialNo,
-                          issueSubject: minute.issueSubject,
-                          description: minute.description ?? "",
-                          raisedBy: JSON.stringify(minute.raisedBy),
-                          responsibility: JSON.stringify(minute.responsibility),
-                          responsibilityForInfo: minute.responsibilityForInfo
-                            ? "true"
-                            : "false",
-                          targetDate: minute.targetDate,
-                          targetDateForInfo: minute.targetDateForInfo
-                            ? "true"
-                            : "false",
-                          status: minute.status,
-                          remarks: minute.remarks ?? "",
-                        },
-                      })
-                    }
-                    activeOpacity={0.7}
-                    className="bg-white dark:bg-[#121212] rounded-[16px] px-3 py-3 mb-3"
-                    //  style={!isDarkMode ? {
-                    //     shadowColor: "#000",
-                    //     shadowOffset: { width: 0, height: 2 },
-                    //     shadowOpacity: 0.05,
-                    //     shadowRadius: 10,
-                    //     elevation: 2,
-                    //  } : { borderWidth: 1, borderColor: "#262626" }}
-                  >
-                    <View className="flex-row items-center justify-between mb-4">
-                      <View
-                        className="px-2.5 py-1.5 rounded-lg flex-row items-center"
-                        style={{ backgroundColor: badgeBg }}
-                      >
+                  return (
+                    <TouchableOpacity
+                      key={minute._id}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/minuteDetail",
+                          params: {
+                            id: minute._id,
+                            meetingId: meeting._id,
+                            serialNo: minute.serialNo,
+                            issueSubject: minute.issueSubject,
+                            description: minute.description ?? "",
+                            raisedBy: JSON.stringify(minute.raisedBy),
+                            responsibility: JSON.stringify(
+                              minute.responsibility,
+                            ),
+                            responsibilityForInfo: minute.responsibilityForInfo
+                              ? "true"
+                              : "false",
+                            targetDate: minute.targetDate,
+                            targetDateForInfo: minute.targetDateForInfo
+                              ? "true"
+                              : "false",
+                            status: minute.status,
+                            remarks: minute.remarks ?? "",
+                          },
+                        })
+                      }
+                      activeOpacity={0.7}
+                      className="bg-white dark:bg-[#121212] rounded-[16px] px-3 py-3 mb-3"
+                      //  style={!isDarkMode ? {
+                      //     shadowColor: "#000",
+                      //     shadowOffset: { width: 0, height: 2 },
+                      //     shadowOpacity: 0.05,
+                      //     shadowRadius: 10,
+                      //     elevation: 2,
+                      //  } : { borderWidth: 1, borderColor: "#262626" }}
+                    >
+                      <View className="flex-row items-center justify-between mb-4">
                         <View
-                          className="w-1.5 h-1.5 rounded-full mr-1.5"
-                          style={{ backgroundColor: badgeText }}
-                        />
-                        <Text
-                          className="text-[11px] font-poppinsMedium"
-                          style={{ color: badgeText }}
+                          className="px-2.5 py-1.5 rounded-lg flex-row items-center"
+                          style={{ backgroundColor: badgeBg }}
                         >
-                          {statusLabel}
-                        </Text>
-                      </View>
-
-                      {minute.targetDate && !minute.targetDateForInfo && (
-                        <View className="flex-row items-center">
-                          <HugeiconsIcon
-                            name="Calendar03Icon"
-                            size={12}
-                            color="#DF5B5B"
+                          <View
+                            className="w-1.5 h-1.5 rounded-full mr-1.5"
+                            style={{ backgroundColor: badgeText }}
                           />
-                          <Text className="text-[11px] font-poppinsMedium text-[#DF5B5B] ml-1">
-                            Delay - 52
+                          <Text
+                            className="text-[11px] font-poppinsMedium"
+                            style={{ color: badgeText }}
+                          >
+                            {statusLabel}
                           </Text>
                         </View>
-                      )}
-                    </View>
 
-                    <Text className="text-[16px] font-dmSemiBold text-[#0F172A] dark:text-white mb-1.5 leading-tight">
-                      {minute.serialNo}. {minute.issueSubject}
-                    </Text>
+                        {minute.targetDate && !minute.targetDateForInfo && (
+                          <View className="flex-row items-center">
+                            <HugeiconsIcon
+                              name="Calendar03Icon"
+                              size={12}
+                              color="#DF5B5B"
+                            />
+                            <Text className="text-[11px] font-poppinsMedium text-[#DF5B5B] ml-1">
+                              Delay - 52
+                            </Text>
+                          </View>
+                        )}
+                      </View>
 
-                    {minute.description && (
-                      <Text className="text-[13px] font-poppins text-[#475569] dark:text-[#919191] mb-4 leading-relaxed line-clamp-2">
-                        {minute.description}
+                      <Text className="text-[16px] font-dmSemiBold text-[#0F172A] dark:text-white mb-1.5 leading-tight">
+                        {minute.serialNo}. {minute.issueSubject}
                       </Text>
-                    )}
 
-                    <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
-                      <View className="flex-row items-center">
-                        {minute.responsibility &&
-                          minute.responsibility
+                      {minute.description && (
+                        <Text className="text-[13px] font-poppins text-[#475569] dark:text-[#919191] mb-4 leading-relaxed line-clamp-2">
+                          {minute.description}
+                        </Text>
+                      )}
+
+                        <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
+                        <View className="flex-row items-center">
+                          {(Array.isArray(minute.responsibility)
+                            ? minute.responsibility
+                            : []
+                          )
                             .slice(0, 3)
                             .map((r: any, idx: number) => {
                               return (
@@ -657,28 +665,16 @@ const MinutesDetail = () => {
                                 />
                               );
                             })}
-                        {minute.responsibility &&
-                          minute.responsibility.length > 3 && (
-                            <View className="w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] -ml-2 bg-[#F1F5F9] dark:bg-[#000]">
-                              <Text className="text-[10px] font-dmMedium text-[#64748B] dark:text-[#919191]">
-                                +{minute.responsibility.length - 3}
-                              </Text>
-                            </View>
-                          )}
+                          {Array.isArray(minute.responsibility) &&
+                            minute.responsibility.length > 3 && (
+                              <View className="w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] -ml-2 bg-[#F1F5F9] dark:bg-[#000]">
+                                <Text className="text-[10px] font-dmMedium text-[#64748B] dark:text-[#919191]">
+                                  +{minute.responsibility.length - 3}
+                                </Text>
+                              </View>
+                            )}
+                        </View>
                       </View>
-
-                      {/* <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1E1E1E] px-2 py-1.5 rounded-full">
-                        <Ionicons
-                          name="attach"
-                          size={14}
-                          color={isDarkMode ? "#919191" : "#64748B"}
-                          style={{ transform: [{ rotate: "45deg" }] }}
-                        />
-                        <Text className="text-[12px] font-poppinsMedium text-[#64748B] dark:text-[#919191] ml-0.5">
-                          8
-                        </Text>
-                      </View> */}
-                    </View>
                   </TouchableOpacity>
                 );
               })}

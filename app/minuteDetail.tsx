@@ -54,7 +54,8 @@ const humanLabel = (s: string) => {
 const parseJsonSafe = (val: any) => {
   if (!val) return [];
   try {
-    return typeof val === "string" ? JSON.parse(val) : val;
+    const parsed = typeof val === "string" ? JSON.parse(val) : val;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }

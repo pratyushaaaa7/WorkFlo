@@ -1,16 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   ArrowLeft01Icon,
   Calendar03Icon,
   CheckmarkCircle02Icon,
+  DashedLineCircleIcon,
+  Delete03Icon,
   Location01Icon,
   Search01Icon,
   Tick01Icon,
   UserCircleIcon,
-  UserIcon,
-  DashedLineCircleIcon,
-  Delete03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
@@ -24,10 +22,9 @@ import React, {
   useState,
 } from "react";
 import {
-  ActivityIndicator,
+  Animated,
   Modal,
   Pressable,
-  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -35,7 +32,6 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
-  Animated,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -67,7 +63,7 @@ const Minutes = () => {
         const res = await api.get(`/minutes/project/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setMeetings(res.data);
+        setMeetings(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Failed to fetch meetings", err);
       } finally {
@@ -146,7 +142,13 @@ const Minutes = () => {
 
   const isDarkMode = useColorScheme() === "dark";
 
-  const MeetingCard = ({ meeting, isFocused = false }: { meeting: any, isFocused?: boolean }) => {
+  const MeetingCard = ({
+    meeting,
+    isFocused = false,
+  }: {
+    meeting: any;
+    isFocused?: boolean;
+  }) => {
     const total = meeting.totalMinutes || 0;
     const open = meeting.openCount || 0;
     const progress = total > 0 ? ((total - open) / total) * 100 : 0;
@@ -179,7 +181,11 @@ const Minutes = () => {
             )}
             {meeting.agendaSubmitted && (
               <View className="bg-[#EBEFF2] dark:bg-[#09225A] px-3 py-1.5 rounded-full flex-row items-center">
-                <HugeiconsIcon icon={Tick01Icon} size={14} color={isDarkMode ? "#88B6FF" : "#2F76E6"} />
+                <HugeiconsIcon
+                  icon={Tick01Icon}
+                  size={14}
+                  color={isDarkMode ? "#88B6FF" : "#2F76E6"}
+                />
                 <Text className="text-[#2F76E6] dark:text-[#88B6FF] text-[12px] font-poppinsMedium ml-1.5">
                   Agenda
                 </Text>
@@ -188,7 +194,11 @@ const Minutes = () => {
             <View className="flex-1" />
             {meeting.meetingStage === "draft" && (
               <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-3  py-1.5 rounded-full flex-row items-center">
-                <HugeiconsIcon icon={DashedLineCircleIcon} size={14} color={isDarkMode ? "#BBBBBB" : "#454545"} />
+                <HugeiconsIcon
+                  icon={DashedLineCircleIcon}
+                  size={14}
+                  color={isDarkMode ? "#BBBBBB" : "#454545"}
+                />
                 <Text className="text-[#454545] dark:text-[#BBBBBB] text-[12px] font-poppinsMedium ml-1.5">
                   Draft
                 </Text>
@@ -227,19 +237,31 @@ const Minutes = () => {
 
         <View className="gap-1">
           <View className="flex-row items-center">
-            <HugeiconsIcon icon={Calendar03Icon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <HugeiconsIcon
+              icon={Calendar03Icon}
+              size={18}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
             <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
               {dateStr} at {meeting.meetingTime}
             </Text>
           </View>
           <View className="flex-row items-center">
-            <HugeiconsIcon icon={Location01Icon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <HugeiconsIcon
+              icon={Location01Icon}
+              size={18}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
             <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
               {meeting.meetingVenue || "No venue added"}
             </Text>
           </View>
           <View className="flex-row items-center">
-            <HugeiconsIcon icon={UserCircleIcon} size={18} color={isDarkMode ? "#919191" : "#454545"} />
+            <HugeiconsIcon
+              icon={UserCircleIcon}
+              size={18}
+              color={isDarkMode ? "#919191" : "#454545"}
+            />
             <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
               Created by {meeting.createdBy || "Admin"}
             </Text>
@@ -371,7 +393,7 @@ const Minutes = () => {
             </Text>
           </View>
         ) : (
-          meetings.map((meeting) => (
+          (Array.isArray(meetings) ? meetings : []).map((meeting) => (
             <React.Fragment key={meeting._id}>
               {renderMeetingCard({ item: meeting })}
             </React.Fragment>
@@ -400,7 +422,10 @@ const Minutes = () => {
         onRequestClose={() => setFocusedMeeting(null)}
       >
         <View className="flex-1">
-          <Pressable style={{ flex: 1 }} onPress={() => setFocusedMeeting(null)}>
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={() => setFocusedMeeting(null)}
+          >
             <BlurView
               blurType={isDarkMode ? "dark" : "light"}
               blurAmount={2}
