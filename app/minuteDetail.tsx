@@ -370,20 +370,24 @@ const MinuteDetail = () => {
             <View className="flex-row items-center">
               {(() => {
                 const isDarkMode = useColorScheme() === "dark";
-                let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
-                let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
-                let statusLabel = "In Progress";
+                let badgeBg = isDarkMode ? "#5E1010" : "#FED7DA";
+                let badgeText = "#DF5B5B";
+                let statusLabel = "Open";
 
                 if (status === "closed") {
-                  badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
+                  badgeBg = isDarkMode ? "#122E25" : "#E8F9ED";
                   badgeText = "#1AA45B";
-                  statusLabel = "Completed";
+                  statusLabel = "Closed";
                 } else if (status === "open") {
-                  // In progress
+                  // Open is default
                 } else if (status === "forInfo") {
-                  badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
-                  badgeText = isDarkMode ? "#BBBBBB" : "#475569";
+                  badgeBg = isDarkMode ? "#2F2F2F" : "#EBEFF2";
+                  badgeText = isDarkMode ? "#BBBBBB" : "#454545";
                   statusLabel = "For Info";
+                } else if (status === "forwarded") {
+                  badgeBg = isDarkMode ? "#282446" : "#D7DEF2";
+                  badgeText = isDarkMode ? "#9486FB" : "#5B4CCC";
+                  statusLabel = "Forwarded";
                 }
 
                 return (
