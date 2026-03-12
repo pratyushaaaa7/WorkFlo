@@ -507,8 +507,9 @@ const MinutesDetail = () => {
               <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
                 Attendees
               </Text>
-              {(Array.isArray(meeting.attendees) ? meeting.attendees : []).map(
-                (attendee: any, index: number) => {
+              {(Array.isArray(meeting.attendees) ? meeting.attendees : [])
+                .filter((a: any) => !!a)
+                .map((attendee: any, index: number) => {
                   return (
                     <View
                       key={attendee._id || index}
@@ -516,7 +517,7 @@ const MinutesDetail = () => {
                     >
                       <View className="flex-row items-center flex-1">
                         <GlobalAvatar
-                          name={attendee.attendeeName}
+                          name={attendee.attendeeName || "Unknown"}
                           size={40}
                           fontSize={16}
                           index={index}
@@ -524,7 +525,7 @@ const MinutesDetail = () => {
                         />
                         <View className="flex-1">
                           <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
-                            {attendee.attendeeName}
+                            {attendee.attendeeName || "Unknown"}
                           </Text>
                           <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
                             {attendee.designation || "Role"} |{" "}
@@ -539,8 +540,7 @@ const MinutesDetail = () => {
                       />
                     </View>
                   );
-                },
-              )}
+                })}
             </View>
 
             <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
@@ -579,9 +579,9 @@ const MinutesDetail = () => {
                             serialNo: minute.serialNo,
                             issueSubject: minute.issueSubject,
                             description: minute.description ?? "",
-                            raisedBy: JSON.stringify(minute.raisedBy),
+                            raisedBy: JSON.stringify(minute.raisedBy || []),
                             responsibility: JSON.stringify(
-                              minute.responsibility,
+                              minute.responsibility || [],
                             ),
                             responsibilityForInfo: minute.responsibilityForInfo
                               ? "true"
@@ -625,7 +625,7 @@ const MinutesDetail = () => {
                         {minute.targetDate && !minute.targetDateForInfo && (
                           <View className="flex-row items-center">
                             <HugeiconsIcon
-                              name="Calendar03Icon"
+                              icon={Calendar03Icon}
                               size={12}
                               color="#DF5B5B"
                             />
@@ -652,6 +652,7 @@ const MinutesDetail = () => {
                             ? minute.responsibility
                             : []
                           )
+                            .filter((r: any) => !!r && !!r.name)
                             .slice(0, 3)
                             .map((r: any, idx: number) => {
                               return (

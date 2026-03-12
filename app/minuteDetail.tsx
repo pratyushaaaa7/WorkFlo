@@ -54,7 +54,7 @@ const parseJsonSafe = (val: any) => {
   if (!val) return [];
   try {
     const parsed = typeof val === "string" ? JSON.parse(val) : val;
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.filter((i) => !!i) : [];
   } catch {
     return [];
   }
@@ -104,16 +104,16 @@ const MinuteDetail = () => {
     () =>
       params.responsibilityForInfo === "true"
         ? []
-        : parseJsonSafe(params.responsibility).map(
-            (r: any) => r.individualName || r.name || r,
-          ),
+        : parseJsonSafe(params.responsibility)
+            .filter((r: any) => !!r)
+            .map((r: any) => r.individualName || r.name || (typeof r === "string" ? r : "")),
     [params.responsibility, params.responsibilityForInfo],
   );
   const raisedByArr = useMemo(
     () =>
-      parseJsonSafe(params.raisedBy).map(
-        (r: any) => r.individualName || r.name || r,
-      ),
+      parseJsonSafe(params.raisedBy)
+        .filter((r: any) => !!r)
+        .map((r: any) => r.individualName || r.name || (typeof r === "string" ? r : "")),
     [params.raisedBy],
   );
 
@@ -161,44 +161,50 @@ const MinuteDetail = () => {
       // --- Build ACTIVITY entries (status + targetDate + other activities) ---
       const activityItems = [
         // 1️⃣ OLD DATA — Status history (only if exists)
-        ...(data.statusHistory || []).map((s: any) => ({
-          type: "status",
-          fieldChanged: "status",
-          action: "Status changed",
-          oldValue: s.oldStatus || "—",
-          newValue: s.status || "—",
-          note: s.note || "",
-          addedBy: s.changedBy,
-          createdAt: s.changedAt,
-        })),
+        ...(Array.isArray(data.statusHistory) ? data.statusHistory : [])
+          .filter((s: any) => !!s)
+          .map((s: any) => ({
+            type: "status",
+            fieldChanged: "status",
+            action: "Status changed",
+            oldValue: s.oldStatus || "—",
+            newValue: s.status || "—",
+            note: s.note || "",
+            addedBy: s.changedBy,
+            createdAt: s.changedAt,
+          })),
 
         // 2️⃣ NEW DATA — Unified activity logs
-        ...(data.activities || []).map((a: any) => ({
-          type:
-            a.fieldChanged === "status"
-              ? "status"
-              : a.fieldChanged === "targetDate" ||
-                  a.fieldChanged === "targetDateForInfo"
-                ? "targetDate"
-                : "activity",
+        ...(Array.isArray(data.activities) ? data.activities : [])
+          .filter((a: any) => !!a)
+          .map((a: any) => ({
+            type:
+              a.fieldChanged === "status"
+                ? "status"
+                : a.fieldChanged === "targetDate" ||
+                    a.fieldChanged === "targetDateForInfo"
+                  ? "targetDate"
+                  : "activity",
 
-          fieldChanged: a.fieldChanged,
-          action: a.action,
-          oldValue: a.oldValue || "—",
-          newValue: a.newValue || "—",
-          note: a.note || "",
-          addedBy: a.createdBy,
-          createdAt: a.createdAt,
-        })),
+            fieldChanged: a.fieldChanged,
+            action: a.action,
+            oldValue: a.oldValue || "—",
+            newValue: a.newValue || "—",
+            note: a.note || "",
+            addedBy: a.createdBy,
+            createdAt: a.createdAt,
+          })),
       ];
 
       // --- Build NOTES separately ---
-      const noteItems = (data.notes || []).map((n: any) => ({
-        type: "note",
-        text: n.text,
-        addedBy: n.addedBy,
-        createdAt: n.createdAt,
-      }));
+      const noteItems = (Array.isArray(data.notes) ? data.notes : [])
+        .filter((n: any) => !!n)
+        .map((n: any) => ({
+          type: "note",
+          text: n.text,
+          addedBy: n.addedBy,
+          createdAt: n.createdAt,
+        }));
 
       // Set state
       setActivities(activityItems);
