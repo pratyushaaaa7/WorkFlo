@@ -1,44 +1,41 @@
-import React, {
-  useEffect,
-  useState,
-  useContext,
-  useRef,
-  useCallback,
-} from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Platform,
-  useColorScheme,
-  Alert,
-  RefreshControl,
-} from "react-native";
-import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
-  Search01Icon,
+  ArrowRight01Icon,
   Calendar03Icon,
   Location01Icon,
-  UserCircleIcon,
   MoreHorizontalIcon,
-  ArrowRight01Icon,
   Pdf01Icon,
+  Search01Icon,
+  UserCircleIcon,
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
-import { LinearGradient } from "expo-linear-gradient";
-import { Pressable } from "react-native";
 // import { exportMinutesToExcel } from "../utils/momExcel";
+import { useScrollStore } from "@/store/meetingScrollStore";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import Toast from "react-native-toast-message";
-import { useScrollStore } from "@/store/meetingScrollStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GlobalAvatar from "../components/GlobalAvatar";
 
@@ -48,6 +45,31 @@ const capitalizeFirst = (str: string) => {
     .split(" ") // split string into words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // capitalize each word
     .join(" "); // join words back into a single string
+};
+
+const getStatusBadgeStyles = (status: string | undefined, isDark: boolean) => {
+  const s = (status || "").toLowerCase();
+  let badgeBg = isDark ? "#5E1010" : "#FED7DA";
+  let badgeText = "#DF5B5B";
+  let statusLabel = "Open";
+
+  if (s === "closed") {
+    badgeBg = isDark ? "#122E25" : "#E8F9ED";
+    badgeText = "#1AA45B";
+    statusLabel = "Closed";
+  } else if (s === "open" || s === "") {
+    // defaults set above
+  } else if (s === "forinfo") {
+    badgeBg = isDark ? "#2F2F2F" : "#EBEFF2";
+    badgeText = isDark ? "#BBBBBB" : "#454545";
+    statusLabel = "For Info";
+  } else if (s === "forwarded") {
+    badgeBg = isDark ? "#282446" : "#D7DEF2";
+    badgeText = isDark ? "#9486FB" : "#5B4CCC";
+    statusLabel = "Forwarded";
+  }
+
+  return { badgeBg, badgeText, statusLabel };
 };
 
 const handleDownloadMinutes = async (
@@ -201,7 +223,7 @@ const MinutesDetail = () => {
       });
     });
   }, [meeting]);
- 
+
   const isDarkMode = useColorScheme() === "dark";
 
   return (
@@ -551,25 +573,8 @@ const MinutesDetail = () => {
               </Text>
               {(Array.isArray(meeting.minutes) ? meeting.minutes : []).map(
                 (minute: any) => {
-                  let badgeBg = isDarkMode ? "#5E1010" : "#FED7DA";
-                  let badgeText = "#DF5B5B";
-                  let statusLabel = "Open";
-
-                  if (minute.status === "closed") {
-                    badgeBg = isDarkMode ? "#122E25" : "#E8F9ED";
-                    badgeText = "#1AA45B";
-                    statusLabel = "Closed";
-                  } else if (minute.status === "open") {
-                    // Open is default
-                  } else if (minute.status === "forInfo") {
-                    badgeBg = isDarkMode ? "#2F2F2F" : "#EBEFF2";
-                    badgeText = isDarkMode ? "#BBBBBB" : "#454545";
-                    statusLabel = "For Info";
-                  } else if (minute.status === "forwarded") {
-                    badgeBg = isDarkMode ? "#282446" : "#D7DEF2";
-                    badgeText = isDarkMode ? "#9486FB" : "#5B4CCC";
-                    statusLabel = "Forwarded";
-                  }
+                  const { badgeBg, badgeText, statusLabel } =
+                    getStatusBadgeStyles(minute.status, isDarkMode);
 
                   return (
                     <TouchableOpacity
@@ -650,7 +655,7 @@ const MinutesDetail = () => {
                         </Text>
                       )}
 
-                        <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
+                      <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
                         <View className="flex-row items-center">
                           {(Array.isArray(minute.responsibility)
                             ? minute.responsibility
@@ -680,9 +685,10 @@ const MinutesDetail = () => {
                             )}
                         </View>
                       </View>
-                  </TouchableOpacity>
-                );
-              })}
+                    </TouchableOpacity>
+                  );
+                },
+              )}
             </View>
           </View>
         ) : (
