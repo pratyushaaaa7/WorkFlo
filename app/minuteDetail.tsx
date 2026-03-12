@@ -586,18 +586,12 @@ const MinuteDetail = () => {
                   >
                     Status
                   </Text>
-                  <View
-                    style={{ backgroundColor: getStatusBadgeStyles(status, isDark).badgeBg }}
-                    className="self-start px-2.5 py-1 rounded-lg mt-1 flex-row items-center"
-                  >
-                    <HugeiconsIcon
-                      icon={getStatusBadgeStyles(status, isDark).icon}
-                      size={14}
-                      color={getStatusBadgeStyles(status, isDark).badgeText}
-                    />
+                  <View className="self-start mt-1 flex-row items-center">
                     <Text
-                      style={{ color: getStatusBadgeStyles(status, isDark).badgeText }}
-                      className="text-xs font-poppinsMedium ml-1"
+                      style={{
+                        color: getStatusBadgeStyles(status, isDark).badgeText,
+                      }}
+                      className=" font-poppinsMedium "
                     >
                       {getStatusBadgeStyles(status, isDark).statusLabel}
                     </Text>
@@ -764,7 +758,7 @@ const MinuteDetail = () => {
               </TouchableOpacity>
 
               {/* Description Section */}
-              {(minuteData?.description || description) ? (
+              {minuteData?.description || description ? (
                 <>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
                   <View className="py-4">
@@ -783,7 +777,7 @@ const MinuteDetail = () => {
               ) : null}
 
               {/* Remarks Section */}
-              {(minuteData?.remarks || remarks) ? (
+              {minuteData?.remarks || remarks ? (
                 <>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
                   <View className="py-4">
@@ -958,19 +952,38 @@ const MinuteDetail = () => {
                             <View className="flex-row items-center mt-2 mb-2">
                               {/* Old Status Pill */}
                               <View
-                                style={{ backgroundColor: getStatusBadgeStyles(item.oldValue, isDark).badgeBg }}
+                                style={{
+                                  backgroundColor: getStatusBadgeStyles(
+                                    item.oldValue,
+                                    isDark,
+                                  ).badgeBg,
+                                }}
                                 className="flex-row items-center rounded-lg px-2.5 py-1"
                               >
                                 <HugeiconsIcon
-                                  icon={getStatusBadgeStyles(item.oldValue, isDark).icon}
+                                  icon={
+                                    getStatusBadgeStyles(item.oldValue, isDark)
+                                      .icon
+                                  }
                                   size={14}
-                                  color={getStatusBadgeStyles(item.oldValue, isDark).badgeText}
+                                  color={
+                                    getStatusBadgeStyles(item.oldValue, isDark)
+                                      .badgeText
+                                  }
                                 />
                                 <Text
-                                  style={{ color: getStatusBadgeStyles(item.oldValue, isDark).badgeText }}
+                                  style={{
+                                    color: getStatusBadgeStyles(
+                                      item.oldValue,
+                                      isDark,
+                                    ).badgeText,
+                                  }}
                                   className="ml-1 text-xs font-dmMedium"
                                 >
-                                  {getStatusBadgeStyles(item.oldValue, isDark).statusLabel}
+                                  {
+                                    getStatusBadgeStyles(item.oldValue, isDark)
+                                      .statusLabel
+                                  }
                                 </Text>
                               </View>
 
@@ -985,19 +998,38 @@ const MinuteDetail = () => {
 
                               {/* New Status Pill */}
                               <View
-                                style={{ backgroundColor: getStatusBadgeStyles(item.newValue, isDark).badgeBg }}
+                                style={{
+                                  backgroundColor: getStatusBadgeStyles(
+                                    item.newValue,
+                                    isDark,
+                                  ).badgeBg,
+                                }}
                                 className="flex-row items-center rounded-lg px-2.5 py-1"
                               >
                                 <HugeiconsIcon
-                                  icon={getStatusBadgeStyles(item.newValue, isDark).icon}
+                                  icon={
+                                    getStatusBadgeStyles(item.newValue, isDark)
+                                      .icon
+                                  }
                                   size={14}
-                                  color={getStatusBadgeStyles(item.newValue, isDark).badgeText}
+                                  color={
+                                    getStatusBadgeStyles(item.newValue, isDark)
+                                      .badgeText
+                                  }
                                 />
                                 <Text
-                                  style={{ color: getStatusBadgeStyles(item.newValue, isDark).badgeText }}
+                                  style={{
+                                    color: getStatusBadgeStyles(
+                                      item.newValue,
+                                      isDark,
+                                    ).badgeText,
+                                  }}
                                   className="ml-1 text-xs font-dmMedium"
                                 >
-                                  {getStatusBadgeStyles(item.newValue, isDark).statusLabel}
+                                  {
+                                    getStatusBadgeStyles(item.newValue, isDark)
+                                      .statusLabel
+                                  }
                                 </Text>
                               </View>
                             </View>
@@ -1574,10 +1606,7 @@ const MinuteDetail = () => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={saveAssigneeChange}
-              className="flex-1"
-            >
+            <TouchableOpacity onPress={saveAssigneeChange} className="flex-1">
               <LinearGradient
                 colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                 start={{ x: 0, y: 0 }}
