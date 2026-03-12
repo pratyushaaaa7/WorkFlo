@@ -553,18 +553,22 @@ const MinutesDetail = () => {
                 (minute: any) => {
                   let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
                   let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
-                  let statusLabel = "In Progress";
+                  let statusLabel = "Open";
 
                   if (minute.status === "closed") {
                     badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
                     badgeText = "#1AA45B";
-                    statusLabel = "Completed";
+                    statusLabel = "Closed";
                   } else if (minute.status === "open") {
                     // In progress
                   } else if (minute.status === "forInfo") {
                     badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
                     badgeText = isDarkMode ? "#BBBBBB" : "#475569";
                     statusLabel = "For Info";
+                  } else if (minute.status === "forwarded") {
+                    badgeBg = isDarkMode ? "#3E3209" : "#FFFBEB";
+                    badgeText = "#D97706";
+                    statusLabel = "Forwarded";
                   }
 
                   return (

@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
 import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
@@ -30,7 +31,7 @@ const statusColors: Record<Status, string> = {
   forInfo: "bg-green-500", // ✅ added
 };
 
-const getActivityBg = (item) => {
+const getActivityBg = (item: any) => {
   if (item.text !== undefined) return "bg-cyan-50 border border-cyan-200"; // Note
 
   if (item.fieldChanged === "status")
@@ -304,7 +305,7 @@ const MinuteDetail = () => {
         headers: { Authorization: `Bearer ${auth?.token}` },
       });
 
-      setNewTargetDate(tempTargetDate);
+      setNewTargetDate(tempTargetDate || null);
       setIsForInfoTarget(tempForInfo);
 
       setTargetModalVisible(false);
@@ -321,7 +322,7 @@ const MinuteDetail = () => {
   };
 
   const activityLog = [...notes, ...activities].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
   // console.log("Fetching minute detail", { meetingId, minuteId, token: !!auth?.token });
@@ -367,15 +368,42 @@ const MinuteDetail = () => {
               {issueSubject}
             </Text>
             <View className="flex-row items-center">
-              <View
-                className={`px-2 py-1 rounded-full ${
-                  statusColors[status] || "bg-gray-400"
-                }`}
-              >
-                <Text className="text-white text-xs font-pbold">
-                  {humanLabel(status).toUpperCase()}
-                </Text>
-              </View>
+              {(() => {
+                const isDarkMode = useColorScheme() === "dark";
+                let badgeBg = isDarkMode ? "#09225A" : "#EFF6FF";
+                let badgeText = isDarkMode ? "#88B6FF" : "#2F76E6";
+                let statusLabel = "In Progress";
+
+                if (status === "closed") {
+                  badgeBg = isDarkMode ? "#0A4230" : "#E8F9ED";
+                  badgeText = "#1AA45B";
+                  statusLabel = "Completed";
+                } else if (status === "open") {
+                  // In progress
+                } else if (status === "forInfo") {
+                  badgeBg = isDarkMode ? "#2F2F2F" : "#F1F5F9";
+                  badgeText = isDarkMode ? "#BBBBBB" : "#475569";
+                  statusLabel = "For Info";
+                }
+
+                return (
+                  <View
+                    className="px-2.5 py-1.5 rounded-lg flex-row items-center"
+                    style={{ backgroundColor: badgeBg }}
+                  >
+                    <View
+                      className="w-1.5 h-1.5 rounded-full mr-1.5"
+                      style={{ backgroundColor: badgeText }}
+                    />
+                    <Text
+                      className="text-[11px] font-poppinsMedium"
+                      style={{ color: badgeText }}
+                    >
+                      {statusLabel}
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
           </View>
 
@@ -845,7 +873,7 @@ const MinuteDetail = () => {
               onChange={(event, selectedDate) => {
                 setShowPicker(false);
                 if (event.type === "set") {
-                  setTempTargetDate(selectedDate);
+                  setTempTargetDate(selectedDate || null);
                 }
               }}
             />
