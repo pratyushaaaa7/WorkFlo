@@ -262,9 +262,9 @@ const MinuteDetail = () => {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      await api.post(
-        `/minutes/${meetingId}/minutes/${minuteId}/notes`,
-        { text: newNote },
+      await api.put(
+        `/minutes/${meetingId}/minutes/${minuteId}/status`,
+        { note: newNote },
         { headers: { Authorization: `Bearer ${auth?.token}` } },
       );
       setNewNote("");
@@ -430,12 +430,18 @@ const MinuteDetail = () => {
     const statusChanged = selectedStatus !== status;
     const noteProvided = !!notePayload;
 
-    // Optimistic update only for notes
-    if (!statusChanged && noteProvided) {
-      pushNoteOptimistic(notePayload, {
-        fullName: auth?.user?.fullName,
-        _id: auth?.user?.id,
-      });
+    // Optimistic update only for notes (REMOVED as per new logic: notes only with status change in modal)
+    // if (!statusChanged && noteProvided) {
+    //   pushNoteOptimistic(notePayload, {
+    //     fullName: auth?.user?.fullName,
+    //     _id: auth?.user?.id,
+    //   });
+    // }
+
+    if (!statusChanged) {
+      setSaving(false);
+      setModalVisible(false);
+      return;
     }
 
     if (statusChanged) setStatus(selectedStatus);
@@ -1186,10 +1192,7 @@ const MinuteDetail = () => {
         animationOut="slideOutDown"
         style={{ justifyContent: "flex-end", margin: 0 }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
-        >
+      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             style={{
               backgroundColor: isDark ? "#1A1A1A" : "#fff",
@@ -1271,24 +1274,25 @@ const MinuteDetail = () => {
               })}
             </View>
 
-            {/* Keeping Note Input but making it more subtle to match clean design */}
-            <TextInput
-              value={noteText}
-              onChangeText={setNoteText}
-              placeholder="Add an update note (optional)"
-              multiline
-              placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
-              numberOfLines={2}
-              editable={!saving}
-              className={`mb-6 p-3 rounded-xl text-sm font-poppins ${
-                isDark ? "bg-zinc-900 text-white" : "bg-gray-50 text-black"
-              }`}
-              style={{
-                borderWidth: 1,
-                borderColor: isDark ? "#27272A" : "#E5E7EB",
-                textAlignVertical: "top",
-              }}
-            />
+            {status !== selectedStatus && (
+              <TextInput
+                value={noteText}
+                onChangeText={setNoteText}
+                placeholder="Add an update note (optional)"
+                multiline
+                placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
+                numberOfLines={2}
+                editable={!saving}
+                className={`mb-6 p-3 rounded-xl text-sm font-poppins ${
+                  isDark ? "bg-zinc-900 text-white" : "bg-gray-50 text-black"
+                }`}
+                style={{
+                  borderWidth: 1,
+                  borderColor: isDark ? "#27272A" : "#E5E7EB",
+                  textAlignVertical: "top",
+                }}
+              />
+            )}
 
             <View className="flex-row gap-3">
               <TouchableOpacity
@@ -1317,9 +1321,9 @@ const MinuteDetail = () => {
               <TouchableOpacity
                 onPress={handleSaveStatus}
                 activeOpacity={0.8}
-                disabled={saving}
+                disabled={saving || selectedStatus === status}
                 className={`flex-1 rounded-2xl py-4 items-center justify-center ${
-                  saving ? "bg-zinc-700" : "bg-[#6366F1]"
+                  saving || selectedStatus === status ? "bg-zinc-700" : "bg-[#6366F1]"
                 }`}
               >
                 <Text className="text-white text-base font-dmBold">
@@ -1328,7 +1332,7 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardStickyView>
       </Modal>
 
       {/* Modal for Target Date */}
@@ -1342,183 +1346,185 @@ const MinuteDetail = () => {
         onSwipeComplete={() => !saving && setTargetModalVisible(false)}
         style={{ justifyContent: "flex-end", margin: 0 }}
       >
-        <View
-          style={{
-            backgroundColor: isDark ? "#1A1A1A" : "#FFFFFF",
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            paddingHorizontal: 24,
-            paddingTop: 20,
-            paddingBottom: 30,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -3 },
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 5,
-          }}
-        >
-          {/* Header */}
-          <View className="items-center mb-6">
-            <View className="w-16 h-1.5 bg-gray-300 dark:bg-zinc-700 rounded-full mb-3" />
-            <Text
-              className={`text-xl font-dmSemiBold text-center ${isDark ? "text-white" : "text-gray-900"}`}
-            >
-              Update Target Date
-            </Text>
-            <Text
-              className={`text-sm mt-1 text-center px-4 font-poppins ${isDark ? "text-zinc-500" : "text-gray-500"}`}
-            >
-              Select a new target date or mark as For Information.
-            </Text>
-          </View>
-
-          {/* Toggle Buttons */}
-          <View className="flex-row mb-5 gap-3">
-            <TouchableOpacity
-              onPress={() => setTempForInfo(false)}
-              className={`flex-1 py-3 rounded-xl items-center justify-center ${
-                !tempForInfo
-                  ? "bg-indigo-600"
-                  : isDark
-                    ? "bg-zinc-800"
-                    : "bg-gray-200"
-              }`}
-            >
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+          <View
+            style={{
+              backgroundColor: isDark ? "#1A1A1A" : "#FFFFFF",
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              paddingHorizontal: 24,
+              paddingTop: 20,
+              paddingBottom: 30,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: -3 },
+              shadowOpacity: 0.1,
+              shadowRadius: 6,
+              elevation: 5,
+            }}
+          >
+            {/* Header */}
+            <View className="items-center mb-6">
+              <View className="w-16 h-1.5 bg-gray-300 dark:bg-zinc-700 rounded-full mb-3" />
               <Text
-                className={`font-dmBold ${
+                className={`text-xl font-dmSemiBold text-center ${isDark ? "text-white" : "text-gray-900"}`}
+              >
+                Update Target Date
+              </Text>
+              <Text
+                className={`text-sm mt-1 text-center px-4 font-poppins ${isDark ? "text-zinc-500" : "text-gray-500"}`}
+              >
+                Select a new target date or mark as For Information.
+              </Text>
+            </View>
+
+            {/* Toggle Buttons */}
+            <View className="flex-row mb-5 gap-3">
+              <TouchableOpacity
+                onPress={() => setTempForInfo(false)}
+                className={`flex-1 py-3 rounded-xl items-center justify-center ${
                   !tempForInfo
-                    ? "text-white"
+                    ? "bg-indigo-600"
                     : isDark
-                      ? "text-zinc-400"
-                      : "text-gray-700"
+                      ? "bg-zinc-800"
+                      : "bg-gray-200"
                 }`}
               >
-                Set Date
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  className={`font-dmBold ${
+                    !tempForInfo
+                      ? "text-white"
+                      : isDark
+                        ? "text-zinc-400"
+                        : "text-gray-700"
+                  }`}
+                >
+                  Set Date
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => {
-                setTempForInfo(true);
-                setTempTargetDate(null);
-              }}
-              className={`flex-1 py-3 rounded-xl items-center justify-center ${
-                tempForInfo
-                  ? "bg-indigo-600"
-                  : isDark
-                    ? "bg-zinc-800"
-                    : "bg-gray-200"
-              }`}
-            >
-              <Text
-                className={`font-dmBold ${
+              <TouchableOpacity
+                onPress={() => {
+                  setTempForInfo(true);
+                  setTempTargetDate(null);
+                }}
+                className={`flex-1 py-3 rounded-xl items-center justify-center ${
                   tempForInfo
-                    ? "text-white"
+                    ? "bg-indigo-600"
                     : isDark
-                      ? "text-zinc-400"
-                      : "text-gray-700"
+                      ? "bg-zinc-800"
+                      : "bg-gray-200"
                 }`}
               >
-                For Information
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <Text
+                  className={`font-dmBold ${
+                    tempForInfo
+                      ? "text-white"
+                      : isDark
+                        ? "text-zinc-400"
+                        : "text-gray-700"
+                  }`}
+                >
+                  For Information
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {/* Date Picker Button */}
-          {!tempForInfo && (
-            <TouchableOpacity
-              onPress={() => setShowPicker(true)}
-              className={`p-3 rounded-xl mb-6 border ${isDark ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200"}`}
-            >
-              <Text
-                className={`text-center font-poppins ${isDark ? "text-white" : "text-gray-700"}`}
+            {/* Date Picker Button */}
+            {!tempForInfo && (
+              <TouchableOpacity
+                onPress={() => setShowPicker(true)}
+                className={`p-3 rounded-xl mb-6 border ${isDark ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200"}`}
               >
-                {tempTargetDate
-                  ? tempTargetDate.toDateString()
-                  : "Select Target Date"}
-              </Text>
-            </TouchableOpacity>
-          )}
+                <Text
+                  className={`text-center font-poppins ${isDark ? "text-white" : "text-gray-700"}`}
+                >
+                  {tempTargetDate
+                    ? tempTargetDate.toDateString()
+                    : "Select Target Date"}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-          {/* Date Picker */}
-          {showPicker && (
-            <DateTimePicker
-              value={tempTargetDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                setShowPicker(false);
-                if (event.type === "set") {
-                  setTempTargetDate(selectedDate || null);
-                }
+            {/* Date Picker */}
+            {showPicker && (
+              <DateTimePicker
+                value={tempTargetDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowPicker(false);
+                  if (event.type === "set") {
+                    setTempTargetDate(selectedDate || null);
+                  }
+                }}
+              />
+            )}
+
+            {/* Note Input */}
+
+            <Text
+              className={`text-sm mb-2 font-poppinsMedium ${isDark ? "text-zinc-400" : "text-gray-600"}`}
+            >
+              Add a note (required)
+            </Text>
+            <TextInput
+              value={tempNoteText}
+              onChangeText={setTempNoteText}
+              placeholder="Reason for change..."
+              multiline
+              placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
+              numberOfLines={3}
+              style={{
+                borderWidth: 1,
+                borderColor: isDark ? "#27272A" : "#E5E7EB",
+                borderRadius: 12,
+                padding: 10,
+                textAlignVertical: "top",
+                backgroundColor: isDark ? "#09090B" : "#F9FAFB",
+                marginBottom: 20,
+                fontSize: 14,
+                color: isDark ? "white" : "black",
+                fontFamily: "Poppins-Regular",
               }}
             />
-          )}
 
-          {/* Note Input */}
-
-          <Text
-            className={`text-sm mb-2 font-poppinsMedium ${isDark ? "text-zinc-400" : "text-gray-600"}`}
-          >
-            Add a note (required)
-          </Text>
-          <TextInput
-            value={tempNoteText}
-            onChangeText={setTempNoteText}
-            placeholder="Reason for change..."
-            multiline
-            placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
-            numberOfLines={3}
-            style={{
-              borderWidth: 1,
-              borderColor: isDark ? "#27272A" : "#E5E7EB",
-              borderRadius: 12,
-              padding: 10,
-              textAlignVertical: "top",
-              backgroundColor: isDark ? "#09090B" : "#F9FAFB",
-              marginBottom: 20,
-              fontSize: 14,
-              color: isDark ? "white" : "black",
-              fontFamily: "Poppins-Regular",
-            }}
-          />
-
-          {/* Action Buttons */}
-          <View className="flex-row mt-3 gap-3">
-            <TouchableOpacity
-              onPress={() => setTargetModalVisible(false)}
-              className={`flex-1 rounded-xl py-3 items-center justify-center border ${isDark ? "bg-zinc-800 border-zinc-700" : "bg-gray-100 border-gray-200"}`}
-            >
-              <Text
-                className={`font-dmBold ${isDark ? "text-zinc-300" : "text-gray-700"}`}
+            {/* Action Buttons */}
+            <View className="flex-row mt-3 gap-3">
+              <TouchableOpacity
+                onPress={() => setTargetModalVisible(false)}
+                className={`flex-1 rounded-xl py-3 items-center justify-center border ${isDark ? "bg-zinc-800 border-zinc-700" : "bg-gray-100 border-gray-200"}`}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  className={`font-dmBold ${isDark ? "text-zinc-300" : "text-gray-700"}`}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleSaveTargetDate}
-              disabled={
-                saving ||
-                !tempNoteText.trim() ||
-                (!tempForInfo && !tempTargetDate)
-              }
-              className={`flex-1 rounded-xl py-3 items-center justify-center ${
-                saving ||
-                !tempNoteText.trim() ||
-                (!tempForInfo && !tempTargetDate)
-                  ? isDark
-                    ? "bg-zinc-700"
-                    : "bg-gray-300"
-                  : "bg-indigo-600"
-              }`}
-            >
-              <Text className="text-white font-dmBold">
-                {saving ? "Saving..." : "Save"}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveTargetDate}
+                disabled={
+                  saving ||
+                  !tempNoteText.trim() ||
+                  (!tempForInfo && !tempTargetDate)
+                }
+                className={`flex-1 rounded-xl py-3 items-center justify-center ${
+                  saving ||
+                  !tempNoteText.trim() ||
+                  (!tempForInfo && !tempTargetDate)
+                    ? isDark
+                      ? "bg-zinc-700"
+                      : "bg-gray-300"
+                    : "bg-indigo-600"
+                }`}
+              >
+                <Text className="text-white font-dmBold">
+                  {saving ? "Saving..." : "Save"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardStickyView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1539,6 +1545,7 @@ const MinuteDetail = () => {
         avoidKeyboard={false}
         statusBarTranslucent={true}
       >
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         <View
           className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
         >
@@ -1688,7 +1695,8 @@ const MinuteDetail = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </View>
+          </View>
+        </KeyboardStickyView>
       </Modal>
     </View>
   );
