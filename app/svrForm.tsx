@@ -7,10 +7,11 @@ import {
   FlatList,
   Platform,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Animated,
   Pressable,
   Alert,
+  useColorScheme,
+  Keyboard,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +21,7 @@ import uuid from "react-native-uuid";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { List, Card } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -50,6 +52,8 @@ const SVRform = () => {
   const token = auth?.token;
   const { projectName, company, projectId, teamLeaders, teamMembers, mode } =
     useLocalSearchParams();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
@@ -57,6 +61,27 @@ const SVRform = () => {
   const [users, setUsers] = useState<DirectoryUser[]>([]);
   const [openDirectoryFor, setOpenDirectoryFor] = useState<number | null>(null);
   const [caseStudyRemarks, setCaseStudyRemarks] = useState("");
+
+  const insets = useSafeAreaInsets();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setIsKeyboardVisible(true); // Treat as visible even if just showing
+    });
+    const hideSubscriptionActual = Keyboard.addListener("keyboardDidHide", () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+      hideSubscriptionActual.remove();
+    };
+  }, []);
 
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
@@ -284,22 +309,48 @@ const SVRform = () => {
   }, [attendees, entries, caseStudyRemarks]);
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: isDarkMode ? "black" : "white" }}
+      behavior={Platform.OS === "ios" ? "padding" : "padding"}
+    >
+      <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-white"}`}>
       {/* ---------- FIXED HEADER ---------- */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center justify-between">
+      {mode === "case-study" ? (
+        <View className="pt-16 pb-6 px-4 flex-row items-center border-b border-transparent">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-white/20 p-2 rounded-full"
+            className="p-2 -ml-2"
           >
-            <Ionicons name="arrow-back" size={22} color="#fff" />
+            <Ionicons
+              name="chevron-back"
+              size={28}
+              color={isDarkMode ? "#fff" : "#000"}
+            />
           </TouchableOpacity>
-
-          <Text className="text-xl font-bold text-white">SVR Form</Text>
-
-          <View style={{ width: 32 }} />
+          <Text
+            className={`text-2xl font-dmSemiBold ml-2 ${
+              isDarkMode ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Case Study
+          </Text>
         </View>
-      </LinearGradient>
+      ) : (
+        <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
+          <View className="pt-16 pb-6 px-4 flex-row items-center justify-between">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="bg-white/20 p-2 rounded-full"
+            >
+              <Ionicons name="arrow-back" size={22} color="#fff" />
+            </TouchableOpacity>
+
+            <Text className="text-xl font-bold text-white">SVR Form</Text>
+
+            <View style={{ width: 32 }} />
+          </View>
+        </LinearGradient>
+      )}
 
       {mode === "svr" && (
         <KeyboardAwareScrollView
@@ -652,40 +703,135 @@ const SVRform = () => {
       )}
 
       {mode === "case-study" && (
-        <View className="p-4">
-          <TextInput
-            placeholder="Remarks"
-            value={caseStudyRemarks}
-            onChangeText={setCaseStudyRemarks}
-            placeholderTextColor={"#888"}
-            multiline
-            className="border border-gray-400 bg-white rounded-lg px-4 py-3"
-          />
+        <View className="p-4 flex-1">
+          <View
+            className={`rounded-2xl p-2 relative ${
+              isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F4F6F9]"
+            }`}
+            style={{ height: 160 }}
+          >
+            <TextInput
+              placeholder="Remarks"
+              value={caseStudyRemarks}
+              onChangeText={setCaseStudyRemarks}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              multiline
+              textAlignVertical="top"
+              className={`text-lg font-poppins flex-1 ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            />
+            <View className="absolute bottom-3 right-3 opacity-40">
+              <MaterialCommunityIcons
+                name="resize-bottom-right"
+                size={24}
+                color={isDarkMode ? "#fff" : "#000"}
+              />
+            </View>
+          </View>
         </View>
       )}
 
       {/* Footer Buttons */}
-      <View className="flex-row justify-between px-3 pb-14 mt-2 bg-gray-100">
+      <View
+        style={{
+          flexDirection: "row",
+          paddingHorizontal: 16,
+          paddingBottom: isKeyboardVisible ? 10 : Math.max(insets.bottom, 16),
+          paddingTop: 12,
+          gap: 12,
+          backgroundColor: isDarkMode ? "#000" : "#FFF",
+          borderTopWidth: mode === "case-study" ? 1 : 0,
+          borderTopColor: isDarkMode ? "#111" : "#F0F3F7",
+        }}
+      >
         <TouchableOpacity
           onPress={skipAndNext}
-          className="bg-gray-400 px-4 py-3 rounded-lg flex-1 mr-2"
+          activeOpacity={0.8}
+          style={{
+            flex: 1,
+            borderWidth: mode === "case-study" ? 1 : 0,
+            borderColor: isDarkMode ? "#FFF" : "#000",
+            borderRadius: 14,
+            paddingVertical: 14,
+            alignItems: "center",
+            backgroundColor: mode === "case-study" ? "transparent" : "#9ca3af",
+          }}
         >
-          <Text className="text-white text-sm font-medium text-center">
+          <Text
+            className={`text-lg text-center ${
+              mode === "case-study"
+                ? "font-poppins"
+                : "font-medium text-white text-sm"
+            } ${
+              mode === "case-study"
+                ? isDarkMode
+                  ? "text-white"
+                  : "text-gray-900"
+                : "text-white"
+            }`}
+          >
             Skip
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={saveAndNext}
-          className="bg-green-500 px-4 py-3 rounded-lg flex-1 ml-2"
+          disabled={mode === "case-study" && !caseStudyRemarks.trim()}
+          activeOpacity={0.8}
+          style={{
+            flex: 1,
+            borderRadius: 14,
+            backgroundColor:
+              mode === "case-study"
+                ? caseStudyRemarks.trim()
+                  ? "transparent"
+                  : isDarkMode
+                    ? "#1A1A1A"
+                    : "#F0F3F7"
+                : "#22c55e",
+            overflow: "hidden",
+            justifyContent: "center",
+          }}
         >
-          <Text className="text-white text-sm font-medium text-center">
-            Save & Next
-          </Text>
+          {mode === "case-study" && caseStudyRemarks.trim() ? (
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              locations={[0, 0.5183, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={{
+                paddingVertical: 14,
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <Text className="text-white font-poppins text-lg">Next</Text>
+            </LinearGradient>
+          ) : (
+            <View style={{ paddingVertical: 14, alignItems: "center" }}>
+              <Text
+                className={
+                  mode === "case-study" ? "font-poppins text-lg" : "text-white text-sm font-medium"
+                }
+                style={{
+                  color:
+                    mode === "case-study"
+                      ? isDarkMode
+                        ? "#919191"
+                        : "#454545"
+                      : "#FFF",
+                }}
+              >
+                {mode === "case-study" ? "Next" : "Save & Next"}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </View>
-  );
+  </KeyboardAvoidingView>
+);
 };
 
 export default SVRform;

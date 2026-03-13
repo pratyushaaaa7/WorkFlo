@@ -29,7 +29,9 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Modal as RNModal,
 } from "react-native";
+import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 // import { exportMinutesToExcel } from "../utils/momExcel";
@@ -155,6 +157,8 @@ const MinutesDetail = () => {
   const [meeting, setMeeting] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAttendeeModal, setShowAttendeeModal] = useState(false);
+  const [selectedAttendee, setSelectedAttendee] = useState<any>(null);
 
   const fetchMeeting = useCallback(
     async (showLoader = true) => {
@@ -533,8 +537,12 @@ const MinutesDetail = () => {
                 .filter((a: any) => !!a)
                 .map((attendee: any, index: number) => {
                   return (
-                    <View
+                    <TouchableOpacity
                       key={attendee._id || index}
+                      onPress={() => {
+                        setSelectedAttendee(attendee);
+                        setShowAttendeeModal(true);
+                      }}
                       className="flex-row items-center justify-between mb-4"
                     >
                       <View className="flex-row items-center flex-1">
@@ -560,7 +568,7 @@ const MinutesDetail = () => {
                         size={20}
                         color={isDarkMode ? "#919191" : "#919191"}
                       />
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
             </View>
@@ -737,6 +745,74 @@ const MinutesDetail = () => {
           </TouchableOpacity>
         </View>
       )}
+      {/* Attendee Details Modal */}
+      <Modal
+        isVisible={showAttendeeModal}
+        onBackdropPress={() => setShowAttendeeModal(false)}
+        onBackButtonPress={() => setShowAttendeeModal(false)}
+        onSwipeComplete={() => setShowAttendeeModal(false)}
+        swipeDirection={["down"]}
+        style={{ justifyContent: "flex-end", margin: 0 }}
+      >
+        <View
+          style={{
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: 100,
+          }}
+        >
+          {/* Handle Bar */}
+          <View className="items-center mb-4">
+            <View className="w-12 h-1 bg-gray-300 dark:bg-zinc-700 rounded-full mb-4" />
+            <Text
+              className={`text-xl font-dmBold text-center mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              Attendee Details
+            </Text>
+            <View
+              className={`w-full h-[1px] ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`}
+            />
+          </View>
+
+          {/* Details List */}
+          <View className="gap-3  bg-[#F6F8FA] dark:bg-[#0D0D0D] p-4 rounded-[16px]">
+            {[
+              {
+                value: selectedAttendee?.attendeeName || "N/A",
+              },
+              {
+                value: selectedAttendee?.organization || "N/A",
+              },
+              {
+                value: selectedAttendee?.designation || "N/A",
+              },
+              {
+                value: selectedAttendee?.email || "N/A",
+              },
+              {
+                value:
+                  selectedAttendee?.contactNumbers?.[0] ||
+                  selectedAttendee?.contactNumbers ||
+                  "N/A",
+              },
+            ].map((item, idx) => (
+              <View
+                key={idx}
+                className={`p-4 rounded-lg  ${isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"}`}
+              >
+                <Text
+                  className={`text-[15px] font-poppins ${isDarkMode ? "text-white" : "text-black"}`}
+                >
+                  {item.value}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
