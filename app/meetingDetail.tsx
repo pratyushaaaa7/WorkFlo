@@ -8,6 +8,7 @@ import {
   Search01Icon,
   UserCircleIcon,
   Xsl01Icon,
+  Attachment01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -613,7 +614,7 @@ const MinutesDetail = () => {
                         })
                       }
                       activeOpacity={0.7}
-                      className="bg-white dark:bg-[#121212] rounded-[16px] px-3 py-3 mb-3"
+                      className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] px-3 py-3 mb-3"
                       //  style={!isDarkMode ? {
                       //     shadowColor: "#000",
                       //     shadowOffset: { width: 0, height: 2 },
@@ -662,27 +663,47 @@ const MinutesDetail = () => {
                           {minute.description}
                         </Text>
                       )}
-
-                      <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#F1F5F9] dark:border-[#262626]">
+                      <View className="flex-row items-center justify-between mt-auto pt-4 border-t border-[#E0E5EB] dark:border-[#413E47]">
                         <View className="flex-row items-center">
-                          {(Array.isArray(minute.responsibility)
-                            ? minute.responsibility
-                            : []
-                          )
-                            .filter((r: any) => !!r && !!r.name)
-                            .slice(0, 3)
-                            .map((r: any, idx: number) => {
-                              return (
-                                <GlobalAvatar
-                                  key={idx}
-                                  name={r.name}
-                                  size={28}
-                                  fontSize={10}
-                                  index={idx}
-                                  className={`border-[1.5px] border-white dark:border-[#121212] ${idx > 0 ? "-ml-2" : ""}`}
-                                />
-                              );
-                            })}
+                          {minute.responsibilityForInfo ||
+                          !minute.responsibility ||
+                          minute.responsibility.length === 0 ? (
+                            <View className="flex-row items-center">
+                              <HugeiconsIcon
+                                icon={UserCircleIcon}
+                                size={16}
+                                color={isDarkMode ? "#919191" : "#454545"}
+                              />
+                              <Text
+                                className={`ml-2 text-[12px] font-poppins ${
+                                  isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                                }`}
+                              >
+                                For Info
+                              </Text>
+                            </View>
+                          ) : (
+                            (Array.isArray(minute.responsibility)
+                              ? minute.responsibility
+                              : []
+                            )
+                              .filter((r: any) => !!r && !!r.name)
+                              .slice(0, 3)
+                              .map((r: any, idx: number) => {
+                                return (
+                                  <GlobalAvatar
+                                    key={idx}
+                                    name={r.name}
+                                    size={34}
+                                    fontSize={10}
+                                    index={idx}
+                                    className={`border-[1.5px] border-white dark:border-[#121212] ${
+                                      idx > 0 ? "-ml-2" : ""
+                                    }`}
+                                  />
+                                );
+                              })
+                          )}
                           {Array.isArray(minute.responsibility) &&
                             minute.responsibility.length > 3 && (
                               <View className="w-7 h-7 rounded-full items-center justify-center border-[1.5px] border-white dark:border-[#121212] -ml-2 bg-[#F1F5F9] dark:bg-[#000]">
@@ -691,6 +712,22 @@ const MinutesDetail = () => {
                                 </Text>
                               </View>
                             )}
+                        </View>
+
+                        {/* Attachment Count */}
+                        <View className="flex-row items-center">
+                          <HugeiconsIcon
+                            icon={Attachment01Icon}
+                            size={16}
+                            color={isDarkMode ? "#919191" : "#454545"}
+                          />
+                          <Text
+                            className={`ml-1 text-[12px] font-poppins ${
+                              isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                            }`}
+                          >
+                            {minute.attachments?.length || 0}
+                          </Text>
                         </View>
                       </View>
                     </TouchableOpacity>
