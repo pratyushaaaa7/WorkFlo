@@ -19,6 +19,7 @@ import {
   Search01Icon,
   Cancel01Icon,
   Delete03Icon,
+  Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -47,6 +48,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GlobalAvatar from "@/components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
+import Toast from "react-native-toast-message";
 
 const STATUS_OPTIONS = ["open", "closed", "forwarded", "forInfo"] as const;
 
@@ -241,6 +243,7 @@ const MinuteDetail = () => {
   const [showPicker, setShowPicker] = useState(false);
   const [activities, setActivities] = useState<any[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [triedToSaveTarget, setTriedToSaveTarget] = useState(false);
 
   // --- Responsibility Change State ---
   const [showAssigneeModal, setShowAssigneeModal] = useState(false);
@@ -472,7 +475,13 @@ const MinuteDetail = () => {
   const handleSaveTargetDate = async () => {
     if (!minuteId || !meetingId) return;
 
+    if (!tempNoteText.trim()) {
+      setTriedToSaveTarget(true);
+      return;
+    }
+
     setSaving(true);
+    setTriedToSaveTarget(false);
 
     try {
       const body: any = {
@@ -754,6 +763,7 @@ const MinuteDetail = () => {
                     setTempTargetDate(null);
                   }
                   setTempNoteText("");
+                  setTriedToSaveTarget(false);
                   setTargetModalVisible(true);
                 }}
                 className="flex-row items-center py-3 -mx-4 px-4"
@@ -1345,105 +1355,181 @@ const MinuteDetail = () => {
         swipeDirection="down"
         onSwipeComplete={() => !saving && setTargetModalVisible(false)}
         style={{ justifyContent: "flex-end", margin: 0 }}
+        backdropOpacity={0.4}
+        useNativeDriver={true}
+        hideModalContentWhileAnimating={true}
       >
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             style={{
-              backgroundColor: isDark ? "#1A1A1A" : "#FFFFFF",
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              paddingHorizontal: 24,
-              paddingTop: 20,
-              paddingBottom: 30,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -3 },
-              shadowOpacity: 0.1,
-              shadowRadius: 6,
-              elevation: 5,
+              backgroundColor: isDark ? "#121212" : "#FFFFFF",
+              borderTopLeftRadius: 30,
+              borderTopRightRadius: 30,
+              paddingHorizontal: 20,
+              paddingTop: 15,
+              paddingBottom: bottom + 40,
             }}
           >
-            {/* Header */}
-            <View className="items-center mb-6">
-              <View className="w-16 h-1.5 bg-gray-300 dark:bg-zinc-700 rounded-full mb-3" />
-              <Text
-                className={`text-xl font-dmSemiBold text-center ${isDark ? "text-white" : "text-gray-900"}`}
-              >
-                Update Target Date
-              </Text>
-              <Text
-                className={`text-sm mt-1 text-center px-4 font-poppins ${isDark ? "text-zinc-500" : "text-gray-500"}`}
-              >
-                Select a new target date or mark as For Information.
-              </Text>
+            {/* Handle Bar */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full" />
             </View>
 
-            {/* Toggle Buttons */}
-            <View className="flex-row mb-5 gap-3">
-              <TouchableOpacity
-                onPress={() => setTempForInfo(false)}
-                className={`flex-1 py-3 rounded-xl items-center justify-center ${
-                  !tempForInfo
-                    ? "bg-indigo-600"
-                    : isDark
-                      ? "bg-zinc-800"
-                      : "bg-gray-200"
+            {/* Title */}
+            <Text
+              className={`text-[19px] font-dmSemiBold text-center mb-5 ${
+                isDark ? "text-white" : "text-black"
+              }`}
+            >
+              Change target Date
+            </Text>
+
+            {/* Change Date Row */}
+            <View className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowPicker(true)}
+              className="flex-row items-center py-5"
+            >
+              <HugeiconsIcon
+                icon={Calendar02Icon}
+                size={22}
+                color={isDark ? "#919191" : "#454545"}
+              />
+              <Text
+                className={`flex-1 ml-3 text-[15px] font-poppins ${
+                  isDark ? "text-white" : "text-black"
                 }`}
               >
-                <Text
-                  className={`font-dmBold ${
-                    !tempForInfo
-                      ? "text-white"
-                      : isDark
-                        ? "text-zinc-400"
-                        : "text-gray-700"
-                  }`}
-                >
-                  Set Date
-                </Text>
-              </TouchableOpacity>
+                Change Date
+              </Text>
+              <Text
+                className={`mr-2 text-[14px] font-poppins ${
+                  isDark ? "text-[#919191]" : "text-[#454545]"
+                }`}
+              >
+                {tempTargetDate ? fmtDate(tempTargetDate) : "Select Date"}
+              </Text>
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={18}
+                color={isDark ? "#505050" : "#A1A1AA"}
+              />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setTempForInfo(true);
-                  setTempTargetDate(null);
-                }}
-                className={`flex-1 py-3 rounded-xl items-center justify-center ${
+            {/* For Information Row */}
+            <View className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                setTempForInfo(!tempForInfo);
+                if (!tempForInfo) setTempTargetDate(null);
+              }}
+              className="flex-row items-center py-5"
+            >
+              <HugeiconsIcon
+                icon={InformationCircleIcon}
+                size={22}
+                color={isDark ? "#919191" : "#454545"}
+              />
+              <Text
+                className={`flex-1 ml-3 text-[15px] font-poppins ${
+                  isDark ? "text-white" : "text-black"
+                }`}
+              >
+                For Information
+              </Text>
+              <View
+                className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
                   tempForInfo
-                    ? "bg-indigo-600"
+                    ? "border-[#6366F1]"
                     : isDark
-                      ? "bg-zinc-800"
-                      : "bg-gray-200"
+                      ? "border-zinc-800"
+                      : "border-gray-200"
+                }`}
+              >
+                {tempForInfo && (
+                  <View className="w-3 h-3 rounded-full bg-[#6366F1]" />
+                )}
+              </View>
+            </TouchableOpacity>
+            <View className={`h-[1px] w-full mb-6 ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+
+            {/* Note Input */}
+            <TextInput
+              value={tempNoteText}
+              onChangeText={(text) => {
+                setTempNoteText(text);
+                if (text.trim()) setTriedToSaveTarget(false);
+              }}
+              placeholder="Add a note"
+              multiline
+              placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
+              numberOfLines={4}
+              editable={!saving}
+              className={`mb-8 p-4 rounded-xl text-[14px] font-poppins ${
+                triedToSaveTarget && !tempNoteText.trim()
+                  ? isDark
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                  : isDark
+                    ? "bg-[#0D0D0D] text-white border border-transparent"
+                    : "bg-[#F6F8FA] text-black border border-transparent"
+              }`}
+              style={{
+                textAlignVertical: "top",
+                minHeight: 100,
+              }}
+            />
+
+            {/* Action Buttons */}
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => setTargetModalVisible(false)}
+                activeOpacity={0.8}
+                className={`flex-1 py-3.5 rounded-xl items-center justify-center border ${
+                  isDark ? "bg-transparent border-white" : "bg-white border-black"
                 }`}
               >
                 <Text
-                  className={`font-dmBold ${
-                    tempForInfo
-                      ? "text-white"
-                      : isDark
-                        ? "text-zinc-400"
-                        : "text-gray-700"
+                  className={`text-[16px] font-poppins ${
+                    isDark ? "text-white" : "text-black"
                   }`}
                 >
-                  For Information
+                  Cancel
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSaveTargetDate}
+                activeOpacity={0.8}
+                disabled={saving || (!tempForInfo && !tempTargetDate)}
+                className="flex-1 overflow-hidden rounded-xl"
+              >
+                <LinearGradient
+                  colors={
+                    saving || (!tempForInfo && !tempTargetDate) || !tempNoteText.trim()
+                      ? isDark
+                        ? ["#27272A", "#27272A"]
+                        : ["#E5E7EB", "#E5E7EB"]
+                      : ["#6366F1", "#8B5CF6"]
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  className="py-3.5 items-center justify-center"
+                >
+                  <Text
+                    className={`text-[16px] font-poppins ${
+                      saving || (!tempForInfo && !tempTargetDate) || !tempNoteText.trim()
+                        ? "text-gray-400"
+                        : "text-white"
+                    }`}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
-
-            {/* Date Picker Button */}
-            {!tempForInfo && (
-              <TouchableOpacity
-                onPress={() => setShowPicker(true)}
-                className={`p-3 rounded-xl mb-6 border ${isDark ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200"}`}
-              >
-                <Text
-                  className={`text-center font-poppins ${isDark ? "text-white" : "text-gray-700"}`}
-                >
-                  {tempTargetDate
-                    ? tempTargetDate.toDateString()
-                    : "Select Target Date"}
-                </Text>
-              </TouchableOpacity>
-            )}
 
             {/* Date Picker */}
             {showPicker && (
@@ -1455,74 +1541,11 @@ const MinuteDetail = () => {
                   setShowPicker(false);
                   if (event.type === "set") {
                     setTempTargetDate(selectedDate || null);
+                    setTempForInfo(false);
                   }
                 }}
               />
             )}
-
-            {/* Note Input */}
-
-            <Text
-              className={`text-sm mb-2 font-poppinsMedium ${isDark ? "text-zinc-400" : "text-gray-600"}`}
-            >
-              Add a note (required)
-            </Text>
-            <TextInput
-              value={tempNoteText}
-              onChangeText={setTempNoteText}
-              placeholder="Reason for change..."
-              multiline
-              placeholderTextColor={isDark ? "#52525B" : "#A1A1AA"}
-              numberOfLines={3}
-              style={{
-                borderWidth: 1,
-                borderColor: isDark ? "#27272A" : "#E5E7EB",
-                borderRadius: 12,
-                padding: 10,
-                textAlignVertical: "top",
-                backgroundColor: isDark ? "#09090B" : "#F9FAFB",
-                marginBottom: 20,
-                fontSize: 14,
-                color: isDark ? "white" : "black",
-                fontFamily: "Poppins-Regular",
-              }}
-            />
-
-            {/* Action Buttons */}
-            <View className="flex-row mt-3 gap-3">
-              <TouchableOpacity
-                onPress={() => setTargetModalVisible(false)}
-                className={`flex-1 rounded-xl py-3 items-center justify-center border ${isDark ? "bg-zinc-800 border-zinc-700" : "bg-gray-100 border-gray-200"}`}
-              >
-                <Text
-                  className={`font-dmBold ${isDark ? "text-zinc-300" : "text-gray-700"}`}
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleSaveTargetDate}
-                disabled={
-                  saving ||
-                  !tempNoteText.trim() ||
-                  (!tempForInfo && !tempTargetDate)
-                }
-                className={`flex-1 rounded-xl py-3 items-center justify-center ${
-                  saving ||
-                  !tempNoteText.trim() ||
-                  (!tempForInfo && !tempTargetDate)
-                    ? isDark
-                      ? "bg-zinc-700"
-                      : "bg-gray-300"
-                    : "bg-indigo-600"
-                }`}
-              >
-                <Text className="text-white font-dmBold">
-                  {saving ? "Saving..." : "Save"}
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </KeyboardStickyView>
       </Modal>
