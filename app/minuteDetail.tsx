@@ -1510,7 +1510,7 @@ const MinuteDetail = () => {
                 onPress={handleSaveTargetDate}
                 activeOpacity={0.8}
                 disabled={saving || (!tempForInfo && !tempTargetDate)}
-                className="flex-1 overflow-hidden rounded-xl"
+                className="flex-1"
               >
                 <LinearGradient
                   colors={
@@ -1518,12 +1518,14 @@ const MinuteDetail = () => {
                     (!tempForInfo && !tempTargetDate) ||
                     !tempNoteText.trim()
                       ? isDark
-                        ? ["#27272A", "#27272A"]
-                        : ["#E5E7EB", "#E5E7EB"]
-                      : ["#6366F1", "#8B5CF6"]
+                        ? ["#27272A", "#27272A", "#27272A"]
+                        : ["#E5E7EB", "#E5E7EB", "#E5E7EB"]
+                      : ["#5B4CCC", "#6347C2", "#8056D1"]
                   }
+                  locations={[0, 0.5183, 1]}
                   start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+                  end={{ x: 1, y: 0.1 }}
+                  style={{ borderRadius: 12 }}
                   className="py-3.5 items-center justify-center"
                 >
                   <Text
