@@ -180,7 +180,7 @@ const Minutes = () => {
               </View>
             )}
             {meeting.agendaSubmitted && (
-              <View className="bg-[#EBEFF2] dark:bg-[#09225A] px-3 py-1.5 rounded-full flex-row items-center">
+              <View className="bg-[#E8F0FF] dark:bg-[#09225A] px-3 py-1.5 rounded-full flex-row items-center">
                 <HugeiconsIcon
                   icon={Tick01Icon}
                   size={14}

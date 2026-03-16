@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  useColorScheme,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { List, Card } from "react-native-paper";
@@ -22,6 +23,31 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import {
+  ArrowLeft01Icon,
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Calendar04Icon,
+  PlusSignCircleIcon,
+  Clock01Icon,
+  Search01Icon,
+  InformationCircleIcon,
+  Download01Icon,
+  CheckmarkCircle01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  Delete02Icon,
+  Note01Icon,
+  UserGroupIcon,
+  CircleIcon,
+  Tick01Icon,
+  Camera01Icon,
+  Edit03Icon,
+  Image03Icon,
+  AllBookmarkIcon,
+  Tick02Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import api from "../lib/api";
@@ -38,7 +64,7 @@ const handleDownloadAgenda = async (
   accountName: any,
   company: any,
   token: any,
-  format: "pdf" | "excel"
+  format: "pdf" | "excel",
 ) => {
   try {
     const payload = {
@@ -72,10 +98,7 @@ const handleDownloadAgenda = async (
         ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-    const uti =
-      format === "pdf"
-        ? "com.adobe.pdf"
-        : "com.microsoft.excel.xlsx";
+    const uti = format === "pdf" ? "com.adobe.pdf" : "com.microsoft.excel.xlsx";
 
     // 🌐 WEB
     if (Platform.OS === "web") {
@@ -124,7 +147,6 @@ const handleDownloadAgenda = async (
   }
 };
 
-
 type DirectoryUser = {
   label: string;
   value: string;
@@ -162,7 +184,16 @@ const CreateMinutes = () => {
 
   const [isDraftSubmitted, setIsDraftSubmitted] = useState(false);
 
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
+  // Section Toggles
+  const [showMeetingInfo, setShowMeetingInfo] = useState(true);
+  const [showAttendeesSection, setShowAttendeesSection] = useState(true);
+  const [showMinutesSection, setShowMinutesSection] = useState(true);
+
   // ✅ Meeting-level state
+  const [meetingTitle, setMeetingTitle] = useState<string>("");
   const [meetingDate, setMeetingDate] = useState<Date | null>(null);
   const [meetingTime, setMeetingTime] = useState<string>(""); // string for time
   const [meetingVenue, setMeetingVenue] = useState<string>("");
@@ -200,14 +231,7 @@ const CreateMinutes = () => {
     },
   ]);
 
-  const isDraftDisabled =
-    !meetingDate &&
-    !meetingTime &&
-    !meetingVenue &&
-    attendees.length === 1 &&
-    !attendees[0].attendeeName &&
-    minutes.length === 1 &&
-    !minutes[0].issueSubject;
+
 
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -230,7 +254,7 @@ const CreateMinutes = () => {
         if (jsonValue) {
           const savedData = JSON.parse(jsonValue);
           setMeetingDate(
-            savedData.meetingDate ? new Date(savedData.meetingDate) : null
+            savedData.meetingDate ? new Date(savedData.meetingDate) : null,
           );
           setMeetingTime(savedData.meetingTime || "");
           setMeetingVenue(savedData.meetingVenue || "");
@@ -479,7 +503,7 @@ const CreateMinutes = () => {
               status: a.status || "",
               userId: a.userId || null,
               contactNumbers: a.contactNumbers || [""], // 👈 prevent crash
-            }))
+            })),
           );
         }
 
@@ -530,7 +554,7 @@ const CreateMinutes = () => {
       // ✅ Validation
       if (type === "agenda") {
         const invalid = minutes.some(
-          (m) => !m.issueSubject || m.raisedBy.length === 0
+          (m) => !m.issueSubject || m.raisedBy.length === 0,
         );
         if (invalid) {
           Toast.show({
@@ -562,7 +586,7 @@ const CreateMinutes = () => {
             !m.issueSubject ||
             m.raisedBy.length === 0 ||
             (!m.targetDate && !m.targetDateForInfo) ||
-            (m.responsibility.length === 0 && !m.responsibilityForInfo)
+            (m.responsibility.length === 0 && !m.responsibilityForInfo),
         );
         if (invalid) {
           Toast.show({
@@ -684,7 +708,7 @@ const CreateMinutes = () => {
               designation: a.designation || "",
               email: a.email || "",
               contactNumbers: a.contactNumbers || [""],
-            }))
+            })),
           );
         }
 
@@ -708,7 +732,7 @@ const CreateMinutes = () => {
               targetDateForInfo: m.targetDateForInfo,
               responsibilityForInfo: m.responsibilityForInfo,
               fromForwardedId: m.fromForwardedId || null,
-            }))
+            })),
           );
         }
       } catch (err) {
@@ -783,555 +807,870 @@ const CreateMinutes = () => {
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
       {/* Header */}
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center">
+      <View
+        className={`pt-16 pb-4 px-4 flex-row items-center justify-between ${
+          isDarkMode ? "bg-black" : "bg-[#FBFCFD]"
+        }`}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-row items-center"
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+          <Text
+            className={`text-xl font-dmSemiBold ml-2 ${
+              isDarkMode ? "text-white" : "text-black"
+            }`}
+          >
+            Minutes of Meeting
+          </Text>
+        </TouchableOpacity>
+
+        {/* Draft Button */}
+        {!isEditMOM && (
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={submitDraft}
+            disabled={isDraftSaving}
+            activeOpacity={0.7}
             className="flex-row items-center"
           >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              Create {projectName} Minutes
-            </Text>
+            {isDraftSaving ? (
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "#fff" : "#000"}
+              />
+            ) : (
+              <>
+                <HugeiconsIcon
+                  icon={AllBookmarkIcon}
+                  size={16}
+                  color={isDarkMode ? "#fff" : "#000"}
+                />
+                <Text
+                  className={`text-[13px] font-poppins ml-1.5 font-medium ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  Draft
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
-        </View>
-      </LinearGradient>
+        )}
+      </View>
 
       {/* Content */}
       <KeyboardAwareScrollView
-        // enableOnAndroid
-        // keyboardShouldPersistTaps="handled"
-        // keyboardShouldPersistTaps="always"
-        // enableOnAndroid={false} //  ❌ prevent auto scroll
-        // enableAutomaticScroll={false} //  ❌ prevent moving background
-        // extraScrollHeight={100} //  ❌ no screen shifting
-        // // extraScrollHeight={Platform.OS === "ios" ? 80 : 100}
         enableOnAndroid={false}
         enableAutomaticScroll={false}
         scrollEnabled={true}
         extraScrollHeight={0}
         keyboardShouldPersistTaps="always"
-        contentContainerStyle={{ padding: 10, paddingBottom: 220 }}
+        className={isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}
+        contentContainerStyle={{ padding: 16, paddingBottom: 220 }}
       >
-        {/* <Text className="text-2xl font-bold text-gray-800 text-center my-4">
-          {projectName || ""} MOM
-        </Text> */}
-
         {/* ✅ Meeting Info Section */}
-        <View className="mb-2 rounded-xl shadow-md overflow-hidden">
-          <View className="bg-white px-3 py-4 gap-3">
-            <Text className="text-lg font-bold text-gray-700">
-              Meeting Info <Text className="text-red-500">*</Text>
-            </Text>
-            {/* Meeting Date */}
-            {/* <TouchableOpacity onPress={() => setShowMeetingDatePicker(true)}>
-              <TextInput
-                placeholder="Meeting Date *"
-                placeholderTextColor="#888"
-                value={
-                  meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : ""
-                }
-                editable={false}
-                pointerEvents="none"
-                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-              />
-            </TouchableOpacity>
-            {showMeetingDatePicker && (
-              <DateTimePicker
-                value={meetingDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(_, selectedDate) => {
-                  setShowMeetingDatePicker(false);
-                  if (selectedDate) setMeetingDate(selectedDate);
-                }}
-              />
-            )} */}
-
-            {/* Meeting Time */}
-            {/* ✅ Meeting Time */}
-            {/* <TouchableOpacity onPress={() => setShowMeetingTimePicker(true)}>
-              <TextInput
-                placeholder="Meeting Time *"
-                placeholderTextColor="#888"
-                value={meetingTime} // 👈 directly use string
-                editable={false} // prevent typing
-                pointerEvents="none"
-                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-              />
-            </TouchableOpacity> */}
-
-            {/* {showMeetingTimePicker && (
-              <DateTimePicker
-                value={new Date()}
-                mode="time" // important for time picker
-                display="default"
-                is24Hour={false} // set true if you want 24-hour format
-                onChange={(_, selectedTime) => {
-                  setShowMeetingTimePicker(false);
-                  if (selectedTime) {
-                    // format and store as text like “01:19 PM”
-                    const formattedTime =
-                      moment(selectedTime).format("hh:mm A");
-                    setMeetingTime(formattedTime);
-                  }
-                }}
-              />
-            )} */}
-
-            {/* Meeting Date */}
-            <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-              <TextInput
-                placeholder="Meeting Date *"
-                placeholderTextColor="#888"
-                value={
-                  meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : ""
-                }
-                editable={false}
-                pointerEvents="none"
-                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-              />
-            </TouchableOpacity>
-
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={(date) => {
-                setDatePickerVisibility(false);
-                setMeetingDate(date);
-              }}
-              onCancel={() => setDatePickerVisibility(false)}
-            />
-
-            {/* Meeting Time */}
-            <TouchableOpacity onPress={() => setTimePickerVisibility(true)}>
-              <TextInput
-                placeholder="Meeting Time *"
-                placeholderTextColor="#888"
-                value={meetingTime}
-                editable={false}
-                pointerEvents="none"
-                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-              />
-            </TouchableOpacity>
-
-            <DateTimePickerModal
-              isVisible={isTimePickerVisible}
-              mode="time"
-              onConfirm={(time) => {
-                setTimePickerVisibility(false);
-                const formattedTime = moment(time).format("hh:mm A");
-                setMeetingTime(formattedTime);
-              }}
-              onCancel={() => setTimePickerVisibility(false)}
-            />
-
-            {/* Venue */}
-            <TextInput
-              placeholder="Venue *"
-              placeholderTextColor="#888"
-              value={meetingVenue}
-              onChangeText={setMeetingVenue}
-              className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-            />
-
-            {/* ✅ AT Review Box */}
-            <TouchableOpacity
-              onPress={() => setIsATReview(!isATReview)}
-              className="flex-row items-center rounded-xl px-3 py-3 "
+        <View className="mb-4">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setShowMeetingInfo(!showMeetingInfo)}
+            className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
+              isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+            } ${!showMeetingInfo ? "rounded-b-xl" : ""}`}
+          >
+            <Text
+              className={`text-[15px] font-poppinsMedium ${
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              }`}
             >
-              <View
-                className={`w-6 h-6 rounded-md border-2 mr-3 ${
-                  isATReview
-                    ? "bg-green-500 border-green-500"
-                    : "border-gray-300 bg-white"
-                } flex items-center justify-center`}
-              >
-                {isATReview && (
-                  <Ionicons name="checkmark" size={18} color="white" />
-                )}
+              Meeting Info
+            </Text>
+            <HugeiconsIcon
+              icon={showMeetingInfo ? ArrowDown01Icon : ArrowUp01Icon}
+              size={20}
+              color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+            />
+          </TouchableOpacity>
+
+          {showMeetingInfo && (
+            <View
+              className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
+                isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+              }`}
+            >
+              {/* Meeting Title Input */}
+              <TextInput
+                placeholder="Enter Title"
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                value={meetingTitle}
+                onChangeText={setMeetingTitle}
+                className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                  isDarkMode
+                    ? "bg-[#262626] text-white"
+                    : "bg-[#F3F4F6] text-gray-900"
+                }`}
+              />
+
+              {/* Date / Time Row */}
+              <View className="flex-row gap-3">
+                {/* Meeting Date */}
+                <TouchableOpacity
+                  onPress={() => setDatePickerVisibility(true)}
+                  className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
+                    isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                  }`}
+                >
+                  <Text
+                    className={`text-[14px] font-poppins ${
+                      meetingDate
+                        ? isDarkMode
+                          ? "text-white"
+                          : "text-gray-900"
+                        : isDarkMode
+                          ? "text-[#6B7280]"
+                          : "text-[#9CA3AF]"
+                    }`}
+                  >
+                    {meetingDate
+                      ? moment(meetingDate).format("DD-MM-YYYY")
+                      : "DD-MM-YYYY"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={Calendar04Icon}
+                    size={18}
+                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                  />
+                </TouchableOpacity>
+
+                <DateTimePickerModal
+                  isVisible={isDatePickerVisible}
+                  mode="date"
+                  onConfirm={(date) => {
+                    setDatePickerVisibility(false);
+                    setMeetingDate(date);
+                  }}
+                  onCancel={() => setDatePickerVisibility(false)}
+                />
+
+                {/* Meeting Time */}
+                <TouchableOpacity
+                  onPress={() => setTimePickerVisibility(true)}
+                  className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
+                    isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                  }`}
+                >
+                  <Text
+                    className={`text-[14px] font-poppins ${
+                      meetingTime
+                        ? isDarkMode
+                          ? "text-white"
+                          : "text-gray-900"
+                        : isDarkMode
+                          ? "text-[#6B7280]"
+                          : "text-[#9CA3AF]"
+                    }`}
+                  >
+                    {meetingTime || "00:00 AM"}
+                  </Text>
+                  <HugeiconsIcon
+                    icon={Clock01Icon}
+                    size={18}
+                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                  />
+                </TouchableOpacity>
+
+                <DateTimePickerModal
+                  isVisible={isTimePickerVisible}
+                  mode="time"
+                  onConfirm={(time) => {
+                    setTimePickerVisibility(false);
+                    const formattedTime = moment(time).format("hh:mm A");
+                    setMeetingTime(formattedTime);
+                  }}
+                  onCancel={() => setTimePickerVisibility(false)}
+                />
               </View>
 
-              <Text
-                className={`font-pbold ${
-                  isATReview ? "text-green-600 font-bold" : "text-gray-900"
+              {/* Venue */}
+              <TextInput
+                placeholder="Enter Venue"
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                value={meetingVenue}
+                onChangeText={setMeetingVenue}
+                className={`rounded-xl font-poppins px-4 py-3.5 text-[14px] ${
+                  isDarkMode
+                    ? "bg-[#262626] text-white"
+                    : "bg-[#F3F4F6] text-gray-900"
                 }`}
+              />
+
+              {/* ✅ AT Review Box */}
+              <TouchableOpacity
+                onPress={() => setIsATReview(!isATReview)}
+                className="flex-row items-center py-2"
+                activeOpacity={0.7}
               >
-                {isATReview ? "Marked as AT Review" : "Mark this as AT Review"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <View
+                  className={`w-5 h-5 rounded-[4px] border ${
+                    isATReview
+                      ? isDarkMode
+                        ? "bg-transparent border-[#4B5563]"
+                        : "bg-transparent border-[#D1D5DB]"
+                      : isDarkMode
+                        ? "border-[#4B5563]"
+                        : "border-[#D1D5DB]"
+                  } flex items-center justify-center mr-3`}
+                >
+                  {isATReview && (
+                    <HugeiconsIcon
+                      icon={Tick02Icon}
+                      size={14}
+                      color={isDarkMode ? "#919191" : "#919191"}
+                    />
+                  )}
+                </View>
+
+                <Text
+                  className={`text-[14px] font-poppins ${
+                    isDarkMode ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Mark this at AT review
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Attendees */}
-        <View className="bg-white rounded-xl p-2 shadow-md">
-          <Text className="text-lg font-bold text-gray-700 p-2">
-            Attendees <Text className="text-red-500">*</Text>
-          </Text>
-
-          {attendees.map((att, index) => (
-            <Card
-              key={index}
-              className="mb-4 rounded-3xl shadow-sm overflow-hidden"
-            >
-              <List.Accordion
-                title={
-                  <View>
-                    <Text className="font-semibold text-gray-700 text-lg">
-                      Attendee {att.sNo}
-                    </Text>
-                    {att.attendeeName ? (
-                      <Text className=" text-sm text-gray-500">
-                        {att.attendeeName}
-                      </Text>
-                    ) : null}
-                  </View>
-                }
-                style={{
-                  backgroundColor: "#F0F9FF",
-                  borderRadius: 12,
-                }}
-                expanded={expandedAttendee === index}
-                onPress={() =>
-                  setExpandedAttendee(expandedAttendee === index ? null : index)
-                }
-              >
-                <Card.Content className="bg-white px-3 py-4">
-                  {/* Directory Select Option */}
-                  {openDirectoryFor === index ? (
-                    <Dropdown
-                      style={{
-                        height: 35,
-                        borderColor: "#0EA5E9",
-                        borderWidth: 1,
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        backgroundColor: "#FFF",
-                        marginBottom: 8,
-                      }}
-                      placeholderStyle={{ fontSize: 14, color: "#0EA5E9" }}
-                      selectedTextStyle={{ fontSize: 14, color: "#111827" }}
-                      activeColor="#F0F9FF"
-                      data={users} // 👈 array of {label, value, attendeeName, role, etc.}
-                      labelField="label"
-                      valueField="value"
-                      value={att.userId}
-                      placeholder="Select attendee"
-                      search
-                      searchPlaceholder="Search..."
-                      onChange={(val) => {
-                        const user = users.find((u) => u.value === val.value);
-                        if (user) {
-                          updateAttendee(index, "userId", user.value);
-                          updateAttendee(
-                            index,
-                            "attendeeName",
-                            user.attendeeName || ""
-                          );
-                          // updateAttendee(index, "role", user.role || "");
-                          updateAttendee(
-                            index,
-                            "organization",
-                            user.organization || ""
-                          );
-                          updateAttendee(
-                            index,
-                            "designation",
-                            user.designation || ""
-                          );
-                          updateAttendee(index, "email", user.email || "");
-                          updateAttendee(
-                            index,
-                            "contactNumbers",
-                            user.contactNumbers || [""]
-                          );
-                        }
-                        setOpenDirectoryFor(null);
-                      }}
-                    />
-                  ) : !att.userId ? (
-                    <TouchableOpacity
-                      onPress={() => setOpenDirectoryFor(index)}
-                      className="flex-row items-center border w-full border-sky-500 py-2 px-3 rounded-xl justify-center mb-3"
-                    >
-                      <Ionicons
-                        name="people-outline"
-                        size={18}
-                        color="#0EA5E9"
-                      />
-                      <Text className="ml-2 text-sky-500 font-medium text-sm">
-                        Select From Directory
-                      </Text>
-                    </TouchableOpacity>
-                  ) : null}
-
-                  {/* Manual Fields */}
-                  <View className="gap-2">
-                    <TextInput
-                      placeholder="Full Name *"
-                      placeholderTextColor="#888"
-                      value={att.attendeeName}
-                      onChangeText={(t) =>
-                        updateAttendee(index, "attendeeName", t)
-                      }
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-                    {/* <TextInput
-                      placeholder="Role"
-                      placeholderTextColor="#888"
-                      value={att.role}
-                      onChangeText={(t) => updateAttendee(index, "role", t)}
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    /> */}
-                    <TextInput
-                      placeholder="Organization"
-                      placeholderTextColor="#888"
-                      value={att.organization}
-                      onChangeText={(t) =>
-                        updateAttendee(index, "organization", t)
-                      }
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-                    <TextInput
-                      placeholder="Designation"
-                      placeholderTextColor="#888"
-                      value={att.designation}
-                      onChangeText={(t) =>
-                        updateAttendee(index, "designation", t)
-                      }
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-                    <TextInput
-                      placeholder="Email"
-                      placeholderTextColor="#888"
-                      value={att.email}
-                      onChangeText={(t) => updateAttendee(index, "email", t)}
-                      keyboardType="email-address"
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-                    <TextInput
-                      placeholder="Phone"
-                      placeholderTextColor="#888"
-                      value={att.contactNumbers[0] || ""}
-                      onChangeText={(t) => updateAttendee(index, "phone", t)}
-                      keyboardType="phone-pad"
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-
-                    {/* Remove Attendee */}
-                    {attendees.length > 1 && (
-                      <TouchableOpacity onPress={() => deleteAttendee(index)}>
-                        <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
-                          Remove Attendee
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </Card.Content>
-              </List.Accordion>
-            </Card>
-          ))}
-
-          {/* Add Attendee Button */}
+        <View className="mb-4">
           <TouchableOpacity
-            onPress={addAttendee}
-            className="bg-sky-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
+            activeOpacity={0.8}
+            onPress={() => setShowAttendeesSection(!showAttendeesSection)}
+            className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
+              isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+            } ${!showAttendeesSection ? "rounded-b-xl" : ""}`}
           >
-            <Text className="text-white font-pbold">+ Add Attendee</Text>
+            <View className="flex-row items-center">
+              <Text
+                className={`text-[15px] font-poppinsMedium ${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Attendees
+              </Text>
+            </View>
+            <HugeiconsIcon
+              icon={showAttendeesSection ? ArrowDown01Icon : ArrowUp01Icon}
+              size={20}
+              color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+            />
           </TouchableOpacity>
+
+          {showAttendeesSection && (
+            <View
+              className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
+                isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+              }`}
+            >
+              {attendees.map((att, index) => (
+                <View
+                  key={index}
+                  className={`rounded-xl overflow-hidden mb-3 ${
+                    isDarkMode ? "bg-[#1E1E1E]" : "bg-white"
+                  }`}
+                
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      setExpandedAttendee(
+                        expandedAttendee === index ? null : index,
+                      )
+                    }
+                    className={`flex-row justify-between items-center px-4 py-3 ${
+                      isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                    }`}
+                  >
+                    <View>
+                      <Text
+                        className={`font-dmSemiBold text-[15px] ${
+                          isDarkMode ? "text-gray-200" : "text-gray-800"
+                        }`}
+                      >
+                        Attendee {att.sNo}
+                      </Text>
+                      {att.attendeeName ? (
+                        <Text
+                          className={`text-sm font-poppins mt-0.5 ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          {att.attendeeName}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <HugeiconsIcon
+                      icon={
+                        expandedAttendee === index
+                          ? ArrowDown01Icon
+                          : ArrowRight01Icon
+                      }
+                      size={18}
+                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                    />
+                  </TouchableOpacity>
+
+                  {expandedAttendee === index && (
+                    <View className="px-4 py-4 gap-3">
+                      {/* Directory Select Option */}
+                      {openDirectoryFor === index ? (
+                        <Dropdown
+                          style={{
+                            height: 48,
+                            borderColor: isDarkMode ? "#4B5563" : "#E5E7EB",
+                            borderWidth: 1,
+                            borderRadius: 12,
+                            paddingHorizontal: 16,
+                            backgroundColor: isDarkMode ? "#262626" : "#F3F4F6",
+                            marginBottom: 8,
+                          }}
+                          placeholderStyle={{
+                            fontSize: 14,
+                            color: isDarkMode ? "#6B7280" : "#9CA3AF",
+                          }}
+                          selectedTextStyle={{
+                            fontSize: 14,
+                            color: isDarkMode ? "#E5E7EB" : "#111827",
+                          }}
+                          activeColor={isDarkMode ? "#374151" : "#F0F9FF"}
+                          data={users}
+                          labelField="label"
+                          valueField="value"
+                          value={att.userId}
+                          placeholder="Search in directory..."
+                          search
+                          searchPlaceholder="Type a name..."
+                          onChange={(val) => {
+                            const user = users.find(
+                              (u) => u.value === val.value,
+                            );
+                            if (user) {
+                              updateAttendee(index, "userId", user.value);
+                              updateAttendee(
+                                index,
+                                "attendeeName",
+                                user.attendeeName || "",
+                              );
+                              updateAttendee(
+                                index,
+                                "organization",
+                                user.organization || "",
+                              );
+                              updateAttendee(
+                                index,
+                                "designation",
+                                user.designation || "",
+                              );
+                              updateAttendee(index, "email", user.email || "");
+                              updateAttendee(
+                                index,
+                                "contactNumbers",
+                                user.contactNumbers || [""],
+                              );
+                            }
+                            setOpenDirectoryFor(null);
+                          }}
+                        />
+                      ) : !att.userId ? (
+                        <TouchableOpacity
+                          onPress={() => setOpenDirectoryFor(index)}
+                          className={`flex-row items-center border border-dashed rounded-xl py-3 justify-center mb-2 ${
+                            isDarkMode
+                              ? "border-[#A78BFA] bg-[#A78BFA]/10"
+                              : "border-[#8B5CF6] bg-[#8B5CF6]/5"
+                          }`}
+                        >
+                          <HugeiconsIcon
+                            icon={Search01Icon}
+                            size={18}
+                            color={isDarkMode ? "#A78BFA" : "#8B5CF6"}
+                          />
+                          <Text
+                            className={`ml-2 font-poppinsMedium text-sm ${isDarkMode ? "text-[#A78BFA]" : "text-[#8B5CF6]"}`}
+                          >
+                            Find in Directory
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+
+                      {/* Manual Fields */}
+                      <View className="gap-3">
+                        <TextInput
+                          placeholder="Full Name *"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={att.attendeeName}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "attendeeName", t)
+                          }
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                        <TextInput
+                          placeholder="Organization"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={att.organization}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "organization", t)
+                          }
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                        <TextInput
+                          placeholder="Designation"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={att.designation}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "designation", t)
+                          }
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                        <TextInput
+                          placeholder="Email Address"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={att.email}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "email", t)
+                          }
+                          keyboardType="email-address"
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                        <TextInput
+                          placeholder="Phone Number"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={att.contactNumbers[0] || ""}
+                          onChangeText={(t) =>
+                            updateAttendee(index, "phone", t)
+                          }
+                          keyboardType="phone-pad"
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                      </View>
+                      {/* Actions */}
+                      <View className="flex-row justify-end space-x-4 mt-2">
+                        {attendees.length > 1 && (
+                          <TouchableOpacity
+                            onPress={() => deleteAttendee(index)}
+                            className="flex-row items-center"
+                          >
+                            <HugeiconsIcon
+                              icon={Delete02Icon}
+                              size={14}
+                              color="#EF4444"
+                              className="mr-1"
+                            />
+                            <Text className="text-red-500 font-poppinsMedium text-sm">
+                              Remove Attendee
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              ))}
+
+              {/* Buttons Row */}
+              <View className=" gap-3 mt-1">
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    // Logic to open directory for a specific attendee index
+                    // since the previous design allowed opening directory per attendee card
+                    // we'll add a new blank attendee and open directory for it
+                    addAttendee();
+                    setOpenDirectoryFor(attendees.length);
+                  }}
+                  className={`flex-1 py-3 rounded-[10px] flex-row justify-center gap-3 items-center border ${
+                    isDarkMode
+                      ? "bg-[#262626] border-[#4B5563]"
+                      : "bg-[#F9FAFB] border-[#E5E7EB]"
+                  }`}
+                >
+                  <HugeiconsIcon
+                    icon={PlusSignCircleIcon}
+                    size={16}
+                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                    className="mr-2"
+                  />
+                  <Text
+                    className={`text-[14px] font-poppinsMedium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Select Attendees
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={addAttendee}
+                  className={`flex-1 py-3 rounded-[10px] flex-row justify-center gap-3  items-center border ${
+                    isDarkMode
+                      ? "bg-[#262626] border-[#4B5563]"
+                      : "bg-[#F9FAFB] border-[#E5E7EB]"
+                  }`}
+                >
+                  <HugeiconsIcon
+                    icon={PlusSignCircleIcon}
+                    size={16}
+                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                    className="mr-2"
+                  />
+                  <Text
+                    className={`text-[14px] font-poppinsMedium ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Add Manually
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* <Divider style={{ marginVertical: 16 }} /> */}
 
         {/* Minutes */}
-        <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
-          {/* <Text className="text-lg font-bold text-gray-700 p-2">Minutes</Text> */}
-          <View className="flex-row justify-between items-center p-2">
-            <Text className="text-lg font-bold text-gray-700">
-              Minutes <Text className="text-red-500">*</Text>
-            </Text>
+        <View className="mb-4">
+          {/* Minutes Header */}
+          <View
+            className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
+              isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+            } ${!showMinutesSection ? "rounded-b-xl" : ""}`}
+          >
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowMinutesSection(!showMinutesSection)}
+              className="flex-row items-center flex-1"
+            >
+              <View className="flex-row items-center">
+                <Text
+                  className={`text-[15px] font-poppinsMedium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Minutes
+                </Text>
+              </View>
+              <HugeiconsIcon
+                icon={showMinutesSection ? ArrowDown01Icon : ArrowUp01Icon}
+                size={20}
+                color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                style={{ marginLeft: 8 }}
+              />
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={fetchForwardedMinutes}
-              className="bg-yellow-500 px-3 py-1 rounded-xl"
+              className={`px-3 py-1.5 rounded-lg border flex-row items-center ml-2 ${
+                isDarkMode
+                  ? "bg-[#B45309]/10 border-[#B45309]"
+                  : "bg-amber-50 border-amber-500"
+              }`}
             >
-              <Text className="text-white text-sm font-semibold">
-                Fill from Forwarded
+              <HugeiconsIcon
+                icon={Download01Icon}
+                size={14}
+                color={isDarkMode ? "#FBBF24" : "#F59E0B"}
+              />
+              <Text
+                className={`text-xs font-poppinsBold ml-1 ${isDarkMode ? "text-amber-400" : "text-amber-600"}`}
+              >
+                From Forwarded
               </Text>
             </TouchableOpacity>
           </View>
 
-          {minutes.map((m, index) => (
-            <Card
-              key={index}
-              className="mb-4 rounded-3xl shadow-sm overflow-hidden"
+          {showMinutesSection && (
+            <View
+              className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
+                isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+              }`}
             >
-              <List.Accordion
-                title={
-                  <View>
-                    <Text className="font-semibold text-gray-700 text-lg">
-                      Minute {m.serialNo}
-                    </Text>
-                    {m.issueSubject ? (
-                      <Text className="text-sm text-gray-500">
-                        {m.issueSubject}
+              {minutes.map((m, index) => (
+                <View
+                  key={index}
+                  className={`rounded-xl overflow-hidden mb-3 ${
+                    isDarkMode ? "bg-[#1E1E1E]" : "bg-white"
+                  }`}
+                  
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      setExpandedMinute(expandedMinute === index ? null : index)
+                    }
+                    className={`flex-row justify-between items-center px-4 py-3 ${
+                      isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                    }`}
+                  >
+                    <View>
+                      <Text
+                        className={`font-dmSemiBold text-[15px] ${
+                          isDarkMode ? "text-gray-200" : "text-gray-800"
+                        }`}
+                      >
+                        Minute {m.serialNo}
                       </Text>
-                    ) : null}
-                  </View>
-                }
-                style={{
-                  backgroundColor: "#ECFDF5", // Emerald-50 like light green
-                  borderRadius: 12,
-                }}
-                expanded={expandedMinute === index}
-                onPress={() =>
-                  setExpandedMinute(expandedMinute === index ? null : index)
-                }
-              >
-                <Card.Content className="bg-white px-3 py-4">
-                  <View className="gap-2">
-                    {/* Raised By */}
-
-                    <MultiSelect
-                      ref={dropdownRef}
-                      style={{
-                        height: 35,
-                        borderColor: "#E5E7EB",
-                        borderWidth: 1,
-                        borderRadius: 12,
-                        paddingHorizontal: 12,
-                        backgroundColor: "#F9FAFB",
-                      }}
-                      placeholderStyle={{ fontSize: 14, color: "#888" }}
-                      selectedTextStyle={{
-                        fontSize: 12,
-                        color: "#0B0B0B",
-                      }}
-                      selectedStyle={{
-                        borderRadius: 10,
-                        backgroundColor: "#D1FADF",
-                        padding: 4,
-                      }}
-                      containerStyle={{
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        backgroundColor: "#fff",
-                      }}
-                      activeColor="#DCFCE7"
-                      inputSearchStyle={{ fontSize: 14 }}
-                      search
-                      labelField="label"
-                      valueField="value"
-                      data={users}
-                      value={m.raisedBy.map((r) => r.value)}
-                      placeholder="Issue raised by *"
-                      searchPlaceholder="Search..."
-                      onChange={(selectedIds) => {
-                        const selectedUsers = users
-                          .filter((u) => selectedIds.includes(u.value))
-                          .map((u) => ({ value: u.value, label: u.label }));
-
-                        updateMinute(index, "raisedBy", selectedUsers);
-
-                        // 🔥 The ONLY way: programmatic close using ref
-                        setTimeout(() => {
-                          dropdownRef.current?.close();
-                        }, 80);
-                      }}
-                    />
-
-                    <TextInput
-                      placeholder="Subject *"
-                      placeholderTextColor="#888"
-                      value={m.issueSubject}
-                      onChangeText={(t) =>
-                        updateMinute(index, "issueSubject", t)
-                      }
-                      multiline
-                      // textAlignVertical="top"
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-                    <TextInput
-                      placeholder="Meeting Discussion"
-                      placeholderTextColor="#888"
-                      value={m.issueDescription}
-                      onChangeText={(t) =>
-                        updateMinute(index, "issueDescription", t)
-                      }
-                      multiline
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-
-                    {/* Status Selector */}
-                    <View className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5  flex-row items-center">
-                      <Text className="text-[#888] text-base items-center">
-                        Status:{"  "}
-                      </Text>
-
-                      <View className="flex-row items-center justify-start gap-6">
-                        {/* Option 1: Open */}
-                        <TouchableOpacity
-                          onPress={() => updateMinute(index, "status", "open")}
-                          activeOpacity={0.8}
-                          className="flex-row items-center"
+                      {m.issueSubject ? (
+                        <Text
+                          className={`text-sm font-poppins mt-0.5 ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
                         >
-                          <View
-                            className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center ${
-                              m.status === "open"
-                                ? "border-red-500"
-                                : "border-gray-400"
-                            }`}
-                          >
-                            {m.status === "open" && (
-                              <View className="w-2.5 h-2.5 bg-red-500 rounded-full" />
-                            )}
-                          </View>
-                          <Text
-                            className={`text-sm font-medium ${
-                              m.status === "open"
-                                ? "text-red-600"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            Open
-                          </Text>
-                        </TouchableOpacity>
-
-                        {/* Option 2: For Info */}
-                        <TouchableOpacity
-                          onPress={() =>
-                            updateMinute(index, "status", "forInfo")
-                          }
-                          activeOpacity={0.8}
-                          className="flex-row items-center"
-                        >
-                          <View
-                            className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center ${
-                              m.status === "forInfo"
-                                ? "border-emerald-500"
-                                : "border-gray-400"
-                            }`}
-                          >
-                            {m.status === "forInfo" && (
-                              <View className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
-                            )}
-                          </View>
-                          <Text
-                            className={`text-sm font-medium ${
-                              m.status === "forInfo"
-                                ? "text-emerald-600"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            For Info
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
+                          {m.issueSubject}
+                        </Text>
+                      ) : null}
                     </View>
+                    <HugeiconsIcon
+                      icon={
+                        expandedMinute === index
+                          ? ArrowDown01Icon
+                          : ArrowRight01Icon
+                      }
+                      size={18}
+                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                    />
+                  </TouchableOpacity>
 
-                    {/* Date Picker Field */}
-                    {/* <TouchableOpacity onPress={() => openDatePicker(index)}>
+                  {expandedMinute === index && (
+                    <>
+                      <View className="px-4 py-4 gap-3">
+                        {/* Raised By */}
+                        <MultiSelect
+                          ref={dropdownRef}
+                          style={{
+                            height: 48,
+                            borderColor: isDarkMode ? "#4B5563" : "#E5E7EB",
+                            borderWidth: 1,
+                            borderRadius: 12,
+                            paddingHorizontal: 16,
+                            backgroundColor: isDarkMode ? "#262626" : "#F3F4F6",
+                          }}
+                          placeholderStyle={{
+                            fontSize: 14,
+                            color: isDarkMode ? "#6B7280" : "#9CA3AF",
+                          }}
+                          selectedTextStyle={{
+                            fontSize: 12,
+                            color: isDarkMode ? "#E5E7EB" : "#111827",
+                          }}
+                          selectedStyle={{
+                            borderRadius: 10,
+                            backgroundColor: isDarkMode ? "#374151" : "#E0E7FF",
+                            padding: 4,
+                          }}
+                          containerStyle={{
+                            borderRadius: 12,
+                            overflow: "hidden",
+                            backgroundColor: isDarkMode ? "#1C1C1E" : "#fff",
+                          }}
+                          activeColor={isDarkMode ? "#374151" : "#F0F9FF"}
+                          inputSearchStyle={{
+                            fontSize: 14,
+                            color: isDarkMode ? "#E5E7EB" : "#111827",
+                          }}
+                          search
+                          labelField="label"
+                          valueField="value"
+                          data={users}
+                          value={m.raisedBy.map((r) => r.value)}
+                          placeholder="Issue raised by *"
+                          searchPlaceholder="Search..."
+                          onChange={(selectedIds) => {
+                            const selectedUsers = users
+                              .filter((u) => selectedIds.includes(u.value))
+                              .map((u) => ({ value: u.value, label: u.label }));
+
+                            updateMinute(index, "raisedBy", selectedUsers);
+
+                            // 🔥 Programmatically close using ref
+                            setTimeout(() => {
+                              dropdownRef.current?.close();
+                            }, 80);
+                          }}
+                        />
+
+                        <TextInput
+                          placeholder="Subject *"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={m.issueSubject}
+                          onChangeText={(t) =>
+                            updateMinute(index, "issueSubject", t)
+                          }
+                          multiline
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+                        <TextInput
+                          placeholder="Meeting Discussion"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={m.issueDescription}
+                          onChangeText={(t) =>
+                            updateMinute(index, "issueDescription", t)
+                          }
+                          multiline
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+
+                        {/* Status Selector */}
+                        <View
+                          className={`rounded-xl px-4 py-3 flex-row items-center border ${
+                            isDarkMode
+                              ? "bg-[#262626] border-[#4B5563]"
+                              : "bg-[#F9FAFB] border-[#E5E7EB]"
+                          }`}
+                        >
+                          <Text
+                            className={`text-[15px] mr-3 ${
+                              isDarkMode ? "text-gray-400" : "text-[#888]"
+                            }`}
+                          >
+                            Status:
+                          </Text>
+
+                          <View className="flex-row items-center justify-start gap-6">
+                            {/* Option 1: Open */}
+                            <TouchableOpacity
+                              onPress={() =>
+                                updateMinute(index, "status", "open")
+                              }
+                              activeOpacity={0.8}
+                              className="flex-row items-center"
+                            >
+                              <HugeiconsIcon
+                                icon={
+                                  m.status === "open" ? Tick01Icon : CircleIcon
+                                }
+                                size={20}
+                                color={
+                                  m.status === "open"
+                                    ? isDarkMode
+                                      ? "#F87171"
+                                      : "#EF4444"
+                                    : isDarkMode
+                                      ? "#6B7280"
+                                      : "#9CA3AF"
+                                }
+                                className="mr-2"
+                              />
+                              <Text
+                                className={`text-[14px] font-poppinsMedium ${
+                                  m.status === "open"
+                                    ? isDarkMode
+                                      ? "text-red-400"
+                                      : "text-red-600"
+                                    : isDarkMode
+                                      ? "text-gray-300"
+                                      : "text-gray-700"
+                                }`}
+                              >
+                                Open
+                              </Text>
+                            </TouchableOpacity>
+
+                            {/* Option 2: For Info */}
+                            <TouchableOpacity
+                              onPress={() =>
+                                updateMinute(index, "status", "forInfo")
+                              }
+                              activeOpacity={0.8}
+                              className="flex-row items-center"
+                            >
+                              <HugeiconsIcon
+                                icon={
+                                  m.status === "forInfo"
+                                    ? Tick01Icon
+                                    : CircleIcon
+                                }
+                                size={20}
+                                color={
+                                  m.status === "forInfo"
+                                    ? isDarkMode
+                                      ? "#34D399"
+                                      : "#10B981"
+                                    : isDarkMode
+                                      ? "#6B7280"
+                                      : "#9CA3AF"
+                                }
+                                className="mr-2"
+                              />
+                              <Text
+                                className={`text-[14px] font-poppinsMedium ${
+                                  m.status === "forInfo"
+                                    ? isDarkMode
+                                      ? "text-emerald-400"
+                                      : "text-emerald-600"
+                                    : isDarkMode
+                                      ? "text-gray-300"
+                                      : "text-gray-700"
+                                }`}
+                              >
+                                For Info
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+                        {/* Date Picker Field */}
+                        {/* <TouchableOpacity onPress={() => openDatePicker(index)}>
                       <TextInput
                         placeholder="Target Date (DD-MM-YYYY)"
                         placeholderTextColor="#888"
@@ -1345,240 +1684,339 @@ const CreateMinutes = () => {
                         className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
                       />
                     </TouchableOpacity> */}
-                    {showDatePicker && dateIndex === index && (
-                      <DateTimePicker
-                        value={
-                          m.targetDate ? new Date(m.targetDate) : new Date()
-                        }
-                        mode="date"
-                        display="default"
-                        onChange={onDateChange}
-                      />
-                    )}
-                    <View className="flex-row items-center">
-                      <TouchableOpacity
-                        onPress={() => openDatePicker(index)}
-                        style={{
-                          flex: 1,
-                          opacity: m.targetDateForInfo ? 0.5 : 1,
-                        }} // 🔹 decrease opacity
-                        disabled={m.targetDateForInfo}
-                      >
-                        <TextInput
-                          placeholder="Target Date (DD-MM-YYYY) *"
-                          placeholderTextColor="#888"
-                          value={
-                            m.targetDate
-                              ? moment(m.targetDate).format("DD-MM-YYYY")
-                              : ""
-                          }
-                          editable={false}
-                          pointerEvents="none"
-                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700"
-                        />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (m.targetDateForInfo) {
-                            // 🔹 If already "For Info", just toggle off
-                            updateMinute(index, "targetDateForInfo", false);
-                          } else {
-                            // 🔹 If turning ON "For Info", clear the date
-                            updateMinute(index, "targetDate", null);
-                            updateMinute(index, "targetDateForInfo", true);
-                          }
-                        }}
-                        className={`ml-2 px-3 py-2 rounded-xl ${
-                          m.targetDateForInfo ? "bg-emerald-500" : "bg-gray-200"
-                        }`}
-                      >
-                        <Text className="text-white text-xs font-bold">
-                          {m.targetDateForInfo ? "For Info ✓" : "For Info"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* MultiSelect */}
-                    <View className="flex-row items-center">
-                      <View
-                        style={{
-                          flex: 1,
-                          opacity: m.responsibilityForInfo ? 0.5 : 1,
-                        }}
-                      >
-                        <MultiSelect
-                          ref={responsibilityRef}
-                          style={{
-                            height: 35,
-                            borderColor: "#E5E7EB", // gray-200
-                            borderWidth: 1,
-                            borderRadius: 12,
-                            paddingHorizontal: 12,
-                            backgroundColor: "#F9FAFB",
-                          }}
-                          placeholderStyle={{ fontSize: 14, color: "#888" }}
-                          selectedTextStyle={{ fontSize: 12, color: "#0B0B0B" }}
-                          selectedStyle={{
-                            borderRadius: 10,
-                            backgroundColor: "#D1FADF",
-                            padding: 4,
-                          }}
-                          containerStyle={{
-                            borderRadius: 12,
-                            overflow: "hidden",
-                            backgroundColor: "#fff",
-                          }}
-                          activeColor="#DCFCE7"
-                          inputSearchStyle={{ fontSize: 14 }}
-                          search
-                          labelField="label"
-                          valueField="value"
-                          data={users}
-                          // value={m.responsibility}
-                          value={m.responsibility.map((r: any) => r.value)}
-                          placeholder="Select responsible users *"
-                          searchPlaceholder="Search..."
-                          // onChange={(val) =>
-                          //   updateMinute(index, "responsibility", val)
-                          // }
-                          // Raised By
-                          // onChange={(selectedIds: string[]) => {
-                          //   const selectedUsers = users
-                          //     .filter((u) => selectedIds.includes(u.value))
-                          //     .map((u) => ({
-                          //       value: u.value,
-                          //       label: u.label,
-                          //     }));
-                          //   updateMinute(
-                          //     index,
-                          //     "responsibility",
-                          //     selectedUsers
-                          //   );
-                          // }}
-                          onChange={(selectedIds: string[]) => {
-                            const selectedUsers = users
-                              .filter((u) => selectedIds.includes(u.value))
-                              .map((u) => ({
-                                value: u.value,
-                                label: u.label,
-                              }));
-
-                            updateMinute(
-                              index,
-                              "responsibility",
-                              selectedUsers
-                            );
-
-                            // 🔥 Auto-close immediately after each selection/deselection
-                            setTimeout(() => {
-                              responsibilityRef.current?.close();
-                            }, 80);
-                          }}
-                          disable={m.responsibilityForInfo} // 🔹 disable MultiSelect when For Info is active
-                        />
-                      </View>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (m.responsibilityForInfo) {
-                            // 🔹 If already "For Info", just toggle off
-                            updateMinute(index, "responsibilityForInfo", false);
-                          } else {
-                            // 🔹 If turning ON "For Info", clear selected responsibility
-                            updateMinute(index, "responsibility", []);
-                            updateMinute(index, "responsibilityForInfo", true);
-                          }
-                        }}
-                        className={`ml-2 px-3 py-2 rounded-xl ${
-                          m.responsibilityForInfo
-                            ? "bg-emerald-500"
-                            : "bg-gray-200"
-                        }`}
-                      >
-                        <Text className="text-white text-xs font-bold">
-                          {m.responsibilityForInfo ? "For Info ✓" : "For Info"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <TextInput
-                      placeholder="Remarks (if any)"
-                      placeholderTextColor="#888"
-                      value={m.remarks}
-                      onChangeText={(t) => updateMinute(index, "remarks", t)}
-                      multiline
-                      className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
-                    />
-
-                    {/* 🗑 Delete Minute */}
-                    {minutes.length > 1 && (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setSelectedIndex(index);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
-                          Remove Minute
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  <Modal
-                    transparent
-                    visible={showDeleteModal}
-                    animationType="fade"
-                    onRequestClose={() => setShowDeleteModal(false)}
-                  >
-                    <View className="flex-1 justify-center items-center bg-black/50">
-                      <View className="bg-white w-80 p-6 rounded-2xl shadow-lg">
-                        <Text className="text-lg font-semibold text-gray-800">
-                          Are you sure?
-                        </Text>
-
-                        <Text className="text-gray-600 mt-2">
-                          Do you really want to remove this minute?
-                        </Text>
-
-                        <View className="flex-row justify-end mt-6">
-                          {/* Cancel button */}
+                        {showDatePicker && dateIndex === index && (
+                          <DateTimePicker
+                            value={
+                              m.targetDate ? new Date(m.targetDate) : new Date()
+                            }
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                          />
+                        )}
+                        <View className="flex-row items-center gap-2">
                           <TouchableOpacity
-                            onPress={() => setShowDeleteModal(false)}
-                            className="mr-6"
+                            onPress={() => openDatePicker(index)}
+                            style={{
+                              flex: 1,
+                              opacity: m.targetDateForInfo ? 0.5 : 1,
+                            }}
+                            disabled={m.targetDateForInfo}
                           >
-                            <Text className="text-gray-700 font-semibold">
-                              Cancel
-                            </Text>
+                            <TextInput
+                              placeholder="Target Date (DD-MM-YYYY) *"
+                              placeholderTextColor={
+                                isDarkMode ? "#6B7280" : "#9CA3AF"
+                              }
+                              value={
+                                m.targetDate
+                                  ? moment(m.targetDate).format("DD-MM-YYYY")
+                                  : ""
+                              }
+                              editable={false}
+                              pointerEvents="none"
+                              className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] border ${
+                                isDarkMode
+                                  ? "bg-[#262626] text-white border-[#4B5563]"
+                                  : "bg-[#F3F4F6] text-gray-700 border-[#E5E7EB]"
+                              }`}
+                            />
                           </TouchableOpacity>
 
-                          {/* Delete button */}
                           <TouchableOpacity
                             onPress={() => {
-                              deleteMinute(selectedIndex);
-                              setShowDeleteModal(false);
+                              if (m.targetDateForInfo) {
+                                updateMinute(index, "targetDateForInfo", false);
+                              } else {
+                                updateMinute(index, "targetDate", null);
+                                updateMinute(index, "targetDateForInfo", true);
+                              }
                             }}
+                            className={`px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+                              m.targetDateForInfo
+                                ? isDarkMode
+                                  ? "bg-emerald-500/20 border-emerald-500/50"
+                                  : "bg-emerald-50 border-emerald-500"
+                                : isDarkMode
+                                  ? "bg-[#262626] border-[#4B5563]"
+                                  : "bg-[#F3F4F6] border-[#E5E7EB]"
+                            }`}
                           >
-                            <Text className="text-red-600 font-semibold">
-                              Delete
+                            <Text
+                              className={`text-[14px] font-medium ${
+                                m.targetDateForInfo
+                                  ? isDarkMode
+                                    ? "text-emerald-400"
+                                    : "text-emerald-600"
+                                  : isDarkMode
+                                    ? "text-gray-400"
+                                    : "text-gray-600"
+                              }`}
+                            >
+                              {m.targetDateForInfo ? "For Info ✓" : "For Info"}
                             </Text>
                           </TouchableOpacity>
                         </View>
-                      </View>
-                    </View>
-                  </Modal>
-                </Card.Content>
-              </List.Accordion>
-            </Card>
-          ))}
 
-          <TouchableOpacity
-            onPress={addMinute}
-            className="bg-emerald-500 py-3 rounded-2xl items-center my-3 shadow-md active:opacity-80"
-          >
-            <Text className="text-white  font-pbold">+ Add Minute</Text>
-          </TouchableOpacity>
+                        {/* MultiSelect */}
+                        <View className="flex-row items-center">
+                          <View
+                            style={{
+                              flex: 1,
+                              opacity: m.responsibilityForInfo ? 0.5 : 1,
+                            }}
+                          >
+                            <MultiSelect
+                              ref={responsibilityRef}
+                              style={{
+                                height: 48,
+                                borderColor: isDarkMode ? "#4B5563" : "#E5E7EB",
+                                borderWidth: 1,
+                                borderRadius: 12,
+                                paddingHorizontal: 16,
+                                backgroundColor: isDarkMode
+                                  ? "#262626"
+                                  : "#F3F4F6",
+                              }}
+                              placeholderStyle={{
+                                fontSize: 14,
+                                color: isDarkMode ? "#6B7280" : "#9CA3AF",
+                              }}
+                              selectedTextStyle={{
+                                fontSize: 12,
+                                color: isDarkMode ? "#E5E7EB" : "#111827",
+                              }}
+                              selectedStyle={{
+                                borderRadius: 10,
+                                backgroundColor: isDarkMode
+                                  ? "#374151"
+                                  : "#E0E7FF",
+                                padding: 4,
+                              }}
+                              containerStyle={{
+                                borderRadius: 12,
+                                overflow: "hidden",
+                                backgroundColor: isDarkMode
+                                  ? "#1C1C1E"
+                                  : "#fff",
+                              }}
+                              activeColor="#DCFCE7"
+                              inputSearchStyle={{ fontSize: 14 }}
+                              search
+                              labelField="label"
+                              valueField="value"
+                              data={users}
+                              // value={m.responsibility}
+                              value={m.responsibility.map((r: any) => r.value)}
+                              placeholder="Select responsible users *"
+                              searchPlaceholder="Search..."
+                              // onChange={(val) =>
+                              //   updateMinute(index, "responsibility", val)
+                              // }
+                              // Raised By
+                              // onChange={(selectedIds: string[]) => {
+                              //   const selectedUsers = users
+                              //     .filter((u) => selectedIds.includes(u.value))
+                              //     .map((u) => ({
+                              //       value: u.value,
+                              //       label: u.label,
+                              //     }));
+                              //   updateMinute(
+                              //     index,
+                              //     "responsibility",
+                              //     selectedUsers
+                              //   );
+                              // }}
+                              onChange={(selectedIds: string[]) => {
+                                const selectedUsers = users
+                                  .filter((u) => selectedIds.includes(u.value))
+                                  .map((u) => ({
+                                    value: u.value,
+                                    label: u.label,
+                                  }));
+
+                                updateMinute(
+                                  index,
+                                  "responsibility",
+                                  selectedUsers,
+                                );
+
+                                // 🔥 Auto-close immediately after each selection/deselection
+                                setTimeout(() => {
+                                  responsibilityRef.current?.close();
+                                }, 80);
+                              }}
+                              disable={m.responsibilityForInfo} // 🔹 disable MultiSelect when For Info is active
+                            />
+                          </View>
+
+                          <TouchableOpacity
+                            onPress={() => {
+                              if (m.responsibilityForInfo) {
+                                updateMinute(
+                                  index,
+                                  "responsibilityForInfo",
+                                  false,
+                                );
+                              } else {
+                                updateMinute(index, "responsibility", []);
+                                updateMinute(
+                                  index,
+                                  "responsibilityForInfo",
+                                  true,
+                                );
+                              }
+                            }}
+                            className={`ml-2 px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+                              m.responsibilityForInfo
+                                ? isDarkMode
+                                  ? "bg-emerald-500/20 border-emerald-500/50"
+                                  : "bg-emerald-50 border-emerald-500"
+                                : isDarkMode
+                                  ? "bg-[#262626] border-[#4B5563]"
+                                  : "bg-[#F3F4F6] border-[#E5E7EB]"
+                            }`}
+                          >
+                            <Text
+                              className={`text-[14px] font-medium ${
+                                m.responsibilityForInfo
+                                  ? isDarkMode
+                                    ? "text-emerald-400"
+                                    : "text-emerald-600"
+                                  : isDarkMode
+                                    ? "text-gray-400"
+                                    : "text-gray-600"
+                              }`}
+                            >
+                              {m.responsibilityForInfo
+                                ? "For Info ✓"
+                                : "For Info"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <TextInput
+                          placeholder="Remarks (if any)"
+                          placeholderTextColor={
+                            isDarkMode ? "#6B7280" : "#9CA3AF"
+                          }
+                          value={m.remarks}
+                          onChangeText={(t) =>
+                            updateMinute(index, "remarks", t)
+                          }
+                          multiline
+                          className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                            isDarkMode
+                              ? "bg-[#262626] text-white"
+                              : "bg-[#F3F4F6] text-gray-900"
+                          }`}
+                        />
+
+                        {/* 🗑 Delete Minute */}
+                        {minutes.length > 1 && (
+                          <View className="flex-row justify-end space-x-4 mt-2">
+                            <TouchableOpacity
+                              onPress={() => {
+                                setSelectedIndex(index);
+                                setShowDeleteModal(true);
+                              }}
+                              className="flex-row items-center"
+                            >
+                              <HugeiconsIcon
+                                icon={Delete02Icon}
+                                size={14}
+                                color="#EF4444"
+                                className="mr-1"
+                              />
+                              <Text className="text-red-500 font-poppinsMedium text-sm">
+                                Remove Minute
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+
+                      <Modal
+                        transparent
+                        visible={showDeleteModal}
+                        animationType="fade"
+                        onRequestClose={() => setShowDeleteModal(false)}
+                      >
+                        <View className="flex-1 justify-center items-center bg-black/50">
+                          <View
+                            className={`w-80 p-6 rounded-2xl  ${isDarkMode ? "bg-[#1C1C1E]" : "bg-white"}`}
+                          >
+                            <Text
+                              className={`text-lg font-dmSemiBold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+                            >
+                              Are you sure?
+                            </Text>
+
+                            <Text
+                              className={`mt-2 font-poppins ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                            >
+                              Do you really want to remove this minute?
+                            </Text>
+
+                            <View className="flex-row justify-end mt-6">
+                              {/* Cancel button */}
+                              <TouchableOpacity
+                                onPress={() => setShowDeleteModal(false)}
+                                className="mr-6"
+                              >
+                                <Text
+                                  className={`font-poppinsMedium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                                >
+                                  Cancel
+                                </Text>
+                              </TouchableOpacity>
+
+                              {/* Delete button */}
+                              <TouchableOpacity
+                                onPress={() => {
+                                  deleteMinute(selectedIndex);
+                                  setShowDeleteModal(false);
+                                }}
+                              >
+                                <Text className="text-red-600 font-poppinsMedium">
+                                  Delete
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </Modal>
+                    </>
+                  )}
+                </View>
+              ))}
+
+              {/* Add Minutes Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={addMinute}
+                className={`py-3 rounded-[10px]  flex-row justify-center gap-3  items-center border ${
+                  isDarkMode
+                    ? "bg-[#262626] border-[#4B5563]"
+                    : "bg-[#F9FAFB] border-[#E5E7EB]"
+                }`}
+              >
+                <HugeiconsIcon
+                  icon={PlusSignCircleIcon}
+                  size={16}
+                  color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                  className="mr-2"
+                />
+                <Text
+                  className={`text-[14px] font-poppinsMedium ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Add Minutes
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         <Modal
@@ -1588,28 +2026,24 @@ const CreateMinutes = () => {
           onRequestClose={() => setForwardedModalVisible(false)}
         >
           <View className="flex-1 bg-black/50 justify-center items-center">
-            <View className="bg-white w-11/12 rounded-2xl p-5 max-h-[70%] shadow-lg">
+            <View className="bg-white w-11/12 rounded-2xl p-5 max-h-[70%] ">
               {/* Header with title + close button */}
               <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-xl font-bold text-center flex-1">
+                <Text className="text-xl font-dmSemiBold text-center flex-1">
                   Select Forwarded Issue
                 </Text>
                 <TouchableOpacity
                   onPress={() => setForwardedModalVisible(false)}
                   className="ml-2 p-1"
                 >
-                  <Ionicons name="close" size={24} color="#333" />
+                  <HugeiconsIcon icon={Cancel01Icon} size={24} color="#333" />
                 </TouchableOpacity>
               </View>
 
               {/* List or Empty State */}
               {!forwardedMinutes || forwardedMinutes.length === 0 ? (
                 <View className="justify-center items-center py-10">
-                  <Ionicons
-                    name="document-text-outline"
-                    size={70}
-                    color="#c0c0c0"
-                  />
+                  <HugeiconsIcon icon={Note01Icon} size={70} color="#c0c0c0" />
                   <Text className="text-gray-400 text-center mt-4 text-base">
                     No forwarded issues available.
                   </Text>
@@ -1625,7 +2059,7 @@ const CreateMinutes = () => {
                   contentContainerStyle={{ paddingBottom: 10 }}
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
+                      className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 "
                       onPress={() => {
                         setMinutes((prev) => [
                           ...prev,
@@ -1668,58 +2102,20 @@ const CreateMinutes = () => {
         {/* Submit Button */}
 
         <View className="mt-10">
-          {/* Save Draft Button */}
-          {!isEditMOM && (
-            <TouchableOpacity
-              onPress={submitDraft}
-              disabled={isDraftSaving}
-              className={`w-full px-2 py-4 rounded-xl items-center mb-4 ${
-                isDraftSaving ? "bg-gray-400" : "bg-yellow-600"
-              }`}
-            >
-              {isDraftSaving ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Save Draft</Text>
-              )}
-            </TouchableOpacity>
-          )}
-
           {/* Submit / Download Row */}
           <View className="flex-row gap-3">
             {meetingId ? (
               <TouchableOpacity
                 disabled={isAgendaDownloading}
-                // onPress={async () => {
-                //   setIsAgendaDownloading(true);
-                //   try {
-                //     await handleDownloadAgenda(
-                //       {
-                //         meetingDate,
-                //         meetingTime,
-                //         meetingVenue,
-                //         meetingNumber,
-                //         attendees,
-                //         minutes,
-                //       },
-                //       projectName,
-                //       auth?.user?.fullName ?? "Unknown",
-                //       company,
-                //       auth?.token
-                //     );
-                //   } finally {
-                //     setIsAgendaDownloading(false);
-                //   }
-                // }}
                 onPress={() => setModalVisible(true)}
-                className={`flex-1 px-2 py-4 rounded-xl items-center ${
-                  isAgendaDownloading ? "bg-gray-400" : "bg-sky-700"
+                className={`flex-1 rounded-2xl items-center justify-center py-4 ${
+                  isAgendaDownloading ? "bg-gray-400" : "bg-[#1C1C1E]"
                 }`}
               >
                 {isAgendaDownloading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-lg">
+                  <Text className="text-white font-poppinsBold text-[15px]">
                     Download Agenda
                   </Text>
                 )}
@@ -1728,14 +2124,14 @@ const CreateMinutes = () => {
               <TouchableOpacity
                 onPress={() => handleSubmit("agenda")}
                 disabled={isAgendaSubmitting}
-                className={`flex-1 px-2 py-4 rounded-xl items-center ${
-                  isAgendaSubmitting ? "bg-gray-400" : "bg-sky-700"
+                className={`flex-1 rounded-2xl items-center justify-center py-4 ${
+                  isAgendaSubmitting ? "bg-gray-400" : "bg-[#1C1C1E]"
                 }`}
               >
                 {isAgendaSubmitting ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-lg">
+                  <Text className="text-white font-poppins text-[15px]">
                     Submit Agenda
                   </Text>
                 )}
@@ -1745,17 +2141,27 @@ const CreateMinutes = () => {
             <TouchableOpacity
               onPress={() => handleSubmit("mom")}
               disabled={isMomSubmitting}
-              className={`flex-1 px-2 py-4 rounded-xl items-center ${
-                isMomSubmitting ? "bg-gray-400" : "bg-green-700"
-              }`}
+              className="flex-1 rounded-2xl overflow-hidden"
             >
-              {isMomSubmitting ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">
-                  Submit Minutes
-                </Text>
-              )}
+              <LinearGradient
+                colors={
+                  isMomSubmitting
+                    ? ["#9CA3AF", "#9CA3AF", "#9CA3AF"]
+                    : ["#5B4CCC", "#6347C2", "#8056D1"]
+                }
+                locations={isMomSubmitting ? [0, 0.5, 1] : [0, 0.5183, 1]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0.1 }}
+                className="items-center justify-center py-4"
+              >
+                {isMomSubmitting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white font-poppins text-[15px]">
+                    Submit Minutes
+                  </Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -1768,7 +2174,7 @@ const CreateMinutes = () => {
           onRequestClose={() => setModalVisible(false)}
         >
           <View className="flex-1 justify-center items-center bg-black/40">
-            <View className="bg-white rounded-2xl p-6 w-80 shadow-lg relative">
+            <View className="bg-white rounded-2xl p-6 w-80relative">
               {/* Close Button */}
               <TouchableOpacity
                 className="absolute bg-gray-200  rounded-full top-4 right-4 p-2"
@@ -1784,7 +2190,7 @@ const CreateMinutes = () => {
                 }}
                 onPress={() => setModalVisible(false)}
               >
-                <Ionicons name="close" size={24} color="#000" />
+                <HugeiconsIcon icon={Cancel01Icon} size={24} color="#000" />
               </TouchableOpacity>
 
               <Text className="text-xl font-bold mb-6 text-gray-800 text-left">
@@ -1812,7 +2218,7 @@ const CreateMinutes = () => {
                         auth?.user?.fullName ?? "Unknown",
                         company,
                         auth?.token,
-                        "pdf"
+                        "pdf",
                       );
                     } finally {
                       setIsAgendaDownloading(false);
@@ -1842,7 +2248,7 @@ const CreateMinutes = () => {
                         auth?.user?.fullName ?? "Unknown",
                         company,
                         auth?.token,
-                        "excel"
+                        "excel",
                       );
                     } finally {
                       setIsAgendaDownloading(false);
