@@ -1,27 +1,25 @@
+import GlobalAvatar from "@/components/GlobalAvatar";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   ArrowLeftIcon,
   ArrowRight01Icon,
   ArrowRight02Icon,
   Calendar02Icon,
+  Calendar03Icon,
+  Cancel01Icon,
   CheckmarkCircle02Icon,
+  CircleArrowUpRightIcon,
   CircleIcon,
   DashedLineCircleIcon,
+  InformationCircleIcon,
+  Menu05Icon,
   Note03Icon,
+  Search01Icon,
   UserCircleIcon,
   UserIcon,
-  Menu05Icon,
-  CircleArrowUpRightIcon,
-  Calendar03Icon,
-  InformationCircleIcon,
-  ArrowUpRightIcon,
-  Search01Icon,
-  Cancel01Icon,
-  Delete03Icon,
-  Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useMemo, useState } from "react";
@@ -29,7 +27,6 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
   ScrollView,
@@ -39,16 +36,14 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import Modal from "react-native-modal";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
+import Modal from "react-native-modal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import GlobalAvatar from "@/components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
-import Toast from "react-native-toast-message";
 
 const STATUS_OPTIONS = ["open", "closed", "forwarded", "forInfo"] as const;
 
@@ -1202,7 +1197,7 @@ const MinuteDetail = () => {
         animationOut="slideOutDown"
         style={{ justifyContent: "flex-end", margin: 0 }}
       >
-      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             style={{
               backgroundColor: isDark ? "#1A1A1A" : "#fff",
@@ -1333,7 +1328,9 @@ const MinuteDetail = () => {
                 activeOpacity={0.8}
                 disabled={saving || selectedStatus === status}
                 className={`flex-1 rounded-2xl py-4 items-center justify-center ${
-                  saving || selectedStatus === status ? "bg-zinc-700" : "bg-[#6366F1]"
+                  saving || selectedStatus === status
+                    ? "bg-zinc-700"
+                    : "bg-[#6366F1]"
                 }`}
               >
                 <Text className="text-white text-base font-dmBold">
@@ -1358,6 +1355,7 @@ const MinuteDetail = () => {
         backdropOpacity={0.4}
         useNativeDriver={true}
         hideModalContentWhileAnimating={true}
+        avoidKeyboard={true}
       >
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
@@ -1367,7 +1365,7 @@ const MinuteDetail = () => {
               borderTopRightRadius: 30,
               paddingHorizontal: 20,
               paddingTop: 15,
-              paddingBottom: bottom + 40,
+              paddingBottom: Math.max(bottom, 20) + 40,
             }}
           >
             {/* Handle Bar */}
@@ -1385,7 +1383,9 @@ const MinuteDetail = () => {
             </Text>
 
             {/* Change Date Row */}
-            <View className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <View
+              className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+            />
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => setShowPicker(true)}
@@ -1418,7 +1418,9 @@ const MinuteDetail = () => {
             </TouchableOpacity>
 
             {/* For Information Row */}
-            <View className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <View
+              className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+            />
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
@@ -1453,7 +1455,9 @@ const MinuteDetail = () => {
                 )}
               </View>
             </TouchableOpacity>
-            <View className={`h-[1px] w-full mb-6 ${isDark ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <View
+              className={`h-[1px] w-full mb-6 ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+            />
 
             {/* Note Input */}
             <TextInput
@@ -1488,7 +1492,9 @@ const MinuteDetail = () => {
                 onPress={() => setTargetModalVisible(false)}
                 activeOpacity={0.8}
                 className={`flex-1 py-3.5 rounded-xl items-center justify-center border ${
-                  isDark ? "bg-transparent border-white" : "bg-white border-black"
+                  isDark
+                    ? "bg-transparent border-white"
+                    : "bg-white border-black"
                 }`}
               >
                 <Text
@@ -1508,7 +1514,9 @@ const MinuteDetail = () => {
               >
                 <LinearGradient
                   colors={
-                    saving || (!tempForInfo && !tempTargetDate) || !tempNoteText.trim()
+                    saving ||
+                    (!tempForInfo && !tempTargetDate) ||
+                    !tempNoteText.trim()
                       ? isDark
                         ? ["#27272A", "#27272A"]
                         : ["#E5E7EB", "#E5E7EB"]
@@ -1520,7 +1528,9 @@ const MinuteDetail = () => {
                 >
                   <Text
                     className={`text-[16px] font-poppins ${
-                      saving || (!tempForInfo && !tempTargetDate) || !tempNoteText.trim()
+                      saving ||
+                      (!tempForInfo && !tempTargetDate) ||
+                      !tempNoteText.trim()
                         ? "text-gray-400"
                         : "text-white"
                     }`}
@@ -1569,155 +1579,155 @@ const MinuteDetail = () => {
         statusBarTranslucent={true}
       >
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
-        <View
-          className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
-        >
-          {/* Handle Bar */}
-          <View className="w-full items-center mb-4">
-            <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-          </View>
-
-          {/* Title */}
-          <Text
-            className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
-          >
-            Change Responsibility
-          </Text>
-
-          {/* Search Bar */}
           <View
-            className={`flex-row items-center px-4 py-1 rounded-xl mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
+            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
-            <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
-            <TextInput
-              value={assigneeSearchQuery}
-              onChangeText={setAssigneeSearchQuery}
-              placeholder="Search people"
-              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
-              className={`flex-1 ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-            />
-          </View>
+            {/* Handle Bar */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-            {/* Currently Assigned Section */}
-            {tempAssignees.length > 0 && (
-              <View className="mb-6">
+            {/* Title */}
+            <Text
+              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+            >
+              Change Responsibility
+            </Text>
+
+            {/* Search Bar */}
+            <View
+              className={`flex-row items-center px-4 py-1 rounded-xl mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
+            >
+              <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
+              <TextInput
+                value={assigneeSearchQuery}
+                onChangeText={setAssigneeSearchQuery}
+                placeholder="Search people"
+                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+                className={`flex-1 ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+              />
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+              {/* Currently Assigned Section */}
+              {tempAssignees.length > 0 && (
+                <View className="mb-6">
+                  <Text
+                    className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                  >
+                    Selected
+                  </Text>
+                  {tempAssignees.map((user) => {
+                    const userId = getSafeId(user);
+                    return (
+                      <View
+                        key={userId}
+                        className="flex-row items-center justify-between mb-4"
+                      >
+                        <View className="flex-row items-center">
+                          <GlobalAvatar
+                            name={user.individualName || user.name}
+                            size={40}
+                          />
+                          <Text
+                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                          >
+                            {user.individualName || user.name}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setTempAssignees((prev) =>
+                              prev.filter((u) => getSafeId(u) !== userId),
+                            );
+                          }}
+                        >
+                          <HugeiconsIcon
+                            icon={Cancel01Icon}
+                            size={20}
+                            color="#919191"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* People List Section */}
+              <View className="mb-4">
                 <Text
                   className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                 >
-                  Selected
+                  People
                 </Text>
-                {tempAssignees.map((user) => {
-                  const userId = getSafeId(user);
-                  return (
-                    <View
-                      key={userId}
-                      className="flex-row items-center justify-between mb-4"
-                    >
-                      <View className="flex-row items-center">
-                        <GlobalAvatar
-                          name={user.individualName || user.name}
-                          size={40}
-                        />
-                        <Text
-                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                {loadingProjectUsers ? (
+                  <ActivityIndicator size="small" color="#5B4CCC" />
+                ) : (
+                  projectUsers
+                    .filter((u) => {
+                      const name = u.individualName || u.name || "";
+                      const isMatch = name
+                        .toLowerCase()
+                        .includes(assigneeSearchQuery.toLowerCase());
+                      const isAlreadyIn = tempAssignees.some((ta) => {
+                        return getSafeId(ta) === getSafeId(u);
+                      });
+                      return isMatch && !isAlreadyIn;
+                    })
+                    .map((user) => {
+                      const userId = getSafeId(user);
+                      return (
+                        <TouchableOpacity
+                          key={userId}
+                          onPress={() => {
+                            setTempAssignees((prev) => [...prev, user]);
+                          }}
+                          className="flex-row items-center mb-4"
                         >
-                          {user.individualName || user.name}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setTempAssignees((prev) =>
-                            prev.filter((u) => getSafeId(u) !== userId),
-                          );
-                        }}
-                      >
-                        <HugeiconsIcon
-                          icon={Cancel01Icon}
-                          size={20}
-                          color="#919191"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
+                          <GlobalAvatar
+                            name={user.individualName || user.name}
+                            size={40}
+                          />
+                          <Text
+                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                          >
+                            {user.individualName || user.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })
+                )}
               </View>
-            )}
+            </ScrollView>
 
-            {/* People List Section */}
-            <View className="mb-4">
-              <Text
-                className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+            {/* Bottom Buttons */}
+            <View className="flex-row gap-3 pt-4">
+              <TouchableOpacity
+                onPress={() => setShowAssigneeModal(false)}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
               >
-                People
-              </Text>
-              {loadingProjectUsers ? (
-                <ActivityIndicator size="small" color="#5B4CCC" />
-              ) : (
-                projectUsers
-                  .filter((u) => {
-                    const name = u.individualName || u.name || "";
-                    const isMatch = name
-                      .toLowerCase()
-                      .includes(assigneeSearchQuery.toLowerCase());
-                    const isAlreadyIn = tempAssignees.some((ta) => {
-                      return getSafeId(ta) === getSafeId(u);
-                    });
-                    return isMatch && !isAlreadyIn;
-                  })
-                  .map((user) => {
-                    const userId = getSafeId(user);
-                    return (
-                      <TouchableOpacity
-                        key={userId}
-                        onPress={() => {
-                          setTempAssignees((prev) => [...prev, user]);
-                        }}
-                        className="flex-row items-center mb-4"
-                      >
-                        <GlobalAvatar
-                          name={user.individualName || user.name}
-                          size={40}
-                        />
-                        <Text
-                          className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                        >
-                          {user.individualName || user.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })
-              )}
-            </View>
-          </ScrollView>
-
-          {/* Bottom Buttons */}
-          <View className="flex-row gap-3 pt-4">
-            <TouchableOpacity
-              onPress={() => setShowAssigneeModal(false)}
-              className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
-            >
-              <Text
-                className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
-              >
-                Cancel
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={saveAssigneeChange} className="flex-1">
-              <LinearGradient
-                colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 12 }}
-                className="py-3 items-center justify-center"
-              >
-                <Text className="text-[16px] font-poppins text-white">
-                  Save
+                <Text
+                  className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Cancel
                 </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={saveAssigneeChange} className="flex-1">
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{ borderRadius: 12 }}
+                  className="py-3 items-center justify-center"
+                >
+                  <Text className="text-[16px] font-poppins text-white">
+                    Save
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         </KeyboardStickyView>
       </Modal>
