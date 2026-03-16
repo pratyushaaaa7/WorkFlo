@@ -21,7 +21,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -29,6 +29,7 @@ import {
   Keyboard,
   LayoutAnimation,
   Platform,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -220,7 +221,49 @@ const MinuteDetail = () => {
   );
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [minuteData, setMinuteData] = useState<any>(null);
+
+  const displaySubject = minuteData?.issueSubject || issueSubject;
+  const displayDescription = minuteData?.description || description;
+  const displaySerialNo = minuteData?.serialNo || serialNo;
+  const displayRemarks = minuteData?.remarks || remarks;
+
+  const displayTargetDate = useMemo(() => {
+    if (minuteData) {
+      if (minuteData.targetDateForInfo) return "For Information";
+      return minuteData.targetDate ? fmtDate(minuteData.targetDate) : "—";
+    }
+    return targetDate;
+  }, [minuteData, targetDate]);
+
+  const displayResponsibilityArr = useMemo(() => {
+    if (minuteData) {
+      if (minuteData.targetDateForInfo) return []; // Should this be responsibilityForInfo? Check following lines.
+      // The current logic seems to use params.responsibilityForInfo. Let's look at how it's handled in the component.
+      // Usually it's responsibilityForInfo.
+      if (minuteData.responsibilityForInfo) return [];
+      return (minuteData.responsibility || [])
+        .filter((r: any) => !!r)
+        .map(
+          (r: any) =>
+            r.individualName || r.name || (typeof r === "string" ? r : ""),
+        );
+    }
+    return responsibilityArr;
+  }, [minuteData, responsibilityArr]);
+
+  const displayRaisedByArr = useMemo(() => {
+    if (minuteData) {
+      return (minuteData.raisedBy || [])
+        .filter((r: any) => !!r)
+        .map(
+          (r: any) =>
+            r.individualName || r.name || (typeof r === "string" ? r : ""),
+        );
+    }
+    return raisedByArr;
+  }, [minuteData, raisedByArr]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<Status>(status);
@@ -324,9 +367,9 @@ const MinuteDetail = () => {
   };
 
   // --- Fetch activity log from backend ---
-  const fetchActivityLog = async () => {
+  const fetchActivityLog = async (showLoader = true) => {
     if (!minuteId || !meetingId) return;
-    setLoading(true);
+    if (showLoader) setLoading(true);
 
     try {
       const res = await api.get(`/minutes/${meetingId}/minutes/${minuteId}`, {
@@ -395,12 +438,20 @@ const MinuteDetail = () => {
       console.error("Failed to fetch activity log", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchActivityLog();
-  }, []);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchActivityLog(false);
+  }, [meetingId, minuteId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchActivityLog(true);
+    }, [meetingId, minuteId]),
+  );
 
   const pushNoteOptimistic = (text: string, addedBy: any) => {
     const note = {
@@ -551,6 +602,14 @@ const MinuteDetail = () => {
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#5B4CCC"]}
+              tintColor={isDark ? "#ffffff" : "#5B4CCC"}
+            />
+          }
         >
           {/* Top Info Collapsible */}
           <TouchableOpacity
@@ -572,7 +631,7 @@ const MinuteDetail = () => {
               <Text
                 className={`text-xs ${isDark ? "text-[#919191]" : "text-[#454545]"} mr-1 font-poppinsMedium`}
               >
-                Serial No: {serialNo || "—"}
+                Serial No: {displaySerialNo || "—"}
               </Text>
               <Ionicons
                 name={isExpanded ? "chevron-up" : "chevron-down"}
@@ -588,7 +647,7 @@ const MinuteDetail = () => {
               <Text
                 className={`text-xl font-dmMedium mt-4 mb-2 ${isDark ? "text-white" : "text-black"}`}
               >
-                {issueSubject}
+                {displaySubject}
               </Text>
 
               {/* Status Row */}
@@ -659,7 +718,9 @@ const MinuteDetail = () => {
                   <Text
                     className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
                   >
-                    {raisedByArr.length ? raisedByArr.join(", ") : "—"}
+                    {displayRaisedByArr.length
+                      ? displayRaisedByArr.join(", ")
+                      : "—"}
                   </Text>
                 </View>
               </View>
@@ -692,30 +753,32 @@ const MinuteDetail = () => {
                     Responsible
                   </Text>
                   <View className="flex-row items-center">
-                    {minuteData?.responsibilityForInfo ? (
+                    {minuteData?.responsibilityForInfo ||
+                    params.responsibilityForInfo === "true" ? (
                       <Text className="text-xs text-gray-400">
                         For Information
                       </Text>
-                    ) : Array.isArray(minuteData?.responsibility) &&
-                      minuteData.responsibility.length > 0 ? (
+                    ) : displayResponsibilityArr.length > 0 ? (
                       <>
-                        {minuteData.responsibility.length <= 3 ? (
-                          minuteData.responsibility.map((r: any, i: number) => (
-                            <GlobalAvatar
-                              key={getSafeId(r) || i}
-                              name={r.individualName || r.name}
-                              size={32}
-                              className="-ml-2 border-2 border-white dark:border-black"
-                            />
-                          ))
+                        {displayResponsibilityArr.length <= 3 ? (
+                          displayResponsibilityArr.map(
+                            (name: string, i: number) => (
+                              <GlobalAvatar
+                                key={i}
+                                name={name}
+                                size={32}
+                                className="-ml-2 border-2 border-white dark:border-black"
+                              />
+                            ),
+                          )
                         ) : (
                           <>
-                            {minuteData.responsibility
+                            {displayResponsibilityArr
                               .slice(0, 2)
-                              .map((r: any, i: number) => (
+                              .map((name: string, i: number) => (
                                 <GlobalAvatar
-                                  key={getSafeId(r) || i}
-                                  name={r.individualName || r.name}
+                                  key={i}
+                                  name={name}
                                   size={32}
                                   className="-ml-2 border-2 border-white dark:border-black"
                                 />
@@ -729,7 +792,7 @@ const MinuteDetail = () => {
                               className="-ml-2 bg-[#F0F3F7] dark:bg-zinc-800 border-2 border-white dark:border-black items-center justify-center"
                             >
                               <Text className="text-[11px] font-dmBold text-[#454545] dark:text-[#D2D2D2]">
-                                +{minuteData.responsibility.length - 2}
+                                +{displayResponsibilityArr.length - 2}
                               </Text>
                             </View>
                           </>
@@ -779,13 +842,7 @@ const MinuteDetail = () => {
                   <Text
                     className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
                   >
-                    {minuteData
-                      ? minuteData.targetDateForInfo
-                        ? "For Information"
-                        : minuteData.targetDate
-                          ? fmtDate(minuteData.targetDate)
-                          : "—"
-                      : targetDate}
+                    {displayTargetDate}
                   </Text>
                 </View>
                 <HugeiconsIcon
@@ -796,7 +853,7 @@ const MinuteDetail = () => {
               </TouchableOpacity>
 
               {/* Description Section */}
-              {minuteData?.description || description ? (
+              {displayDescription ? (
                 <>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
                   <View className="py-4">
@@ -808,14 +865,14 @@ const MinuteDetail = () => {
                     <Text
                       className={`text-[14px] font-poppins leading-5 ${isDark ? "text-white" : "text-black"}`}
                     >
-                      {minuteData?.description || description}
+                      {displayDescription}
                     </Text>
                   </View>
                 </>
               ) : null}
 
               {/* Remarks Section */}
-              {minuteData?.remarks || remarks ? (
+              {displayRemarks ? (
                 <>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
                   <View className="py-4">
@@ -827,7 +884,7 @@ const MinuteDetail = () => {
                     <Text
                       className={`text-[14px] font-poppins leading-5 ${isDark ? "text-white" : "text-black"}`}
                     >
-                      {minuteData?.remarks || remarks}
+                      {displayRemarks}
                     </Text>
                   </View>
                 </>
