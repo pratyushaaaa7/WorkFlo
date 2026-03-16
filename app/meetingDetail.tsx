@@ -768,17 +768,15 @@ const MinutesDetail = () => {
           <View className="items-center mb-4">
             <View className="w-12 h-1 bg-gray-300 dark:bg-zinc-700 rounded-full mb-4" />
             <Text
-              className={`text-xl font-dmBold text-center mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+              className={`text-[20px] font-dmBold text-center mb-4 ${isDarkMode ? "text-white" : "text-black"}`}
             >
               Attendee Details
             </Text>
-            <View
-              className={`w-full h-[1px] ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`}
-            />
+            <View className={`w-full h-[1px] ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`} />
           </View>
 
           {/* Details List */}
-          <View className="gap-3  bg-[#F6F8FA] dark:bg-[#0D0D0D] p-4 rounded-[16px]">
+          <View className="gap-3 pt-2">
             {[
               {
                 value: selectedAttendee?.attendeeName || "N/A",
@@ -801,7 +799,7 @@ const MinutesDetail = () => {
             ].map((item, idx) => (
               <View
                 key={idx}
-                className={`p-4 rounded-lg  ${isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"}`}
+                className={`p-4 rounded-lg ${isDarkMode ? "bg-[#252528]" : "bg-[#F0F3F7]"}`}
               >
                 <Text
                   className={`text-[15px] font-poppins ${isDarkMode ? "text-white" : "text-black"}`}
