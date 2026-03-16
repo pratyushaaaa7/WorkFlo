@@ -1308,14 +1308,14 @@ const MinuteDetail = () => {
                   }
                 }}
                 activeOpacity={0.8}
-                className={`flex-1 rounded-2xl py-4 items-center justify-center border ${
+                className={`flex-1 py-3.5 rounded-xl items-center justify-center border ${
                   isDark
-                    ? "bg-black border-zinc-700"
-                    : "bg-white border-gray-900"
+                    ? "bg-transparent border-white"
+                    : "bg-white border-black"
                 }`}
               >
                 <Text
-                  className={`text-base font-dmBold ${
+                  className={`text-[16px] font-poppins ${
                     isDark ? "text-white" : "text-black"
                   }`}
                 >
@@ -1327,15 +1327,32 @@ const MinuteDetail = () => {
                 onPress={handleSaveStatus}
                 activeOpacity={0.8}
                 disabled={saving || selectedStatus === status}
-                className={`flex-1 rounded-2xl py-4 items-center justify-center ${
-                  saving || selectedStatus === status
-                    ? "bg-zinc-700"
-                    : "bg-[#6366F1]"
-                }`}
+                className="flex-1"
               >
-                <Text className="text-white text-base font-dmBold">
-                  {saving ? "Saving..." : "Save"}
-                </Text>
+                <LinearGradient
+                  colors={
+                    saving || selectedStatus === status
+                      ? isDark
+                        ? ["#27272A", "#27272A", "#27272A"]
+                        : ["#E5E7EB", "#E5E7EB", "#E5E7EB"]
+                      : ["#5B4CCC", "#6347C2", "#8056D1"]
+                  }
+                  locations={[0, 0.5183, 1]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0.1 }}
+                  style={{ borderRadius: 12 }}
+                  className="py-3.5 items-center justify-center"
+                >
+                  <Text
+                    className={`text-[16px] font-poppins ${
+                      saving || selectedStatus === status
+                        ? "text-gray-400"
+                        : "text-white"
+                    }`}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
