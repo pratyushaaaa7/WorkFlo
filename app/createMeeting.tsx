@@ -14,7 +14,8 @@ import {
   LogBox,
 } from "react-native";
 LogBox.ignoreLogs([
-  "ref.measureLayout must be called with a ref to a native component",
+  "ref.measureLayout",
+  "Warning: ref.measureLayout",
 ]);
 
 import {
@@ -24,7 +25,7 @@ import {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import Animated from "react-native-reanimated";
-// import Collapsible from "react-native-collapsible";
+import Collapsible from "react-native-collapsible";
 import {
   AllBookmarkIcon,
   ArrowDown01Icon,
@@ -445,7 +446,7 @@ const CreateMinutes = () => {
       const att = item;
       return (
         <ScaleDecorator>
-          <View
+          <Animated.View
             collapsable={false}
             style={{
               borderRadius: 12,
@@ -499,7 +500,7 @@ const CreateMinutes = () => {
               />
             </TouchableOpacity>
 
-            {expandedAttendee === index && (
+            <Collapsible collapsed={expandedAttendee !== index} duration={300}>
               <View className="px-4 py-4 gap-3">
                 {/* Directory Select Option */}
                 {openDirectoryFor === index ? (
@@ -667,12 +668,20 @@ const CreateMinutes = () => {
                   )}
                 </View>
               </View>
-            )}
-          </View>
+            </Collapsible>
+          </Animated.View>
         </ScaleDecorator>
       );
     },
-    [isDarkMode, expandedAttendee, openDirectoryFor, users, attendees.length],
+    [
+      isDarkMode,
+      expandedAttendee,
+      openDirectoryFor,
+      users,
+      attendees.length,
+      updateAttendee,
+      deleteAttendee,
+    ],
   );
 
   const renderMinute = useCallback(
@@ -681,7 +690,7 @@ const CreateMinutes = () => {
       const m = item;
       return (
         <ScaleDecorator>
-          <View
+          <Animated.View
             collapsable={false}
             style={{
               borderRadius: 12,
@@ -733,7 +742,7 @@ const CreateMinutes = () => {
               />
             </TouchableOpacity>
 
-            {expandedMinute === index && (
+            <Collapsible collapsed={expandedMinute !== index} duration={300}>
               <View className="px-4 py-4 gap-3">
                   {/* Raised By */}
                   <MultiSelect
@@ -786,10 +795,10 @@ const CreateMinutes = () => {
 
                       updateMinute(index, "raisedBy", selectedUsers);
 
-                      // 🔥 Programmatically close using ref
+                      // 🔥 Programmatically close using ref with a slightly longer delay
                       setTimeout(() => {
                         dropdownRef.current?.close();
-                      }, 80);
+                      }, 150);
                     }}
                   />
 
@@ -921,7 +930,10 @@ const CreateMinutes = () => {
                   )}
                   <View className="flex-row items-center gap-2">
                     <TouchableOpacity
-                      onPress={() => openDatePicker(index)}
+                      onPress={() => {
+                        if (m.targetDateForInfo) return;
+                        openDatePicker(index);
+                      }}
                       style={{
                         flex: 1,
                         opacity: m.targetDateForInfo ? 0.5 : 1,
@@ -1034,91 +1046,91 @@ const CreateMinutes = () => {
                             .map((u) => ({
                               value: u.value,
                               label: u.label,
-                            }));
+                        }));
 
-                          updateMinute(index, "responsibility", selectedUsers);
+                        updateMinute(index, "responsibility", selectedUsers);
 
-                          // 🔥 Auto-close immediately after each selection/deselection
-                          setTimeout(() => {
-                            responsibilityRef.current?.close();
-                          }, 80);
-                        }}
-                        disable={m.responsibilityForInfo}
-                      />
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (m.responsibilityForInfo) {
-                          updateMinute(index, "responsibilityForInfo", false);
-                        } else {
-                          updateMinute(index, "responsibility", []);
-                          updateMinute(index, "responsibilityForInfo", true);
-                        }
+                        // 🔥 Auto-close immediately after each selection/deselection
+                        setTimeout(() => {
+                          responsibilityRef.current?.close();
+                        }, 80);
                       }}
-                      className={`ml-2 px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+                      disable={m.responsibilityForInfo}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (m.responsibilityForInfo) {
+                        updateMinute(index, "responsibilityForInfo", false);
+                      } else {
+                        updateMinute(index, "responsibility", []);
+                        updateMinute(index, "responsibilityForInfo", true);
+                      }
+                    }}
+                    className={`ml-2 px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+                      m.responsibilityForInfo
+                        ? isDarkMode
+                          ? "bg-emerald-500/20 border-emerald-500/50"
+                          : "bg-emerald-50 border-emerald-500"
+                        : isDarkMode
+                          ? "bg-[#262626] border-[#4B5563]"
+                          : "bg-[#F3F4F6] border-[#E5E7EB]"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[14px] font-medium ${
                         m.responsibilityForInfo
                           ? isDarkMode
-                            ? "bg-emerald-500/20 border-emerald-500/50"
-                            : "bg-emerald-50 border-emerald-500"
+                            ? "text-emerald-400"
+                            : "text-emerald-600"
                           : isDarkMode
-                            ? "bg-[#262626] border-[#4B5563]"
-                            : "bg-[#F3F4F6] border-[#E5E7EB]"
+                            ? "text-gray-400"
+                            : "text-gray-600"
                       }`}
                     >
-                      <Text
-                        className={`text-[14px] font-medium ${
-                          m.responsibilityForInfo
-                            ? isDarkMode
-                              ? "text-emerald-400"
-                              : "text-emerald-600"
-                            : isDarkMode
-                              ? "text-gray-400"
-                              : "text-gray-600"
-                        }`}
-                      >
-                        {m.responsibilityForInfo ? "For Info ✓" : "For Info"}
+                      {m.responsibilityForInfo ? "For Info ✓" : "For Info"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TextInput
+                  placeholder="Remarks (if any)"
+                  placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  value={m.remarks}
+                  onChangeText={(t) => updateMinute(index, "remarks", t)}
+                  multiline
+                  className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                    isDarkMode
+                      ? "bg-[#262626] text-white"
+                      : "bg-[#F3F4F6] text-gray-900"
+                  }`}
+                />
+
+                {/* 🗑 Delete Minute */}
+                {minutes.length > 1 && (
+                  <View className="flex-row justify-end space-x-4 mt-2">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedIndex(index);
+                        setShowDeleteModal(true);
+                      }}
+                      className="flex-row items-center"
+                    >
+                      <HugeiconsIcon
+                        icon={Delete02Icon}
+                        size={14}
+                        color="#EF4444"
+                        className="mr-1"
+                      />
+                      <Text className="text-red-500 font-poppinsMedium text-sm">
+                        Remove Minute
                       </Text>
                     </TouchableOpacity>
                   </View>
-
-                  <TextInput
-                    placeholder="Remarks (if any)"
-                    placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-                    value={m.remarks}
-                    onChangeText={(t) => updateMinute(index, "remarks", t)}
-                    multiline
-                    className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-                      isDarkMode
-                        ? "bg-[#262626] text-white"
-                        : "bg-[#F3F4F6] text-gray-900"
-                    }`}
-                  />
-
-                  {/* 🗑 Delete Minute */}
-                  {minutes.length > 1 && (
-                    <View className="flex-row justify-end space-x-4 mt-2">
-                      <TouchableOpacity
-                        onPress={() => {
-                          setSelectedIndex(index);
-                          setShowDeleteModal(true);
-                        }}
-                        className="flex-row items-center"
-                      >
-                        <HugeiconsIcon
-                          icon={Delete02Icon}
-                          size={14}
-                          color="#EF4444"
-                          className="mr-1"
-                        />
-                        <Text className="text-red-500 font-poppinsMedium text-sm">
-                          Remove Minute
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-            )}
+                )}
+              </View>
+            </Collapsible>
           </View>
         </ScaleDecorator>
       );
@@ -1130,6 +1142,9 @@ const CreateMinutes = () => {
       minutes.length,
       showDatePicker,
       dateIndex,
+      updateMinute,
+      onDateChange,
+      openDatePicker,
     ],
   );
 

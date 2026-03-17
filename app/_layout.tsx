@@ -31,6 +31,7 @@ import React, { useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
+  LogBox,
   StatusBar,
   StyleSheet,
   Text,
@@ -38,6 +39,10 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+
+LogBox.ignoreLogs([
+  "ref.measureLayout",
+]);
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
