@@ -924,8 +924,8 @@ const CreateMinutes = () => {
           onPress={() => setActiveTab("attendees")}
           className={`flex-1 py-3 items-center ${
             activeTab === "attendees"
-              ? "border-b-[1px] border-[#5B4CCC]"
-              : "border-b-[1px] border-[#413E47]"
+              ? "border-b-[1.5px] border-[#5B4CCC]"
+              : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
           }`}
         >
           <Text
@@ -944,8 +944,8 @@ const CreateMinutes = () => {
           onPress={() => setActiveTab("minutes")}
           className={`flex-1 py-3 items-center ${
             activeTab === "minutes"
-              ? "border-b-[1px] border-[#5B4CCC]"
-              : "border-b-[1px] border-[#413E47]"
+              ? "border-b-[1.5px] border-[#5B4CCC]"
+              : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
           }`}
         >
           <Text
