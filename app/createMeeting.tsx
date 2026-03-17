@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+﻿import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -243,7 +243,7 @@ const CreateMinutes = () => {
   const [meetingNumber, setMeetingNumber] = useState<number | null>(null);
 
   const [forwardedModalVisible, setForwardedModalVisible] = useState(false);
-  const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
+  const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([])
 
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -914,7 +914,7 @@ const CreateMinutes = () => {
 
       {/* Tab Switcher */}
       <View
-        className={`flex-row px-4 border-b ${
+        className={`flex-row  border-b ${
           isDarkMode
             ? "bg-black border-gray-800"
             : "bg-[#FBFCFD] border-gray-100"
@@ -999,48 +999,34 @@ const CreateMinutes = () => {
                     isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
                   }`}
                 >
-                  {/* Meeting Title Input */}
                   <TextInput
                     placeholder="Enter Title"
                     placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
                     value={meetingTitle}
                     onChangeText={setMeetingTitle}
                     className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-                      isDarkMode
-                        ? "bg-[#262626] text-white"
-                        : "bg-[#F3F4F6] text-gray-900"
+                      isDarkMode ? "bg-[#121212] text-white" : "bg-[#F1F5F9] text-gray-900"
                     }`}
                   />
 
                   {/* Date / Time Row */}
                   <View className="flex-row gap-3">
-                    {/* Meeting Date */}
                     <TouchableOpacity
                       onPress={() => setDatePickerVisibility(true)}
                       className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                        isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                        isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
                       }`}
                     >
                       <Text
                         className={`text-[14px] font-poppins ${
                           meetingDate
-                            ? isDarkMode
-                              ? "text-white"
-                              : "text-gray-900"
-                            : isDarkMode
-                              ? "text-[#6B7280]"
-                              : "text-[#9CA3AF]"
+                            ? isDarkMode ? "text-white" : "text-gray-900"
+                            : isDarkMode ? "text-[#6B7280]" : "text-[#9CA3AF]"
                         }`}
                       >
-                        {meetingDate
-                          ? moment(meetingDate).format("DD-MM-YYYY")
-                          : "DD-MM-YYYY"}
+                        {meetingDate ? moment(meetingDate).format("DD-MM-YYYY") : "DD-MM-YYYY"}
                       </Text>
-                      <HugeiconsIcon
-                        icon={Calendar04Icon}
-                        size={18}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                      />
+                      <HugeiconsIcon icon={Calendar04Icon} size={18} color={isDarkMode ? "#9CA3AF" : "#6B7280"} />
                     </TouchableOpacity>
 
                     <DateTimePickerModal
@@ -1053,31 +1039,22 @@ const CreateMinutes = () => {
                       onCancel={() => setDatePickerVisibility(false)}
                     />
 
-                    {/* Meeting Time */}
                     <TouchableOpacity
                       onPress={() => setTimePickerVisibility(true)}
                       className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                        isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+                        isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
                       }`}
                     >
                       <Text
                         className={`text-[14px] font-poppins ${
                           meetingTime
-                            ? isDarkMode
-                              ? "text-white"
-                              : "text-gray-900"
-                            : isDarkMode
-                              ? "text-[#6B7280]"
-                              : "text-[#9CA3AF]"
+                            ? isDarkMode ? "text-white" : "text-gray-900"
+                            : isDarkMode ? "text-[#6B7280]" : "text-[#9CA3AF]"
                         }`}
                       >
                         {meetingTime || "00:00 AM"}
                       </Text>
-                      <HugeiconsIcon
-                        icon={Clock01Icon}
-                        size={18}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                      />
+                      <HugeiconsIcon icon={Clock01Icon} size={18} color={isDarkMode ? "#9CA3AF" : "#6B7280"} />
                     </TouchableOpacity>
 
                     <DateTimePickerModal
@@ -1092,50 +1069,31 @@ const CreateMinutes = () => {
                     />
                   </View>
 
-                  {/* Venue */}
                   <TextInput
                     placeholder="Enter Venue"
                     placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
                     value={meetingVenue}
                     onChangeText={setMeetingVenue}
                     className={`rounded-xl font-poppins px-4 py-3.5 text-[14px] ${
-                      isDarkMode
-                        ? "bg-[#262626] text-white"
-                        : "bg-[#F3F4F6] text-gray-900"
+                      isDarkMode ? "bg-[#121212] text-white" : "bg-[#F1F5F9] text-gray-900"
                     }`}
                   />
 
-                  {/* ✅ AT Review Box */}
                   <TouchableOpacity
                     onPress={() => setIsATReview(!isATReview)}
-                    className="flex-row items-center py-2"
+                    className="flex-row items-center py-1"
                     activeOpacity={0.7}
                   >
                     <View
                       className={`w-5 h-5 rounded-[4px] border ${
                         isATReview
-                          ? isDarkMode
-                            ? "bg-transparent border-[#4B5563]"
-                            : "bg-transparent border-[#D1D5DB]"
-                          : isDarkMode
-                            ? "border-[#4B5563]"
-                            : "border-[#D1D5DB]"
+                          ? isDarkMode ? "bg-transparent border-gray-600" : "bg-transparent border-gray-400"
+                          : isDarkMode ? "border-gray-600" : "border-gray-400"
                       } flex items-center justify-center mr-3`}
                     >
-                      {isATReview && (
-                        <HugeiconsIcon
-                          icon={Tick02Icon}
-                          size={14}
-                          color={isDarkMode ? "#919191" : "#919191"}
-                        />
-                      )}
+                      {isATReview && <HugeiconsIcon icon={Tick02Icon} size={14} color="#919191" />}
                     </View>
-
-                    <Text
-                      className={`text-[14px] font-poppins ${
-                        isDarkMode ? "text-gray-300" : "text-gray-600"
-                      }`}
-                    >
+                    <Text className={`text-[14px] font-poppins ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
                       Mark this at AT review
                     </Text>
                   </TouchableOpacity>
@@ -1181,56 +1139,27 @@ const CreateMinutes = () => {
                     renderItem={renderAttendee}
                   />
 
-                  {/* Buttons Row */}
-                  <View className=" gap-3 mt-1">
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={addAttendee}
-                      className={`flex-1 py-3 rounded-[10px] flex-row justify-center gap-3 items-center border ${
-                        isDarkMode
-                          ? "bg-[#262626] border-[#4B5563]"
-                          : "bg-[#F9FAFB] border-[#E5E7EB]"
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={addAttendee}
+                    className={`py-3.5 rounded-xl flex-row justify-center items-center ${
+                      isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
+                    }`}
+                  >
+                    <HugeiconsIcon
+                      icon={PlusSignCircleIcon}
+                      size={20}
+                      color={isDarkMode ? "#E5E7EB" : "#111827"}
+                      className="mr-2"
+                    />
+                    <Text
+                      className={`text-[14px] font-poppinsMedium ${
+                        isDarkMode ? "text-gray-200" : "text-gray-900"
                       }`}
                     >
-                      <HugeiconsIcon
-                        icon={PlusSignCircleIcon}
-                        size={16}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                        className="mr-2"
-                      />
-                      <Text
-                        className={`text-[14px] font-poppinsMedium ${
-                          isDarkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
-                      >
-                        Select Attendees
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={addAttendee}
-                      className={`flex-1 py-3 rounded-[10px] flex-row justify-center gap-3  items-center border ${
-                        isDarkMode
-                          ? "bg-[#262626] border-[#4B5563]"
-                          : "bg-[#F9FAFB] border-[#E5E7EB]"
-                      }`}
-                    >
-                      <HugeiconsIcon
-                        icon={PlusSignCircleIcon}
-                        size={16}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                        className="mr-2"
-                      />
-                      <Text
-                        className={`text-[14px] font-poppinsMedium ${
-                          isDarkMode ? "text-gray-300" : "text-gray-700"
-                        }`}
-                      >
-                        Add Manually
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                      Add Attendees
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -1303,25 +1232,22 @@ const CreateMinutes = () => {
                     renderItem={renderMinute}
                   />
 
-                  {/* Add Minutes Button */}
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={addMinute}
-                    className={`py-3 rounded-[10px]  flex-row justify-center gap-3  items-center border ${
-                      isDarkMode
-                        ? "bg-[#262626] border-[#4B5563]"
-                        : "bg-[#F9FAFB] border-[#E5E7EB]"
+                    className={`py-3.5 rounded-xl flex-row justify-center items-center ${
+                      isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
                     }`}
                   >
                     <HugeiconsIcon
                       icon={PlusSignCircleIcon}
-                      size={16}
-                      color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                      size={20}
+                      color={isDarkMode ? "#E5E7EB" : "#111827"}
                       className="mr-2"
                     />
                     <Text
                       className={`text-[14px] font-poppinsMedium ${
-                        isDarkMode ? "text-gray-300" : "text-gray-700"
+                        isDarkMode ? "text-gray-200" : "text-gray-900"
                       }`}
                     >
                       Add Minutes
@@ -1424,43 +1350,19 @@ const CreateMinutes = () => {
           </>
         )}
 
-        {/* Submit Button */}
-        <View className="mt-10">
-          {/* Submit / Download Row */}
-          <View className="flex-row gap-3">
-            {meetingId ? (
-              <TouchableOpacity
-                disabled={isAgendaDownloading}
-                onPress={() => setModalVisible(true)}
-                className={`flex-1 rounded-2xl items-center justify-center py-4 ${
-                  isAgendaDownloading ? "bg-gray-400" : "bg-[#1C1C1E]"
-                }`}
-              >
-                {isAgendaDownloading ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white font-poppinsBold text-[15px]">
-                    Download Agenda
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => handleSubmit("agenda")}
-                disabled={isAgendaSubmitting}
-                className={`flex-1 rounded-2xl items-center justify-center py-4 ${
-                  isAgendaSubmitting ? "bg-gray-400" : "bg-[#1C1C1E]"
-                }`}
-              >
-                {isAgendaSubmitting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white font-poppins text-[15px]">
-                    Submit Agenda
-                  </Text>
-                )}
-              </TouchableOpacity>
-            )}
+        <View className="mt-8 pb-4">
+          <View className="flex-row gap-4">
+            <TouchableOpacity
+              onPress={() => handleSubmit("agenda")}
+              disabled={isAgendaSubmitting}
+              className={`flex-1 rounded-2xl items-center justify-center py-4 ${
+                isAgendaSubmitting || isMomSubmitting ? "bg-gray-400" : (isDarkMode ? "bg-white/10" : "bg-[#1C1C1E]")
+              }`}
+            >
+              <Text className={`font-poppinsBold text-[15px] ${isDarkMode ? "text-white" : "text-white"}`}>
+                Submit Agenda
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => handleSubmit("mom")}
@@ -1469,22 +1371,17 @@ const CreateMinutes = () => {
             >
               <LinearGradient
                 colors={
-                  isMomSubmitting
-                    ? ["#9CA3AF", "#9CA3AF", "#9CA3AF"]
-                    : ["#5B4CCC", "#6347C2", "#8056D1"]
+                  isMomSubmitting || isAgendaSubmitting
+                    ? ["#9CA3AF", "#9CA3AF"]
+                    : ["#5B4CCC", "#8056D1"]
                 }
-                locations={isMomSubmitting ? [0, 0.5, 1] : [0, 0.5183, 1]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0.1 }}
+                end={{ x: 1, y: 0 }}
                 className="items-center justify-center py-4"
               >
-                {isMomSubmitting ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white font-poppins text-[15px]">
-                    Submit Minutes
-                  </Text>
-                )}
+                <Text className="text-white font-poppinsBold text-[15px]">
+                  Submit Minutes
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

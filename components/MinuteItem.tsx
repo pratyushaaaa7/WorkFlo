@@ -11,9 +11,10 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   ArrowDown01Icon,
   ArrowRight01Icon,
-  Delete02Icon,
   Tick01Icon,
   CircleIcon,
+  Cancel01Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
 
@@ -60,16 +61,17 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
     onUpdate(field, value);
   };
 
+  const inputBgColor = isDarkMode ? "#121212" : "#F6F8FA";
+
   return (
     <View
       ref={ref}
       collapsable={false}
+      className="mb-3 overflow-hidden"
       style={{
         borderRadius: 12,
-        overflow: "hidden",
-        marginBottom: 12,
-        backgroundColor: isDarkMode ? "#1E1E1E" : "#fff",
-        borderWidth: isActive ? 1 : 0,
+        backgroundColor: isDarkMode ? "#000" : "#fff",
+        borderWidth: isActive ? 1.5 : 0,
         borderColor: "#5B4CCC",
         zIndex: isActive ? 999 : 1,
         elevation: isActive ? 8 : 0,
@@ -80,30 +82,18 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
         onLongPress={drag}
         delayLongPress={500}
         onPress={onToggleExpand}
-        className={`flex-row justify-between items-center px-4 py-3 ${
-          isDarkMode ? "bg-[#262626]" : "bg-[#F3F4F6]"
+        className={`flex-row justify-between items-center px-4 py-3.5 ${
+            isActive ? (isDarkMode ? "bg-gray-800" : "bg-gray-100") : ""
         }`}
       >
-        <View className="flex-row items-center">
-          <View>
-            <Text
-              className={`font-dmSemiBold text-[15px] ${
-                isDarkMode ? "text-gray-200" : "text-gray-800"
-              }`}
-            >
-              Minute {item.serialNo}
-            </Text>
-            {item.issueSubject ? (
-              <Text
-                className={`text-sm font-poppins mt-0.5 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                {item.issueSubject}
-              </Text>
-            ) : null}
-          </View>
-        </View>
+        <Text
+          numberOfLines={1}
+          className={`font-poppinsMedium text-[15px] flex-1 mr-2 ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}
+        >
+          {item.issueSubject || `Minute ${item.serialNo}`}
+        </Text>
         <HugeiconsIcon
           icon={expanded ? ArrowDown01Icon : ArrowRight01Icon}
           size={18}
@@ -112,35 +102,47 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
       </TouchableOpacity>
 
       <Collapsible collapsed={!expanded} duration={300}>
-        <View className="px-4 py-4 gap-3">
+        <View className="px-4 pb-4 gap-3">
           {/* Raised By */}
           <MultiSelect
             ref={dropdownRef}
             style={{
               height: 48,
-              borderColor: isDarkMode ? "#4B5563" : "#E5E7EB",
-              borderWidth: 1,
+              backgroundColor: inputBgColor,
               borderRadius: 12,
               paddingHorizontal: 16,
-              backgroundColor: isDarkMode ? "#262626" : "#F3F4F6",
             }}
             placeholderStyle={{
               fontSize: 14,
               color: isDarkMode ? "#6B7280" : "#9CA3AF",
+              fontFamily: "Poppins-Regular"
             }}
             selectedTextStyle={{
               fontSize: 12,
               color: isDarkMode ? "#E5E7EB" : "#111827",
+              fontFamily: "Poppins-Regular"
             }}
             selectedStyle={{
-              borderRadius: 10,
-              backgroundColor: isDarkMode ? "#374151" : "#E0E7FF",
-              padding: 4,
+              borderRadius: 8,
+              backgroundColor: isDarkMode ? "#262626" : "#E0E7FF",
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+            }}
+            inputSearchStyle={{
+              height: 40,
+              fontSize: 14,
+              borderRadius: 8,
+              fontFamily: "Poppins-Regular"
             }}
             containerStyle={{
               borderRadius: 12,
-              overflow: "hidden",
               backgroundColor: isDarkMode ? "#1C1C1E" : "#fff",
+              borderWidth: 0,
+              elevation: 5,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
             }}
             activeColor={isDarkMode ? "#374151" : "#F0F9FF"}
             search
@@ -150,6 +152,15 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             value={item.raisedBy.map((r: any) => r.value)}
             placeholder="Issue raised by *"
             searchPlaceholder="Search..."
+            renderLeftIcon={() => (
+              <View className="mr-2">
+                <HugeiconsIcon
+                  icon={Search01Icon}
+                  size={18}
+                  color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                />
+              </View>
+            )}
             onChange={(selectedIds: string[]) => {
               const selectedUsers = users
                 .filter((u: any) => selectedIds.includes(u.value))
@@ -158,9 +169,6 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   label: u.label,
                 }));
               onUpdate("raisedBy", selectedUsers);
-              setTimeout(() => {
-                dropdownRef.current?.close();
-              }, 150);
             }}
           />
 
@@ -171,12 +179,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             onChangeText={setLocalSubject}
             onBlur={() => handleBlur("issueSubject", localSubject)}
             multiline
-            className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-              isDarkMode
-                ? "bg-[#262626] text-white"
-                : "bg-[#F3F4F6] text-gray-900"
-            }`}
+            className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+            style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
           />
+          
           <TextInput
             placeholder="Meeting Discussion"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
@@ -184,31 +190,24 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             onChangeText={setLocalDescription}
             onBlur={() => handleBlur("issueDescription", localDescription)}
             multiline
-            className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-              isDarkMode
-                ? "bg-[#262626] text-white"
-                : "bg-[#F3F4F6] text-gray-900"
-            }`}
+            className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+            style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
           />
 
           {/* Status Selector */}
           <View
-            className={`rounded-xl px-4 py-3 flex-row items-center border ${
-              isDarkMode
-                ? "bg-[#262626] border-[#4B5563]"
-                : "bg-[#F9FAFB] border-[#E5E7EB]"
-            }`}
+            className="rounded-xl px-4 py-3 flex-row items-center"
+            style={{ backgroundColor: inputBgColor }}
           >
             <Text
-              className={`text-[15px] mr-3 ${
-                isDarkMode ? "text-gray-400" : "text-[#888]"
+              className={`text-[14px] font-poppins mr-3 ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
               }`}
             >
               Status:
             </Text>
 
-            <View className="flex-row items-center justify-start gap-6">
-              {/* Option 1: Open */}
+            <View className="flex-row items-center gap-6">
               <TouchableOpacity
                 onPress={() => onUpdate("status", "open")}
                 activeOpacity={0.8}
@@ -216,16 +215,16 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               >
                 <HugeiconsIcon
                   icon={item.status === "open" ? Tick01Icon : CircleIcon}
-                  size={20}
+                  size={18}
                   color={
                     item.status === "open"
                       ? isDarkMode ? "#F87171" : "#EF4444"
                       : isDarkMode ? "#6B7280" : "#9CA3AF"
                   }
-                  className="mr-2"
+                  className="mr-1.5"
                 />
                 <Text
-                  className={`text-[14px] font-poppinsMedium ${
+                  className={`text-[13px] font-poppinsMedium ${
                     item.status === "open"
                       ? isDarkMode ? "text-red-400" : "text-red-600"
                       : isDarkMode ? "text-gray-300" : "text-gray-700"
@@ -235,7 +234,6 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 </Text>
               </TouchableOpacity>
 
-              {/* Option 2: For Info */}
               <TouchableOpacity
                 onPress={() => onUpdate("status", "forInfo")}
                 activeOpacity={0.8}
@@ -243,16 +241,16 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               >
                 <HugeiconsIcon
                   icon={item.status === "forInfo" ? Tick01Icon : CircleIcon}
-                  size={20}
+                  size={18}
                   color={
                     item.status === "forInfo"
                       ? isDarkMode ? "#34D399" : "#10B981"
                       : isDarkMode ? "#6B7280" : "#9CA3AF"
                   }
-                  className="mr-2"
+                  className="mr-1.5"
                 />
                 <Text
-                  className={`text-[14px] font-poppinsMedium ${
+                  className={`text-[13px] font-poppinsMedium ${
                     item.status === "forInfo"
                       ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
                       : isDarkMode ? "text-gray-300" : "text-gray-700"
@@ -275,7 +273,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               disabled={item.targetDateForInfo}
             >
               <TextInput
-                placeholder="Target Date (DD-MM-YYYY) *"
+                placeholder="Target Date *"
                 placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
                 value={
                   item.targetDate
@@ -284,11 +282,8 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 }
                 editable={false}
                 pointerEvents="none"
-                className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] border ${
-                  isDarkMode
-                    ? "bg-[#262626] text-white border-[#4B5563]"
-                    : "bg-[#F3F4F6] text-gray-700 border-[#E5E7EB]"
-                }`}
+                className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+                style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
               />
             </TouchableOpacity>
 
@@ -301,21 +296,20 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   onUpdate("targetDateForInfo", true);
                 }
               }}
-              className={`px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+              className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
                 item.targetDateForInfo
                   ? isDarkMode
-                    ? "bg-emerald-500/20 border-emerald-500/50"
-                    : "bg-emerald-50 border-emerald-500"
-                  : isDarkMode
-                    ? "bg-[#262626] border-[#4B5563]"
-                    : "bg-[#F3F4F6] border-[#E5E7EB]"
+                    ? "bg-emerald-500/10 border border-emerald-500/30"
+                    : "bg-emerald-50 border border-emerald-500/30"
+                  : ""
               }`}
+              style={!item.targetDateForInfo ? { backgroundColor: inputBgColor } : {}}
             >
               <Text
-                className={`text-[14px] font-medium ${
+                className={`text-[13px] font-poppinsMedium ${
                   item.targetDateForInfo
                     ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                    : isDarkMode ? "text-gray-400" : "text-gray-600"
+                    : isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
               >
                 {item.targetDateForInfo ? "For Info ✓" : "For Info"}
@@ -324,7 +318,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
           </View>
 
           {/* Responsibility */}
-          <View className="flex-row items-center">
+          <View className="flex-row items-center gap-2">
             <View
               style={{
                 flex: 1,
@@ -335,29 +329,41 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 ref={responsibilityRef}
                 style={{
                   height: 48,
-                  borderColor: isDarkMode ? "#4B5563" : "#E5E7EB",
-                  borderWidth: 1,
+                  backgroundColor: inputBgColor,
                   borderRadius: 12,
                   paddingHorizontal: 16,
-                  backgroundColor: isDarkMode ? "#262626" : "#F3F4F6",
                 }}
                 placeholderStyle={{
                   fontSize: 14,
                   color: isDarkMode ? "#6B7280" : "#9CA3AF",
+                  fontFamily: "Poppins-Regular"
                 }}
                 selectedTextStyle={{
                   fontSize: 12,
                   color: isDarkMode ? "#E5E7EB" : "#111827",
+                  fontFamily: "Poppins-Regular"
                 }}
                 selectedStyle={{
-                  borderRadius: 10,
-                  backgroundColor: isDarkMode ? "#374151" : "#E0E7FF",
-                  padding: 4,
+                  borderRadius: 8,
+                  backgroundColor: isDarkMode ? "#262626" : "#E0E7FF",
+                  paddingVertical: 4,
+                  paddingHorizontal: 8,
+                }}
+                inputSearchStyle={{
+                  height: 40,
+                  fontSize: 14,
+                  borderRadius: 8,
+                  fontFamily: "Poppins-Regular"
                 }}
                 containerStyle={{
                   borderRadius: 12,
-                  overflow: "hidden",
                   backgroundColor: isDarkMode ? "#1C1C1E" : "#fff",
+                  borderWidth: 0,
+                  elevation: 5,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
                 }}
                 activeColor={isDarkMode ? "#374151" : "#F0F9FF"}
                 search
@@ -365,8 +371,17 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 valueField="value"
                 data={users}
                 value={item.responsibility.map((r: any) => r.value)}
-                placeholder="Select responsible users *"
+                placeholder="Responsible *"
                 searchPlaceholder="Search..."
+                renderLeftIcon={() => (
+                    <View className="mr-2">
+                      <HugeiconsIcon
+                        icon={Search01Icon}
+                        size={18}
+                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+                      />
+                    </View>
+                  )}
                 onChange={(selectedIds: string[]) => {
                   const selectedUsers = users
                     .filter((u: any) => selectedIds.includes(u.value))
@@ -375,9 +390,6 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                       label: u.label,
                     }));
                   onUpdate("responsibility", selectedUsers);
-                  setTimeout(() => {
-                    responsibilityRef.current?.close();
-                  }, 80);
                 }}
                 disable={item.responsibilityForInfo}
               />
@@ -392,21 +404,20 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   onUpdate("responsibilityForInfo", true);
                 }
               }}
-              className={`ml-2 px-4 py-3.5 rounded-xl border flex-row items-center justify-center ${
+              className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
                 item.responsibilityForInfo
                   ? isDarkMode
-                    ? "bg-emerald-500/20 border-emerald-500/50"
-                    : "bg-emerald-50 border-emerald-500"
-                  : isDarkMode
-                    ? "bg-[#262626] border-[#4B5563]"
-                    : "bg-[#F3F4F6] border-[#E5E7EB]"
+                    ? "bg-emerald-500/10 border border-emerald-500/30"
+                    : "bg-emerald-50 border border-emerald-500/30"
+                  : ""
               }`}
+              style={!item.responsibilityForInfo ? { backgroundColor: inputBgColor } : {}}
             >
               <Text
-                className={`text-[14px] font-medium ${
+                className={`text-[13px] font-poppinsMedium ${
                   item.responsibilityForInfo
                     ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                    : isDarkMode ? "text-gray-400" : "text-gray-600"
+                    : isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
               >
                 {item.responsibilityForInfo ? "For Info ✓" : "For Info"}
@@ -421,30 +432,26 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             onChangeText={setLocalRemarks}
             onBlur={() => handleBlur("remarks", localRemarks)}
             multiline
-            className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-              isDarkMode
-                ? "bg-[#262626] text-white"
-                : "bg-[#F3F4F6] text-gray-900"
-            }`}
+            className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+            style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
           />
 
           {showDelete && (
-            <View className="flex-row justify-end space-x-4 mt-2">
-              <TouchableOpacity
-                onPress={onDeleteRequest}
-                className="flex-row items-center"
-              >
-                <HugeiconsIcon
-                  icon={Delete02Icon}
-                  size={14}
-                  color="#EF4444"
-                  className="mr-1"
-                />
-                <Text className="text-red-500 font-poppinsMedium text-sm">
-                  Remove Minute
-                </Text>
-              </TouchableOpacity>
-            </View>
+             <TouchableOpacity
+             onPress={onDeleteRequest}
+             className="flex-row items-center self-end mt-1"
+             activeOpacity={0.7}
+           >
+             <HugeiconsIcon
+               icon={Cancel01Icon}
+               size={16}
+               color="#EF4444"
+               className="mr-1.5"
+             />
+             <Text className="text-red-500 font-poppinsMedium text-[13px]">
+               Remove
+             </Text>
+           </TouchableOpacity>
           )}
         </View>
       </Collapsible>
