@@ -61,7 +61,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
     onUpdate(field, value);
   };
 
-  const inputBgColor = isDarkMode ? "#121212" : "#F6F8FA";
+  const inputBgColor = isDarkMode ? "#121212" : "#F1F5F9";
 
   return (
     <View
@@ -70,9 +70,8 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
       className="mb-3 overflow-hidden"
       style={{
         borderRadius: 12,
-        backgroundColor: isDarkMode ? "#000" : "#fff",
-        // borderWidth: 1,
-        // borderColor: isActive ? "#5B4CCC" : (isDarkMode ? "#413E47" : "#E0E5EB"),
+        backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+
         zIndex: isActive ? 999 : 1,
         elevation: isActive ? 8 : 0,
       }}

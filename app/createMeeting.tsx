@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -975,12 +975,10 @@ const CreateMinutes = () => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowMeetingInfo(!showMeetingInfo)}
-                className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
-                  isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
-                } ${!showMeetingInfo ? "rounded-b-xl" : ""}`}
+                className="flex-row justify-between items-center px-4 py-3"
               >
                 <Text
-                  className={`text-[15px] font-poppinsMedium ${
+                  className={`text-[15px] font-poppinsSemiBold ${
                     isDarkMode ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
@@ -994,11 +992,7 @@ const CreateMinutes = () => {
               </TouchableOpacity>
 
               {showMeetingInfo && (
-                <View
-                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
-                  }`}
-                >
+                <View className="px-4 py-2 gap-4">
                   <TextInput
                     placeholder="Enter Title"
                     placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
@@ -1104,13 +1098,11 @@ const CreateMinutes = () => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowAttendeesSection(!showAttendeesSection)}
-                className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
-                  isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
-                } ${!showAttendeesSection ? "rounded-b-xl" : ""}`}
+                className="flex-row justify-between items-center px-4 py-3"
               >
                 <View className="flex-row items-center">
                   <Text
-                    className={`text-[15px] font-poppinsMedium ${
+                    className={`text-[15px] font-poppinsSemiBold ${
                       isDarkMode ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
@@ -1125,11 +1117,7 @@ const CreateMinutes = () => {
               </TouchableOpacity>
 
               {showAttendeesSection && (
-                <View
-                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
-                  }`}
-                >
+                <View className="px-4 py-2 gap-3">
                   <NestableDraggableFlatList
                     data={attendees}
                     onDragEnd={onAttendeeDragEnd}
@@ -1169,11 +1157,7 @@ const CreateMinutes = () => {
             {/* Minutes */}
             <View className="mb-4">
               {/* Minutes Header */}
-              <View
-                className={`flex-row justify-between items-center px-4 py-3 rounded-t-xl ${
-                  isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
-                } ${!showMinutesSection ? "rounded-b-xl" : ""}`}
-              >
+              <View className="flex-row justify-between items-center px-4 py-3">
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowMinutesSection(!showMinutesSection)}
@@ -1181,7 +1165,7 @@ const CreateMinutes = () => {
                 >
                   <View className="flex-row items-center">
                     <Text
-                      className={`text-[15px] font-poppinsMedium ${
+                      className={`text-[15px] font-poppinsSemiBold ${
                         isDarkMode ? "text-gray-300" : "text-gray-700"
                       }`}
                     >
@@ -1218,11 +1202,7 @@ const CreateMinutes = () => {
               </View>
 
               {showMinutesSection && (
-                <View
-                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
-                  }`}
-                >
+                <View className="px-4 py-2 gap-3">
                   <NestableDraggableFlatList
                     data={minutes}
                     onDragEnd={onMinuteDragEnd}
