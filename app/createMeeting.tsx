@@ -2,20 +2,28 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from "rea
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
+  LogBox,
 } from "react-native";
+LogBox.ignoreLogs([
+  "ref.measureLayout must be called with a ref to a native component",
+]);
+
 import {
   NestableDraggableFlatList,
   NestableScrollContainer,
   RenderItemParams,
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
+import Animated from "react-native-reanimated";
 // import Collapsible from "react-native-collapsible";
 import {
   AllBookmarkIcon,
@@ -452,6 +460,7 @@ const CreateMinutes = () => {
             <TouchableOpacity
               activeOpacity={0.7}
               onLongPress={drag}
+              delayLongPress={2000}
               onPress={() =>
                 setExpandedAttendee(expandedAttendee === index ? null : index)
               }
@@ -460,13 +469,6 @@ const CreateMinutes = () => {
               }`}
             >
               <View className="flex-row items-center">
-                <TouchableOpacity onLongPress={drag} className="mr-2 p-1">
-                  <HugeiconsIcon
-                    icon={Menu01Icon}
-                    size={18}
-                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                  />
-                </TouchableOpacity>
                 <View>
                   <Text
                     className={`font-dmSemiBold text-[15px] ${
@@ -691,9 +693,10 @@ const CreateMinutes = () => {
               borderColor: "#5B4CCC",
             }}
           >
-          <TouchableOpacity
+            <TouchableOpacity
               activeOpacity={0.7}
               onLongPress={drag}
+              delayLongPress={2000}
               onPress={() =>
                 setExpandedMinute(expandedMinute === index ? null : index)
               }
@@ -702,13 +705,6 @@ const CreateMinutes = () => {
               }`}
             >
               <View className="flex-row items-center">
-                <TouchableOpacity onLongPress={drag} className="mr-2 p-1">
-                  <HugeiconsIcon
-                    icon={Menu01Icon}
-                    size={18}
-                    color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                  />
-                </TouchableOpacity>
                 <View>
                   <Text
                     className={`font-dmSemiBold text-[15px] ${
@@ -1576,11 +1572,16 @@ const CreateMinutes = () => {
       </View>
 
       {/* Content */}
-      <NestableScrollContainer
-        className={isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}
-        contentContainerStyle={{ padding: 16, paddingBottom: 220 }}
-        keyboardShouldPersistTaps="always"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
+        <NestableScrollContainer
+          style={isDarkMode ? { backgroundColor: "#000" } : { backgroundColor: "#FBFCFD" }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 220 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         {activeTab === "attendees" && (
           <>
             {/* ✅ Meeting Info Section */}
@@ -2263,7 +2264,8 @@ const CreateMinutes = () => {
             </View>
           </View>
         </Modal>
-      </NestableScrollContainer>
+        </NestableScrollContainer>
+      </KeyboardAvoidingView>
     </View>
   );
 };
