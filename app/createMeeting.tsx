@@ -914,18 +914,18 @@ const CreateMinutes = () => {
 
       {/* Tab Switcher */}
       <View
-        className={`flex-row  border-b ${
+        className={`flex-row  ${
           isDarkMode
-            ? "bg-black border-gray-800"
-            : "bg-[#FBFCFD] border-gray-100"
+            ? "bg-black "
+            : "bg-[#FBFCFD] "
         }`}
       >
         <TouchableOpacity
           onPress={() => setActiveTab("attendees")}
           className={`flex-1 py-3 items-center ${
             activeTab === "attendees"
-              ? "border-b-[3px] border-[#5B4CCC]"
-              : "border-b-[3px] border-transparent"
+              ? "border-b-[1px] border-[#5B4CCC]"
+              : "border-b-[1px] border-[#413E47]"
           }`}
         >
           <Text
@@ -944,8 +944,8 @@ const CreateMinutes = () => {
           onPress={() => setActiveTab("minutes")}
           className={`flex-1 py-3 items-center ${
             activeTab === "minutes"
-              ? "border-b-[3px] border-[#5B4CCC]"
-              : "border-b-[3px] border-transparent"
+              ? "border-b-[1px] border-[#5B4CCC]"
+              : "border-b-[1px] border-[#413E47]"
           }`}
         >
           <Text
