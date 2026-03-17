@@ -964,7 +964,7 @@ const CreateMinutes = () => {
 
         <NestableScrollContainer
           style={isDarkMode ? { backgroundColor: "#000" } : { backgroundColor: "#FBFCFD" }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 220 }}
+          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 220 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -995,8 +995,8 @@ const CreateMinutes = () => {
 
               {showMeetingInfo && (
                 <View
-                  className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
+                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
                   }`}
                 >
                   <TextInput
@@ -1086,9 +1086,7 @@ const CreateMinutes = () => {
                   >
                     <View
                       className={`w-5 h-5 rounded-[4px] border ${
-                        isATReview
-                          ? isDarkMode ? "bg-transparent border-gray-600" : "bg-transparent border-gray-400"
-                          : isDarkMode ? "border-gray-600" : "border-gray-400"
+                        isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"
                       } flex items-center justify-center mr-3`}
                     >
                       {isATReview && <HugeiconsIcon icon={Tick02Icon} size={14} color="#919191" />}
@@ -1128,8 +1126,8 @@ const CreateMinutes = () => {
 
               {showAttendeesSection && (
                 <View
-                  className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
+                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
                   }`}
                 >
                   <NestableDraggableFlatList
@@ -1202,8 +1200,8 @@ const CreateMinutes = () => {
                   onPress={fetchForwardedMinutes}
                   className={`px-3 py-1.5 rounded-lg border flex-row items-center ml-2 ${
                     isDarkMode
-                      ? "bg-[#B45309]/10 border-[#B45309]"
-                      : "bg-amber-50 border-amber-500"
+                      ? `bg-[#B45309]/10 border-[#413E47]`
+                      : `bg-amber-50 border-[#E0E5EB]`
                   }`}
                 >
                   <HugeiconsIcon
@@ -1221,8 +1219,8 @@ const CreateMinutes = () => {
 
               {showMinutesSection && (
                 <View
-                  className={`px-4 py-4 gap-4 border-t border-gray-200 rounded-b-xl ${
-                    isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+                  className={`px-4 py-4 gap-4 border-t rounded-b-xl ${
+                    isDarkMode ? "bg-[#0D0D0D] border-[#413E47]" : "bg-[#F6F8FA] border-[#E0E5EB]"
                   }`}
                 >
                   <NestableDraggableFlatList
@@ -1305,7 +1303,9 @@ const CreateMinutes = () => {
                       contentContainerStyle={{ paddingBottom: 10 }}
                       renderItem={({ item }) => (
                         <TouchableOpacity
-                          className="p-2 px-3 mb-2 bg-gray-50 rounded-xl border border-gray-200 "
+                          className={`p-2 px-3 mb-2 bg-gray-50 rounded-xl border ${
+                            isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"
+                          }`}
                           onPress={() => {
                             setMinutes((prev) => [
                               ...prev,
@@ -1350,8 +1350,8 @@ const CreateMinutes = () => {
           </>
         )}
 
-        <View className="mt-8 pb-4">
-          <View className="flex-row gap-4">
+        <View className="mt-8 pb-4 px-2">
+          <View className="flex-row gap-2">
             <TouchableOpacity
               onPress={() => handleSubmit("agenda")}
               disabled={isAgendaSubmitting}
@@ -1359,7 +1359,7 @@ const CreateMinutes = () => {
                 isAgendaSubmitting || isMomSubmitting ? "bg-gray-400" : (isDarkMode ? "bg-white/10" : "bg-[#1C1C1E]")
               }`}
             >
-              <Text className={`font-poppinsBold text-[15px] ${isDarkMode ? "text-white" : "text-white"}`}>
+              <Text className={`font-poppins text-[15px] ${isDarkMode ? "text-white" : "text-white"}`}>
                 Submit Agenda
               </Text>
             </TouchableOpacity>
@@ -1379,7 +1379,7 @@ const CreateMinutes = () => {
                 end={{ x: 1, y: 0 }}
                 className="items-center justify-center py-4"
               >
-                <Text className="text-white font-poppinsBold text-[15px]">
+                <Text className="text-white font-poppins text-[15px]">
                   Submit Minutes
                 </Text>
               </LinearGradient>

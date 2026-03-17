@@ -71,8 +71,8 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
       style={{
         borderRadius: 12,
         backgroundColor: isDarkMode ? "#000" : "#fff",
-        borderWidth: isActive ? 1.5 : 0,
-        borderColor: "#5B4CCC",
+        // borderWidth: 1,
+        // borderColor: isActive ? "#5B4CCC" : (isDarkMode ? "#413E47" : "#E0E5EB"),
         zIndex: isActive ? 999 : 1,
         elevation: isActive ? 8 : 0,
       }}
