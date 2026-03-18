@@ -99,7 +99,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
         />
       </TouchableOpacity>
 
-      <Collapsible collapsed={!expanded} duration={300}>
+      <Collapsible collapsed={!expanded} duration={0}>
         <View className="px-4 pb-4 gap-3">
           {/* Search People / Find in Directory */}
           <Dropdown
