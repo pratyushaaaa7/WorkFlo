@@ -282,9 +282,9 @@ const CreateMinutes = () => {
     loadStoredData();
   }, [projectId]);
 
-  //Save data automatically whenever it changes
+  // Save data automatically whenever it changes (Debounced for performance)
   useEffect(() => {
-    const saveData = async () => {
+    const timer = setTimeout(async () => {
       try {
         const dataToSave = {
           meetingTitle,
@@ -295,16 +295,14 @@ const CreateMinutes = () => {
           minutes,
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-        // console.log("Data saved locally");
+        // console.log("Data saved locally (debounced)");
       } catch (err) {
         console.log("Error saving to AsyncStorage:", err);
       }
-    };
-    // Avoid saving immediately on mount before data loads
-    if (meetingDate || attendees.length > 1 || minutes.length > 1) {
-      saveData();
-    }
-  }, [meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
+    }, 1000); // 1-second debounce to reduce disk overhead
+    
+    return () => clearTimeout(timer);
+  }, [meetingTitle, meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
 
   // Fetch users
   useEffect(() => {
@@ -354,7 +352,7 @@ const CreateMinutes = () => {
   };
 
   // Utility functions
-  const updateAttendee = (index: number, field: string, value: any) => {
+  const updateAttendee = useCallback((index: number, field: string, value: any) => {
     setAttendees((prev) =>
       prev.map((a, i) => {
         if (i === index) {
@@ -368,63 +366,71 @@ const CreateMinutes = () => {
         return a;
       }),
     );
-  };
+  }, []);
 
-  const addAttendee = () => {
-    const newIndex = attendees.length;
-    setAttendees((prev) => [
-      ...prev,
-      {
-        id: `att-${Date.now()}-${Math.random()}`,
-        sNo: prev.length + 1,
-        attendeeName: "",
-        organization: "",
-        designation: "",
-        email: "",
-        contactNumbers: [""],
-      },
-    ]);
-    setExpandedAttendee(newIndex);
-  };
-  const deleteAttendee = (index: number) => {
+  const addAttendee = useCallback(() => {
+    setAttendees((prev) => {
+      const newIndex = prev.length;
+      setTimeout(() => setExpandedAttendee(newIndex), 100);
+      return [
+        ...prev,
+        {
+          id: `att-${Date.now()}-${Math.random()}`,
+          sNo: prev.length + 1,
+          attendeeName: "",
+          organization: "",
+          designation: "",
+          email: "",
+          contactNumbers: [""],
+        },
+      ];
+    });
+  }, []);
+
+  const deleteAttendee = useCallback((index: number) => {
     setAttendees((prev) =>
       prev.filter((_, i) => i !== index).map((a, i) => ({ ...a, sNo: i + 1 })),
     );
-  };
+  }, []);
 
-  const updateMinute = (index: number, field: string, value: any) => {
+  const updateMinute = useCallback((index: number, field: string, value: any) => {
     setMinutes((prev) =>
       prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)),
     );
-  };
-  const addMinute = () => {
-    const newIndex = minutes.length;
-    setMinutes((prev) => [
-      ...prev,
-      {
-        id: `min-${Date.now()}-${Math.random()}`,
-        serialNo: prev.length + 1,
-        raisedBy: [],
-        issueSubject: "",
-        issueDescription: "",
-        targetDate: null,
-        responsibility: [],
-        remarks: "",
-        status: "open",
-      },
-    ]);
-    setExpandedMinute(newIndex);
-  };
-  const deleteMinute = (index: number) => {
+  }, []);
+
+  const addMinute = useCallback(() => {
+    setMinutes((prev) => {
+      const newIndex = prev.length;
+      setTimeout(() => setExpandedMinute(newIndex), 100);
+      return [
+        ...prev,
+        {
+          id: `min-${Date.now()}-${Math.random()}`,
+          serialNo: prev.length + 1,
+          raisedBy: [],
+          issueSubject: "",
+          issueDescription: "",
+          targetDate: null,
+          responsibility: [],
+          remarks: "",
+          status: "open",
+        },
+      ];
+    });
+  }, []);
+
+  const deleteMinute = useCallback((index: number) => {
     setMinutes((prev) =>
       prev.filter((_, i) => i !== index).map((m, i) => ({ ...m, serialNo: i + 1 })),
     );
-  };
+  }, []);
 
-  const openDatePicker = (index: number) => {
+  const openDatePicker = useCallback((index: number) => {
     setDateIndex(index);
     setShowDatePicker(true);
-  };
+  }, []);
+
   const onDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate && dateIndex !== null) {
@@ -433,13 +439,13 @@ const CreateMinutes = () => {
     }
   };
 
-  const onAttendeeDragEnd = ({ data }: { data: any[] }) => {
+  const onAttendeeDragEnd = useCallback(({ data }: { data: any[] }) => {
     setAttendees(data.map((item, index) => ({ ...item, sNo: index + 1 })));
-  };
+  }, []);
 
-  const onMinuteDragEnd = ({ data }: { data: any[] }) => {
+  const onMinuteDragEnd = useCallback(({ data }: { data: any[] }) => {
     setMinutes(data.map((item, index) => ({ ...item, serialNo: index + 1 })));
-  };
+  }, []);
 
   const renderAttendee = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
@@ -465,7 +471,7 @@ const CreateMinutes = () => {
             }}
             onDelete={() => deleteAttendee(index)}
             users={users}
-            showDelete={attendees.length > 1}
+            showDelete={true} // Simplified to avoid array length dependency check during render
             isDarkMode={isDarkMode}
           />
         </ScaleDecorator>
@@ -473,7 +479,6 @@ const CreateMinutes = () => {
     },
     [
       expandedAttendee,
-      attendees,
       users,
       isDarkMode,
       updateAttendee,
@@ -502,7 +507,7 @@ const CreateMinutes = () => {
               setShowDeleteModal(true);
             }}
             users={users}
-            showDelete={minutes.length > 1}
+            showDelete={true} // Simplified
             isDarkMode={isDarkMode}
             onOpenDatePicker={() => openDatePicker(index)}
           />
@@ -511,7 +516,6 @@ const CreateMinutes = () => {
     },
     [
       expandedMinute,
-      minutes,
       users,
       isDarkMode,
       updateMinute,
@@ -851,7 +855,7 @@ const CreateMinutes = () => {
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
@@ -1123,6 +1127,11 @@ const CreateMinutes = () => {
                     onDragEnd={onAttendeeDragEnd}
                     keyExtractor={(item) => item.id}
                     renderItem={renderAttendee}
+                    activationDistance={20}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    maxToRenderPerBatch={10}
+                    initialNumToRender={10}
+                    windowSize={5}
                   />
 
                   <TouchableOpacity
@@ -1208,6 +1217,11 @@ const CreateMinutes = () => {
                     onDragEnd={onMinuteDragEnd}
                     keyExtractor={(item) => item.id}
                     renderItem={renderMinute}
+                    activationDistance={20}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    maxToRenderPerBatch={10}
+                    initialNumToRender={10}
+                    windowSize={5}
                   />
 
                   <TouchableOpacity
