@@ -4,6 +4,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
+  Platform,
+  Animated,
 } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
 import Collapsible from "react-native-collapsible";
@@ -11,11 +14,10 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   ArrowDown01Icon,
   ArrowRight01Icon,
-  Tick01Icon,
   CircleIcon,
   Cancel01Icon,
-  Search01Icon,
   MinusSignIcon,
+  Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
 
@@ -25,12 +27,14 @@ interface MinuteItemProps {
   isActive: boolean;
   expanded: boolean;
   onToggleExpand: () => void;
-  onUpdate: (field: string, value: any) => void;
+  onUpdate: (field: string | object, value?: any) => void;
   onDeleteRequest: () => void;
   users: any[];
   showDelete: boolean;
   isDarkMode: boolean;
   onOpenDatePicker: () => void;
+  onPickImage: () => void;
+  onDeleteImage: (uri: string) => void;
 }
 
 const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({ 
@@ -44,7 +48,9 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
   users, 
   showDelete,
   isDarkMode,
-  onOpenDatePicker
+  onOpenDatePicker,
+  onPickImage,
+  onDeleteImage
 }, ref) => {
   const [localSubject, setLocalSubject] = useState(item.issueSubject);
   const [localDescription, setLocalDescription] = useState(item.issueDescription);
@@ -53,28 +59,30 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
   const responsibilityRef = useRef<any>(null);
 
   useEffect(() => {
-    setLocalSubject(item.issueSubject);
-    setLocalDescription(item.issueDescription);
-    setLocalRemarks(item.remarks);
-  }, [item]);
+    if (item.issueSubject !== localSubject) setLocalSubject(item.issueSubject);
+    if (item.issueDescription !== localDescription) setLocalDescription(item.issueDescription);
+    if (item.remarks !== localRemarks) setLocalRemarks(item.remarks);
+  }, [item.issueSubject, item.issueDescription, item.remarks]);
 
   const handleBlur = (field: string, value: any) => {
     onUpdate(field, value);
   };
 
   const inputBgColor = isDarkMode ? "#1A1A1A" : "#F0F3F7";
+  const cardBgColor = isDarkMode ? "#0D0D0D" : "#F6F8FA";
+  const borderColor = isDarkMode ? "#262626" : "#E0E5EB";
 
   return (
     <View
       ref={ref}
       collapsable={false}
-      className="mb-3 overflow-hidden"
       style={{
+        marginBottom: 12,
         borderRadius: 12,
-        backgroundColor: isDarkMode ? "#0D0D0D" : "#F6F8FA",
-
+        backgroundColor: cardBgColor,
         zIndex: isActive ? 999 : 1,
         elevation: isActive ? 8 : 0,
+        overflow: "hidden",
       }}
     >
       <TouchableOpacity
@@ -84,7 +92,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
         onPress={onToggleExpand}
         className={`flex-row justify-between items-center px-4 py-3.5 ${
             isActive ? (isDarkMode ? "bg-gray-800" : "bg-gray-100") : ""
-        }`}
+        } ${expanded ? (isDarkMode ? "border-b border-[#262626]" : "border-b border-[#E0E5EB]") : ""}`}
       >
         <Text
           numberOfLines={1}
@@ -102,7 +110,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
       </TouchableOpacity>
 
       <Collapsible collapsed={!expanded} duration={0}>
-        <View className="px-4 pb-4 gap-3">
+        <View className="px-4 py-4 gap-3">
           {/* Raised By */}
           <MultiSelect
             ref={dropdownRef}
@@ -115,24 +123,21 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             placeholderStyle={{
               fontSize: 14,
               color: isDarkMode ? "#6B7280" : "#9CA3AF",
-              fontFamily: "Poppins-Regular"
+              fontFamily: "Poppins_400Regular"
             }}
             selectedTextStyle={{
               fontSize: 12,
               color: isDarkMode ? "#E5E7EB" : "#111827",
-              fontFamily: "Poppins-Regular"
+              fontFamily: "Poppins_400Regular"
             }}
             selectedStyle={{
-              borderRadius: 8,
-              backgroundColor: isDarkMode ? "#262626" : "#E0E7FF",
-              paddingVertical: 4,
-              paddingHorizontal: 8,
+              display: 'none'
             }}
             inputSearchStyle={{
               height: 40,
               fontSize: 14,
               borderRadius: 8,
-              fontFamily: "Poppins-Regular"
+              fontFamily: "Poppins_400Regular"
             }}
             containerStyle={{
               borderRadius: 12,
@@ -149,18 +154,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             labelField="label"
             valueField="value"
             data={users}
-            value={item.raisedBy.map((r: any) => r.value)}
+            value={(item.raisedBy || []).map((r: any) => r.value)}
             placeholder="Issue raised by *"
             searchPlaceholder="Search..."
-            renderLeftIcon={() => (
-              <View className="mr-2">
-                <HugeiconsIcon
-                  icon={Search01Icon}
-                  size={18}
-                  color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                />
-              </View>
-            )}
+            renderLeftIcon={() => null}
             onChange={(selectedIds: string[]) => {
               const selectedUsers = users
                 .filter((u: any) => selectedIds.includes(u.value))
@@ -171,6 +168,29 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               onUpdate("raisedBy", selectedUsers);
             }}
           />
+
+          {/* Raised By Chips */}
+          {(item.raisedBy || []).length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {(item.raisedBy || []).map((r: any) => (
+                <TouchableOpacity
+                  key={r.value}
+                  onPress={() => {
+                    const filtered = (item.raisedBy || []).filter((u: any) => u.value !== r.value);
+                    onUpdate("raisedBy", filtered);
+                  }}
+                  className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                    isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
+                  }`}
+                >
+                  <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
+                    {r.label}
+                  </Text>
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color={isDarkMode ? "#FFF" : "#000"} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           <TextInput
             placeholder="Subject *"
@@ -194,40 +214,46 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
           />
 
-          {/* Status Selector */}
+          {/* Status Selector - Match Radio UI */}
           <View
             className="rounded-xl px-4 py-3 flex-row items-center"
             style={{ backgroundColor: inputBgColor }}
           >
             <Text
-              className={`text-[14px] font-poppins mr-3 ${
+              className={`text-[14px] font-poppins mr-4 ${
                 isDarkMode ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              Status:
+              Status :
             </Text>
 
             <View className="flex-row items-center gap-6">
               <TouchableOpacity
-                onPress={() => onUpdate("status", "open")}
+                onPress={() => {
+                  if (item.status !== "open") onUpdate("status", "open");
+                }}
                 activeOpacity={0.8}
                 className="flex-row items-center"
               >
-                <HugeiconsIcon
-                  icon={item.status === "open" ? Tick01Icon : CircleIcon}
-                  size={18}
-                  color={
-                    item.status === "open"
-                      ? isDarkMode ? "#F87171" : "#EF4444"
-                      : isDarkMode ? "#6B7280" : "#9CA3AF"
-                  }
-                  className="mr-1.5"
-                />
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    borderWidth: 2,
+                    borderColor: '#EF4444',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 6
+                  }}
+                >
+                  {item.status === "open" && (
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' }} />
+                  )}
+                </View>
                 <Text
-                  className={`text-[13px] font-poppinsMedium ${
-                    item.status === "open"
-                      ? isDarkMode ? "text-red-400" : "text-red-600"
-                      : isDarkMode ? "text-gray-300" : "text-gray-700"
+                  className={`text-[15px] font-poppins ${
+                    item.status === "open" ? "text-red-500" : (isDarkMode ? "text-gray-400" : "text-gray-600")
                   }`}
                 >
                   Open
@@ -235,25 +261,31 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => onUpdate("status", "forInfo")}
+                onPress={() => {
+                  if (item.status !== "forInfo") onUpdate("status", "forInfo");
+                }}
                 activeOpacity={0.8}
                 className="flex-row items-center"
               >
-                <HugeiconsIcon
-                  icon={item.status === "forInfo" ? Tick01Icon : CircleIcon}
-                  size={18}
-                  color={
-                    item.status === "forInfo"
-                      ? isDarkMode ? "#34D399" : "#10B981"
-                      : isDarkMode ? "#6B7280" : "#9CA3AF"
-                  }
-                  className="mr-1.5"
-                />
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    borderWidth: 2,
+                    borderColor: '#10B981',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 6
+                  }}
+                >
+                  {item.status === "forInfo" && (
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' }} />
+                  )}
+                </View>
                 <Text
-                  className={`text-[13px] font-poppinsMedium ${
-                    item.status === "forInfo"
-                      ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                      : isDarkMode ? "text-gray-300" : "text-gray-700"
+                  className={`text-[15px] font-poppins ${
+                    item.status === "forInfo" ? "text-emerald-500" : (isDarkMode ? "text-gray-400" : "text-gray-600")
                   }`}
                 >
                   For Info
@@ -265,35 +297,46 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
           {/* Target Date */}
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
-              onPress={onOpenDatePicker}
+              onPress={() => {
+                // console.log("Opening Date Picker for Minute...");
+                onOpenDatePicker();
+              }}
+              activeOpacity={0.7}
               style={{
                 flex: 1,
                 opacity: item.targetDateForInfo ? 0.5 : 1,
+                backgroundColor: inputBgColor,
+                borderRadius: 12,
+                height: 48,
+                justifyContent: "center",
+                paddingHorizontal: 16,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#333" : "#E0E5EB",
               }}
               disabled={item.targetDateForInfo}
             >
-              <TextInput
-                placeholder="Target Date *"
-                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-                value={
-                  item.targetDate
-                    ? moment(item.targetDate).format("DD-MM-YYYY")
-                    : ""
-                }
-                editable={false}
-                pointerEvents="none"
-                className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
-                style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
-              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontFamily: "Poppins_400Regular",
+                  color: item.targetDate 
+                    ? (isDarkMode ? "#fff" : "#111827") 
+                    : (isDarkMode ? "#6B7280" : "#9CA3AF")
+                }}
+              >
+                {item.targetDate
+                  ? moment(item.targetDate).format("DD-MM-YYYY")
+                  : "Target Date *"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => {
-                if (item.targetDateForInfo) {
-                  onUpdate("targetDateForInfo", false);
+                const newVal = !item.targetDateForInfo;
+                if (newVal) {
+                  onUpdate({ targetDate: null, targetDateForInfo: true });
                 } else {
-                  onUpdate("targetDate", null);
-                  onUpdate("targetDateForInfo", true);
+                  onUpdate("targetDateForInfo", false);
                 }
               }}
               className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
@@ -312,7 +355,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                     : isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
               >
-                {item.targetDateForInfo ? "For Info ✓" : "For Info"}
+                For Info
               </Text>
             </TouchableOpacity>
           </View>
@@ -336,24 +379,21 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 placeholderStyle={{
                   fontSize: 14,
                   color: isDarkMode ? "#6B7280" : "#9CA3AF",
-                  fontFamily: "Poppins-Regular"
+                  fontFamily: "Poppins_400Regular"
                 }}
                 selectedTextStyle={{
                   fontSize: 12,
                   color: isDarkMode ? "#E5E7EB" : "#111827",
-                  fontFamily: "Poppins-Regular"
+                  fontFamily: "Poppins_400Regular"
                 }}
                 selectedStyle={{
-                  borderRadius: 8,
-                  backgroundColor: isDarkMode ? "#262626" : "#E0E7FF",
-                  paddingVertical: 4,
-                  paddingHorizontal: 8,
+                  display: 'none'
                 }}
                 inputSearchStyle={{
                   height: 40,
                   fontSize: 14,
                   borderRadius: 8,
-                  fontFamily: "Poppins-Regular"
+                  fontFamily: "Poppins_400Regular"
                 }}
                 containerStyle={{
                   borderRadius: 12,
@@ -370,18 +410,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 labelField="label"
                 valueField="value"
                 data={users}
-                value={item.responsibility.map((r: any) => r.value)}
+                value={(item.responsibility || []).map((r: any) => r.value)}
                 placeholder="Responsible *"
                 searchPlaceholder="Search..."
-                renderLeftIcon={() => (
-                    <View className="mr-2">
-                      <HugeiconsIcon
-                        icon={Search01Icon}
-                        size={18}
-                        color={isDarkMode ? "#9CA3AF" : "#6B7280"}
-                      />
-                    </View>
-                  )}
+                renderLeftIcon={() => null}
                 onChange={(selectedIds: string[]) => {
                   const selectedUsers = users
                     .filter((u: any) => selectedIds.includes(u.value))
@@ -397,11 +429,11 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
 
             <TouchableOpacity
               onPress={() => {
-                if (item.responsibilityForInfo) {
-                  onUpdate("responsibilityForInfo", false);
+                const newVal = !item.responsibilityForInfo;
+                if (newVal) {
+                    onUpdate({ responsibility: [], responsibilityForInfo: true });
                 } else {
-                  onUpdate("responsibility", []);
-                  onUpdate("responsibilityForInfo", true);
+                    onUpdate("responsibilityForInfo", false);
                 }
               }}
               className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
@@ -420,10 +452,33 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                     : isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
               >
-                {item.responsibilityForInfo ? "For Info ✓" : "For Info"}
+                For Info
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Responsibility Chips */}
+          {(item.responsibility || []).length > 0 && !item.responsibilityForInfo && (
+            <View className="flex-row flex-wrap gap-2">
+              {(item.responsibility || []).map((r: any) => (
+                <TouchableOpacity
+                  key={r.value}
+                  onPress={() => {
+                    const filtered = (item.responsibility || []).filter((u: any) => u.value !== r.value);
+                    onUpdate("responsibility", filtered);
+                  }}
+                  className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                    isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
+                  }`}
+                >
+                  <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
+                    {r.label}
+                  </Text>
+                  <HugeiconsIcon icon={Cancel01Icon} size={14} color={isDarkMode ? "#FFF" : "#000"} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           <TextInput
             placeholder="Remarks (if any)"
@@ -436,24 +491,77 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             style={{ backgroundColor: inputBgColor, color: isDarkMode ? "#fff" : "#111827" }}
           />
 
-          {showDelete && (
-             <TouchableOpacity
-             onPress={onDeleteRequest}
-             className="flex-row items-center self-end mt-1"
-             activeOpacity={0.7}
-           >
-             <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
-               <HugeiconsIcon
-                 icon={MinusSignIcon}
-                 size={10}
-                 color="#FFFFFF"
-               />
-             </View>
-             <Text className="text-red-500 font-poppinsMedium text-[13px]">
-               Remove
-             </Text>
-           </TouchableOpacity>
-          )}
+          {/* Upload Image Section */}
+          <View className="mt-2 rounded-2xl p-4 gap-3" style={{ backgroundColor: inputBgColor }}>
+            <View
+              className={`rounded-2xl p-5 items-center justify-center ${isDarkMode ? "bg-[#0D0D0D]" : "bg-white"}`}
+              style={{ minHeight: 120, borderStyle: 'dashed', borderWidth: 1, borderColor: isDarkMode ? "#333" : "#D1D5DB" }}
+            >
+              <TouchableOpacity
+                onPress={onPickImage}
+                className="bg-black rounded-xl px-8 py-2.5 flex-row items-center mb-2"
+                activeOpacity={0.8}
+              >
+                <HugeiconsIcon icon={Upload01Icon} size={18} color="white" />
+                <Text className="text-white font-poppinsMedium ml-2.5">Upload</Text>
+              </TouchableOpacity>
+              <Text className={`text-[13px] font-poppins ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>
+                Choose Image
+              </Text>
+            </View>
+
+            {/* Image Previews */}
+            {(item.images || []).length > 0 && (
+              <View className="flex-row flex-wrap gap-3 mt-1">
+                {(item.images || []).map((uri: string, idx: number) => (
+                  <View key={idx} className="relative">
+                    <Image
+                      source={{ uri }}
+                      style={{ width: 70, height: 70, borderRadius: 12 }}
+                    />
+                    <TouchableOpacity
+                      onPress={() => onDeleteImage(uri)}
+                      className="absolute -top-1.5 -right-1.5 bg-black/60 rounded-full p-1"
+                    >
+                      <HugeiconsIcon icon={Cancel01Icon} size={12} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <View className="flex-row justify-between items-center mt-2 px-1">
+            {item.fromForwardedId ? (
+              <View className="flex-row items-center">
+                <View className="w-5 h-5 rounded-full bg-blue-500 items-center justify-center mr-1.5">
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={10} color="white" />
+                </View>
+                <Text className="text-blue-500 font-poppinsSemiBold text-[13px]">
+                  From Forwarded
+                </Text>
+              </View>
+            ) : <View />}
+
+            {showDelete && (
+              <TouchableOpacity
+                onPress={onDeleteRequest}
+                className="flex-row items-center"
+                activeOpacity={0.7}
+              >
+                <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                  <HugeiconsIcon
+                    icon={MinusSignIcon}
+                    size={10}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                  Remove
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </Collapsible>
     </View>

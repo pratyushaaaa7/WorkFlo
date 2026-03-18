@@ -37,6 +37,8 @@ import {
   Menu01Icon,
   Note01Icon,
   PlusSignCircleIcon,
+  MinusSignIcon,
+  Upload01Icon,
   Search01Icon,
   Tick01Icon,
   Tick02Icon,
@@ -45,6 +47,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import moment from "moment";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -230,6 +233,7 @@ const CreateMinutes = () => {
       targetDateForInfo: false, // ✅ new
       responsibilityForInfo: false, // ✅ new
       status: "open", // ✅ default to Open
+      images: [],
     },
   ]);
 
@@ -352,18 +356,19 @@ const CreateMinutes = () => {
   };
 
   // Utility functions
-  const updateAttendee = useCallback((index: number, field: string, value: any) => {
+  const updateAttendee = useCallback((index: number, field: string | object, value?: any) => {
     setAttendees((prev) =>
       prev.map((a, i) => {
-        if (i === index) {
-          if (field === "phone") {
-            const contactNumbers = [...(a.contactNumbers || [""])];
-            contactNumbers[0] = value;
-            return { ...a, contactNumbers };
-          }
-          return { ...a, [field]: value };
+        if (i !== index) return a;
+        if (typeof field === "object") {
+          return { ...a, ...field };
         }
-        return a;
+        if (field === "phone") {
+          const contactNumbers = [...(a.contactNumbers || [""])];
+          contactNumbers[0] = value;
+          return { ...a, contactNumbers };
+        }
+        return { ...a, [field]: value };
       }),
     );
   }, []);
@@ -393,9 +398,15 @@ const CreateMinutes = () => {
     );
   }, []);
 
-  const updateMinute = useCallback((index: number, field: string, value: any) => {
+  const updateMinute = useCallback((index: number, field: string | object, value?: any) => {
     setMinutes((prev) =>
-      prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)),
+      prev.map((m, i) => {
+        if (i !== index) return m;
+        if (typeof field === "object") {
+          return { ...m, ...field };
+        }
+        return { ...m, [field]: value };
+      })
     );
   }, []);
 
@@ -447,6 +458,40 @@ const CreateMinutes = () => {
     setMinutes(data.map((item, index) => ({ ...item, serialNo: index + 1 })));
   }, []);
 
+  const handlePickImage = useCallback(async (index: number) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Toast.show({ type: 'error', text1: 'Permission to access gallery was denied' });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setMinutes((prev) =>
+        prev.map((m, i) =>
+          i === index
+            ? { ...m, images: [...(m.images || []), ...result.assets.map((a: any) => a.uri)] }
+            : m
+        )
+      );
+    }
+  }, []);
+
+  const handleDeleteImage = useCallback((minuteIndex: number, imageUri: string) => {
+    setMinutes((prev) =>
+      prev.map((m, i) =>
+        i === minuteIndex
+          ? { ...m, images: (m.images || []).filter((uri: string) => uri !== imageUri) }
+          : m
+      )
+    );
+  }, []);
+
   const renderAttendee = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
       const index = getIndex() ?? 0;
@@ -460,15 +505,7 @@ const CreateMinutes = () => {
             onToggleExpand={() =>
               setExpandedAttendee(expandedAttendee === index ? null : index)
             }
-            onUpdate={(field: string, value: any) => {
-              if (field === "all") {
-                setAttendees((prev) =>
-                  prev.map((a, i) => (i === index ? { ...a, ...value } : a)),
-                );
-              } else {
-                updateAttendee(index, field, value);
-              }
-            }}
+            onUpdate={(field: string | object, value?: any) => updateAttendee(index, field, value)}
             onDelete={() => deleteAttendee(index)}
             users={users}
             showDelete={true} // Simplified to avoid array length dependency check during render
@@ -499,7 +536,7 @@ const CreateMinutes = () => {
             onToggleExpand={() =>
               setExpandedMinute(expandedMinute === index ? null : index)
             }
-            onUpdate={(field: string, value: any) =>
+            onUpdate={(field: string | object, value?: any) =>
               updateMinute(index, field, value)
             }
             onDeleteRequest={() => {
@@ -510,6 +547,8 @@ const CreateMinutes = () => {
             showDelete={true} // Simplified
             isDarkMode={isDarkMode}
             onOpenDatePicker={() => openDatePicker(index)}
+            onPickImage={() => handlePickImage(index)}
+            onDeleteImage={(uri: string) => handleDeleteImage(index, uri)}
           />
         </ScaleDecorator>
       );
@@ -520,6 +559,8 @@ const CreateMinutes = () => {
       isDarkMode,
       updateMinute,
       openDatePicker,
+      handlePickImage,
+      handleDeleteImage,
     ],
   );
 
@@ -539,8 +580,8 @@ const CreateMinutes = () => {
       serialNo: m.serialNo ?? i + 1,
       issueSubject: m.issueSubject,
       description: m.issueDescription || "",
-      raisedBy: m.raisedBy.map((r: any) => ({ _id: r.value, name: r.label })),
-      responsibility: m.responsibility.map((r: any) => ({
+      raisedBy: (m.raisedBy || []).map((r: any) => ({ _id: r.value, name: r.label })),
+      responsibility: (m.responsibility || []).map((r: any) => ({
         _id: r.value,
         name: r.label,
       })),
@@ -620,7 +661,7 @@ const CreateMinutes = () => {
               email: a.email || "",
               status: a.status || "",
               userId: a.userId || null,
-              contactNumbers: a.contactNumbers || [""],
+              contactNumbers: (a.contactNumbers || []).filter((n: string) => n.trim() !== ""),
             })),
           );
         }
@@ -634,21 +675,22 @@ const CreateMinutes = () => {
             targetDate: m.targetDate || null,
             remarks: m.remarks || "",
             raisedBy: Array.isArray(m.raisedBy)
-              ? m.raisedBy.map((r: any) => ({
-                  value: r._id || r.value,
-                  label: r.name || r.label,
+              ? (m.raisedBy || []).map((r: any) => ({
+                  value: r.value,
+                  label: r.label,
                 }))
               : [],
             responsibility: Array.isArray(m.responsibility)
-              ? m.responsibility.map((r: any) => ({
-                  value: r._id || r.value,
-                  label: r.name || r.label,
+              ? (m.responsibility || []).map((r: any) => ({
+                  value: r.value,
+                  label: r.label,
                 }))
               : [],
             status: m.status || "open",
             targetDateForInfo: !!m.targetDateForInfo,
             responsibilityForInfo: !!m.responsibilityForInfo,
             fromForwardedId: m.fromForwardedId || null,
+            images: Array.isArray(m.images) ? m.images : [], // ✅ load images
           }));
           setMinutes(formattedMinutes);
         }
@@ -745,6 +787,7 @@ const CreateMinutes = () => {
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
         status: m.status || "open", // ✅ new field
+        images: m.images || [], // ✅ send images
       }));
 
       const payload = {
@@ -1485,6 +1528,18 @@ const CreateMinutes = () => {
         >
           <Text className="text-white font-bold">Submit MOM</Text>
         </TouchableOpacity> */}
+        
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          mode="date"
+          onConfirm={(date) => {
+            if (dateIndex !== null) {
+              updateMinute(dateIndex, "targetDate", date);
+            }
+            setShowDatePicker(false);
+          }}
+          onCancel={() => setShowDatePicker(false)}
+        />
 
         <Modal
           transparent
