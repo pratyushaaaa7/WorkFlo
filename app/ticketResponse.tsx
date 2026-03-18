@@ -285,7 +285,7 @@ export default function TicketDetails() {
           <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
             Remarks by Developer
           </Text>
-          <View className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
+          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
             <TextInput
               value={remark}
               onChangeText={setRemark}

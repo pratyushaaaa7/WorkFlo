@@ -61,7 +61,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
     onUpdate(field, value);
   };
 
-  const inputBgColor = isDarkMode ? "#121212" : "#F1F5F9";
+  const inputBgColor = isDarkMode ? "#1A1A1A" : "#F0F3F7";
 
   return (
     <View

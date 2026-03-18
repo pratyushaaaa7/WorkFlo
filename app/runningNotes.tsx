@@ -1120,7 +1120,7 @@ const RunningNotes = () => {
           <View
             className="rounded-t-[24px] w-full h-[460px] shadow-2xl"
             style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             }}
           >
             {/* Handle Bar */}

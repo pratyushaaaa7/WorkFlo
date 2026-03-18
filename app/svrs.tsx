@@ -441,7 +441,7 @@ const SVRs = () => {
             <View className="flex-row justify-between gap-3">
               <TouchableOpacity
                 onPress={() => goAndClose("case-study")}
-                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-4 items-center "
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-4 items-center "
               >
                 <HugeiconsIcon
                   icon={BookOpen01Icon}
@@ -455,7 +455,7 @@ const SVRs = () => {
 
               <TouchableOpacity
                 onPress={() => goAndClose("svr")}
-                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-4 items-center "
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-4 items-center "
               >
                 <HugeiconsIcon
                   icon={Note01Icon}

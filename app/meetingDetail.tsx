@@ -793,7 +793,7 @@ const MinutesDetail = () => {
       >
         <View
           style={{
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingHorizontal: 20,

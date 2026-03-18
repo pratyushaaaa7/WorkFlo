@@ -999,7 +999,7 @@ const CreateMinutes = () => {
                     value={meetingTitle}
                     onChangeText={setMeetingTitle}
                     className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-                      isDarkMode ? "bg-[#121212] text-white" : "bg-[#F1F5F9] text-gray-900"
+                      isDarkMode ? "bg-[#1A1A1A] text-white" : "bg-[#F0F3F7] text-gray-900"
                     }`}
                   />
 
@@ -1008,7 +1008,7 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       onPress={() => setDatePickerVisibility(true)}
                       className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                        isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
+                        isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <Text
@@ -1036,7 +1036,7 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       onPress={() => setTimePickerVisibility(true)}
                       className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                        isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
+                        isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <Text
@@ -1069,7 +1069,7 @@ const CreateMinutes = () => {
                     value={meetingVenue}
                     onChangeText={setMeetingVenue}
                     className={`rounded-xl font-poppins px-4 py-3.5 text-[14px] ${
-                      isDarkMode ? "bg-[#121212] text-white" : "bg-[#F1F5F9] text-gray-900"
+                      isDarkMode ? "bg-[#1A1A1A] text-white" : "bg-[#F0F3F7] text-gray-900"
                     }`}
                   />
 
@@ -1129,7 +1129,7 @@ const CreateMinutes = () => {
                     activeOpacity={0.8}
                     onPress={addAttendee}
                     className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                      isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
+                      isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                     }`}
                   >
                     <HugeiconsIcon
@@ -1214,7 +1214,7 @@ const CreateMinutes = () => {
                     activeOpacity={0.8}
                     onPress={addMinute}
                     className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                      isDarkMode ? "bg-[#121212]" : "bg-[#F1F5F9]"
+                      isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                     }`}
                   >
                     <HugeiconsIcon

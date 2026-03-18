@@ -507,7 +507,7 @@ const UserList = () => {
             transition={{ type: "timing", duration: 250 }}
             className="px-5 pb-2"
           >
-            <View className="flex-row items-center bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333]">
+            <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl px-3 py-2 border border-[#E0E5EB] dark:border-[#333]">
               <HugeiconsIcon
                 icon={Search01Icon}
                 size={18}

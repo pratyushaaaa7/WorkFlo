@@ -678,7 +678,7 @@ const ReportForm: React.FC = () => {
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: DprPhoto; index: number }) => (
       <View style={{ width }} className="px-4">
-        <View className="bg-[#F0F3F7] dark:bg-[#1F1F1F] rounded-[16px]  p-2">
+        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px]  p-2">
           <View
             className="relative  rounded-[12px]  overflow-hidden"
             style={{ height: 300 }}
@@ -963,8 +963,8 @@ const ReportForm: React.FC = () => {
                           : "border-transparent"
                       } ${
                         isDarkMode
-                          ? "bg-[#0D0D0D] text-white"
-                          : "bg-white text-black"
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-[#F0F3F7] text-black"
                       }`}
                       style={{ minHeight: 80 }}
                     />

@@ -475,7 +475,11 @@ const SVRform = () => {
                           onChangeText={(t) =>
                             updateAttendee(index, "attendeeName", t)
                           }
-                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                          className={`border border-gray-200 rounded-xl px-3 py-2 font-poppins text-sm ${
+                            isDarkMode
+                              ? "bg-[#1A1A1A] text-white"
+                              : "bg-[#F0F3F7] text-gray-900"
+                          }`}
                         />
 
                         <TextInput
@@ -485,7 +489,11 @@ const SVRform = () => {
                           onChangeText={(t) =>
                             updateAttendee(index, "organization", t)
                           }
-                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                          className={`border border-gray-200 rounded-xl px-3 py-2 font-poppins text-sm ${
+                            isDarkMode
+                              ? "bg-[#1A1A1A] text-white"
+                              : "bg-[#F0F3F7] text-gray-900"
+                          }`}
                         />
 
                         <TextInput
@@ -495,7 +503,11 @@ const SVRform = () => {
                           onChangeText={(t) =>
                             updateAttendee(index, "designation", t)
                           }
-                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                          className={`border border-gray-200 rounded-xl px-3 py-2 font-poppins text-sm ${
+                            isDarkMode
+                              ? "bg-[#1A1A1A] text-white"
+                              : "bg-[#F0F3F7] text-gray-900"
+                          }`}
                         />
 
                         <TextInput
@@ -506,7 +518,11 @@ const SVRform = () => {
                             updateAttendee(index, "email", t)
                           }
                           keyboardType="email-address"
-                          className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                          className={`border border-gray-200 rounded-xl px-3 py-2 font-poppins text-sm ${
+                            isDarkMode
+                              ? "bg-[#1A1A1A] text-white"
+                              : "bg-[#F0F3F7] text-gray-900"
+                          }`}
                         />
 
                         {/* <TextInput
@@ -589,7 +605,11 @@ const SVRform = () => {
                       value={item.agenda}
                       onChangeText={(v) => updateEntry(item.id, "agenda", v)}
                       multiline
-                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                      className={`border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm font-poppins ${
+                        isDarkMode
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-[#F0F3F7] text-gray-900"
+                      }`}
                       style={{ minHeight: 40 }}
                     />
 
@@ -602,7 +622,11 @@ const SVRform = () => {
                       onChangeText={(v) =>
                         updateEntry(item.id, "discussion", v)
                       }
-                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50 "
+                      className={`border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm font-poppins ${
+                        isDarkMode
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-[#F0F3F7] text-gray-900"
+                      }`}
                       style={{ minHeight: 40 }}
                     />
 
@@ -623,10 +647,14 @@ const SVRform = () => {
                           onChangeText={(v) =>
                             updateEntry(item.id, "responsibility", v)
                           }
-                          className={`flex-1 border rounded-lg px-4 text-sm ${
+                          className={`flex-1 border rounded-lg px-4 text-sm font-poppins ${
                             item.responsibility === "For Info"
-                              ? "bg-gray-200 text-gray-500 border-gray-300"
-                              : "bg-gray-50 text-gray-700 border-gray-400"
+                              ? isDarkMode
+                                ? "bg-[#252525] text-gray-500 border-gray-700"
+                                : "bg-gray-200 text-gray-500 border-gray-300"
+                              : isDarkMode
+                                ? "bg-[#1A1A1A] text-white border-gray-600"
+                                : "bg-[#F0F3F7] text-gray-700 border-gray-400"
                           }`}
                           style={{ height: 40 }}
                         />
@@ -680,7 +708,11 @@ const SVRform = () => {
                       value={item.remarks}
                       multiline
                       onChangeText={(v) => updateEntry(item.id, "remarks", v)}
-                      className="border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm bg-gray-50"
+                      className={`border border-gray-400 rounded-lg px-4 py-3 mb-2 text-sm font-poppins ${
+                        isDarkMode
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-[#F0F3F7] text-gray-900"
+                      }`}
                       style={{ minHeight: 40 }}
                     />
                   </View>
@@ -706,7 +738,7 @@ const SVRform = () => {
         <View className="p-4 flex-1">
           <View
             className={`rounded-2xl p-2 relative ${
-              isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F4F6F9]"
+              isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
             }`}
             style={{ height: 160 }}
           >

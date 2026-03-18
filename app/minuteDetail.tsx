@@ -1203,7 +1203,7 @@ const MinuteDetail = () => {
 
       <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         <View
-          className="px-3 py-2 pb-6 rounded-t-[20px] border-x border-t flex-row items-end bg-white dark:bg-[#1A1A1A]"
+          className="px-3 py-2 pb-6 rounded-t-[20px] border-x border-t flex-row items-end bg-[#F0F3F7] dark:bg-[#1A1A1A]"
           style={{
             borderColor: isDark ? "#413E47" : "#E0E5EB",
             paddingBottom: bottom > 0 ? bottom : 0,
@@ -1346,7 +1346,7 @@ const MinuteDetail = () => {
                 numberOfLines={2}
                 editable={!saving}
                 className={`mb-6 p-3 rounded-xl text-sm font-poppins ${
-                  isDark ? "bg-zinc-900 text-white" : "bg-gray-50 text-black"
+                  isDark ? "bg-[#1A1A1A] text-white" : "bg-[#F0F3F7] text-black"
                 }`}
                 style={{
                   borderWidth: 1,
@@ -1551,8 +1551,8 @@ const MinuteDetail = () => {
                     ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
                     : "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
                   : isDark
-                    ? "bg-[#0D0D0D] text-white border border-transparent"
-                    : "bg-[#F6F8FA] text-black border border-transparent"
+                    ? "bg-[#1A1A1A] text-white border border-transparent"
+                    : "bg-[#F0F3F7] text-black border border-transparent"
               }`}
               style={{
                 textAlignVertical: "top",

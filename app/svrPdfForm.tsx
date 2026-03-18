@@ -700,7 +700,7 @@ const SVRPhotoReport: React.FC = () => {
   const renderCarouselItem = useCallback(
     ({ item, index }: { item: SvrPhoto; index: number }) => (
       <View style={{ width }} className="px-4">
-        <View className="bg-[#F0F3F7] dark:bg-[#1F1F1F] rounded-[16px]  p-2">
+        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px]  p-2">
           <View
             className="relative  rounded-[12px]  overflow-hidden"
             style={{ height: 300 }}
@@ -827,7 +827,7 @@ const SVRPhotoReport: React.FC = () => {
             </View>
 
             {photos.length === 0 && (
-              <View className="bg-white dark:bg-[#000000] rounded-3xl p-10 items-center border border-dashed border-[#E0E5EB] dark:border-[#262626] mb-6">
+              <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-3xl p-10 items-center border border-dashed border-[#E0E5EB] dark:border-[#262626] mb-6">
                 <Ionicons
                   name="images-outline"
                   size={48}
@@ -970,8 +970,8 @@ const SVRPhotoReport: React.FC = () => {
                           : "border-transparent"
                       } ${
                         isDarkMode
-                          ? "bg-[#0D0D0D] text-white"
-                          : "bg-white text-black"
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-[#F0F3F7] text-black"
                       }`}
                       style={{ minHeight: 80 }}
                     />
@@ -1071,7 +1071,7 @@ const SVRPhotoReport: React.FC = () => {
                   setIsPickerVisible(false);
                   setTimeout(takePhoto, 300);
                 }}
-                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-2 items-center "
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-2 items-center "
               >
                 <HugeiconsIcon
                   icon={Camera01Icon}
@@ -1088,7 +1088,7 @@ const SVRPhotoReport: React.FC = () => {
                   setIsPickerVisible(false);
                   setTimeout(pickImage, 300);
                 }}
-                className="flex-1 bg-white dark:bg-[#000] rounded-[16px] py-2 items-center"
+                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-2 items-center"
               >
                 <HugeiconsIcon
                   icon={Image03Icon}
