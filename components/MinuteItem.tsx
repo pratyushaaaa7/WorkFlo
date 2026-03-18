@@ -310,7 +310,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                 height: 48,
                 justifyContent: "center",
                 paddingHorizontal: 16,
-                borderWidth: 1,
+               
                 borderColor: isDarkMode ? "#333" : "#E0E5EB",
               }}
               disabled={item.targetDateForInfo}
