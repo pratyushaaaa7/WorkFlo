@@ -965,7 +965,7 @@ const MinuteDetail = () => {
           )}
 
           {/* Quick Actions */}
-          <View className="flex-row my-4">
+          {/* <View className="flex-row my-4">
             <TouchableOpacity
               onPress={() => {
                 setSelectedStatus(status);
@@ -1001,7 +1001,7 @@ const MinuteDetail = () => {
                 Note
               </Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* Activity Log */}
           <Text
