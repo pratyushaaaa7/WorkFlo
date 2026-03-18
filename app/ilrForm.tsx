@@ -5,7 +5,7 @@ import {
   Calendar03Icon,
   Cancel01Icon,
   Delete03Icon,
-  MinusSignCircleIcon,
+  MinusSignIcon,
   PlusSignCircleIcon,
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
@@ -861,18 +861,16 @@ const ILRForm = () => {
                         }}
                         className="mt-2 flex-row items-center justify-end"
                       >
-                        <HugeiconsIcon
-                          icon={MinusSignCircleIcon}
-                          size={18}
-                          color="#EF4444"
-                        />
-                        <Text
-                          className={`font-dmSemiBold text-base ml-2 ${
-                            isDarkMode ? "text-white" : "text-black"
-                          }`}
-                        >
-                          Remove
-                        </Text>
+                         <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                           <HugeiconsIcon
+                             icon={MinusSignIcon}
+                             size={10}
+                             color="#FFFFFF"
+                           />
+                         </View>
+                         <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                           Remove
+                         </Text>
                       </TouchableOpacity>
                     )}
                   </View>

@@ -14,6 +14,8 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { MinusSignIcon } from "@hugeicons/core-free-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -538,9 +540,17 @@ const SVRform = () => {
                         {attendees.length > 1 && (
                           <TouchableOpacity
                             onPress={() => deleteAttendee(index)}
+                            className="flex-row items-center justify-end mt-1"
                           >
-                            <Text className="text-red-500 font-psemibold text-right px-4 mt-2">
-                              Remove Attendee
+                            <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                              <HugeiconsIcon
+                                icon={MinusSignIcon}
+                                size={10}
+                                color="#FFFFFF"
+                              />
+                            </View>
+                            <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                              Remove
                             </Text>
                           </TouchableOpacity>
                         )}

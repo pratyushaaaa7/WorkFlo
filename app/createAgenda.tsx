@@ -12,6 +12,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import moment from "moment";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { MinusSignIcon } from "@hugeicons/core-free-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import api from "../lib/api";
 import Toast from "react-native-toast-message";
@@ -414,10 +416,17 @@ const CreateAgenda = () => {
                   {attendees.length > 1 && (
                     <TouchableOpacity
                       onPress={() => deleteAttendee(index)}
-                      className="flex-row justify-end mt-3"
+                      className="flex-row items-center justify-end mt-1"
                     >
-                      <Text className="text-red-500 font-medium">
-                        Remove Attendee
+                      <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                        <HugeiconsIcon
+                          icon={MinusSignIcon}
+                          size={10}
+                          color="#FFFFFF"
+                        />
+                      </View>
+                      <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                        Remove
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -490,9 +499,19 @@ const CreateAgenda = () => {
 
                 {/* Remove Agenda */}
                 {agenda.length > 1 && (
-                  <TouchableOpacity onPress={() => deleteAgenda(index)}>
-                    <Text className="text-red-500 text-right font-medium px-4 mt-2">
-                      Remove Agenda
+                  <TouchableOpacity
+                    onPress={() => deleteAgenda(index)}
+                    className="flex-row items-center justify-end mt-1"
+                  >
+                    <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                      <HugeiconsIcon
+                        icon={MinusSignIcon}
+                        size={10}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                    <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                      Remove
                     </Text>
                   </TouchableOpacity>
                 )}

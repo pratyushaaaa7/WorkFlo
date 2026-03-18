@@ -15,6 +15,7 @@ import {
   CircleIcon,
   Cancel01Icon,
   Search01Icon,
+  MinusSignIcon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
 
@@ -441,12 +442,13 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
              className="flex-row items-center self-end mt-1"
              activeOpacity={0.7}
            >
-             <HugeiconsIcon
-               icon={Cancel01Icon}
-               size={16}
-               color="#EF4444"
-               className="mr-1.5"
-             />
+             <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+               <HugeiconsIcon
+                 icon={MinusSignIcon}
+                 size={10}
+                 color="#FFFFFF"
+               />
+             </View>
              <Text className="text-red-500 font-poppinsMedium text-[13px]">
                Remove
              </Text>
