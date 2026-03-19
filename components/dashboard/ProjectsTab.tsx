@@ -222,7 +222,7 @@ const ProjectCard = memo(
             className="text-[#454545] dark:text-[#919191] text-sm font-poppins leading-5"
             numberOfLines={2}
           >
-            {project.description || "No Description"}
+            {project.projectDescription || "No Description"}
           </Text>
         </View>
 
@@ -271,9 +271,9 @@ const ProjectsTab = ({
     WCorp: [],
   });
   const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({
-    WAL: false,
-    WP: false,
-    WCorp: false,
+    WAL: true,
+    WP: true,
+    WCorp: true,
   });
   const [visibleCount, setVisibleCount] = useState(5);
   const auth = useContext(AuthContext);

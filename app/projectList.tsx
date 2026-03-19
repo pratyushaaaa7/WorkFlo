@@ -273,7 +273,7 @@ const ProjectList = () => {
         >
           {/* Back Button */}
           <TouchableOpacity
-            onPress={() => router.push("/(drawer)/masterProjectList")}
+            onPress={() => router.push("/masterProjectList")}
             className="flex-row items-center"
             activeOpacity={0.7}
           >
