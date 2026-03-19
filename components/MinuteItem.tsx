@@ -166,6 +166,9 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   label: u.label,
                 }));
               onUpdate("raisedBy", selectedUsers);
+              setTimeout(() => {
+                dropdownRef.current?.close();
+              }, 80);
             }}
           />
 
@@ -422,6 +425,9 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                       label: u.label,
                     }));
                   onUpdate("responsibility", selectedUsers);
+                  setTimeout(() => {
+                    responsibilityRef.current?.close();
+                  }, 80);
                 }}
                 disable={item.responsibilityForInfo}
               />
