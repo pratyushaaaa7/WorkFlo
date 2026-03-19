@@ -143,6 +143,7 @@ const CustomDrawerContent = (props: any) => {
         >
           <GlobalAvatar
             name={user?.fullName || user?.username || "Guest"}
+            uri={user?.profileImage}
             size={48}
             fontSize={18}
             borderRadius={16}

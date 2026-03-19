@@ -19,6 +19,7 @@ type User = {
   employeeCode?: number;
   company?: string;
   designation?: string;
+  profileImage?: string;
 };
 
 type AuthContextType = {
@@ -26,6 +27,7 @@ type AuthContextType = {
   token: string | null;
   user: User | null;
   login: (token: string, user: User) => Promise<void>;
+  updateUser: (updatedData: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   getToken: () => Promise<string | null>;
   getUser: () => Promise<User | null>;
@@ -149,6 +151,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const getToken = async () => token;
   const getUser = async () => user;
 
+  const updateUser = async (updatedData: Partial<User>) => {
+    if (user) {
+      const newUser = { ...user, ...updatedData };
+      await AsyncStorage.setItem("user", JSON.stringify(newUser));
+      setUser(newUser);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -156,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         token,
         user,
         login,
+        updateUser,
         logout,
         getToken,
         getUser,

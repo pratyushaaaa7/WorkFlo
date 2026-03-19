@@ -1,4 +1,5 @@
-import React from "react";
+import { Image } from "expo-image";
+import React, { useState } from "react";
 import { Text, View, useColorScheme } from "react-native";
 
 export const AVATAR_COLORS = [
@@ -62,6 +63,7 @@ export const getInitials = (name: string) => {
 
 interface GlobalAvatarProps {
   name: string;
+  uri?: string | null;
   size?: number;
   fontSize?: number;
   className?: string; // Additional classes for positioning (like margins)
@@ -71,22 +73,46 @@ interface GlobalAvatarProps {
 
 const GlobalAvatar: React.FC<GlobalAvatarProps> = ({
   name,
+  uri,
   size = 40,
   fontSize = 14,
   className = "",
   index,
   borderRadius,
 }) => {
-  const isDarkMode = useColorScheme() === "dark";
+  const [hasError, setHasError] = useState(false);
   const initials = getInitials(name);
   const color = getAvatarColor(name, index);
+  const finalBorderRadius = borderRadius !== undefined ? borderRadius : size / 2;
+
+  if (uri && uri.trim() !== "" && !hasError) {
+    return (
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: finalBorderRadius,
+          overflow: "hidden",
+        }}
+        className={`${className} bg-gray-100 dark:bg-gray-800`}
+      >
+        <Image
+          source={{ uri }}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={() => setHasError(true)}
+        />
+      </View>
+    );
+  }
 
   return (
     <View
       style={{
         width: size,
         height: size,
-        borderRadius: borderRadius !== undefined ? borderRadius : size / 2,
+        borderRadius: finalBorderRadius,
       }}
       className={`${color.bg} items-center justify-center ${className}`}
     >

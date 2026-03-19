@@ -11,6 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
+import * as ImagePicker from "expo-image-picker";
 import React, {
   useCallback,
   useContext,
@@ -26,23 +27,25 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import GlobalAvatar from "../../components/GlobalAvatar";
 import AboutTab from "../../components/employeeDetail/AboutTab";
 import ProjectsTab from "../../components/employeeDetail/ProjectsTab";
 import ReviewsTab from "../../components/employeeDetail/ReviewsTab";
-import { AuthContext } from "../../context/AuthContext";
+import { AuthContext, useAuth } from "../../context/AuthContext";
 import api from "../../lib/api";
 
 const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const { token, user } = useContext(AuthContext) || {};
+  const { token, user, updateUser } = useAuth();
   const { userId, refresh } = useLocalSearchParams();
   const router = useRouter();
 
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [imageUpdating, setImageUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState("Profile");
   const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -106,6 +109,53 @@ const EmployeeDetail = () => {
   const handleCall = () => {
     if (userData?.contactNumbers?.[0]) {
       Linking.openURL(`tel:${userData.contactNumbers[0]}`);
+    }
+  };
+
+  const handleImagePick = async () => {
+    if (imageUpdating) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setImageUpdating(true);
+        const selectedImage = result.assets[0];
+
+        // Create form data
+        const formData = new FormData();
+        formData.append("profileImage", {
+          uri: selectedImage.uri,
+          name: "profile.jpg",
+          type: "image/jpeg",
+        } as any);
+
+        const response = await api.post(`/users/${userId}/image`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.profileImage) {
+          const newUrl = response.data.profileImage;
+          setUserData((prev: any) => ({ ...prev, profileImage: newUrl }));
+
+          // If updating own profile, update global auth state
+          if (user?._id === userId) {
+            await updateUser({ profileImage: newUrl });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error picking/uploading image:", error);
+    } finally {
+      setImageUpdating(false);
     }
   };
 
@@ -240,14 +290,20 @@ const EmployeeDetail = () => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
+                  onPress={handleImagePick}
+                  disabled={imageUpdating}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
+                {imageUpdating ? (
+                  <ActivityIndicator size="small" color={isDarkMode ? "#FFF" : "#000"} />
+                ) : (
                   <HugeiconsIcon
                     icon={Camera01Icon}
                     size={24}
                     color={isDarkMode ? "#FFF" : "#000"}
                   />
-                </TouchableOpacity>
+                )}
+              </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() =>
                     router.push({
@@ -304,6 +360,7 @@ const EmployeeDetail = () => {
           ) : (
             <GlobalAvatar
               name={userData?.fullName || ""}
+              uri={userData?.profileImage}
               size={120}
               fontSize={40}
               borderRadius={32}

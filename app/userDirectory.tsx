@@ -19,6 +19,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
 import * as Sharing from "expo-sharing";
 import { AnimatePresence, MotiView } from "moti";
+import GlobalAvatar from "../components/GlobalAvatar";
 import React, {
   useCallback,
   useContext,
@@ -56,6 +57,7 @@ interface IUser {
   email: string;
   phone: string;
   expertise?: string;
+  profileImage?: string;
 }
 
 const UserList = () => {
@@ -248,6 +250,7 @@ const UserList = () => {
           firmName: pu.firmName || "-",
           email: pu.email || "-",
           phone: pu.phone || "-",
+          profileImage: pu.profileImage || "",
         }));
 
         setUsers(formattedUsers);
@@ -357,16 +360,26 @@ const UserList = () => {
       // style={{ elevation: isFocused ? 0 : 2 }}
     >
       <View className="flex-row justify-between items-start mb-2">
-        <Text className="text-lg font-dmBold text-black dark:text-white flex-1">
-          {item.individualName}{" "}
-          <Text className="text-[#454545] dark:text-[#919191] text-sm">
-            {" "}
-            •{" "}
-          </Text>{" "}
-          <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
-            {item.role}
-          </Text>
-        </Text>
+        <View className="flex-row items-center flex-1">
+          <GlobalAvatar
+            name={item.individualName}
+            uri={item.profileImage}
+            size={40}
+            fontSize={14}
+            className="mr-3"
+          />
+          <View className="flex-1">
+            <Text
+              className="text-lg font-dmBold text-black dark:text-white"
+              numberOfLines={1}
+            >
+              {item.individualName}
+            </Text>
+            <Text className="text-[#454545] dark:text-[#919191] text-xs font-poppins">
+              {item.role}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-1">
