@@ -381,6 +381,13 @@ function AppLayout() {
             title: "Profile",
           }}
         />
+        <Drawer.Screen
+          name="employeeDetail"
+          options={{
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );

@@ -114,7 +114,7 @@ const UserRefField = ({
         <TouchableOpacity
           onPress={() => {
             if (isObject && user._id) {
-              router.push({
+              router.replace({
                 pathname: "/employeeDetail" as any,
                 params: { userId: user._id },
               });
@@ -319,7 +319,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
                 key={report._id}
                 onPress={() => {
                   if (report._id) {
-                    router.push({
+                    router.replace({
                       pathname: "/employeeDetail" as any,
                       params: { userId: report._id },
                     });

@@ -225,8 +225,7 @@ const EmployeeDetail = () => {
             </View>
           </View>
 
-          <Animated.View
-            style={{ opacity: headerActionOpacity }}
+          <View
             className="flex-row items-center justify-end"
           >
             {user?.role === "admin" ? (
@@ -268,7 +267,7 @@ const EmployeeDetail = () => {
             ) : (
               <View className="w-10" />
             )}
-          </Animated.View>
+          </View>
         </View>
       </View>
 
@@ -281,9 +280,9 @@ const EmployeeDetail = () => {
         )}
         scrollEventThrottle={16}
         stickyHeaderIndices={[1]}
-        style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }} // 👈 EXPLICIT LOWER Z-INDEX
+        style={{ marginTop: HEADER_HEIGHT, zIndex: 1 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled" // Add this line
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -294,17 +293,15 @@ const EmployeeDetail = () => {
         }
       >
         {/* Child 0: Profile Info (Avatar, Name, Buttons) */}
-        <Animated.View
-          style={{ opacity: bodyOpacity }}
-          className="items-center px-4 pb-2 bg-white dark:bg-black pt-4"
-        >
-          <Skeleton
-            colorMode={isDarkMode ? "dark" : "light"}
-            show={loading && !userData}
-            width={120}
-            height={120}
-            radius={32}
-          >
+        <View className="items-center px-4 pb-2 bg-white dark:bg-black pt-4">
+          {loading && !userData ? (
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={120}
+              height={120}
+              radius={32}
+            />
+          ) : (
             <GlobalAvatar
               name={userData?.fullName || ""}
               size={120}
@@ -312,46 +309,49 @@ const EmployeeDetail = () => {
               borderRadius={32}
               className="mb-4"
             />
-          </Skeleton>
+          )}
 
-          <View className="mb-1 mt-4">
-            <Skeleton
-              colorMode={isDarkMode ? "dark" : "light"}
-              show={loading && !userData}
-              width={200}
-              height={32}
-              radius={8}
-            >
+          <View className="mb-1 mt-4 items-center justify-center">
+            {loading && !userData ? (
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={200}
+                height={32}
+                radius={8}
+              />
+            ) : (
               <Text className="text-2xl font-dmBold text-black dark:text-white text-center">
                 {userData?.fullName}
               </Text>
-            </Skeleton>
+            )}
           </View>
 
-          <View className="mb-6 w-full">
-            <Skeleton
-              colorMode={isDarkMode ? "dark" : "light"}
-              show={loading && !userData}
-              width={150}
-              height={20}
-              radius={6}
-            >
-              <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] text-center w-full">
+          <View className="mb-6 items-center justify-center">
+            {loading && !userData ? (
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={160}
+                height={20}
+                radius={6}
+              />
+            ) : (
+              <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] text-center">
                 {userData?.designation}
               </Text>
-            </Skeleton>
+            )}
           </View>
 
           {/* Action Buttons */}
           {(loading || userData?.contactNumbers?.[0] || userData?.email) && (
             <View className="flex-row pb-6 justify-center w-full">
-              <Skeleton
-                colorMode={isDarkMode ? "dark" : "light"}
-                show={loading && !userData}
-                radius={16}
-                height={64}
-                width={250}
-              >
+              {loading && !userData ? (
+                <Skeleton
+                  colorMode={isDarkMode ? "dark" : "light"}
+                  radius={16}
+                  height={64}
+                  width={250}
+                />
+              ) : (
                 <View className="flex-row gap-4 justify-center items-center w-full">
                   {userData?.contactNumbers?.[0] && (
                     <>
@@ -409,10 +409,10 @@ const EmployeeDetail = () => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </Skeleton>
+              )}
             </View>
           )}
-        </Animated.View>
+        </View>
 
         {/* Child 1: Tabs - Sticky Header */}
         <View

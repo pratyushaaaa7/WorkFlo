@@ -3,7 +3,7 @@ import React from "react";
 
 export default function EmployeeDetailLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, animation: "none" }}>
       <Stack.Screen
         name="index"
         dangerouslySingular={({ params }: any) => params?.userId}
