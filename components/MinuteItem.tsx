@@ -9,7 +9,6 @@ import {
   Animated,
 } from "react-native";
 import { MultiSelect } from "react-native-element-dropdown";
-import Collapsible from "react-native-collapsible";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   ArrowDown01Icon,
@@ -26,15 +25,16 @@ interface MinuteItemProps {
   drag: () => void;
   isActive: boolean;
   expanded: boolean;
-  onToggleExpand: () => void;
-  onUpdate: (field: string | object, value?: any) => void;
-  onDeleteRequest: () => void;
+  onToggleExpand: (index: number) => void;
+  onUpdate: (index: number, field: string | object, value?: any) => void;
+  onDeleteRequest: (index: number) => void;
   users: any[];
   showDelete: boolean;
   isDarkMode: boolean;
-  onOpenDatePicker: () => void;
-  onPickImage: () => void;
-  onDeleteImage: (uri: string) => void;
+  onOpenDatePicker: (index: number) => void;
+  onPickImage: (index: number) => void;
+  onDeleteImage: (index: number, uri: string) => void;
+  getIndex: () => number | undefined;
 }
 
 const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({ 
@@ -50,7 +50,8 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
   isDarkMode,
   onOpenDatePicker,
   onPickImage,
-  onDeleteImage
+  onDeleteImage,
+  getIndex
 }, ref) => {
   const [localSubject, setLocalSubject] = useState(item.issueSubject);
   const [localDescription, setLocalDescription] = useState(item.issueDescription);
@@ -65,7 +66,13 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
   }, [item.issueSubject, item.issueDescription, item.remarks]);
 
   const handleBlur = (field: string, value: any) => {
-    onUpdate(field, value);
+    const idx = getIndex();
+    if (idx !== undefined) onUpdate(idx, field, value);
+  };
+  
+  const handleUpdate = (field: string | object, value?: any) => {
+    const idx = getIndex();
+    if (idx !== undefined) onUpdate(idx, field, value);
   };
 
   const inputBgColor = isDarkMode ? "#1A1A1A" : "#F0F3F7";
@@ -89,7 +96,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
         activeOpacity={0.7}
         onLongPress={drag}
         delayLongPress={500}
-        onPress={onToggleExpand}
+        onPress={() => {
+          const idx = getIndex();
+          if (idx !== undefined) onToggleExpand(idx);
+        }}
         className={`flex-row justify-between items-center px-4 py-3.5 ${
             isActive ? (isDarkMode ? "bg-gray-800" : "bg-gray-100") : ""
         } ${expanded ? (isDarkMode ? "border-b border-[#262626]" : "border-b border-[#E0E5EB]") : ""}`}
@@ -109,7 +119,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
         />
       </TouchableOpacity>
 
-      <Collapsible collapsed={!expanded} duration={0}>
+      {expanded && (
         <View className="px-4 py-4 gap-3">
           {/* Raised By */}
           <MultiSelect
@@ -165,7 +175,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   value: u.value,
                   label: u.label,
                 }));
-              onUpdate("raisedBy", selectedUsers);
+              handleUpdate("raisedBy", selectedUsers);
               setTimeout(() => {
                 dropdownRef.current?.close();
               }, 80);
@@ -180,7 +190,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   key={r.value}
                   onPress={() => {
                     const filtered = (item.raisedBy || []).filter((u: any) => u.value !== r.value);
-                    onUpdate("raisedBy", filtered);
+                    handleUpdate("raisedBy", filtered);
                   }}
                   className={`flex-row items-center px-4 py-2 rounded-lg border ${
                     isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
@@ -233,7 +243,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             <View className="flex-row items-center gap-6">
               <TouchableOpacity
                 onPress={() => {
-                  if (item.status !== "open") onUpdate("status", "open");
+                  if (item.status !== "open") handleUpdate("status", "open");
                 }}
                 activeOpacity={0.8}
                 className="flex-row items-center"
@@ -265,7 +275,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
 
               <TouchableOpacity
                 onPress={() => {
-                  if (item.status !== "forInfo") onUpdate("status", "forInfo");
+                  if (item.status !== "forInfo") handleUpdate("status", "forInfo");
                 }}
                 activeOpacity={0.8}
                 className="flex-row items-center"
@@ -301,8 +311,8 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
               onPress={() => {
-                // console.log("Opening Date Picker for Minute...");
-                onOpenDatePicker();
+                const idx = getIndex();
+                if (idx !== undefined) onOpenDatePicker(idx);
               }}
               activeOpacity={0.7}
               style={{
@@ -337,9 +347,9 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               onPress={() => {
                 const newVal = !item.targetDateForInfo;
                 if (newVal) {
-                  onUpdate({ targetDate: null, targetDateForInfo: true });
+                  handleUpdate({ targetDate: null, targetDateForInfo: true });
                 } else {
-                  onUpdate("targetDateForInfo", false);
+                  handleUpdate("targetDateForInfo", false);
                 }
               }}
               className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
@@ -424,7 +434,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                       value: u.value,
                       label: u.label,
                     }));
-                  onUpdate("responsibility", selectedUsers);
+                  handleUpdate("responsibility", selectedUsers);
                   setTimeout(() => {
                     responsibilityRef.current?.close();
                   }, 80);
@@ -437,9 +447,9 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               onPress={() => {
                 const newVal = !item.responsibilityForInfo;
                 if (newVal) {
-                    onUpdate({ responsibility: [], responsibilityForInfo: true });
+                    handleUpdate({ responsibility: [], responsibilityForInfo: true });
                 } else {
-                    onUpdate("responsibilityForInfo", false);
+                    handleUpdate("responsibilityForInfo", false);
                 }
               }}
               className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
@@ -471,7 +481,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                   key={r.value}
                   onPress={() => {
                     const filtered = (item.responsibility || []).filter((u: any) => u.value !== r.value);
-                    onUpdate("responsibility", filtered);
+                    handleUpdate("responsibility", filtered);
                   }}
                   className={`flex-row items-center px-4 py-2 rounded-lg border ${
                     isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
@@ -504,7 +514,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               style={{ minHeight: 120, borderStyle: 'dashed', borderWidth: 1, borderColor: isDarkMode ? "#333" : "#D1D5DB" }}
             >
               <TouchableOpacity
-                onPress={onPickImage}
+                onPress={() => {
+                  const idx = getIndex();
+                  if (idx !== undefined) onPickImage(idx);
+                }}
                 className="bg-black rounded-xl px-8 py-2.5 flex-row items-center mb-2"
                 activeOpacity={0.8}
               >
@@ -526,7 +539,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                       style={{ width: 70, height: 70, borderRadius: 12 }}
                     />
                     <TouchableOpacity
-                      onPress={() => onDeleteImage(uri)}
+                      onPress={() => {
+                        const idx = getIndex();
+                        if (idx !== undefined) onDeleteImage(idx, uri);
+                      }}
                       className="absolute -top-1.5 -right-1.5 bg-black/60 rounded-full p-1"
                     >
                       <HugeiconsIcon icon={Cancel01Icon} size={12} color="white" />
@@ -551,7 +567,10 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
 
             {showDelete && (
               <TouchableOpacity
-                onPress={onDeleteRequest}
+                onPress={() => {
+                  const idx = getIndex();
+                  if (idx !== undefined) onDeleteRequest(idx);
+                }}
                 className="flex-row items-center"
                 activeOpacity={0.7}
               >
@@ -569,7 +588,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
             )}
           </View>
         </View>
-      </Collapsible>
+      )}
     </View>
   );
 }));

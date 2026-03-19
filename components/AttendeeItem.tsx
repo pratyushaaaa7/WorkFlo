@@ -7,7 +7,6 @@ import {
   Platform,
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
-import Collapsible from "react-native-collapsible";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
   ArrowDown01Icon,
@@ -23,12 +22,13 @@ interface AttendeeItemProps {
   drag: () => void;
   isActive: boolean;
   expanded: boolean;
-  onToggleExpand: () => void;
-  onUpdate: (field: string | object, value?: any) => void; // Updated signature
-  onDelete: () => void;
+  onToggleExpand: (index: number) => void;
+  onUpdate: (index: number, field: string | object, value?: any) => void; // Updated signature
+  onDelete: (index: number) => void;
   users: any[];
   showDelete: boolean;
   isDarkMode: boolean;
+  getIndex: () => number | undefined;
 }
 
 const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
@@ -41,8 +41,14 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
   onDelete,
   users,
   showDelete,
-  isDarkMode
+  isDarkMode,
+  getIndex
 }, ref) => {
+  const handleUpdate = (field: string | object, value?: any) => {
+    const idx = getIndex();
+    if (idx !== undefined) onUpdate(idx, field, value);
+  };
+
   const cardBgColor = isDarkMode ? "#0D0D0D" : "#F6F8FA";
   const borderColor = isDarkMode ? "#262626" : "#E0E5EB";
   const inputBgColor = isDarkMode ? "#1A1A1A" : "#F0F3F7"; // Re-added for consistency with new code
@@ -64,7 +70,10 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
         activeOpacity={0.7}
         onLongPress={drag}
         delayLongPress={500}
-        onPress={onToggleExpand}
+        onPress={() => {
+          const idx = getIndex();
+          if (idx !== undefined) onToggleExpand(idx);
+        }}
         className={`flex-row justify-between items-center px-4 py-4 ${
             isActive ? (isDarkMode ? "bg-gray-800" : "bg-gray-100") : ""
         } ${expanded ? (isDarkMode ? "border-b border-[#262626]" : "border-b border-[#E0E5EB]") : ""}`}
@@ -84,7 +93,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
         />
       </TouchableOpacity>
 
-      <Collapsible collapsed={!expanded} duration={0}>
+      {expanded && (
         <View className="px-4 py-6 gap-4">
           <View>
             <Dropdown
@@ -131,7 +140,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
               onChange={(val) => {
                 const user = users.find((u: any) => u.value === val.value);
                 if (user) {
-                  onUpdate({
+                  handleUpdate({
                     attendeeName: user.attendeeName || user.label || "",
                     organization: user.organization || "",
                     designation: user.designation || "",
@@ -149,7 +158,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             placeholder="Name *"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.attendeeName}
-            onChangeText={(val) => onUpdate("attendeeName", val)}
+            onChangeText={(val) => handleUpdate("attendeeName", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
                 isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
               }`}
@@ -159,7 +168,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             placeholder="Organization *"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.organization}
-            onChangeText={(val) => onUpdate("organization", val)}
+            onChangeText={(val) => handleUpdate("organization", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
                 isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
               }`}
@@ -169,7 +178,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             placeholder="Designation"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.designation}
-            onChangeText={(val) => onUpdate("designation", val)}
+            onChangeText={(val) => handleUpdate("designation", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
                 isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
               }`}
@@ -179,7 +188,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             placeholder="Email"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.email}
-            onChangeText={(val) => onUpdate("email", val)}
+            onChangeText={(val) => handleUpdate("email", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
                 isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
               }`}
@@ -189,7 +198,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             placeholder="Phone"
             placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.contactNumbers ? item.contactNumbers[0] : ""}
-            onChangeText={(val) => onUpdate("phone", val)}
+            onChangeText={(val) => handleUpdate("phone", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
                 isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
               }`}
@@ -199,7 +208,10 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
 
           {showDelete && (
             <TouchableOpacity
-              onPress={onDelete}
+              onPress={() => {
+                 const idx = getIndex();
+                 if (idx !== undefined) onDelete(idx);
+              }}
               className="flex-row items-center mt-2"
               activeOpacity={0.7}
             >
@@ -216,7 +228,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             </TouchableOpacity>
           )}
         </View>
-      </Collapsible>
+      )}
     </View>
   );
 }));

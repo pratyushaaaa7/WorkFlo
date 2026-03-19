@@ -181,8 +181,6 @@ const CreateMinutes = () => {
   const [isMomSubmitting, setIsMomSubmitting] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
 
-  const [expandedAttendee, setExpandedAttendee] = useState<number | null>(null);
-  const [expandedMinute, setExpandedMinute] = useState<number | null>(null);
   const [isAgendaDownloading, setIsAgendaDownloading] = useState(false);
 
   const [isDraftSubmitted, setIsDraftSubmitted] = useState(false);
@@ -216,6 +214,7 @@ const CreateMinutes = () => {
       designation: "",
       email: "",
       contactNumbers: [""],
+      isExpanded: true,
     },
   ]);
 
@@ -234,6 +233,7 @@ const CreateMinutes = () => {
       responsibilityForInfo: false, // ✅ new
       status: "open", // ✅ default to Open
       images: [],
+      isExpanded: true,
     },
   ]);
 
@@ -375,10 +375,9 @@ const CreateMinutes = () => {
 
   const addAttendee = useCallback(() => {
     setAttendees((prev) => {
-      const newIndex = prev.length;
-      setTimeout(() => setExpandedAttendee(newIndex), 100);
+      const updated = prev.map((a) => ({ ...a, isExpanded: false }));
       return [
-        ...prev,
+        ...updated,
         {
           id: `att-${Date.now()}-${Math.random()}`,
           sNo: prev.length + 1,
@@ -387,6 +386,7 @@ const CreateMinutes = () => {
           designation: "",
           email: "",
           contactNumbers: [""],
+          isExpanded: true,
         },
       ];
     });
@@ -412,10 +412,9 @@ const CreateMinutes = () => {
 
   const addMinute = useCallback(() => {
     setMinutes((prev) => {
-      const newIndex = prev.length;
-      setTimeout(() => setExpandedMinute(newIndex), 100);
+      const updated = prev.map((m) => ({ ...m, isExpanded: false }));
       return [
-        ...prev,
+        ...updated,
         {
           id: `min-${Date.now()}-${Math.random()}`,
           serialNo: prev.length + 1,
@@ -426,6 +425,7 @@ const CreateMinutes = () => {
           responsibility: [],
           remarks: "",
           status: "open",
+          isExpanded: true,
         },
       ];
     });
@@ -492,32 +492,47 @@ const CreateMinutes = () => {
     );
   }, []);
 
+  const handleToggleAttendee = useCallback((index: number) => {
+    setAttendees((prev) =>
+      prev.map((a, i) => ({ ...a, isExpanded: i === index ? !a.isExpanded : false }))
+    );
+  }, []);
+
+  const handleToggleMinute = useCallback((index: number) => {
+    setMinutes((prev) =>
+      prev.map((m, i) => ({ ...m, isExpanded: i === index ? !m.isExpanded : false }))
+    );
+  }, []);
+
+  const handleDeleteMinuteRequest = useCallback((index: number) => {
+    setSelectedIndex(index);
+    setShowDeleteModal(true);
+  }, []);
+
   const renderAttendee = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
-      const index = getIndex() ?? 0;
       return (
         <ScaleDecorator>
           <AttendeeItem
             item={item}
             drag={drag}
             isActive={isActive}
-            expanded={expandedAttendee === index}
-            onToggleExpand={() =>
-              setExpandedAttendee(expandedAttendee === index ? null : index)
-            }
-            onUpdate={(field: string | object, value?: any) => updateAttendee(index, field, value)}
-            onDelete={() => deleteAttendee(index)}
+            expanded={!!item.isExpanded}
+            onToggleExpand={handleToggleAttendee}
+            onUpdate={updateAttendee}
+            onDelete={deleteAttendee}
             users={users}
-            showDelete={true} // Simplified to avoid array length dependency check during render
+            showDelete={true}
             isDarkMode={isDarkMode}
+            getIndex={getIndex}
           />
         </ScaleDecorator>
       );
     },
     [
-      expandedAttendee,
       users,
       isDarkMode,
+      handleToggleAttendee,
       updateAttendee,
       deleteAttendee,
     ],
@@ -525,39 +540,33 @@ const CreateMinutes = () => {
 
   const renderMinute = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
-      const index = getIndex() ?? 0;
       return (
         <ScaleDecorator>
           <MinuteItem
             item={item}
             drag={drag}
             isActive={isActive}
-            expanded={expandedMinute === index}
-            onToggleExpand={() =>
-              setExpandedMinute(expandedMinute === index ? null : index)
-            }
-            onUpdate={(field: string | object, value?: any) =>
-              updateMinute(index, field, value)
-            }
-            onDeleteRequest={() => {
-              setSelectedIndex(index);
-              setShowDeleteModal(true);
-            }}
+            expanded={!!item.isExpanded}
+            onToggleExpand={handleToggleMinute}
+            onUpdate={updateMinute}
+            onDeleteRequest={handleDeleteMinuteRequest}
             users={users}
-            showDelete={true} // Simplified
+            showDelete={true}
             isDarkMode={isDarkMode}
-            onOpenDatePicker={() => openDatePicker(index)}
-            onPickImage={() => handlePickImage(index)}
-            onDeleteImage={(uri: string) => handleDeleteImage(index, uri)}
+            onOpenDatePicker={openDatePicker}
+            onPickImage={handlePickImage}
+            onDeleteImage={handleDeleteImage}
+            getIndex={getIndex}
           />
         </ScaleDecorator>
       );
     },
     [
-      expandedMinute,
       users,
       isDarkMode,
+      handleToggleMinute,
       updateMinute,
+      handleDeleteMinuteRequest,
       openDatePicker,
       handlePickImage,
       handleDeleteImage,
@@ -662,6 +671,7 @@ const CreateMinutes = () => {
               status: a.status || "",
               userId: a.userId || null,
               contactNumbers: (a.contactNumbers || []).filter((n: string) => n.trim() !== ""),
+              isExpanded: idx === 0,
             })),
           );
         }
@@ -691,6 +701,7 @@ const CreateMinutes = () => {
             responsibilityForInfo: !!m.responsibilityForInfo,
             fromForwardedId: m.fromForwardedId || null,
             images: Array.isArray(m.images) ? m.images : [], // ✅ load images
+            isExpanded: idx === 0,
           }));
           setMinutes(formattedMinutes);
         }
