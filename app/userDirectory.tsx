@@ -16,6 +16,7 @@ import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import * as Sharing from "expo-sharing";
 import { AnimatePresence, MotiView } from "moti";
 import React, {
@@ -638,8 +639,23 @@ const UserList = () => {
       {/* Main Content */}
       <View className="flex-1 px-5">
         {loading ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#5B4CCC" />
+          <View className="flex-1 pt-4">
+             {[1, 2, 3].map((i) => (
+                <View key={i} className="bg-[#F8F9FB] dark:bg-[#1A1A1A] rounded-2xl p-3 mb-4 gap-4">
+                  <View className="flex-row justify-between items-start">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={140} height={20} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={60} height={16} radius={4} />
+                  </View>
+                  <View className="gap-2">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="80%" height={14} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={14} radius={4} />
+                  </View>
+                  <View className="border-t border-[#E0E5EB] dark:border-[#252525] pt-3 flex-row justify-between">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={16} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={16} radius={4} />
+                  </View>
+                </View>
+             ))}
           </View>
         ) : filteredUsers.length === 0 ? (
           <View className="flex-1 justify-center items-center py-10">

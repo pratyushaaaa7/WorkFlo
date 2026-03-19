@@ -14,6 +14,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
 import { format, isValid } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, {
   useCallback,
   useContext,
@@ -291,54 +292,55 @@ const Minutes = () => {
   );
 
   const MeetingSkeletonCard = () => {
-    const fadeAnim = useRef(new Animated.Value(0.5)).current;
-
-    useEffect(() => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 0.5,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    }, [fadeAnim]);
-
-    const bgClass = isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F6F8FA]";
-    const pulseClass = isDarkMode ? "bg-[#333333]" : "bg-[#E2E8F0]";
-
     return (
-      <Animated.View
-        style={{ opacity: fadeAnim }}
-        className={`${bgClass} rounded-[16px] p-4 mb-4`}
+      <View
+        className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] p-4 mb-4"
+        style={{ opacity: 0.6 }}
       >
         <View className="flex-row items-center justify-between mb-4">
-          <View className={`w-20 h-6 rounded-full ${pulseClass}`} />
-          <View className={`w-16 h-4 rounded-full ${pulseClass}`} />
-        </View>
-
-        <View className={`w-3/4 h-5 rounded mb-4 ${pulseClass}`} />
-
-        <View className="mb-5">
-          <View className="flex-row justify-between mb-2">
-            <View className={`w-16 h-4 rounded ${pulseClass}`} />
-            <View className={`w-12 h-4 rounded ${pulseClass}`} />
+          <View className="flex-row items-center gap-2">
+            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={70} height={20} radius="round" />
+            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={20} radius="round" />
           </View>
-          <View className={`w-full h-2 rounded-full ${pulseClass}`} />
         </View>
 
-        <View className="gap-3">
-          <View className={`w-1/2 h-4 rounded ${pulseClass}`} />
-          <View className={`w-2/3 h-4 rounded ${pulseClass}`} />
-          <View className={`w-1/3 h-4 rounded ${pulseClass}`} />
+        <Skeleton
+          colorMode={isDarkMode ? "dark" : "light"}
+          width="70%"
+          height={24}
+          radius={6}
+        />
+        <View className="mt-4">
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width="100%"
+            height={16}
+            radius={4}
+          />
+          <View className="mt-2 text-center items-center justify-center">
+             <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="100%"
+              height={16}
+              radius={4}
+            />
+          </View>
+          <View className="mt-2">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="50%"
+              height={16}
+              radius={4}
+            />
+          </View>
         </View>
-      </Animated.View>
+
+        <View className="gap-3 mt-4">
+          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="60%" height={14} radius={4} />
+          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="80%" height={14} radius={4} />
+          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={14} radius={4} />
+        </View>
+      </View>
     );
   };
 

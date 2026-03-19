@@ -1,4 +1,5 @@
 import GlobalAvatar from "@/components/GlobalAvatar";
+import { Skeleton } from "moti/skeleton";
 import Activity from "@/types/ILRActivity";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -797,7 +798,17 @@ const IlrActivities = () => {
           </Text>
 
           {activitiesLoading ? (
-            <ActivityIndicator size="small" color="#3B82F6" />
+            <View className="gap-3">
+              {[1, 2, 3].map((i) => (
+                <View key={i} className="flex-row items-start gap-3 mb-4">
+                  <Skeleton colorMode={isDark ? "dark" : "light"} width={32} height={32} radius="round" />
+                  <View className="flex-1 gap-2">
+                    <Skeleton colorMode={isDark ? "dark" : "light"} width="60%" height={16} radius={4} />
+                    <Skeleton colorMode={isDark ? "dark" : "light"} width="90%" height={14} radius={4} />
+                  </View>
+                </View>
+              ))}
+            </View>
           ) : (
             <View>
               {activities.map((act) => {

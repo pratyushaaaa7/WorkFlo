@@ -11,6 +11,7 @@ import {
   Attachment01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Skeleton } from "moti/skeleton";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
@@ -438,7 +439,40 @@ const MinutesDetail = () => {
         }
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#6366F1" className="mt-10" />
+          <View className="px-3 pt-2">
+            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={160} height={28} radius={6} />
+            <View className="mt-6 gap-4">
+              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="60%" height={20} radius={4} />
+              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="80%" height={20} radius={4} />
+              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="50%" height={20} radius={4} />
+            </View>
+            <View className="mt-10">
+              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={24} radius={6} />
+              <View className="mt-4 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <View key={i} className="flex-row items-center gap-3">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={40} height={40} radius="round" />
+                    <View className="gap-2">
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={120} height={16} radius={4} />
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={12} radius={4} />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View className="mt-10">
+              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={24} radius={6} />
+              <View className="mt-4 gap-4">
+                {[1, 2].map((i) => (
+                  <View key={i} className="bg-[#F6F8FA] dark:bg-[#1A1A1A] p-4 rounded-2xl gap-3">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={16} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="90%" height={20} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="100%" height={14} radius={4} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
         ) : meeting ? (
           <View>
             {/* Title */}

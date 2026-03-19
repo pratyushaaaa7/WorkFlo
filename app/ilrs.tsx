@@ -17,6 +17,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import { AnimatePresence, MotiView } from "moti";
 import React, {
   useCallback,
@@ -946,8 +947,24 @@ const ILRs = () => {
       {/* Main List content */}
       <View className="flex-1 px-4">
         {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#5B4CCC" />
+          <View className="flex-1 pt-4">
+             {[1, 2].map((group) => (
+                <View key={group} className="mb-6">
+                  <View className="px-4 py-3 bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-t-[16px]">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={18} radius={4} />
+                  </View>
+                  {[1, 2, 3].map((item) => (
+                    <View key={item} className="p-3 bg-[#F0F3F7] dark:bg-[#0D0D0D] border-b border-[#E0E5EB] dark:border-[#413E47] gap-3">
+                       <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="70%" height={18} radius={4} />
+                       <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="90%" height={14} radius={4} />
+                       <View className="flex-row justify-between items-center mt-2">
+                        <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={60} height={20} radius={6} />
+                        <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={16} radius={4} />
+                       </View>
+                    </View>
+                  ))}
+                </View>
+             ))}
           </View>
         ) : (
           <SectionList

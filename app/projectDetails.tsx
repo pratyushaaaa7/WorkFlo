@@ -12,6 +12,7 @@ import {
   UnavailableIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Skeleton } from "moti/skeleton";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useContext, useState } from "react";
@@ -211,10 +212,34 @@ const ProjectDetails = () => {
     }, [id]),
   );
 
-  if (!project) {
+  if (!project || loading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>No project found</Text>
+      <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
+        <View style={{ height: 340 }}>
+          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={SCREEN_WIDTH} height={340} />
+        </View>
+        <View className="-mt-10 flex-1 bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-t-[16px] px-4 pt-8">
+           <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="70%" height={32} radius={8} />
+           <View className="mt-4 gap-2">
+             <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="100%" height={16} radius={4} />
+             <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="100%" height={16} radius={4} />
+             <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={16} radius={4} />
+           </View>
+           <View className="mt-10 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <View key={i} className="flex-row justify-between">
+                  <View className="gap-2">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={14} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={120} height={18} radius={4} />
+                  </View>
+                  <View className="gap-2 items-end">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={14} radius={4} />
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={18} radius={4} />
+                  </View>
+                </View>
+              ))}
+           </View>
+        </View>
       </View>
     );
   }
@@ -721,7 +746,17 @@ const ProjectDetails = () => {
             </Text>
 
             {activitiesLoading ? (
-              <ActivityIndicator size="large" color="#5B4CCC" />
+              <View className="gap-3">
+                 {[1, 2, 3].map((i) => (
+                  <View key={i} className="p-4 rounded-2xl bg-[#F0F3F7] dark:bg-[#0D0D0D] flex-row gap-3">
+                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={32} height={32} radius="round" />
+                    <View className="flex-1 gap-2">
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={16} radius={4} />
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="90%" height={14} radius={4} />
+                    </View>
+                  </View>
+                 ))}
+              </View>
             ) : !Array.isArray(activities) || activities.length === 0 ? (
               <Text className="text-[#8E8E8E] text-sm font-poppins">
                 No activities yet.

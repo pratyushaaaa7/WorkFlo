@@ -22,6 +22,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -611,35 +612,62 @@ const MinuteDetail = () => {
             />
           }
         >
-          {/* Top Info Collapsible */}
-          <TouchableOpacity
-            onPress={toggleExpand}
-            activeOpacity={0.7}
-            className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2 -mx-4 px-4"
-          >
-            <Text
-              className={`text-sm font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-            >
-              Minute ID :{" "}
-              <Text
-                className={`${isDark ? "text-[#919191]" : "text-[#454545]"} font-poppins`}
-              >
-                {minuteId?.slice(-6).toUpperCase() || "N/A"}
-              </Text>
-            </Text>
-            <View className="flex-row items-center">
-              <Text
-                className={`text-xs ${isDark ? "text-[#919191]" : "text-[#454545]"} mr-1 font-poppinsMedium`}
-              >
-                Serial No: {displaySerialNo || "—"}
-              </Text>
-              <Ionicons
-                name={isExpanded ? "chevron-up" : "chevron-down"}
-                size={16}
-                color={isDark ? "#919191" : "#454545"}
-              />
+          {loading ? (
+            <View className="mt-4 gap-6">
+              <Skeleton colorMode={isDark ? "dark" : "light"} width="60%" height={20} radius={4} />
+              <View className="gap-4">
+                <Skeleton colorMode={isDark ? "dark" : "light"} width="80%" height={32} radius={6} />
+                <View className="h-[1px] bg-gray-100 dark:bg-gray-800" />
+                <Skeleton colorMode={isDark ? "dark" : "light"} width="100%" height={48} radius={8} />
+                <Skeleton colorMode={isDark ? "dark" : "light"} width="100%" height={48} radius={8} />
+                <Skeleton colorMode={isDark ? "dark" : "light"} width="100%" height={48} radius={8} />
+              </View>
+              <View className="mt-8 gap-4">
+                <Skeleton colorMode={isDark ? "dark" : "light"} width={140} height={24} radius={6} />
+                {[1, 2, 3].map((i) => (
+                  <View key={i} className="flex-row items-start gap-3">
+                    <Skeleton colorMode={isDark ? "dark" : "light"} width={40} height={40} radius="round" />
+                    <View className="gap-2 flex-1">
+                      <Skeleton colorMode={isDark ? "dark" : "light"} width="40%" height={16} radius={4} />
+                      <Skeleton colorMode={isDark ? "dark" : "light"} width="90%" height={14} radius={4} />
+                    </View>
+                  </View>
+                ))}
+              </View>
             </View>
-          </TouchableOpacity>
+          ) : (
+            <>
+              {/* Top Info Collapsible */}
+              <TouchableOpacity
+                onPress={toggleExpand}
+                activeOpacity={0.7}
+                className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2 -mx-4 px-4"
+              >
+                <Text
+                  className={`text-sm font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                >
+                  Minute ID :{" "}
+                  <Text
+                    className={`${isDark ? "text-[#919191]" : "text-[#454545]"} font-poppins`}
+                  >
+                    {minuteId?.slice(-6).toUpperCase() || "N/A"}
+                  </Text>
+                </Text>
+                <View className="flex-row items-center">
+                  <Text
+                    className={`text-xs ${isDark ? "text-[#919191]" : "text-[#454545]"} mr-1 font-poppinsMedium`}
+                  >
+                    Serial No: {displaySerialNo || "—"}
+                  </Text>
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={isDark ? "#919191" : "#454545"}
+                  />
+                </View>
+              </TouchableOpacity>
+            </>
+          )}
 
           {isExpanded && (
             <View>
