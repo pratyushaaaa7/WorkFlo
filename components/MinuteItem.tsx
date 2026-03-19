@@ -200,7 +200,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                     handleUpdate("raisedBy", filtered);
                   }}
                   className={`flex-row items-center px-4 py-2 rounded-lg border ${
-                    isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
+                    isDarkMode ? "bg-black border-[#262626]" : "bg-white border-[#E0E5EB]"
                   }`}
                 >
                   <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
@@ -500,7 +500,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
                     handleUpdate("responsibility", filtered);
                   }}
                   className={`flex-row items-center px-4 py-2 rounded-lg border ${
-                    isDarkMode ? "bg-[#1A1A1A] border-[#413E47]" : "bg-white border-[#E0E5EB]"
+                    isDarkMode ? "bg-black border-[#262626]" : "bg-white border-[#E0E5EB]"
                   }`}
                 >
                   <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>

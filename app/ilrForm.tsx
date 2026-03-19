@@ -691,7 +691,7 @@ const ILRForm = () => {
                             }}
                             className={`flex-row items-center px-4 py-2 rounded-lg border ${
                               isDarkMode
-                                ? "bg-[#1A1A1A] border-[#413E47]"
+                                ? "bg-black border-[#262626]"
                                 : "bg-white border-[#E0E5EB]"
                             }`}
                           >

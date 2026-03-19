@@ -658,12 +658,13 @@ const CreateProjectScreen = () => {
               }}
               selectedStyle={{
                 borderRadius: 10,
-                backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+                backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 marginRight: 4,
                 marginTop: 4,
-                borderWidth: 0,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
               }}
               containerStyle={{
                 borderRadius: 16,
@@ -726,12 +727,13 @@ const CreateProjectScreen = () => {
               }}
               selectedStyle={{
                 borderRadius: 10,
-                backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+                backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 marginRight: 4,
                 marginTop: 4,
-                borderWidth: 0,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
               }}
               containerStyle={{
                 borderRadius: 16,
@@ -794,12 +796,13 @@ const CreateProjectScreen = () => {
               }}
               selectedStyle={{
                 borderRadius: 10,
-                backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+                backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 marginRight: 4,
                 marginTop: 4,
-                borderWidth: 0,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
               }}
               containerStyle={{
                 borderRadius: 16,
@@ -1011,12 +1014,13 @@ const CreateProjectScreen = () => {
               }}
               selectedStyle={{
                 borderRadius: 10,
-                backgroundColor: isDarkMode ? "#2D3748" : "#E2E8F0",
+                backgroundColor: isDarkMode ? "#000000" : "#FFFFFF",
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 marginRight: 4,
                 marginTop: 4,
-                borderWidth: 0,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "#262626" : "#E0E5EB",
               }}
               containerStyle={{
                 borderRadius: 16,
