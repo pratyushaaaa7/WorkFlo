@@ -248,8 +248,43 @@ const CreateMinutes = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
 
-  // Users for responsibility dropdown
-  const [users, setUsers] = useState<DirectoryUser[]>([]);
+  // Users for selection
+  const [directoryUsers, setDirectoryUsers] = useState<DirectoryUser[]>([]);
+  const [internalUsers, setInternalUsers] = useState<any[]>([]);
+
+  const fetchDirectory = useCallback(async (searchQuery: string = "") => {
+    try {
+      if (!token) return;
+      // 1. Fetch from Unified Directory (For Attendees)
+      let directoryUrl = `/directory?`;
+      if (projectId) directoryUrl += `projectId=${projectId}`;
+      if (searchQuery) directoryUrl += `&search=${encodeURIComponent(searchQuery)}`;
+
+      const resDir = await api.get(directoryUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (resDir.data && resDir.data.data) {
+        const formatted = resDir.data.data.map((u: any) => ({
+          label: `${u.name} (${u.firmName || "N/A"})`,
+          value: u._id,
+          attendeeName: u.name,
+          organization: u.firmName,
+          designation: u.designation,
+          email: u.email,
+          phone: u.phone,
+          contactNumbers: u.phones,
+        }));
+        setDirectoryUsers(formatted);
+      }
+    } catch (error) {
+      console.log("Error fetching directory:", error);
+    }
+  }, [token, projectId]);
+
+  const handleSearchDirectory = useCallback((query: string) => {
+    fetchDirectory(query);
+  }, [fetchDirectory]);
 
   const [meetingNumber, setMeetingNumber] = useState<number | null>(null);
 
@@ -316,34 +351,7 @@ const CreateMinutes = () => {
   }, [meetingTitle, meetingDate, meetingTime, meetingVenue, attendees, minutes, STORAGE_KEY]);
 
   // Fetch users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        if (!token || !projectId) return;
-        const res = await api.get(`/projects/${projectId}/users-dropdown`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // console.log("hello test", res.data);
-        const formatted = res.data.map((u: any) => ({
-          label: `${u.individualName} (${u.firmName})`,
-          value: u._id,
-          attendeeName: u.individualName,
-          // role: u.role || "",
-          organization: u.firmName || "",
-          designation: u.designation || "",
-          email: u.email || "",
-          contactNumbers: u.contactNumbers?.length ? u.contactNumbers : [""], // ✅ use existing array
-        }));
 
-        setUsers(formatted);
-        // console.log(formatted);
-      } catch (err) {
-        Toast.show({ type: "error", text1: "Error fetching users" });
-        console.log(err);
-      }
-    };
-    fetchUsers();
-  }, [token, projectId]);
 
   const fetchForwardedMinutes = async () => {
     try {
@@ -531,7 +539,8 @@ const CreateMinutes = () => {
             onToggleExpand={handleToggleAttendee}
             onUpdate={updateAttendee}
             onDelete={deleteAttendee}
-            users={users}
+            users={directoryUsers}
+            onSearch={handleSearchDirectory} // Pass the search handler
             showDelete={true}
             isDarkMode={isDarkMode}
             getIndex={getIndex}
@@ -540,11 +549,12 @@ const CreateMinutes = () => {
       );
     },
     [
-      users,
+      directoryUsers,
       isDarkMode,
       handleToggleAttendee,
       updateAttendee,
       deleteAttendee,
+      handleSearchDirectory,
     ],
   );
 
@@ -560,7 +570,7 @@ const CreateMinutes = () => {
             onToggleExpand={handleToggleMinute}
             onUpdate={updateMinute}
             onDeleteRequest={handleDeleteMinuteRequest}
-            users={users}
+            users={internalUsers}
             showDelete={true}
             isDarkMode={isDarkMode}
             onOpenDatePicker={openDatePicker}
@@ -572,7 +582,7 @@ const CreateMinutes = () => {
       );
     },
     [
-      users,
+      internalUsers,
       isDarkMode,
       handleToggleMinute,
       updateMinute,
@@ -622,38 +632,46 @@ const CreateMinutes = () => {
       responsibilityForInfo: !!m.responsibilityForInfo,
       fromForwardedId: m.fromForwardedId || null,
       status: m.status || "open",
-      images: m.images || [],
+      attachments: m.images || [], // ✅ send attachments
     }));
   };
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {
-  //       setLoadingUsers(true);
 
-  //       const res = await api.get("/users", {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       });
 
-  //       // console.log("USERS API RESPONSE:", res.data);
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoadingUsers(true);
+      await fetchDirectory(); // Initial load (prioritized)
 
-  //       // Store only required fields
-  //       setUsers(
-  //         res.data.users.map((u) => ({
-  //           label: u.fullName,
-  //           value: u._id,
-  //         }))
-  //       );
-  //     } catch (error) {
-  //       console.log("Error fetching users:", error);
-  //       Alert.alert("Error", "Unable to load users.");
-  //     } finally {
-  //       setLoadingUsers(false);
-  //     }
-  //   };
+      try {
+        // 2. Fetch Project-Specific Users (For RaisedBy / Responsibility)
+        if (projectId) {
+          const resProj = await api.get(`/projects/${projectId}/users-dropdown`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-  //   fetchUsers();
-  // }, []);
+          if (resProj.data) {
+            const formatted = resProj.data.map((u: any) => ({
+              label: `${u.individualName} (${u.firmName || "N/A"})`,
+              value: u._id,
+              attendeeName: u.individualName,
+              organization: u.firmName,
+              designation: u.designation,
+              email: u.email,
+              contactNumbers: u.contactNumbers?.length ? u.contactNumbers : [""],
+            }));
+            setInternalUsers(formatted);
+          }
+        }
+      } catch (e) {
+        console.log("Error fetching project users-dropdown:", e);
+      }
+
+      setLoadingUsers(false);
+    };
+
+    fetchAllData();
+  }, [token, projectId]);
 
   useEffect(() => {
     const fetchMeetingData = async () => {
@@ -723,7 +741,7 @@ const CreateMinutes = () => {
             targetDateForInfo: !!m.targetDateForInfo,
             responsibilityForInfo: !!m.responsibilityForInfo,
             fromForwardedId: m.fromForwardedId || null,
-            images: Array.isArray(m.images) ? m.images : [], // ✅ load images
+            images: Array.isArray(m.attachments) ? m.attachments : [], // ✅ load attachments
             isExpanded: idx === 0,
           }));
           setMinutes(formattedMinutes);
@@ -821,7 +839,7 @@ const CreateMinutes = () => {
         responsibilityForInfo: !!m.responsibilityForInfo,
         fromForwardedId: m.fromForwardedId || null,
         status: m.status || "open", // ✅ new field
-        images: m.images || [], // ✅ send images
+        attachments: m.images || [], // ✅ send attachments
       }));
 
       const formData = new FormData();
@@ -837,8 +855,8 @@ const CreateMinutes = () => {
       formData.append("minutes", JSON.stringify(formattedMinutes));
 
       formattedMinutes.forEach((m, idx) => {
-        if (m.images && m.images.length > 0) {
-          m.images.forEach((uri: string, imgIdx: number) => {
+        if (m.attachments && m.attachments.length > 0) {
+          m.attachments.forEach((uri: string, imgIdx: number) => {
             if (!uri.startsWith("http")) {
               const fileObj = {
                 uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
@@ -914,14 +932,17 @@ const CreateMinutes = () => {
       formData.append("draftSubmitted", "true");
 
       const fAttendees = formatAttendees();
-      const fMinutes = formatMinutes();
+      const fMinutes = minutes.map((m, i) => ({
+        ...formatMinutes()[i],
+        attachments: m.images || [],
+      }));
 
       formData.append("attendees", JSON.stringify(fAttendees));
       formData.append("minutes", JSON.stringify(fMinutes));
 
       fMinutes.forEach((m, idx) => {
-        if (m.images && m.images.length > 0) {
-          m.images.forEach((uri: string, imgIdx: number) => {
+        if (m.attachments && m.attachments.length > 0) {
+          m.attachments.forEach((uri: string, imgIdx: number) => {
             if (!uri.startsWith("http")) {
               const fileObj = {
                 uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),

@@ -26,6 +26,7 @@ interface AttendeeItemProps {
   onUpdate: (index: number, field: string | object, value?: any) => void; // Updated signature
   onDelete: (index: number) => void;
   users: any[];
+  onSearch?: (query: string) => void;
   showDelete: boolean;
   isDarkMode: boolean;
   getIndex: () => number | undefined;
@@ -40,6 +41,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
   onUpdate,
   onDelete,
   users,
+  onSearch, // Added search prop
   showDelete,
   isDarkMode,
   getIndex
@@ -135,6 +137,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
               placeholder="Search people"
               search
               searchPlaceholder="Search people..."
+              onChangeText={onSearch} // New prop for server-side search
               renderLeftIcon={() => null}
               onChange={(val) => {
                 const user = users.find((u: any) => u.value === val.value);
