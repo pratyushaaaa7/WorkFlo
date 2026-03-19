@@ -93,9 +93,8 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
         />
       </TouchableOpacity>
 
-      {expanded && (
-        <View className="px-4 py-6 gap-4">
-          <View>
+      <View style={{ display: expanded ? "flex" : "none" }} className="px-4 py-6 gap-4">
+        <View>
             <Dropdown
               style={{
                 height: 48,
@@ -228,7 +227,6 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
             </TouchableOpacity>
           )}
         </View>
-      )}
     </View>
   );
 }));

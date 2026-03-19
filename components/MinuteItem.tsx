@@ -119,9 +119,8 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
         />
       </TouchableOpacity>
 
-      {expanded && (
-        <View className="px-4 py-4 gap-3">
-          {/* Raised By */}
+      <View style={{ display: expanded ? "flex" : "none" }} className="px-4 py-4 gap-3">
+        {/* Raised By */}
           <MultiSelect
             ref={dropdownRef}
             style={{
@@ -587,8 +586,7 @@ const MinuteItem = memo(forwardRef<View, MinuteItemProps>(({
               </TouchableOpacity>
             )}
           </View>
-        </View>
-      )}
+      </View>
     </View>
   );
 }));
