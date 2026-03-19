@@ -29,136 +29,164 @@ const toProperCase = (name: any) => {
     .join(" ");
 };
 
-const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
-  const isDarkMode = useColorScheme() === "dark";
-  const router = useRouter();
-  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+const InfoField = ({
+  label,
+  value,
+  isDarkMode,
+  loading,
+  copyable = false,
+}: {
+  label: string;
+  value: string | number | undefined;
+  isDarkMode: boolean;
+  loading: boolean;
+  copyable?: boolean;
+}) => (
+  <View className="mb-2">
+    <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
+      {label}
+    </Text>
+    <Skeleton
+      colorMode={isDarkMode ? "dark" : "light"}
+      show={loading && !value}
+      width={label === "About" ? "100%" : 150}
+      height={20}
+      radius={4}
+    >
+      {copyable && value ? (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onLongPress={async () => {
+            await Clipboard.setStringAsync(String(value));
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Toast.show({
+              type: "success",
+              text1: "Copied",
+              text2: `${label} copied to clipboard`,
+              position: "bottom",
+            });
+          }}
+        >
+          <Text className="text-black dark:text-white text-base font-dmMedium">
+            {value}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <Text className="text-black dark:text-white text-base font-dmMedium">
+          {value || "N/A"}
+        </Text>
+      )}
+    </Skeleton>
+  </View>
+);
 
-  const renderInfoField = (
-    label: string,
-    value: string | number | undefined,
-    copyable: boolean = false,
-  ) => (
+const UserRefField = ({
+  label,
+  user,
+  isDarkMode,
+  loading,
+  router,
+}: {
+  label: string;
+  user: any;
+  isDarkMode: boolean;
+  loading: boolean;
+  router: any;
+}) => {
+  if (!user && !loading) return null;
+
+  const isObject = typeof user === "object" && user !== null;
+  const displayName = isObject ? user.fullName : user;
+  const displayDesignation = isObject ? user.designation : "N/A";
+
+  return (
     <View className="mb-2">
       <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
         {label}
       </Text>
       <Skeleton
         colorMode={isDarkMode ? "dark" : "light"}
-        show={loading && !value}
-        width={label === "About" ? "100%" : 150}
-        height={20}
-        radius={4}
+        show={loading && !user}
+        width="100%"
+        height={70}
+        radius={16}
       >
-        {copyable && value ? (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onLongPress={async () => {
-              await Clipboard.setStringAsync(String(value));
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              Toast.show({
-                type: "success",
-                text1: "Copied",
-                text2: `${label} copied to clipboard`,
-                position: "bottom",
+        <TouchableOpacity
+          onPress={() => {
+            if (isObject && user._id) {
+              router.push({
+                pathname: "/employeeDetail" as any,
+                params: { userId: user._id },
               });
-            }}
-          >
-            <Text className="text-black dark:text-white text-base font-dmMedium">
-              {value}
+            }
+          }}
+          activeOpacity={0.7}
+          className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
+        >
+          <GlobalAvatar
+            name={displayName || "User"}
+            fontSize={18}
+            size={48}
+            borderRadius={12}
+            className="mr-3"
+          />
+
+          <View className="flex-1">
+            <Text className="text-black dark:text-white text-base font-dmBold">
+              {displayName || "N/A"}
             </Text>
-          </TouchableOpacity>
-        ) : (
-          <Text className="text-black dark:text-white text-base font-dmMedium">
-            {value || "N/A"}
-          </Text>
-        )}
+            <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
+              {displayDesignation}
+            </Text>
+          </View>
+
+          <HugeiconsIcon
+            icon={ArrowRight01Icon}
+            size={20}
+            color={isDarkMode ? "#919191" : "#606060"}
+          />
+        </TouchableOpacity>
       </Skeleton>
     </View>
   );
+};
 
-  const renderUserRefField = (label: string, user: any) => {
-    if (!user && !loading) return null;
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <View className="mb-4">
+    <Text className="text-xl font-dmBold text-black dark:text-white mb-2">
+      {title}
+    </Text>
+    {children}
+  </View>
+);
 
-    const isObject = typeof user === "object" && user !== null;
-    const displayName = isObject ? user.fullName : user;
-    const displayDesignation = isObject ? user.designation : "N/A";
-    const profileImage = isObject ? user.profileImage : null;
-
-    return (
-      <View className="mb-2">
-        <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
-          {label}
-        </Text>
-        <Skeleton
-          colorMode={isDarkMode ? "dark" : "light"}
-          show={loading && !user}
-          width="100%"
-          height={70}
-          radius={16}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              if (isObject && user._id) {
-                router.push({
-                  pathname: "/employeeDetail" as any,
-                  params: { userId: user._id },
-                });
-              }
-            }}
-            activeOpacity={0.7}
-            className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
-          >
-            <GlobalAvatar
-              name={displayName || "User"}
-              fontSize={18}
-              // uri={profileImage}
-              size={48}
-              borderRadius={12}
-              className="mr-3"
-            />
-
-            <View className="flex-1">
-              <Text className="text-black dark:text-white text-base font-dmBold">
-                {displayName || "N/A"}
-              </Text>
-              <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins font-light">
-                {displayDesignation}
-              </Text>
-            </View>
-
-            <HugeiconsIcon
-              icon={ArrowRight01Icon}
-              size={20}
-              color={isDarkMode ? "#919191" : "#606060"}
-            />
-          </TouchableOpacity>
-        </Skeleton>
-      </View>
-    );
-  };
-
-  const Section = ({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <View className="mb-4">
-      <Text className="text-xl font-dmBold text-black dark:text-white mb-2">
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
+const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
+  const isDarkMode = useColorScheme() === "dark";
+  const router = useRouter();
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   return (
     <View className="px-5 pt-4">
       {/* Basic Information */}
       <Section title="About">
-        {renderInfoField("Full Name", userData?.fullName)}
-        {renderInfoField("Username", userData?.username)}
+        <InfoField
+          label="Full Name"
+          value={userData?.fullName}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Username"
+          value={userData?.username}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
         {userData?.about && (
           <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
@@ -197,28 +225,54 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
             </TouchableOpacity>
           </View>
         )}
-        {renderInfoField("Role", userData?.role)}
-
-        {renderInfoField("Status", userData?.status)}
-        {renderInfoField("Company", userData?.company)}
-        {renderInfoField(
-          "Total Experience",
-          userData?.totalExperience
-            ? `${userData.totalExperience} Years`
-            : undefined,
-        )}
-        {renderInfoField(
-          "Employee Code",
-          userData?.employeeCode
-            ? `W${userData.employeeCode.toString().padStart(3, "0")}`
-            : undefined,
-        )}
-        {renderInfoField(
-          "Joining Date",
-          userData?.joiningDate
-            ? moment(userData.joiningDate).format("DD MMM YYYY")
-            : undefined,
-        )}
+        <InfoField
+          label="Role"
+          value={userData?.role}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Status"
+          value={userData?.status}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Company"
+          value={userData?.company}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Total Experience"
+          value={
+            userData?.totalExperience
+              ? `${userData.totalExperience} Years`
+              : undefined
+          }
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Employee Code"
+          value={
+            userData?.employeeCode
+              ? `W${userData.employeeCode.toString().padStart(3, "0")}`
+              : undefined
+          }
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Joining Date"
+          value={
+            userData?.joiningDate
+              ? moment(userData.joiningDate).format("DD MMM YYYY")
+              : undefined
+          }
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
         {userData?.createdBy && (
           <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
@@ -229,18 +283,31 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
             </Text>
           </View>
         )}
-        {renderInfoField(
-          "Created At",
-          userData?.createdAt
-            ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
-            : undefined,
-        )}
+        <InfoField
+          label="Created At"
+          value={
+            userData?.createdAt
+              ? moment(userData.createdAt).format("DD MMM YYYY, hh:mm A")
+              : undefined
+          }
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
 
-        {renderUserRefField("Reporting to", userData?.reportingTo)}
-        {renderUserRefField(
-          "Secondary Reporting to",
-          userData?.secondaryReportingTo,
-        )}
+        <UserRefField
+          label="Reporting to"
+          user={userData?.reportingTo}
+          isDarkMode={isDarkMode}
+          loading={loading}
+          router={router}
+        />
+        <UserRefField
+          label="Secondary Reporting to"
+          user={userData?.secondaryReportingTo}
+          isDarkMode={isDarkMode}
+          loading={loading}
+          router={router}
+        />
       </Section>
 
       {/* Direct Reports */}
@@ -291,26 +358,78 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
 
       {/* Personal Information */}
       <Section title="Personal Details">
-        {renderInfoField("Gender", userData?.gender)}
-        {renderInfoField(
-          "Birth Date",
-          userData?.birthDate
-            ? moment(userData.birthDate).format("DD MMM YYYY")
-            : undefined,
+        <InfoField
+          label="Gender"
+          value={userData?.gender}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Birth Date"
+          value={
+            userData?.birthDate
+              ? moment(userData.birthDate).format("DD MMM YYYY")
+              : undefined
+          }
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Father's Name"
+          value={toProperCase(userData?.fatherName)}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Mother's Name"
+          value={toProperCase(userData?.motherName)}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Marital Status"
+          value={userData?.maritalStatus}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        {userData?.maritalStatus === "Married" && (
+          <InfoField
+            label="Spouse Name"
+            value={toProperCase(userData?.spouseName)}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
         )}
-        {renderInfoField("Father's Name", toProperCase(userData?.fatherName))}
-        {renderInfoField("Mother's Name", toProperCase(userData?.motherName))}
-        {renderInfoField("Marital Status", userData?.maritalStatus)}
-        {userData?.maritalStatus === "Married" &&
-          renderInfoField("Spouse Name", toProperCase(userData?.spouseName))}
-        {renderInfoField("Home Address", toProperCase(userData?.homeAddress))}
-        {renderInfoField("Blood Group", userData?.bloodGroup)}
+        <InfoField
+          label="Home Address"
+          value={toProperCase(userData?.homeAddress)}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Blood Group"
+          value={userData?.bloodGroup}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
       </Section>
 
       {/* Contact Information */}
       <Section title="Contact Details">
-        {renderInfoField("Official Email", userData?.email, true)}
-        {renderInfoField("Personal Email", userData?.personalEmail, true)}
+        <InfoField
+          label="Official Email"
+          value={userData?.email}
+          copyable
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Personal Email"
+          value={userData?.personalEmail}
+          copyable
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
         {userData?.contactNumbers && userData.contactNumbers.length > 0 && (
           <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
@@ -338,13 +457,29 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
             ))}
           </View>
         )}
-        {renderInfoField("Emergency Contact", userData?.emergencyContact, true)}
+        <InfoField
+          label="Emergency Contact"
+          value={userData?.emergencyContact}
+          copyable
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
       </Section>
 
       {/* Identity Information */}
       <Section title="Identity Information">
-        {renderInfoField("Aadhar Number", userData?.aadhar)}
-        {renderInfoField("PAN Number", userData?.pan)}
+        <InfoField
+          label="Aadhar Number"
+          value={userData?.aadhar}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="PAN Number"
+          value={userData?.pan}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
       </Section>
 
       {/* Key Strengths */}

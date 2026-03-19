@@ -67,7 +67,7 @@ const ProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?._id, token, userData]);
+  }, [user?._id, token]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -232,7 +232,7 @@ const ProfileScreen = () => {
           <Text className="text-2xl font-dmBold text-black dark:text-white mb-1 text-center">
             {userData?.fullName}
           </Text>
-          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] mb-6">
+          <Text className="text-base font-poppins text-[#606060] dark:text-[#919191] mb-6 text-center w-full">
             {userData?.designation}
           </Text>
 
