@@ -412,12 +412,9 @@ const RegisterUserScreen = () => {
 
       setTimeout(() => {
         if (userId) {
-          router.push({
-            pathname: "/employeeDetail" as any,
-            params: { userId, refresh: Date.now().toString() },
-          });
+          router.back();
         } else {
-          router.push("/centralEmployeeDirectory");
+          router.replace("/centralEmployeeDirectory");
         }
       }, 200);
 

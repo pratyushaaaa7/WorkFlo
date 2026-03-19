@@ -9,7 +9,7 @@ import {
   WhatsappIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
 import * as ImagePicker from "expo-image-picker";
 import React, {
@@ -83,10 +83,12 @@ const EmployeeDetail = () => {
     fetchUser(true);
   }, [fetchUser]);
 
-  useEffect(() => {
-    isFirstLoad.current = true;
-    fetchUser();
-  }, [fetchUser, refresh]);
+  useFocusEffect(
+    useCallback(() => {
+      isFirstLoad.current = true;
+      fetchUser();
+    }, [fetchUser]),
+  );
 
   const handleSMS = () => {
     if (userData?.contactNumbers?.[0]) {
