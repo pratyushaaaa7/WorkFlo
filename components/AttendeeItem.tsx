@@ -134,11 +134,20 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
               data={users}
               labelField="label"
               valueField="value"
-              placeholder="Search people"
+              placeholder="  Search people"
               search
               searchPlaceholder="Search people..."
               onChangeText={onSearch} // New prop for server-side search
-              renderLeftIcon={() => null}
+              renderLeftIcon={() => (
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                  <HugeiconsIcon
+                    icon={Search01Icon}
+                    size={18}
+                    color={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                    style={{ marginRight: 12 }}
+                  />
+                </View>
+              )}
               onChange={(val) => {
                 const user = users.find((u: any) => u.value === val.value);
                 if (user) {
