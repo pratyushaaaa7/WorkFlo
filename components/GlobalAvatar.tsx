@@ -81,6 +81,12 @@ const GlobalAvatar: React.FC<GlobalAvatarProps> = ({
   borderRadius,
 }) => {
   const [hasError, setHasError] = useState(false);
+
+  // Reset error state when URI changes
+  React.useEffect(() => {
+    setHasError(false);
+  }, [uri]);
+
   const initials = getInitials(name);
   const color = getAvatarColor(name, index);
   const finalBorderRadius = borderRadius !== undefined ? borderRadius : size / 2;
@@ -97,6 +103,7 @@ const GlobalAvatar: React.FC<GlobalAvatarProps> = ({
         className={`${className} bg-gray-100 dark:bg-gray-800`}
       >
         <Image
+          key={uri} // Force re-render when URI changes
           source={{ uri }}
           style={{ width: "100%", height: "100%" }}
           contentFit="cover"
