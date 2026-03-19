@@ -64,6 +64,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import AttendeeItem from "../components/AttendeeItem";
 import MinuteItem from "../components/MinuteItem";
+import { useTempImageStore } from "../store/tempImageStore";
 
 const handleDownloadAgenda = async (
   meeting: any,
@@ -176,6 +177,8 @@ const CreateMinutes = () => {
   const auth = useContext(AuthContext);
   const token = auth?.token;
 
+  const { images, addImageToIssue, removeImageFromIssue, clearAll } = useTempImageStore();
+
   const STORAGE_KEY = `minutes_draft_${projectId || "new"}`;
   const [loadingUsers, setLoadingUsers] = useState(false);
 
@@ -271,13 +274,13 @@ const CreateMinutes = () => {
           setMeetingTime(savedData.meetingTime || "");
           setMeetingVenue(savedData.meetingVenue || "");
           setAttendees(
-            (savedData.attendees || []).map((a, i) => ({
+            (savedData.attendees || []).map((a: any, i: number) => ({
               ...a,
               id: a.id || "att-" + Date.now() + "-" + i + "-" + Math.random(),
             })),
           );
           setMinutes(
-            (savedData.minutes || []).map((m, i) => ({
+            (savedData.minutes || []).map((m: any, i: number) => ({
               ...m,
               id: m.id || "min-" + Date.now() + "-" + i + "-" + Math.random(),
             })),
@@ -476,17 +479,20 @@ const CreateMinutes = () => {
     });
 
     if (!result.canceled) {
+      const newUris = result.assets.map((a: any) => a.uri);
+      newUris.forEach((uri: string) => addImageToIssue(index, uri));
       setMinutes((prev) =>
         prev.map((m, i) =>
           i === index
-            ? { ...m, images: [...(m.images || []), ...result.assets.map((a: any) => a.uri)] }
+            ? { ...m, images: [...(m.images || []), ...newUris] }
             : m
         )
       );
     }
-  }, []);
+  }, [addImageToIssue]);
 
   const handleDeleteImage = useCallback((minuteIndex: number, imageUri: string) => {
+    removeImageFromIssue(minuteIndex, imageUri);
     setMinutes((prev) =>
       prev.map((m, i) =>
         i === minuteIndex
@@ -494,7 +500,7 @@ const CreateMinutes = () => {
           : m
       )
     );
-  }, []);
+  }, [removeImageFromIssue]);
 
   const handleToggleAttendee = useCallback((index: number) => {
     setAttendees((prev) =>
@@ -588,6 +594,18 @@ const CreateMinutes = () => {
     }));
   };
 
+  // Helper for existing images from backend
+  const mImagesFromMinute = (item: any, index: number) => {
+    if (item.images && item.images.length > 0) {
+      item.images.forEach((uri: string) => {
+        if (!(images[index] || []).includes(uri)) {
+          addImageToIssue(index, uri);
+        }
+      });
+    }
+    return item.images || [];
+  };
+
   const formatMinutes = () => {
     return minutes.map((m, i) => ({
       serialNo: m.serialNo ?? i + 1,
@@ -604,6 +622,7 @@ const CreateMinutes = () => {
       responsibilityForInfo: !!m.responsibilityForInfo,
       fromForwardedId: m.fromForwardedId || null,
       status: m.status || "open",
+      images: m.images || [],
     }));
   };
 
@@ -805,26 +824,47 @@ const CreateMinutes = () => {
         images: m.images || [], // ✅ send images
       }));
 
-      const payload = {
-        projectId,
-        meetingTitle,
-        meetingDate: meetingDate ? meetingDate.toISOString() : null,
-        meetingTime,
-        meetingVenue,
-        attendees: formattedAttendees,
-        minutes: formattedMinutes,
-        actionType: type,
-        isATReview, // ✅ send boolean value (true/false)
-      };
+      const formData = new FormData();
+      if (projectId) formData.append("projectId", Array.isArray(projectId) ? projectId[0] : projectId);
+      if (meetingTitle) formData.append("meetingTitle", meetingTitle);
+      if (meetingDate) formData.append("meetingDate", meetingDate.toISOString());
+      if (meetingTime) formData.append("meetingTime", meetingTime);
+      if (meetingVenue) formData.append("meetingVenue", meetingVenue);
+      formData.append("isATReview", isATReview.toString());
+      formData.append("actionType", String(type));
+
+      formData.append("attendees", JSON.stringify(formattedAttendees));
+      formData.append("minutes", JSON.stringify(formattedMinutes));
+
+      formattedMinutes.forEach((m, idx) => {
+        if (m.images && m.images.length > 0) {
+          m.images.forEach((uri: string, imgIdx: number) => {
+            if (!uri.startsWith("http")) {
+              const fileObj = {
+                uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+                name: `minute_${idx}_${Date.now()}_${imgIdx}.jpg`,
+                type: "image/jpeg",
+              } as any;
+              formData.append(`files_${idx}`, fileObj);
+            }
+          });
+        }
+      });
 
       // ✅ Call API
       if (type === "agenda" || !meetingId) {
-        await api.post(`/minutes`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await api.post(`/minutes`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data" 
+          },
         });
       } else {
-        await api.put(`/minutes/${meetingId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await api.put(`/minutes/${meetingId}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data" 
+          },
         });
       }
 
@@ -834,6 +874,7 @@ const CreateMinutes = () => {
         position: "bottom",
       });
       await AsyncStorage.removeItem(STORAGE_KEY); // clear local draft
+      clearAll(); // clear temp images
       router.back();
     } catch (err: any) {
       console.error("Submit error:", err?.response?.data || err.message);
@@ -863,25 +904,49 @@ const CreateMinutes = () => {
     try {
       setIsDraftSaving(true); // reuse draft saving loader
 
-      const payload = {
-        projectId,
-        meetingTitle,
-        meetingDate: meetingDate ? meetingDate.toISOString() : null,
-        meetingTime,
-        meetingVenue,
-        attendees: formatAttendees(),
-        minutes: formatMinutes(),
-        draftSubmitted: true, // ✅ new flag
-        isATReview, // keep sending this
-      };
+      const formData = new FormData();
+      if (projectId) formData.append("projectId", Array.isArray(projectId) ? projectId[0] : projectId);
+      if (meetingTitle) formData.append("meetingTitle", meetingTitle);
+      if (meetingDate) formData.append("meetingDate", meetingDate.toISOString());
+      if (meetingTime) formData.append("meetingTime", meetingTime);
+      if (meetingVenue) formData.append("meetingVenue", meetingVenue);
+      formData.append("isATReview", isATReview.toString());
+      formData.append("draftSubmitted", "true");
+
+      const fAttendees = formatAttendees();
+      const fMinutes = formatMinutes();
+
+      formData.append("attendees", JSON.stringify(fAttendees));
+      formData.append("minutes", JSON.stringify(fMinutes));
+
+      fMinutes.forEach((m, idx) => {
+        if (m.images && m.images.length > 0) {
+          m.images.forEach((uri: string, imgIdx: number) => {
+            if (!uri.startsWith("http")) {
+              const fileObj = {
+                uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+                name: `minute_${idx}_${Date.now()}_${imgIdx}.jpg`,
+                type: "image/jpeg",
+              } as any;
+              formData.append(`files_${idx}`, fileObj);
+            }
+          });
+        }
+      });
 
       if (!meetingId) {
-        const res = await api.post("/minutes/draft", payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await api.post("/minutes/draft", formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data" 
+          },
         });
       } else {
-        const res = await api.put(`/minutes/draft/${meetingId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        await api.put(`/minutes/draft/${meetingId}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data" 
+          },
         });
       }
 
@@ -894,6 +959,7 @@ const CreateMinutes = () => {
 
       // ✅ Optional: clear local draft storage
       await AsyncStorage.removeItem(STORAGE_KEY);
+      clearAll(); // clear temp images
       router.back();
     } catch (err) {
       console.log(err);
