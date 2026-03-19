@@ -99,38 +99,40 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
         <View>
             <Dropdown
               style={{
-                height: 48,
-                backgroundColor: inputBgColor,
-                borderRadius: 12,
+                height: 52,
+                borderRadius: 16,
                 paddingHorizontal: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
               }}
               placeholderStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#6B7280" : "#9CA3AF",
-                fontFamily: "Poppins_400Regular"
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#919191" : "#454545",
               }}
               selectedTextStyle={{
                 fontSize: 14,
-                color: isDarkMode ? "#E5E7EB" : "#111827",
-                fontFamily: "Poppins_400Regular"
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
-              inputSearchStyle={{
-                height: 40,
+              itemTextStyle={{
                 fontSize: 14,
-                borderRadius: 8,
-                fontFamily: "Poppins_400Regular"
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
               }}
               containerStyle={{
-                borderRadius: 12,
-                backgroundColor: isDarkMode ? "#1C1C1E" : "#fff",
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
                 borderWidth: 0,
-                elevation: 5,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
+                marginTop: 4,
               }}
-              activeColor={isDarkMode ? "#374151" : "#F0F9FF"}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
               data={users}
               labelField="label"
               valueField="value"
@@ -147,6 +149,13 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
                     style={{ marginRight: 12 }}
                   />
                 </View>
+              )}
+              renderRightIcon={() => (
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={20}
+                  color="#919191"
+                />
               )}
               onChange={(val) => {
                 const user = users.find((u: any) => u.value === val.value);
