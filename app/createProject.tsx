@@ -374,79 +374,61 @@ const CreateProjectScreen = () => {
     }
 
     try {
-      setIsUploadingImages(true);
-      const finalImageUrls: string[] = [];
+      const formData = new FormData();
 
-      for (const imgUri of projectImages) {
-        // 🔹 If it's already an http link, it's already on cloud (Editing mode)
-        if (imgUri.startsWith("http")) {
-          finalImageUrls.push(imgUri);
-          continue;
-        }
-
-        // 🔹 Upload local file to cloud
-        try {
-          const formData = new FormData();
-          const filename = imgUri.split("/").pop() || "image.jpg";
-          const match = /\.(\w+)$/.exec(filename);
-          const type = match ? `image/${match[1]}` : `image/jpeg`;
-
-          // @ts-ignore
-          formData.append("file", {
-            uri:
-              Platform.OS === "android"
-                ? imgUri
-                : imgUri.replace("file://", ""),
-            name: filename,
-            type,
-          });
-          formData.append("module", "project");
-          if (isEditing) formData.append("referenceId", projectId as string);
-
-          const uploadRes = await api.post("/upload", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (uploadRes.data?.file?.url) {
-            finalImageUrls.push(uploadRes.data.file.url);
-          }
-        } catch (err) {
-          console.error("Failed to upload image:", imgUri, err);
-        }
+      // 🔹 Append basic fields
+      formData.append("company", companyName || "");
+      formData.append("projectName", projectName);
+      formData.append("projectCode", projectCode);
+      formData.append("location", projectLocation);
+      formData.append("clientName", clientName);
+      formData.append("siteArea", siteArea);
+      formData.append("designedArea", designedArea);
+      formData.append("status", status);
+      formData.append("fileNumber", fileNumber);
+      formData.append("webName", webName);
+      formData.append("companySerialNumber", companySerialNumber);
+      formData.append("projectDescription", projectDescription);
+      formData.append("associatedProject", associatedProject || "");
+      formData.append("typology", projectTypology || "");
+      if (startDate) {
+        formData.append("startDate", startDate.toISOString());
       }
-      setIsUploadingImages(false);
 
-      const payload = {
-        company: companyName,
-        projectName,
-        projectCode,
-        location: projectLocation,
-        teamLeaders: selectedLeaders,
-        teamMembers: selectedMembers,
-        startDate: startDate?.toISOString(),
-        typology: projectTypology,
-        scopes: selectedScopes,
-        clientName,
-        siteArea,
-        designedArea,
-        status, // ✅ send status to backend
-        fileNumber, // ✅ new field
-        webName, // ✅ new field
-        partnerInCharge, // ✅ new field
-        companySerialNumber, // ✅ new field
-        projectDescription, // ✅ new field
-        projectImages: finalImageUrls, // ✅ Final clean list
-        associatedProject,
-      };
+      // 🔹 Append array fields (stringify for multipart)
+      formData.append("teamLeaders", JSON.stringify(selectedLeaders));
+      formData.append("teamMembers", JSON.stringify(selectedMembers));
+      formData.append("scopes", JSON.stringify(selectedScopes));
+      formData.append("partnerInCharge", JSON.stringify(partnerInCharge));
+
+      // 🔹 Handle Images
+      const existingImages = projectImages.filter((img) =>
+        img.startsWith("http"),
+      );
+      formData.append("projectImages", JSON.stringify(existingImages));
+
+      const newImages = projectImages.filter((img) => !img.startsWith("http"));
+      newImages.forEach((imgUri, index) => {
+        const filename = imgUri.split("/").pop() || `image_${index}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        // @ts-ignore
+        formData.append("files", {
+          uri:
+            Platform.OS === "android" ? imgUri : imgUri.replace("file://", ""),
+          name: filename,
+          type,
+        });
+      });
 
       if (isEditing) {
-        //  UPDATE PROJECT
-        // ✅ UPDATE
-        await api.put(`/projects/${projectId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        // ✅ UPDATE PROJECT
+        await api.put(`/projects/${projectId}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         });
 
         Toast.show({
@@ -456,9 +438,12 @@ const CreateProjectScreen = () => {
           position: "bottom",
         });
       } else {
-        //  CREATE PROJECT
-        const res = await api.post("/projects", payload, {
-          headers: { Authorization: `Bearer ${token}` },
+        // ✅ CREATE PROJECT
+        const res = await api.post("/projects", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         });
 
         Toast.show({
@@ -472,7 +457,7 @@ const CreateProjectScreen = () => {
       resetForm();
       setTimeout(() => router.push({ pathname: "/masterProjectList" }), 800);
     } catch (err) {
-      console.error("Error creating project:", err);
+      console.error("Error saving project:", err);
       Toast.show({
         type: "error",
         text1: "Error",
