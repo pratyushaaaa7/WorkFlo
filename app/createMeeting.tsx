@@ -14,6 +14,10 @@ import {
   LogBox,
 } from "react-native";
 
+LogBox.ignoreLogs([
+  'Warning: ref.measureLayout must be called with a ref to a native component.',
+]);
+
 
 import {
   NestableDraggableFlatList,
