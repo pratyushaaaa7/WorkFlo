@@ -39,6 +39,12 @@ const CreateSupport = () => {
 
   const typeOptions = ["Issue", "Suggestion", "Feedback"];
 
+  // Validation errors state
+  const [fieldErrors, setFieldErrors] = useState<{
+    relatedPage?: boolean;
+    description?: boolean;
+  }>({});
+
   useEffect(() => {
     const today = new Date().toLocaleDateString("en-GB");
     setDate(today);
@@ -73,14 +79,25 @@ const CreateSupport = () => {
     if (loading) return; // Prevent multiple clicks
 
     if (!type || !description.trim() || !relatedPage.trim()) {
+      const errors: typeof fieldErrors = {};
+      if (!relatedPage.trim()) errors.relatedPage = true;
+      if (!description.trim()) errors.description = true;
+      setFieldErrors(errors);
+
+      const missingFields: string[] = [];
+      if (errors.relatedPage) missingFields.push('Related Page');
+      if (errors.description) missingFields.push('Description');
+
       Toast.show({
         type: "error",
-        text1: "Missing Information",
-        text2: "Please fill all required fields before submitting.",
+        text1: "Please fill required fields",
+        text2: missingFields.join(', '),
         position: "bottom",
+        visibilityTime: 4000,
       });
       return;
     }
+    setFieldErrors({});
     setLoading(true); //  START LOADER
     // const formData = {
     //   raisedBy: user,
@@ -242,8 +259,19 @@ const CreateSupport = () => {
               placeholder="e.g. ILR Page"
               placeholderTextColor={isDarkMode ? "#919191" : "#919191"}
               value={relatedPage}
-              onChangeText={setRelatedPage}
-              className="bg-white dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#333] rounded-xl px-4 py-3 text-black dark:text-white font-poppins text-sm mb-5"
+              onChangeText={(val) => {
+                setRelatedPage(val);
+                if (fieldErrors.relatedPage && val.trim()) setFieldErrors(prev => ({ ...prev, relatedPage: false }));
+              }}
+              className={`rounded-xl px-4 py-3 font-poppins text-sm mb-5 ${
+                isDarkMode
+                  ? fieldErrors.relatedPage
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "bg-[#1A1A1A] text-white border border-[#333]"
+                  : fieldErrors.relatedPage
+                    ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                    : "bg-white text-black border border-[#E0E5EB]"
+              }`}
             />
 
             {/* Describe Issue */}
@@ -256,8 +284,19 @@ const CreateSupport = () => {
               placeholder="Description here..."
               placeholderTextColor={isDarkMode ? "#919191" : "#919191"}
               value={description}
-              onChangeText={setDescription}
-              className="bg-white dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#333] rounded-xl px-4 py-3 text-black dark:text-white font-poppins text-sm min-h-[120px]"
+              onChangeText={(val) => {
+                setDescription(val);
+                if (fieldErrors.description && val.trim()) setFieldErrors(prev => ({ ...prev, description: false }));
+              }}
+              className={`rounded-xl px-4 py-3 font-poppins text-sm min-h-[120px] ${
+                isDarkMode
+                  ? fieldErrors.description
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "bg-[#1A1A1A] text-white border border-[#333]"
+                  : fieldErrors.description
+                    ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                    : "bg-white text-black border border-[#E0E5EB]"
+              }`}
             />
           </View>
 

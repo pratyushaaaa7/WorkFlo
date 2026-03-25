@@ -10,7 +10,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -134,6 +134,14 @@ const CreateProjectScreen = () => {
   >([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+
+  // Validation errors state
+  const [fieldErrors, setFieldErrors] = useState<{
+    projectName?: boolean;
+    companyName?: boolean;
+    projectTypology?: boolean;
+  }>({});
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const resetForm = () => {
     setProjectName("");
@@ -362,16 +370,32 @@ const CreateProjectScreen = () => {
     setSaving(true);
 
     Keyboard.dismiss();
-    if (!projectName.trim() || !companyName || !projectTypology) {
+
+    // Field-level validation
+    const errors: typeof fieldErrors = {};
+    let hasError = false;
+    if (!projectName.trim()) { errors.projectName = true; hasError = true; }
+    if (!companyName) { errors.companyName = true; hasError = true; }
+    if (!projectTypology) { errors.projectTypology = true; hasError = true; }
+
+    if (hasError) {
+      setFieldErrors(errors);
+      const missingFields: string[] = [];
+      if (errors.companyName) missingFields.push('Company Name');
+      if (errors.projectName) missingFields.push('Project Name');
+      if (errors.projectTypology) missingFields.push('Project Typology');
       Toast.show({
         type: "error",
-        text1: "Validation",
-        text2: "Please fill all required fields.",
+        text1: "Please fill required fields",
+        text2: missingFields.join(', '),
         position: "bottom",
+        visibilityTime: 4000,
       });
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       setSaving(false);
       return;
     }
+    setFieldErrors({});
 
     try {
       const formData = new FormData();
@@ -500,6 +524,7 @@ const CreateProjectScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "padding"}
       >
         <ScrollView
+          ref={scrollViewRef}
           className="flex-1 px-4 pt-6"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -515,7 +540,11 @@ const CreateProjectScreen = () => {
                 height: 52,
                 borderRadius: 16,
                 paddingHorizontal: 16,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                backgroundColor: fieldErrors.companyName
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderWidth: fieldErrors.companyName ? 1 : 0,
+                borderColor: fieldErrors.companyName ? "#DF5B5B" : "transparent",
               }}
               placeholderStyle={{
                 fontSize: 14,
@@ -544,7 +573,10 @@ const CreateProjectScreen = () => {
               valueField="value"
               placeholder="Select Company"
               value={companyName}
-              onChange={(item) => setCompanyName(item.value)}
+              onChange={(item) => {
+                setCompanyName(item.value);
+                if (fieldErrors.companyName) setFieldErrors(prev => ({ ...prev, companyName: false }));
+              }}
               renderRightIcon={() => (
                 <HugeiconsIcon
                   icon={ArrowDown01Icon}
@@ -561,11 +593,22 @@ const CreateProjectScreen = () => {
               Project Name<Text className="text-red-500">*</Text>
             </Text>
             <TextInput
-              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
+              className={`h-[52px] rounded-[16px] px-4 font-poppins text-[14px] ${
+                isDarkMode
+                  ? fieldErrors.projectName
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "bg-[#1A1A1A] text-white"
+                  : fieldErrors.projectName
+                    ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                    : "bg-[#F0F3F7] text-black"
+              }`}
               placeholder="e.g. Muthoot Hospital"
               placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={projectName}
-              onChangeText={setProjectName}
+              onChangeText={(val) => {
+                setProjectName(val);
+                if (fieldErrors.projectName && val.trim()) setFieldErrors(prev => ({ ...prev, projectName: false }));
+              }}
             />
           </View>
 
@@ -579,7 +622,11 @@ const CreateProjectScreen = () => {
                 height: 52,
                 borderRadius: 16,
                 paddingHorizontal: 16,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                backgroundColor: fieldErrors.projectTypology
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderWidth: fieldErrors.projectTypology ? 1 : 0,
+                borderColor: fieldErrors.projectTypology ? "#DF5B5B" : "transparent",
               }}
               placeholderStyle={{
                 fontSize: 14,
@@ -608,7 +655,10 @@ const CreateProjectScreen = () => {
               valueField="value"
               placeholder="Select typology"
               value={projectTypology}
-              onChange={(item) => setProjectTypology(item.value)}
+              onChange={(item) => {
+                setProjectTypology(item.value);
+                if (fieldErrors.projectTypology) setFieldErrors(prev => ({ ...prev, projectTypology: false }));
+              }}
               renderRightIcon={() => (
                 <HugeiconsIcon
                   icon={ArrowDown01Icon}
