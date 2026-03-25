@@ -1,40 +1,203 @@
-import React, { useEffect, useState, useContext } from "react";
 import {
-  View,
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowUp01Icon,
+  CheckmarkCircle02Icon,
+  DashedLineCircleIcon,
+  InformationCircleIcon,
+  Progress03Icon,
+  UnavailableIcon,
+  MoreHorizontalIcon,
+  Edit02Icon,
+  Delete03Icon,
+} from "@hugeicons/core-free-icons";
+import { Pressable, Modal } from "react-native";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { AnimatePresence, MotiView } from "moti";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Dimensions,
+  ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
-  Dimensions,
-  Modal,
-  ScrollView,
-  Animated,
-  Image,
-  Alert,
+  useColorScheme,
+  View,
 } from "react-native";
-import {
-  Ionicons,
-  MaterialIcons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import api from "../lib/api";
 import { AuthContext } from "../context/AuthContext";
+import api from "../lib/api";
 import { Project } from "../types/Project";
-import * as ImagePicker from "expo-image-picker";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const ITEMS_PER_ROW = 2;
-const ITEM_MARGIN = 16;
-const ITEM_WIDTH = (width - ITEM_MARGIN * (ITEMS_PER_ROW + 1)) / ITEMS_PER_ROW;
+const ITEM_MARGIN = 12;
+const ITEM_WIDTH = (width - ITEM_MARGIN * 3) / 2;
+
+const PROJECT_IMAGES = [
+  require("../assets/images/projectDefaultImage.jpg"),
+  require("../assets/images/projectImage1.jpg"),
+  require("../assets/images/projectImage2.jpg"),
+];
 
 const ProjectMain = () => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   const { projectId, company, projectName } = useLocalSearchParams();
+
+  // Theme-based colors
+  const colors = {
+    background: isDarkMode ? "#000000" : "#F6F8FA",
+    containerBg: isDarkMode ? "#121212" : "#FFFFFF",
+    cardBg: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+    textPrimary: isDarkMode ? "#FFFFFF" : "#000000",
+    textSecondary: isDarkMode ? "#9BA1A6" : "#6B7280",
+    iconGray: isDarkMode ? "#9BA1A6" : "#6B7280",
+    borderColor: isDarkMode ? "#2D2D2D" : "#E5E7EB",
+    shadowColor: isDarkMode ? "#FFFFFF" : "#000000",
+  };
 
   console.log(projectId);
   const { token } = useContext(AuthContext) || {};
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const hScrollHandler = (event: any) => {
+    const slide = Math.ceil(
+      event.nativeEvent.contentOffset.x /
+        event.nativeEvent.layoutMeasurement.width,
+    );
+    if (slide !== activeImageIndex) {
+      setActiveImageIndex(slide);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const d = new Date(dateString);
+    return d.toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getStatusStyles = (status: string) => {
+    const s = status?.toLowerCase();
+    switch (s) {
+      case "active":
+        return {
+          bg: "#D7DEF2",
+          darkBg: "#282446",
+          text: "#5B4CCC",
+          icon: DashedLineCircleIcon,
+          label: "Active",
+        };
+      case "bd":
+        return {
+          bg: "#E8F0FF",
+          darkBg: "#101F40",
+          text: "#2F76E6",
+          icon: Progress03Icon,
+          label: "B.D",
+        };
+      case "inactive":
+        return {
+          bg: "#FFEFE5",
+          darkBg: "#3A1E11",
+          text: "#E6762F",
+          icon: UnavailableIcon,
+          label: "In-Active",
+        };
+      case "closed":
+        return {
+          bg: "#E8F9ED",
+          darkBg: "#122E25",
+          text: "#1AA45B",
+          icon: CheckmarkCircle02Icon,
+          label: "Closed",
+        };
+      default:
+        return {
+          bg: "#F3F4F6",
+          darkBg: "#1F1F1F",
+          text: "#6B7280",
+          icon: UnavailableIcon,
+          label: status || "Unknown",
+        };
+    }
+  };
+
+  const ModernDataRow = ({
+    leftLabel,
+    leftValue,
+    leftIcon,
+    leftStyle,
+    rightLabel,
+    rightValue,
+    rightStyle,
+    isRightBold,
+    leftValues,
+    rightValues,
+  }: any) => (
+    <View>
+      <View className="flex-row justify-between py-[14px]">
+        <View className="flex-1">
+          <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+            {leftLabel}
+          </Text>
+          {Array.isArray(leftValues) ? (
+            leftValues.map((v, i) => (
+              <Text
+                key={i}
+                className="text-[14px] font-poppinsMedium text-black dark:text-white"
+              >
+                {v}
+              </Text>
+            ))
+          ) : (
+            <View className="flex-row items-center">
+              {leftIcon && <View className="mr-2">{leftIcon}</View>}
+              <Text
+                className="text-[14px] font-poppinsMedium text-black dark:text-white"
+                style={[{ color: isDarkMode ? "#FFF" : "#000" }, leftStyle]}
+              >
+                {leftValue || "-"}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View className="flex-1 items-end">
+          <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+            {rightLabel}
+          </Text>
+          {Array.isArray(rightValues) ? (
+            rightValues.map((v, i) => (
+              <Text
+                key={i}
+                className="text-[14px] font-poppinsMedium text-black dark:text-white text-right"
+              >
+                {v}
+              </Text>
+            ))
+          ) : (
+            <Text
+              className={`text-[14px] font-poppinsMedium text-black dark:text-white text-right`}
+              style={rightStyle}
+            >
+              {rightValue || "-"}
+            </Text>
+          )}
+        </View>
+      </View>
+      <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47]" />
+    </View>
+  );
   // const [images, setImages] = useState<string[]>([]);
   // const [loadingImages, setLoadingImages] = useState(false);
 
@@ -70,6 +233,20 @@ const ProjectMain = () => {
       fetchData();
     }
   }, [projectId, token]);
+
+  // Handle Delete Project
+  const handleDeleteProject = async () => {
+    try {
+      if (!projectId || !token) return;
+      setShowDeleteModal(false);
+      await api.delete(`/projects/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      router.replace("/projects");
+    } catch (err) {
+      console.error("Error deleting project:", err);
+    }
+  };
 
   // ✅ Pick an Image from Device
   // const pickImage = async () => {
@@ -113,19 +290,11 @@ const ProjectMain = () => {
   //     console.error("Upload failed:", err.response?.data || err.message);
   //     Alert.alert("Error", "Image upload failed. Please try again.");
   //   }
-  // };
-
   const menuItems = [
     {
       key: "directory",
-      label: "User Directory",
-      icon: (
-        <MaterialCommunityIcons
-          name="account-group"
-          size={40}
-          color="#6366F1"
-        />
-      ),
+      label: "User directory",
+      image: require("../assets/images/projectTabs/userDirectory.svg"),
       onPress: () =>
         router.push({
           pathname: "/userDirectory",
@@ -135,7 +304,7 @@ const ProjectMain = () => {
     {
       key: "ilr",
       label: "ILR",
-      icon: <Ionicons name="clipboard-outline" size={40} color="#F59E0B" />,
+      image: require("../assets/images/projectTabs/ilr.svg"),
       onPress: () =>
         router.push({
           pathname: "/ilrs",
@@ -143,25 +312,9 @@ const ProjectMain = () => {
         }),
     },
     {
-      key: "mom",
-      label: "Minutes",
-      icon: <MaterialIcons name="event-note" size={40} color="#10B981" />,
-      onPress: () =>
-        router.push({
-          pathname: "/minutes",
-          params: { company, projectId, projectName },
-        }),
-    },
-    {
       key: "dpr",
       label: "Reports",
-      icon: (
-        <MaterialCommunityIcons
-          name="clipboard-text-clock-outline"
-          size={40}
-          color="#EF4444"
-        />
-      ),
+      image: require("../assets/images/projectTabs/dpr.svg"),
       onPress: () =>
         router.push({
           pathname: "/dprs",
@@ -176,14 +329,8 @@ const ProjectMain = () => {
     },
     {
       key: "svr",
-      label: "Site Visit Reports",
-      icon: (
-        <MaterialCommunityIcons
-          name="file-document-edit-outline"
-          size={40}
-          color="#3B82F6"
-        />
-      ),
+      label: "SVR",
+      image: require("../assets/images/projectTabs/svr.svg"),
       onPress: () =>
         router.push({
           pathname: "/svrs",
@@ -197,368 +344,468 @@ const ProjectMain = () => {
         }),
     },
     {
-      key: "projectStage",
-      label: "Project Stage",
-      icon: (
-        <MaterialCommunityIcons
-          name="timeline-check-outline"
-          size={40}
-          color="#D946EF"
-        />
-      ),
+      key: "mom",
+      label: "Minutes",
+      image: require("../assets/images/projectTabs/minutes.svg"),
       onPress: () =>
         router.push({
-          pathname: "/projectStage",
-          params: { company, projectId, projectName: project?.projectName },
+          pathname: "/minutes",
+          params: { company, projectId, projectName },
         }),
     },
     {
       key: "runningNotes",
-      label: "Running Notes",
-      icon: (
-        <MaterialCommunityIcons
-          name="note-text-outline"
-          size={40}
-          color="#92400E"
-        />
-      ),
+      label: "Running note",
+      image: require("../assets/images/projectTabs/runningNotes.svg"),
       onPress: () =>
         router.push({
           pathname: "/runningNotes",
           params: { company, projectId, projectName: project?.projectName },
         }),
     },
+    {
+      key: "projectStage",
+      label: "Project Stage",
+      image: require("../assets/images/projectTabs/projectStage.svg"),
+      onPress: () =>
+        router.push({
+          pathname: "/projectStage",
+          params: { company, projectId, projectName: project?.projectName },
+        }),
+    },
   ];
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <LinearGradient colors={["#6366F1", "#8B5CF6"]}>
-        <View className="rounded-b-3xl px-6 pt-14 pb-10">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="bg-white/20 p-2 rounded-full w-10 h-10 items-center justify-center mb-6"
-          >
-            <Ionicons name="arrow-back" size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text className="text-3xl font-bold text-white">
-            {projectName || "Loading..."}
-          </Text>
-          <Text className="text-white/80 mt-1">{company}</Text>
-        </View>
-      </LinearGradient>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <StatusBar barStyle="light-content" translucent />
 
-      {/* ✅ Project Images */}
-      {/* <View className="pt-4 px-4">
-        <View className="flex-row items-center mb-2">
-          <MaterialIcons name="photo-library" size={20} color="#EF4444" />
-          <Text className="ml-2 font-semibold text-gray-800 text-lg">
-            Project Images
-          </Text>
-          <TouchableOpacity
-            onPress={pickImage}
-            className="ml-auto bg-indigo-500 px-3 py-1 rounded"
-          >
-            <Text className="text-white text-sm">Upload</Text>
-          </TouchableOpacity>
-        </View>
-
-        {loadingImages && <Text>Loading images...</Text>}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-2"
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        {/* Header Project Image Background - Carousel */}
+        <View
+          style={{ height: height * 0.45, width: "100%", overflow: "hidden" }}
         >
-          {images.length === 0 && !loadingImages && (
-            <Text className="text-gray-500">No images yet.</Text>
-          )}
-          {images.map((img, i) => (
-            <Image
-              key={i}
-              source={{ uri: img }}
-              style={{
-                width: 120,
-                height: 120,
-                marginRight: 10,
-                borderRadius: 10,
-              }}
-            />
-          ))}
-        </ScrollView>
-      </View> */}
-
-      {/* ✅ Menu Grid */}
-      <View
-        className="flex-row flex-wrap px-4 mt-6 justify-between"
-        style={{ gap: ITEM_MARGIN }}
-      >
-        {menuItems.map(({ key, label, icon, onPress }) => (
-          <TouchableOpacity
-            key={key}
-            onPress={onPress}
-            className="bg-white rounded-2xl py-6 px-2 items-center shadow-md active:scale-95"
-            style={{ width: ITEM_WIDTH }}
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={hScrollHandler}
+            scrollEventThrottle={16}
           >
-            <View className="mb-3">{icon}</View>
-            <Text className="text-gray-800 font-semibold text-sm text-center">
-              {label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {(project?.projectImages && project.projectImages.length > 0
+              ? project.projectImages
+              : PROJECT_IMAGES
+            ).map((img, index) => (
+              <Image
+                key={index}
+                source={typeof img === "string" ? { uri: img } : img}
+                style={{ width: width, height: height * 0.45 }}
+                contentFit="cover"
+                priority={index === 0 ? "high" : "normal"}
+              />
+            ))}
+          </ScrollView>
 
-      {/* Project Info Modal (Bottom Sheet Style) */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View className="flex-1 bg-black/40 justify-end">
-          <Animated.View
-            className="bg-white rounded-t-3xl p-6 max-h-[85%] shadow-2xl"
-            style={{ elevation: 10 }}
-          >
-            {/* Drag Handle */}
-            <View className="items-center mb-2">
-              {/* optional drag handle */}
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              className="space-y-6"
-            >
-              {/* Project Name */}
-              <Text className="text-2xl mb-2 font-bold text-gray-900 text-center">
-                {project?.projectName ?? "N/A"}
-              </Text>
-
-              {/* Info Section */}
-              <View className="bg-gray-50 rounded-xl p-4 gap-3">
-                <View className="flex-row items-center">
-                  <Ionicons name="location-outline" size={20} color="#6366F1" />
-                  <Text className="ml-2 text-gray-700">
-                    Location: {project?.location ?? "-"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="business-outline" size={20} color="#10B981" />
-                  <Text className="ml-2 text-gray-700">
-                    Company: {project?.company ?? "-"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="code" size={20} color="#EF4444" />
-                  <Text className="ml-2 text-gray-700">
-                    Project code: {project?.projectCode ?? "-"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="person-outline" size={20} color="#2563EB" />
-                  <Text className="ml-2 text-gray-700">
-                    Client: {project?.clientName ?? "N/A"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="cube-outline" size={20} color="#9333EA" />
-                  <Text className="ml-2 text-gray-700">
-                    Design Area: {project?.designedArea ?? "N/A"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="home-outline" size={20} color="#14B8A6" />
-                  <Text className="ml-2 text-gray-700">
-                    Site Area: {project?.siteArea ?? "N/A"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons name="list-outline" size={20} color="#9333EA" />
-                  <Text className="ml-2 text-gray-700">
-                    Typology: {project?.typology ?? "-"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="document-text-outline"
-                    size={20}
-                    color="#F59E0B"
-                  />
-                  <Text className="ml-2 text-gray-700">
-                    File Number:{" "}
-                    {project?.fileNumberNumeric?.toString() ?? "N/A"}
-                  </Text>
-                </View>
-
-                {project?.webName ? (
-                  <View className="flex-row items-center">
-                    <Ionicons name="globe-outline" size={20} color="#8B5CF6" />
-                    <Text className="ml-2 text-gray-700">
-                      Web Name: {project.webName}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* Status with colored dot */}
-                <View
-                  className="flex-row items-center px-3 py-1 rounded-full"
-                  style={{
-                    backgroundColor: "#F3F4F6", // light gray pill
-                    borderColor:
-                      project?.status === "active"
-                        ? "#16A34A"
-                        : project?.status === "inactive"
-                          ? "#CA8A04"
-                          : "#DC2626",
-                    borderWidth: 1,
-                    alignSelf: "flex-start", // ensures the pill wraps content
-                    marginTop: 4,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor:
-                        project?.status === "active"
-                          ? "#16A34A"
-                          : project?.status === "inactive"
-                            ? "#CA8A04"
-                            : "#DC2626",
-                      marginRight: 6,
-                    }}
-                  />
-                  <Text
-                    className="text-sm font-semibold capitalize"
-                    style={{
-                      color:
-                        project?.status === "active"
-                          ? "#166534"
-                          : project?.status === "inactive"
-                            ? "#854D0E"
-                            : "#7F1D1D",
-                    }}
-                  >
-                    {project?.status}
-                  </Text>
-                </View>
-
-                {/* Start Date */}
-                {project?.startDate && (
-                  <View className="flex-row items-center">
-                    <Ionicons
-                      name="calendar-outline"
-                      size={20}
-                      color="#4B5563"
-                    />
-                    <Text className="ml-2 text-gray-700">
-                      Start Date: {new Date(project.startDate).toDateString()}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Team Leaders */}
-              <View className="pt-4">
-                <View className="flex-row items-center ">
-                  <Ionicons name="person-outline" size={20} color="#2563EB" />
-                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
-                    Team Leader(s)
-                  </Text>
-                </View>
-                {(project?.teamLeaders ?? []).length > 0 ? (
-                  (project?.teamLeaders ?? []).map((user) => (
-                    <Text key={user._id} className="ml-4 text-gray-600">
-                      • {user.fullName ?? user._id}
-                    </Text>
-                  ))
-                ) : (
-                  <Text className="ml-4 text-gray-400 italic">
-                    No team leaders
-                  </Text>
-                )}
-              </View>
-
-              {/* Team Members */}
-              <View className="pt-4">
-                <View className="flex-row items-center mb-2">
-                  <Ionicons name="people-outline" size={20} color="#9333EA" />
-                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
-                    Team Member(s)
-                  </Text>
-                </View>
-                {(project?.teamMembers ?? []).length > 0 ? (
-                  (project?.teamMembers ?? []).map((user) => (
-                    <Text key={user._id} className="ml-4 text-gray-600">
-                      • {user.fullName ?? user._id}
-                    </Text>
-                  ))
-                ) : (
-                  <Text className="ml-4 text-gray-400 italic">
-                    No team members
-                  </Text>
-                )}
-              </View>
-
-              {/* Scopes */}
-              <View className="pt-4">
-                <View className="flex-row items-center mb-2">
-                  <Ionicons name="list-outline" size={20} color="#F59E0B" />
-                  <Text className="ml-2 font-semibold text-gray-800 text-lg">
-                    Scopes
-                  </Text>
-                </View>
-                {(project?.scopes ?? []).length > 0 ? (
-                  (project?.scopes ?? []).map((scope, idx) => (
-                    <Text key={idx} className="ml-4 text-gray-600">
-                      • {scope}
-                    </Text>
-                  ))
-                ) : (
-                  <Text className="ml-4 text-gray-400 italic">
-                    No scopes defined
-                  </Text>
-                )}
-              </View>
-            </ScrollView>
-
-            {/* Close Button */}
+          {/* Header Overlay Buttons */}
+          <View className="absolute top-14 left-6 right-6 flex-row justify-between items-center">
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              className="bg-indigo-600 px-5 py-3 mt-2 rounded-xl shadow-md"
+              onPress={() => router.back()}
+              className="w-10 h-10 rounded-full items-center justify-center shadow-lg"
+              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
             >
-              <Text className="text-white text-center font-semibold text-lg">
-                Close
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {/* <TouchableOpacity
+              onPress={() => setMenuVisible(true)}
+              className="w-10 h-10 rounded-full items-center justify-center"
+              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+            >
+              <HugeiconsIcon
+                icon={MoreHorizontalIcon}
+                size={24}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity> */}
+          </View>
+
+          {/* Carousel Indicators (Dots) */}
+          <View className="absolute bottom-6 left-0 right-0 flex-row justify-center items-center gap-1.5">
+            {(project?.projectImages && project.projectImages.length > 0
+              ? project.projectImages
+              : PROJECT_IMAGES
+            ).map((_, index) => (
+              <View
+                key={index}
+                className={`h-1.5 rounded-full ${
+                  index === activeImageIndex
+                    ? "w-4 bg-white"
+                    : "w-1.5 bg-white/40"
+                }`}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Content Container */}
+        <View
+          className="flex-1 -mt-10 rounded-t-[40px] px-4 pt-8"
+          style={{
+            backgroundColor: colors.containerBg,
+            minHeight: height * 0.6,
+          }}
+        >
+          {/* Project Title Area */}
+          <View className="w-full flex-row justify-between items-center mb-2">
+            <TouchableOpacity
+              onPress={() => setIsExpanded(!isExpanded)}
+              className="flex-row items-center flex-1"
+            >
+              <Text
+                className="text-xl font-dmSemiBold mr-2 flex-1"
+                style={{ color: colors.textPrimary }}
+                // numberOfLines={1}
+              >
+                {projectName || project?.projectName || "Loading..."}
+              </Text>
+              <HugeiconsIcon
+                icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                size={22}
+                color={isDarkMode ? "#454545" : "#919191"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Collapsible Project Info Section */}
+          <AnimatePresence>
+            {isExpanded && project && (
+              <MotiView
+                from={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: "timing", duration: 300 }}
+                className="overflow-hidden"
+              >
+                <View className="mb-2 mt-2">
+                  {/* Divider Top */}
+                  <View className="h-[1px] mb-2 bg-[#E0E5EB] dark:bg-[#413E47]" />
+
+                  {/* Project Details Grid (Matched with ProjectDetails.tsx) */}
+                  <View>
+                    <ModernDataRow
+                      leftLabel="Status"
+                      leftValue={getStatusStyles(project.status).label}
+                      leftIcon={
+                        <HugeiconsIcon
+                          icon={getStatusStyles(project.status).icon}
+                          size={16}
+                          color={getStatusStyles(project.status).text}
+                        />
+                      }
+                      leftStyle={{
+                        color: getStatusStyles(project.status).text,
+                      }}
+                      rightLabel="Company"
+                      rightValue={project.company || "N/A"}
+                      isRightBold
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Project Code"
+                      leftValue={project.projectCode || "N/A"}
+                      rightLabel="Client Name"
+                      rightValue={project.clientName || "N/A"}
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Typology"
+                      leftValue={project.typology || "N/A"}
+                      rightLabel="Location"
+                      rightValue={project.location || "N/A"}
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Start Date"
+                      leftValue={
+                        project.startDate
+                          ? formatDate(project.startDate)
+                          : "N/A"
+                      }
+                      rightLabel="Company Serial No."
+                      rightValue={project.companySerialNumber || "N/A"}
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Serial No. (Numeric)"
+                      leftValue={project.fileNumberNumeric?.toString() || "N/A"}
+                      rightLabel="Web Name"
+                      rightValue={project.webName || "N/A"}
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Site Area"
+                      leftValue={project.siteArea || "N/A"}
+                      rightLabel="Design Area"
+                      rightValue={project.designedArea || "N/A"}
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Partner In charge"
+                      leftValues={
+                        project.partnerInCharge &&
+                        project.partnerInCharge.length > 0
+                          ? project.partnerInCharge.map(
+                              (p: any) => p.fullName || "N/A",
+                            )
+                          : ["N/A"]
+                      }
+                      rightLabel="Team Leader"
+                      rightValue={
+                        project.teamLeaders && project.teamLeaders.length > 0
+                          ? project.teamLeaders[0].fullName
+                          : "N/A"
+                      }
+                    />
+
+                    <ModernDataRow
+                      leftLabel="Team member"
+                      leftValues={
+                        project.teamMembers && project.teamMembers.length > 0
+                          ? project.teamMembers.map(
+                              (u: any) => u.fullName || "",
+                            )
+                          : ["N/A"]
+                      }
+                      rightLabel="Scopes"
+                      rightValues={
+                        project.scopes && project.scopes.length > 0
+                          ? project.scopes
+                          : ["N/A"]
+                      }
+                    />
+                  </View>
+                </View>
+              </MotiView>
+            )}
+          </AnimatePresence>
+
+          {/* Project Description */}
+          {project?.projectDescription && (
+            <Text
+              className="text-base  leading-6 font-poppins text-[#454545] dark:text-[#919191]"
+              style={{ color: colors.textSecondary }}
+            >
+              {project?.projectDescription}
+            </Text>
+          )}
+
+          {/* Tabs Grid */}
+          <View className="flex-row flex-wrap justify-between border-t-[1px] border-[#E0E5EB] dark:border-[#413E47]  mt-4 pt-4 pb-10">
+            {menuItems.map((item) => (
+              <TabCard
+                key={item.key}
+                label={item.label}
+                image={item.image}
+                onPress={item.onPress}
+                colors={colors}
+                isDarkMode={isDarkMode}
+              />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* FAST MENU OVERLAY */}
+      {menuVisible && (
+        <View
+          className="absolute top-8 left-0 right-0 bottom-0 z-[100]"
+          pointerEvents="box-none"
+        >
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setMenuVisible(false)}
+          />
+          <View
+            className="absolute top-16 right-3 bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+            style={{
+              elevation: 25,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              minWidth: 170,
+            }}
+          >
+            {/* Triangle Pointer */}
+            <View
+              className="absolute rounded-md right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45"
+              style={{ zIndex: -1 }}
+            />
+
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                router.push({
+                  pathname: "/createProject",
+                  params: { projectId: projectId },
+                });
+              }}
+              className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+            >
+              <HugeiconsIcon
+                icon={Edit02Icon}
+                size={20}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+              <Text className="ml-3 text-base font-dmMedium text-black dark:text-white">
+                Edit
               </Text>
             </TouchableOpacity>
-          </Animated.View>
+
+            <View className="h-[1px] bg-[#F2F2F2] dark:bg-[#2A2A2A] mx-2" />
+
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                setShowDeleteModal(true);
+              }}
+              className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+            >
+              <HugeiconsIcon icon={Delete03Icon} size={20} color="#DF5B5B" />
+              <Text className="ml-3 text-base font-dmBold text-[#DF5B5B]">
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View className="flex-1 justify-center items-center px-4">
+          <View className="absolute inset-0 bg-black/50" />
+
+          <TouchableOpacity
+            className="absolute inset-0"
+            activeOpacity={1}
+            onPress={() => setShowDeleteModal(false)}
+          />
+
+          <View
+            className="w-full bg-white dark:bg-[#111111] rounded-[24px] p-4 shadow-2xl"
+            style={{ elevation: 20 }}
+          >
+            {/* Red Icon Header */}
+            <View
+              className="w-14 h-14 rounded-full items-center justify-center mb-4"
+              style={{ backgroundColor: isDarkMode ? "#3D1A1A" : "#FEE2E2" }}
+            >
+              <HugeiconsIcon icon={Delete03Icon} size={24} color="#EF4444" />
+            </View>
+
+            <Text className="text-[18px] font-dmSemiBold text-black dark:text-white mb-2">
+              Delete this Project
+            </Text>
+            <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191] mb-5 leading-6">
+              Are you sure you want to delete this project?
+            </Text>
+
+            <View className="flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 h-[56px] items-center justify-center rounded-xl border border-[#E5E7EB] dark:border-[#333333]"
+              >
+                <Text className="text-lg font-dmBold text-black dark:text-white">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteProject}
+                className="flex-1 h-[56px] items-center justify-center rounded-2xl bg-[#DF5B5B]"
+              >
+                <Text className="text-lg font-dmBold text-white">Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
-
-      {/* Floating More Info Button */}
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        className="absolute bottom-12 right-10 bg-indigo-600 p-4 rounded-full shadow-lg"
-      >
-        <Ionicons name="information-circle" size={28} color="#fff" />
-      </TouchableOpacity>
-
-      {/* Floating More Info Button */}
-      <TouchableOpacity
-        onPress={() => setModalVisible(true)}
-        className="absolute bottom-12 right-10 bg-indigo-600 p-4 rounded-full shadow-lg"
-      >
-        <Ionicons name="information-circle" size={28} color="#fff" />
-      </TouchableOpacity>
     </View>
   );
 };
 
 export default ProjectMain;
+
+// --- Performance Optimized Sub-Components ---
+
+const TabCard = React.memo(
+  ({ label, image, onPress, colors, isDarkMode }: any) => {
+    return (
+      <View
+        style={{
+          width: ITEM_WIDTH,
+          height: ITEM_WIDTH * 0.7,
+          backgroundColor: colors.cardBg,
+          borderRadius: 24,
+          marginBottom: 12,
+          shadowColor: isDarkMode ? "#C9C9C9" : "#000000",
+          shadowOffset: { width: 0, height: 45 },
+          shadowOpacity: isDarkMode ? 0.05 : 0.25,
+          shadowRadius: 15,
+          elevation: 15,
+        }}
+      >
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={0.8}
+          style={{
+            flex: 1,
+            borderRadius: 24,
+            padding: 16,
+            overflow: "hidden", // Clip content here, not on the outer shadow-bearing view
+          }}
+        >
+          <View className="flex-row justify-between items-start z-10">
+            <Text
+              className=" text-[14px] flex-1 mr-2 font-poppinsMedium"
+              style={{
+                color: colors.textPrimary,
+              }}
+            >
+              {label}
+            </Text>
+            <TouchableOpacity onPress={() => {}}>
+              <HugeiconsIcon
+                icon={InformationCircleIcon}
+                size={18}
+                color={isDarkMode ? "#919191" : "#454545"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Improved Large Resource Rendering with expo-image */}
+          <View
+            className="absolute -bottom-3 -right-6 w-[100%] h-[100%]"
+            pointerEvents="none"
+          >
+            <Image
+              source={image}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="contain"
+              transition={300}
+              cachePolicy="memory-disk"
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+);
