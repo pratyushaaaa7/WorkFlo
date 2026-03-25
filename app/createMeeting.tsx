@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +18,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import Modal from "react-native-modal";
 
 LogBox.ignoreLogs([
@@ -189,10 +196,21 @@ const CreateMinutes = () => {
     meetingDate?: boolean;
     meetingTime?: boolean;
     meetingVenue?: boolean;
-    attendees?: { [index: number]: { attendeeName?: boolean; organization?: boolean } };
-    minutes?: { [index: number]: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean } };
+    attendees?: {
+      [index: number]: { attendeeName?: boolean; organization?: boolean };
+    };
+    minutes?: {
+      [index: number]: {
+        issueSubject?: boolean;
+        raisedBy?: boolean;
+        targetDate?: boolean;
+        responsibility?: boolean;
+      };
+    };
   };
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {},
+  );
   const scrollRef = useRef<any>(null);
   const meetingInfoRef = useRef<View>(null);
   const attendeeSectionRef = useRef<View>(null);
@@ -407,15 +425,28 @@ const CreateMinutes = () => {
       // Clear validation error for this field when it becomes valid
       setValidationErrors((prev) => {
         if (!prev.attendees?.[index]) return prev;
-        const updatedFields = typeof field === "object" ? field : { [field]: value };
+        const updatedFields =
+          typeof field === "object" ? field : { [field]: value };
         const fieldErrors = { ...prev.attendees[index] };
-        if ((updatedFields as any).attendeeName?.trim()) delete fieldErrors.attendeeName;
-        if (typeof field === "string" && field === "attendeeName" && value?.trim()) delete fieldErrors.attendeeName;
+        if ((updatedFields as any).attendeeName?.trim())
+          delete fieldErrors.attendeeName;
+        if (
+          typeof field === "string" &&
+          field === "attendeeName" &&
+          value?.trim()
+        )
+          delete fieldErrors.attendeeName;
         if (Object.keys(fieldErrors).length === 0) {
           const { [index]: _, ...rest } = prev.attendees!;
-          return { ...prev, attendees: Object.keys(rest).length > 0 ? rest : undefined };
+          return {
+            ...prev,
+            attendees: Object.keys(rest).length > 0 ? rest : undefined,
+          };
         }
-        return { ...prev, attendees: { ...prev.attendees, [index]: fieldErrors } };
+        return {
+          ...prev,
+          attendees: { ...prev.attendees, [index]: fieldErrors },
+        };
       });
     },
     [],
@@ -463,10 +494,17 @@ const CreateMinutes = () => {
         if (!prev.minutes?.[index]) return prev;
         const fieldErrors = { ...prev.minutes[index] };
         if (typeof field === "string") {
-          if (field === "issueSubject" && value?.trim()) delete fieldErrors.issueSubject;
-          if (field === "raisedBy" && Array.isArray(value) && value.length > 0) delete fieldErrors.raisedBy;
+          if (field === "issueSubject" && value?.trim())
+            delete fieldErrors.issueSubject;
+          if (field === "raisedBy" && Array.isArray(value) && value.length > 0)
+            delete fieldErrors.raisedBy;
           if (field === "targetDate" && value) delete fieldErrors.targetDate;
-          if (field === "responsibility" && Array.isArray(value) && value.length > 0) delete fieldErrors.responsibility;
+          if (
+            field === "responsibility" &&
+            Array.isArray(value) &&
+            value.length > 0
+          )
+            delete fieldErrors.responsibility;
         }
         if (typeof field === "object") {
           const obj = field as any;
@@ -475,7 +513,10 @@ const CreateMinutes = () => {
         }
         if (Object.keys(fieldErrors).length === 0) {
           const { [index]: _, ...rest } = prev.minutes!;
-          return { ...prev, minutes: Object.keys(rest).length > 0 ? rest : undefined };
+          return {
+            ...prev,
+            minutes: Object.keys(rest).length > 0 ? rest : undefined,
+          };
         }
         return { ...prev, minutes: { ...prev.minutes, [index]: fieldErrors } };
       });
@@ -626,7 +667,9 @@ const CreateMinutes = () => {
             showDelete={true}
             isDarkMode={isDarkMode}
             getIndex={getIndex}
-            fieldErrors={idx !== undefined ? validationErrors.attendees?.[idx] : undefined}
+            fieldErrors={
+              idx !== undefined ? validationErrors.attendees?.[idx] : undefined
+            }
           />
         </ScaleDecorator>
       );
@@ -662,7 +705,9 @@ const CreateMinutes = () => {
             onPickImage={handlePickImage}
             onDeleteImage={handleDeleteImage}
             getIndex={getIndex}
-            fieldErrors={idx !== undefined ? validationErrors.minutes?.[idx] : undefined}
+            fieldErrors={
+              idx !== undefined ? validationErrors.minutes?.[idx] : undefined
+            }
           />
         </ScaleDecorator>
       );
@@ -861,47 +906,85 @@ const CreateMinutes = () => {
       // ✅ Validation with field-level error tracking
       const errors: ValidationErrors = {};
       let hasError = false;
-      let firstErrorLocation: 'meetingInfo' | 'attendees' | 'minutes' | null = null;
+      let firstErrorLocation: "meetingInfo" | "attendees" | "minutes" | null =
+        null;
       let firstErrorMinuteIdx: number | null = null;
       let firstErrorAttendeeIdx: number | null = null;
 
       if (type === "mom") {
         // Meeting info validation
-        if (!meetingDate) { errors.meetingDate = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
-        if (!meetingTime) { errors.meetingTime = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
-        if (!meetingVenue) { errors.meetingVenue = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
+        if (!meetingDate) {
+          errors.meetingDate = true;
+          hasError = true;
+          if (!firstErrorLocation) firstErrorLocation = "meetingInfo";
+        }
+        if (!meetingTime) {
+          errors.meetingTime = true;
+          hasError = true;
+          if (!firstErrorLocation) firstErrorLocation = "meetingInfo";
+        }
+        if (!meetingVenue) {
+          errors.meetingVenue = true;
+          hasError = true;
+          if (!firstErrorLocation) firstErrorLocation = "meetingInfo";
+        }
 
         // Attendee validation
         if (attendees.length === 0) {
           hasError = true;
-          if (!firstErrorLocation) firstErrorLocation = 'attendees';
+          if (!firstErrorLocation) firstErrorLocation = "attendees";
         } else {
-          const attendeeErrors: ValidationErrors['attendees'] = {};
+          const attendeeErrors: ValidationErrors["attendees"] = {};
           attendees.forEach((a, idx) => {
             const fieldErrs: any = {};
-            if (!a.attendeeName?.trim()) { fieldErrs.attendeeName = true; hasError = true; }
+            if (!a.attendeeName?.trim()) {
+              fieldErrs.attendeeName = true;
+              hasError = true;
+            }
             if (Object.keys(fieldErrs).length > 0) {
               attendeeErrors[idx] = fieldErrs;
-              if (!firstErrorLocation) { firstErrorLocation = 'attendees'; firstErrorAttendeeIdx = idx; }
+              if (!firstErrorLocation) {
+                firstErrorLocation = "attendees";
+                firstErrorAttendeeIdx = idx;
+              }
             }
           });
-          if (Object.keys(attendeeErrors).length > 0) errors.attendees = attendeeErrors;
+          if (Object.keys(attendeeErrors).length > 0)
+            errors.attendees = attendeeErrors;
         }
       }
 
       // Minutes validation (for both agenda and MOM)
-      const minuteErrors: ValidationErrors['minutes'] = {};
+      const minuteErrors: ValidationErrors["minutes"] = {};
       minutes.forEach((m, idx) => {
         const fieldErrs: any = {};
-        if (!m.issueSubject?.trim()) { fieldErrs.issueSubject = true; hasError = true; }
-        if (!m.raisedBy || m.raisedBy.length === 0) { fieldErrs.raisedBy = true; hasError = true; }
+        if (!m.issueSubject?.trim()) {
+          fieldErrs.issueSubject = true;
+          hasError = true;
+        }
+        if (!m.raisedBy || m.raisedBy.length === 0) {
+          fieldErrs.raisedBy = true;
+          hasError = true;
+        }
         if (type === "mom") {
-          if (!m.targetDate && !m.targetDateForInfo) { fieldErrs.targetDate = true; hasError = true; }
-          if ((!m.responsibility || m.responsibility.length === 0) && !m.responsibilityForInfo) { fieldErrs.responsibility = true; hasError = true; }
+          if (!m.targetDate && !m.targetDateForInfo) {
+            fieldErrs.targetDate = true;
+            hasError = true;
+          }
+          if (
+            (!m.responsibility || m.responsibility.length === 0) &&
+            !m.responsibilityForInfo
+          ) {
+            fieldErrs.responsibility = true;
+            hasError = true;
+          }
         }
         if (Object.keys(fieldErrs).length > 0) {
           minuteErrors[idx] = fieldErrs;
-          if (!firstErrorLocation) { firstErrorLocation = 'minutes'; firstErrorMinuteIdx = idx; }
+          if (!firstErrorLocation) {
+            firstErrorLocation = "minutes";
+            firstErrorMinuteIdx = idx;
+          }
         }
       });
       if (Object.keys(minuteErrors).length > 0) errors.minutes = minuteErrors;
@@ -911,44 +994,58 @@ const CreateMinutes = () => {
 
         // Build descriptive error message
         const missingFields: string[] = [];
-        if (errors.meetingDate || errors.meetingTime || errors.meetingVenue) missingFields.push('Meeting Info');
-        if (errors.attendees) missingFields.push('Attendee Name');
+        if (errors.meetingDate || errors.meetingTime || errors.meetingVenue)
+          missingFields.push("Meeting Info");
+        if (errors.attendees) missingFields.push("Attendee Name");
         if (errors.minutes) {
           const minuteFieldSet = new Set<string>();
           Object.values(errors.minutes).forEach((mErr: any) => {
-            if (mErr.issueSubject) minuteFieldSet.add('Subject');
-            if (mErr.raisedBy) minuteFieldSet.add('Raised By');
-            if (mErr.targetDate) minuteFieldSet.add('Target Date');
-            if (mErr.responsibility) minuteFieldSet.add('Responsibility');
+            if (mErr.issueSubject) minuteFieldSet.add("Subject");
+            if (mErr.raisedBy) minuteFieldSet.add("Raised By");
+            if (mErr.targetDate) minuteFieldSet.add("Target Date");
+            if (mErr.responsibility) minuteFieldSet.add("Responsibility");
           });
-          minuteFieldSet.forEach(f => missingFields.push(f));
+          minuteFieldSet.forEach((f) => missingFields.push(f));
         }
 
         Toast.show({
           type: "error",
           text1: "Please fill required fields",
-          text2: missingFields.join(', '),
+          text2: missingFields.join(", "),
           position: "bottom",
           visibilityTime: 4000,
         });
 
         // Auto-expand sections and switch tabs, then scroll
-        if (firstErrorLocation === 'meetingInfo' || firstErrorLocation === 'attendees') {
-          setActiveTab('attendees');
-          if (firstErrorLocation === 'meetingInfo') {
+        if (
+          firstErrorLocation === "meetingInfo" ||
+          firstErrorLocation === "attendees"
+        ) {
+          setActiveTab("attendees");
+          if (firstErrorLocation === "meetingInfo") {
             setShowMeetingInfo(true);
           }
-          if (firstErrorLocation === 'attendees') {
+          if (firstErrorLocation === "attendees") {
             setShowAttendeesSection(true);
             if (firstErrorAttendeeIdx !== null) {
-              setAttendees(prev => prev.map((a, i) => ({ ...a, isExpanded: i === firstErrorAttendeeIdx })));
+              setAttendees((prev) =>
+                prev.map((a, i) => ({
+                  ...a,
+                  isExpanded: i === firstErrorAttendeeIdx,
+                })),
+              );
             }
           }
-        } else if (firstErrorLocation === 'minutes') {
-          setActiveTab('minutes');
+        } else if (firstErrorLocation === "minutes") {
+          setActiveTab("minutes");
           setShowMinutesSection(true);
           if (firstErrorMinuteIdx !== null) {
-            setMinutes(prev => prev.map((m, i) => ({ ...m, isExpanded: i === firstErrorMinuteIdx })));
+            setMinutes((prev) =>
+              prev.map((m, i) => ({
+                ...m,
+                isExpanded: i === firstErrorMinuteIdx,
+              })),
+            );
           }
         }
 
@@ -1322,14 +1419,27 @@ const CreateMinutes = () => {
                     {/* Date / Time Row */}
                     <View className="flex-row gap-3">
                       <TouchableOpacity
-                        onPress={() => { setDatePickerVisibility(true); if (validationErrors.meetingDate) setValidationErrors(prev => ({ ...prev, meetingDate: false })); }}
+                        onPress={() => {
+                          setDatePickerVisibility(true);
+                          if (validationErrors.meetingDate)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingDate: false,
+                            }));
+                        }}
                         className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5`}
                         style={{
                           backgroundColor: validationErrors.meetingDate
-                            ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
-                            : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                            ? isDarkMode
+                              ? "#2A1A1A"
+                              : "#FFF5F5"
+                            : isDarkMode
+                              ? "#1A1A1A"
+                              : "#F0F3F7",
                           borderWidth: validationErrors.meetingDate ? 1 : 0,
-                          borderColor: validationErrors.meetingDate ? "#DF5B5B" : "transparent",
+                          borderColor: validationErrors.meetingDate
+                            ? "#DF5B5B"
+                            : "transparent",
                         }}
                       >
                         <Text
@@ -1360,20 +1470,37 @@ const CreateMinutes = () => {
                         onConfirm={(date) => {
                           setDatePickerVisibility(false);
                           setMeetingDate(date);
-                          if (validationErrors.meetingDate) setValidationErrors(prev => ({ ...prev, meetingDate: false }));
+                          if (validationErrors.meetingDate)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingDate: false,
+                            }));
                         }}
                         onCancel={() => setDatePickerVisibility(false)}
                       />
 
                       <TouchableOpacity
-                        onPress={() => { setTimePickerVisibility(true); if (validationErrors.meetingTime) setValidationErrors(prev => ({ ...prev, meetingTime: false })); }}
+                        onPress={() => {
+                          setTimePickerVisibility(true);
+                          if (validationErrors.meetingTime)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingTime: false,
+                            }));
+                        }}
                         className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5`}
                         style={{
                           backgroundColor: validationErrors.meetingTime
-                            ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
-                            : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                            ? isDarkMode
+                              ? "#2A1A1A"
+                              : "#FFF5F5"
+                            : isDarkMode
+                              ? "#1A1A1A"
+                              : "#F0F3F7",
                           borderWidth: validationErrors.meetingTime ? 1 : 0,
-                          borderColor: validationErrors.meetingTime ? "#DF5B5B" : "transparent",
+                          borderColor: validationErrors.meetingTime
+                            ? "#DF5B5B"
+                            : "transparent",
                         }}
                       >
                         <Text
@@ -1403,7 +1530,11 @@ const CreateMinutes = () => {
                           setTimePickerVisibility(false);
                           const formattedTime = moment(time).format("hh:mm A");
                           setMeetingTime(formattedTime);
-                          if (validationErrors.meetingTime) setValidationErrors(prev => ({ ...prev, meetingTime: false }));
+                          if (validationErrors.meetingTime)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingTime: false,
+                            }));
                         }}
                         onCancel={() => setTimePickerVisibility(false)}
                       />
@@ -1415,7 +1546,11 @@ const CreateMinutes = () => {
                       value={meetingVenue}
                       onChangeText={(val) => {
                         setMeetingVenue(val);
-                        if (validationErrors.meetingVenue && val.trim()) setValidationErrors(prev => ({ ...prev, meetingVenue: false }));
+                        if (validationErrors.meetingVenue && val.trim())
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            meetingVenue: false,
+                          }));
                       }}
                       className={`rounded-xl font-poppins px-4 py-3.5 text-[14px] ${
                         isDarkMode
@@ -1622,7 +1757,11 @@ const CreateMinutes = () => {
                 backdropOpacity={0.4}
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
-                style={{ margin: 0, justifyContent: "flex-end", alignItems: "center" }}
+                style={{
+                  margin: 0,
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}
               >
                 <View className="w-full items-center pb-10">
                   <View
@@ -1645,22 +1784,33 @@ const CreateMinutes = () => {
                       <Text
                         className={`text-[16px] font-poppinsSemiBold text-center ${isDarkMode ? "text-white" : "text-black"}`}
                       >
-                        {forwardedMinutes?.length || 0} Forwarded Minutes
+                        {forwardedMinutes?.length > 0
+                          ? `${forwardedMinutes.length} Forwarded Minutes`
+                          : "Forwarded Minutes"}
                       </Text>
                     </View>
 
                     {/* List or Empty State */}
                     {!forwardedMinutes || forwardedMinutes.length === 0 ? (
-                      <View className="justify-center items-center py-16">
-                        <HugeiconsIcon
-                          icon={Note01Icon}
-                          size={60}
-                          color={isDarkMode ? "#444" : "#ccc"}
+                      <View className="justify-center items-center py-10 pb-20">
+                        <ExpoImage
+                          source={
+                            isDarkMode
+                              ? require("../assets/images/forwardedMinutesDark.svg")
+                              : require("../assets/images/forwardedMinutesLight.svg")
+                          }
+                          style={{ width: 125, height: 125 }}
+                          contentFit="contain"
                         />
                         <Text
-                          className={`font-poppins text-center mt-4 text-base ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
+                          className={`font-dmBold text-center mt-4 text-xl ${isDarkMode ? "text-white" : "text-black"}`}
                         >
-                          No forwarded issues available.
+                          No forwarded minutes available
+                        </Text>
+                        <Text
+                          className={`font-poppins text-center mt-2 text-xs ${isDarkMode ? "text-white" : "text-black"}`}
+                        >
+                          Forwarded Minutes will appear here once available.
                         </Text>
                       </View>
                     ) : (
