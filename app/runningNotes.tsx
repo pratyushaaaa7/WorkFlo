@@ -14,7 +14,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as FileSystem from "expo-file-system";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import Modal from "react-native-modal";
 
@@ -484,14 +484,31 @@ const RunningNotes = () => {
     fetchUsers();
   }, [token, projectId]);
 
-  //Fetch Notes
-  const fetchNotes = async (cursor?: string | null) => {
+  useFocusEffect(
+    useCallback(() => {
+      // 🔄 Initial fetch on focus
+      fetchNotes();
+
+      // ⏱️ Start polling (Auto-refresh every 10 seconds)
+      const interval = setInterval(() => {
+        // console.log("🔄 Background Live Refresh for Running Notes...");
+        fetchNotes(null, true); // Pass a flag for silent refresh
+      }, 10000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }, [token, projectId]),
+  );
+
+  // Update fetchNotes to handle silent refreshes
+  const fetchNotes = async (cursor?: string | null, isSilent = false) => {
     if (!token || !projectId) return;
 
     const isInitial = !cursor;
-    if (isInitial) {
+    if (isInitial && !isSilent) {
       setInitialLoading(true);
-    } else {
+    } else if (!isInitial) {
       setIsLoadingMore(true);
     }
 
@@ -555,9 +572,7 @@ const RunningNotes = () => {
     }
   };
 
-  useEffect(() => {
-    fetchNotes();
-  }, [token, projectId]);
+  // Redundant fetch removed (handled by useFocusEffect)
 
   const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
     const dateKey = formatDate(note.createdAt);
