@@ -385,15 +385,12 @@ const ProjectMain = () => {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         {/* Header Project Image Background - Carousel */}
-        <View
-          style={{ height: height * 0.45, width: "100%", overflow: "hidden" }}
-        >
+        <View style={{ height: height * 0.45, width: "100%" }}>
           <ScrollView
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onScroll={hScrollHandler}
-            scrollEventThrottle={16}
           >
             {(project?.projectImages && project.projectImages.length > 0
               ? project.projectImages
@@ -432,18 +429,23 @@ const ProjectMain = () => {
             </TouchableOpacity> */}
           </View>
 
-          {/* Carousel Indicators (Dots) */}
-          <View className="absolute bottom-6 left-0 right-0 flex-row justify-center items-center gap-1.5">
+          {/* Indicator Dots - Matched with projectDetails */}
+          <View
+            className="absolute bottom-14 w-full flex-row justify-center space-x-2 gap-2"
+            style={{ zIndex: 60 }}
+          >
             {(project?.projectImages && project.projectImages.length > 0
               ? project.projectImages
               : PROJECT_IMAGES
             ).map((_, index) => (
               <View
                 key={index}
-                className={`h-1.5 rounded-full ${
+                className={`h-2 w-2 rounded-full ${
                   index === activeImageIndex
-                    ? "w-4 bg-white"
-                    : "w-1.5 bg-white/40"
+                    ? isDarkMode
+                      ? "bg-black"
+                      : "bg-white"
+                    : "bg-[#9CA3AF]"
                 }`}
               />
             ))}
