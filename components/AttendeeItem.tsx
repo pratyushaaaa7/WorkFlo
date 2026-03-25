@@ -23,13 +23,14 @@ interface AttendeeItemProps {
   isActive: boolean;
   expanded: boolean;
   onToggleExpand: (index: number) => void;
-  onUpdate: (index: number, field: string | object, value?: any) => void; // Updated signature
+  onUpdate: (index: number, field: string | object, value?: any) => void;
   onDelete: (index: number) => void;
   users: any[];
   onSearch?: (query: string) => void;
   showDelete: boolean;
   isDarkMode: boolean;
   getIndex: () => number | undefined;
+  fieldErrors?: { attendeeName?: boolean; organization?: boolean };
 }
 
 const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
@@ -41,10 +42,11 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
   onUpdate,
   onDelete,
   users,
-  onSearch, // Added search prop
+  onSearch,
   showDelete,
   isDarkMode,
-  getIndex
+  getIndex,
+  fieldErrors
 }, ref) => {
   const handleUpdate = (field: string | object, value?: any) => {
     const idx = getIndex();
@@ -176,11 +178,17 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
 
           <TextInput
             placeholder="Name *"
-            placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
             value={item.attendeeName}
             onChangeText={(val) => handleUpdate("attendeeName", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
-                isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+              isDarkMode
+                ? fieldErrors?.attendeeName
+                  ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                  : "bg-[#1A1A1A] text-white"
+                : fieldErrors?.attendeeName
+                  ? "bg-[#FFF5F5] text-gray-800 border border-[#DF5B5B]"
+                  : "bg-[#F0F3F7] text-gray-800"
               }`}
             style={{ color: isDarkMode ? "#fff" : "#111827" }}
           />

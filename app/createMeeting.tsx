@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -183,6 +183,20 @@ const CreateMinutes = () => {
 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+
+  // Validation errors state
+  type ValidationErrors = {
+    meetingDate?: boolean;
+    meetingTime?: boolean;
+    meetingVenue?: boolean;
+    attendees?: { [index: number]: { attendeeName?: boolean; organization?: boolean } };
+    minutes?: { [index: number]: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean } };
+  };
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const scrollRef = useRef<any>(null);
+  const meetingInfoRef = useRef<View>(null);
+  const attendeeSectionRef = useRef<View>(null);
+  const minuteSectionRef = useRef<View>(null);
 
   // Section Toggles
   const [showMeetingInfo, setShowMeetingInfo] = useState(true);
@@ -389,6 +403,20 @@ const CreateMinutes = () => {
           return { ...a, [field]: value };
         }),
       );
+
+      // Clear validation error for this field when it becomes valid
+      setValidationErrors((prev) => {
+        if (!prev.attendees?.[index]) return prev;
+        const updatedFields = typeof field === "object" ? field : { [field]: value };
+        const fieldErrors = { ...prev.attendees[index] };
+        if ((updatedFields as any).attendeeName?.trim()) delete fieldErrors.attendeeName;
+        if (typeof field === "string" && field === "attendeeName" && value?.trim()) delete fieldErrors.attendeeName;
+        if (Object.keys(fieldErrors).length === 0) {
+          const { [index]: _, ...rest } = prev.attendees!;
+          return { ...prev, attendees: Object.keys(rest).length > 0 ? rest : undefined };
+        }
+        return { ...prev, attendees: { ...prev.attendees, [index]: fieldErrors } };
+      });
     },
     [],
   );
@@ -429,6 +457,28 @@ const CreateMinutes = () => {
           return { ...m, [field]: value };
         }),
       );
+
+      // Clear validation error for this field when it becomes valid
+      setValidationErrors((prev) => {
+        if (!prev.minutes?.[index]) return prev;
+        const fieldErrors = { ...prev.minutes[index] };
+        if (typeof field === "string") {
+          if (field === "issueSubject" && value?.trim()) delete fieldErrors.issueSubject;
+          if (field === "raisedBy" && Array.isArray(value) && value.length > 0) delete fieldErrors.raisedBy;
+          if (field === "targetDate" && value) delete fieldErrors.targetDate;
+          if (field === "responsibility" && Array.isArray(value) && value.length > 0) delete fieldErrors.responsibility;
+        }
+        if (typeof field === "object") {
+          const obj = field as any;
+          if (obj.targetDateForInfo) delete fieldErrors.targetDate;
+          if (obj.responsibilityForInfo) delete fieldErrors.responsibility;
+        }
+        if (Object.keys(fieldErrors).length === 0) {
+          const { [index]: _, ...rest } = prev.minutes!;
+          return { ...prev, minutes: Object.keys(rest).length > 0 ? rest : undefined };
+        }
+        return { ...prev, minutes: { ...prev.minutes, [index]: fieldErrors } };
+      });
     },
     [],
   );
@@ -560,6 +610,7 @@ const CreateMinutes = () => {
 
   const renderAttendee = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
+      const idx = getIndex();
       return (
         <ScaleDecorator>
           <AttendeeItem
@@ -571,10 +622,11 @@ const CreateMinutes = () => {
             onUpdate={updateAttendee}
             onDelete={deleteAttendee}
             users={directoryUsers}
-            onSearch={handleSearchDirectory} // Pass the search handler
+            onSearch={handleSearchDirectory}
             showDelete={true}
             isDarkMode={isDarkMode}
             getIndex={getIndex}
+            fieldErrors={idx !== undefined ? validationErrors.attendees?.[idx] : undefined}
           />
         </ScaleDecorator>
       );
@@ -586,11 +638,13 @@ const CreateMinutes = () => {
       updateAttendee,
       deleteAttendee,
       handleSearchDirectory,
+      validationErrors,
     ],
   );
 
   const renderMinute = useCallback(
     ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
+      const idx = getIndex();
       return (
         <ScaleDecorator>
           <MinuteItem
@@ -608,6 +662,7 @@ const CreateMinutes = () => {
             onPickImage={handlePickImage}
             onDeleteImage={handleDeleteImage}
             getIndex={getIndex}
+            fieldErrors={idx !== undefined ? validationErrors.minutes?.[idx] : undefined}
           />
         </ScaleDecorator>
       );
@@ -621,6 +676,7 @@ const CreateMinutes = () => {
       openDatePicker,
       handlePickImage,
       handleDeleteImage,
+      validationErrors,
     ],
   );
 
@@ -802,52 +858,110 @@ const CreateMinutes = () => {
       if (type === "agenda") setIsAgendaSubmitting(true);
       else setIsMomSubmitting(true);
 
-      // ✅ Validation
-      if (type === "agenda") {
-        const invalid = minutes.some(
-          (m) => !m.issueSubject || m.raisedBy.length === 0,
-        );
-        if (invalid) {
-          Toast.show({
-            type: "error",
-            text1: "Issue Subject & Raised By are required for agenda",
-            position: "bottom",
-          });
-          return;
-        }
-      } else {
-        if (!meetingDate || !meetingTime || !meetingVenue) {
-          Toast.show({
-            type: "error",
-            text1: "Meeting info is required",
-            position: "bottom",
-          });
-          return;
-        }
+      // ✅ Validation with field-level error tracking
+      const errors: ValidationErrors = {};
+      let hasError = false;
+      let firstErrorLocation: 'meetingInfo' | 'attendees' | 'minutes' | null = null;
+      let firstErrorMinuteIdx: number | null = null;
+      let firstErrorAttendeeIdx: number | null = null;
+
+      if (type === "mom") {
+        // Meeting info validation
+        if (!meetingDate) { errors.meetingDate = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
+        if (!meetingTime) { errors.meetingTime = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
+        if (!meetingVenue) { errors.meetingVenue = true; hasError = true; if (!firstErrorLocation) firstErrorLocation = 'meetingInfo'; }
+
+        // Attendee validation
         if (attendees.length === 0) {
-          Toast.show({
-            type: "error",
-            text1: "Add at least one attendee",
-            position: "bottom",
+          hasError = true;
+          if (!firstErrorLocation) firstErrorLocation = 'attendees';
+        } else {
+          const attendeeErrors: ValidationErrors['attendees'] = {};
+          attendees.forEach((a, idx) => {
+            const fieldErrs: any = {};
+            if (!a.attendeeName?.trim()) { fieldErrs.attendeeName = true; hasError = true; }
+            if (Object.keys(fieldErrs).length > 0) {
+              attendeeErrors[idx] = fieldErrs;
+              if (!firstErrorLocation) { firstErrorLocation = 'attendees'; firstErrorAttendeeIdx = idx; }
+            }
           });
-          return;
-        }
-        const invalid = minutes.some(
-          (m) =>
-            !m.issueSubject ||
-            m.raisedBy.length === 0 ||
-            (!m.targetDate && !m.targetDateForInfo) ||
-            (m.responsibility.length === 0 && !m.responsibilityForInfo),
-        );
-        if (invalid) {
-          Toast.show({
-            type: "error",
-            text1: "All MOM fields are required",
-            position: "bottom",
-          });
-          return;
+          if (Object.keys(attendeeErrors).length > 0) errors.attendees = attendeeErrors;
         }
       }
+
+      // Minutes validation (for both agenda and MOM)
+      const minuteErrors: ValidationErrors['minutes'] = {};
+      minutes.forEach((m, idx) => {
+        const fieldErrs: any = {};
+        if (!m.issueSubject?.trim()) { fieldErrs.issueSubject = true; hasError = true; }
+        if (!m.raisedBy || m.raisedBy.length === 0) { fieldErrs.raisedBy = true; hasError = true; }
+        if (type === "mom") {
+          if (!m.targetDate && !m.targetDateForInfo) { fieldErrs.targetDate = true; hasError = true; }
+          if ((!m.responsibility || m.responsibility.length === 0) && !m.responsibilityForInfo) { fieldErrs.responsibility = true; hasError = true; }
+        }
+        if (Object.keys(fieldErrs).length > 0) {
+          minuteErrors[idx] = fieldErrs;
+          if (!firstErrorLocation) { firstErrorLocation = 'minutes'; firstErrorMinuteIdx = idx; }
+        }
+      });
+      if (Object.keys(minuteErrors).length > 0) errors.minutes = minuteErrors;
+
+      if (hasError) {
+        setValidationErrors(errors);
+
+        // Build descriptive error message
+        const missingFields: string[] = [];
+        if (errors.meetingDate || errors.meetingTime || errors.meetingVenue) missingFields.push('Meeting Info');
+        if (errors.attendees) missingFields.push('Attendee Name');
+        if (errors.minutes) {
+          const minuteFieldSet = new Set<string>();
+          Object.values(errors.minutes).forEach((mErr: any) => {
+            if (mErr.issueSubject) minuteFieldSet.add('Subject');
+            if (mErr.raisedBy) minuteFieldSet.add('Raised By');
+            if (mErr.targetDate) minuteFieldSet.add('Target Date');
+            if (mErr.responsibility) minuteFieldSet.add('Responsibility');
+          });
+          minuteFieldSet.forEach(f => missingFields.push(f));
+        }
+
+        Toast.show({
+          type: "error",
+          text1: "Please fill required fields",
+          text2: missingFields.join(', '),
+          position: "bottom",
+          visibilityTime: 4000,
+        });
+
+        // Auto-expand sections and switch tabs, then scroll
+        if (firstErrorLocation === 'meetingInfo' || firstErrorLocation === 'attendees') {
+          setActiveTab('attendees');
+          if (firstErrorLocation === 'meetingInfo') {
+            setShowMeetingInfo(true);
+          }
+          if (firstErrorLocation === 'attendees') {
+            setShowAttendeesSection(true);
+            if (firstErrorAttendeeIdx !== null) {
+              setAttendees(prev => prev.map((a, i) => ({ ...a, isExpanded: i === firstErrorAttendeeIdx })));
+            }
+          }
+        } else if (firstErrorLocation === 'minutes') {
+          setActiveTab('minutes');
+          setShowMinutesSection(true);
+          if (firstErrorMinuteIdx !== null) {
+            setMinutes(prev => prev.map((m, i) => ({ ...m, isExpanded: i === firstErrorMinuteIdx })));
+          }
+        }
+
+        // Scroll to top after tab switch to show errors
+        setTimeout(() => {
+          scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+        }, 300);
+
+        return;
+      }
+
+      // Clear errors on successful validation
+      setValidationErrors({});
 
       // ✅ Format attendees
       const formattedAttendees = attendees.map((a) => ({
@@ -1158,6 +1272,7 @@ const CreateMinutes = () => {
         </View>
 
         <NestableScrollContainer
+          ref={scrollRef}
           style={
             isDarkMode
               ? { backgroundColor: "#000" }
@@ -1191,7 +1306,7 @@ const CreateMinutes = () => {
                 </TouchableOpacity>
 
                 {showMeetingInfo && (
-                  <View className="px-4 py-2 gap-4">
+                  <View ref={meetingInfoRef} className="px-4 py-2 gap-4">
                     <TextInput
                       placeholder="Enter Title"
                       placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
@@ -1207,10 +1322,15 @@ const CreateMinutes = () => {
                     {/* Date / Time Row */}
                     <View className="flex-row gap-3">
                       <TouchableOpacity
-                        onPress={() => setDatePickerVisibility(true)}
-                        className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                          isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                        }`}
+                        onPress={() => { setDatePickerVisibility(true); if (validationErrors.meetingDate) setValidationErrors(prev => ({ ...prev, meetingDate: false })); }}
+                        className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5`}
+                        style={{
+                          backgroundColor: validationErrors.meetingDate
+                            ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                            : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                          borderWidth: validationErrors.meetingDate ? 1 : 0,
+                          borderColor: validationErrors.meetingDate ? "#DF5B5B" : "transparent",
+                        }}
                       >
                         <Text
                           className={`text-[14px] font-poppins ${
@@ -1219,13 +1339,13 @@ const CreateMinutes = () => {
                                 ? "text-white"
                                 : "text-gray-900"
                               : isDarkMode
-                                ? "text-[#6B7280]"
-                                : "text-[#9CA3AF]"
+                                ? "text-[#919191]"
+                                : "text-[#454545]"
                           }`}
                         >
                           {meetingDate
                             ? moment(meetingDate).format("DD-MM-YYYY")
-                            : "DD-MM-YYYY"}
+                            : "DD-MM-YYYY *"}
                         </Text>
                         <HugeiconsIcon
                           icon={Calendar04Icon}
@@ -1240,15 +1360,21 @@ const CreateMinutes = () => {
                         onConfirm={(date) => {
                           setDatePickerVisibility(false);
                           setMeetingDate(date);
+                          if (validationErrors.meetingDate) setValidationErrors(prev => ({ ...prev, meetingDate: false }));
                         }}
                         onCancel={() => setDatePickerVisibility(false)}
                       />
 
                       <TouchableOpacity
-                        onPress={() => setTimePickerVisibility(true)}
-                        className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-                          isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                        }`}
+                        onPress={() => { setTimePickerVisibility(true); if (validationErrors.meetingTime) setValidationErrors(prev => ({ ...prev, meetingTime: false })); }}
+                        className={`flex-1 flex-row items-center justify-between rounded-xl px-4 py-3.5`}
+                        style={{
+                          backgroundColor: validationErrors.meetingTime
+                            ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                            : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                          borderWidth: validationErrors.meetingTime ? 1 : 0,
+                          borderColor: validationErrors.meetingTime ? "#DF5B5B" : "transparent",
+                        }}
                       >
                         <Text
                           className={`text-[14px] font-poppins ${
@@ -1257,11 +1383,11 @@ const CreateMinutes = () => {
                                 ? "text-white"
                                 : "text-gray-900"
                               : isDarkMode
-                                ? "text-[#6B7280]"
-                                : "text-[#9CA3AF]"
+                                ? "text-[#919191]"
+                                : "text-[#454545]"
                           }`}
                         >
-                          {meetingTime || "00:00 AM"}
+                          {meetingTime || "00:00 AM *"}
                         </Text>
                         <HugeiconsIcon
                           icon={Clock01Icon}
@@ -1277,20 +1403,28 @@ const CreateMinutes = () => {
                           setTimePickerVisibility(false);
                           const formattedTime = moment(time).format("hh:mm A");
                           setMeetingTime(formattedTime);
+                          if (validationErrors.meetingTime) setValidationErrors(prev => ({ ...prev, meetingTime: false }));
                         }}
                         onCancel={() => setTimePickerVisibility(false)}
                       />
                     </View>
 
                     <TextInput
-                      placeholder="Enter Venue"
-                      placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                      placeholder="Enter Venue *"
+                      placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                       value={meetingVenue}
-                      onChangeText={setMeetingVenue}
+                      onChangeText={(val) => {
+                        setMeetingVenue(val);
+                        if (validationErrors.meetingVenue && val.trim()) setValidationErrors(prev => ({ ...prev, meetingVenue: false }));
+                      }}
                       className={`rounded-xl font-poppins px-4 py-3.5 text-[14px] ${
                         isDarkMode
-                          ? "bg-[#1A1A1A] text-white"
-                          : "bg-[#F0F3F7] text-gray-900"
+                          ? validationErrors.meetingVenue
+                            ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                            : "bg-[#1A1A1A] text-white"
+                          : validationErrors.meetingVenue
+                            ? "bg-[#FFF5F5] text-gray-900 border border-[#DF5B5B]"
+                            : "bg-[#F0F3F7] text-gray-900"
                       }`}
                     />
 

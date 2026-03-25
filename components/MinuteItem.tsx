@@ -36,6 +36,7 @@ interface MinuteItemProps {
   onPickImage: (index: number) => void;
   onDeleteImage: (index: number, uri: string) => void;
   getIndex: () => number | undefined;
+  fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean };
 }
 
 const MinuteItem = memo(
@@ -56,6 +57,7 @@ const MinuteItem = memo(
         onPickImage,
         onDeleteImage,
         getIndex,
+        fieldErrors,
       },
       ref,
     ) => {
@@ -140,7 +142,11 @@ const MinuteItem = memo(
                 height: 52,
                 borderRadius: 16,
                 paddingHorizontal: 16,
-                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                backgroundColor: fieldErrors?.raisedBy
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderWidth: fieldErrors?.raisedBy ? 1 : 0,
+                borderColor: fieldErrors?.raisedBy ? "#DF5B5B" : "transparent",
               }}
               placeholderStyle={{
                 fontSize: 14,
@@ -237,14 +243,24 @@ const MinuteItem = memo(
 
             <TextInput
               placeholder="Subject *"
-              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
               value={localSubject}
               onChangeText={setLocalSubject}
               onBlur={() => handleBlur("issueSubject", localSubject)}
               multiline
-              className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+              className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                isDarkMode
+                  ? (fieldErrors?.issueSubject && !localSubject?.trim())
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "text-white"
+                  : (fieldErrors?.issueSubject && !localSubject?.trim())
+                    ? "bg-[#FFF5F5] text-gray-800 border border-[#DF5B5B]"
+                    : "text-gray-800"
+              }`}
               style={{
-                backgroundColor: inputBgColor,
+                backgroundColor: (fieldErrors?.issueSubject && !localSubject?.trim())
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : inputBgColor,
                 color: isDarkMode ? "#fff" : "#111827",
               }}
             />
@@ -377,13 +393,15 @@ const MinuteItem = memo(
                 style={{
                   flex: 1,
                   opacity: item.targetDateForInfo ? 0.5 : 1,
-                  backgroundColor: inputBgColor,
+                  backgroundColor: fieldErrors?.targetDate
+                    ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                    : inputBgColor,
                   borderRadius: 12,
                   height: 48,
                   justifyContent: "center",
                   paddingHorizontal: 16,
-
-                  borderColor: isDarkMode ? "#333" : "#E0E5EB",
+                  borderWidth: fieldErrors?.targetDate ? 1 : 0,
+                  borderColor: fieldErrors?.targetDate ? "#DF5B5B" : isDarkMode ? "#333" : "#E0E5EB",
                 }}
                 disabled={item.targetDateForInfo}
               >
@@ -396,8 +414,8 @@ const MinuteItem = memo(
                         ? "#fff"
                         : "#111827"
                       : isDarkMode
-                        ? "#6B7280"
-                        : "#9CA3AF",
+                        ? "#919191"
+                        : "#454545",
                   }}
                 >
                   {item.targetDate
@@ -458,7 +476,11 @@ const MinuteItem = memo(
                     height: 52,
                     borderRadius: 16,
                     paddingHorizontal: 16,
-                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    backgroundColor: fieldErrors?.responsibility
+                      ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                      : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    borderWidth: fieldErrors?.responsibility ? 1 : 0,
+                    borderColor: fieldErrors?.responsibility ? "#DF5B5B" : "transparent",
                   }}
                   placeholderStyle={{
                     fontSize: 14,
