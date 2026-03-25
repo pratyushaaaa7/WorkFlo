@@ -667,6 +667,10 @@ const ReportForm: React.FC = () => {
         text2: "DPR PDF generated successfully.",
         position: "bottom",
       });
+
+      // Clear photos and navigate to DPRs page
+      clearPhotos(projectIdStr);
+      router.replace("/dprs");
     } catch (err: any) {
       console.error("Report generation error:", err);
       Alert.alert("Error", err?.message || "Something went wrong.");
@@ -963,8 +967,8 @@ const ReportForm: React.FC = () => {
                           : "border-transparent"
                       } ${
                         isDarkMode
-                          ? "bg-[#1A1A1A] text-white"
-                          : "bg-[#F0F3F7] text-black"
+                          ? "bg-[#0d0d0d] text-white"
+                          : "bg-[#FFFFFF] text-black"
                       }`}
                       style={{ minHeight: 80 }}
                     />
