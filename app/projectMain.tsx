@@ -755,58 +755,72 @@ const TabCard = React.memo(
         style={{
           width: ITEM_WIDTH,
           height: ITEM_WIDTH * 0.7,
-          backgroundColor: colors.cardBg,
-          borderRadius: 24,
           marginBottom: 12,
-          shadowColor: isDarkMode ? "#C9C9C9" : "#000000",
-          shadowOffset: { width: 0, height: 45 },
-          shadowOpacity: isDarkMode ? 0.05 : 0.25,
-          shadowRadius: 15,
-          elevation: 15,
+          // Wrapper Shadow (Soft Glow)
+          borderRadius: 20,
+          shadowColor: "#fff",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: isDarkMode ? 0.08 : 0.02,
+          shadowRadius: 25,
+          elevation: 8,
         }}
       >
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.8}
+        <View
           style={{
             flex: 1,
-            borderRadius: 24,
-            padding: 16,
-            overflow: "hidden", // Clip content here, not on the outer shadow-bearing view
+            backgroundColor: colors.cardBg,
+            borderRadius: 20,
+            // Card Shadow (Strong Bottom Shadow)
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.15,
+            shadowRadius: 15,
+            elevation: 20,
           }}
         >
-          <View className="flex-row justify-between items-start z-10">
-            <Text
-              className=" text-[14px] flex-1 mr-2 font-poppinsMedium"
-              style={{
-                color: colors.textPrimary,
-              }}
-            >
-              {label}
-            </Text>
-            <TouchableOpacity onPress={() => {}}>
-              <HugeiconsIcon
-                icon={InformationCircleIcon}
-                size={18}
-                color={isDarkMode ? "#919191" : "#454545"}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Improved Large Resource Rendering with expo-image */}
-          <View
-            className="absolute -bottom-3 -right-6 w-[100%] h-[100%]"
-            pointerEvents="none"
+          <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.8}
+            style={{
+              flex: 1,
+              borderRadius: 20,
+              padding: 16,
+              overflow: "hidden",
+            }}
           >
-            <Image
-              source={image}
-              style={{ width: "100%", height: "100%" }}
-              contentFit="contain"
-              transition={300}
-              cachePolicy="memory-disk"
-            />
-          </View>
-        </TouchableOpacity>
+            <View className="flex-row justify-between items-start z-10">
+              <Text
+                className=" text-[14px] flex-1 mr-2 font-poppinsMedium"
+                style={{
+                  color: colors.textPrimary,
+                }}
+              >
+                {label}
+              </Text>
+              <TouchableOpacity onPress={() => {}}>
+                <HugeiconsIcon
+                  icon={InformationCircleIcon}
+                  size={18}
+                  color={isDarkMode ? "#919191" : "#454545"}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Improved Large Resource Rendering with expo-image */}
+            <View
+              className="absolute -bottom-3 -right-6 w-[100%] h-[100%]"
+              pointerEvents="none"
+            >
+              <Image
+                source={image}
+                style={{ width: "100%", height: "100%" }}
+                contentFit="contain"
+                transition={300}
+                cachePolicy="memory-disk"
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   },
