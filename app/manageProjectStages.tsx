@@ -446,7 +446,7 @@ export default function ManageStages() {
 
       {/* Bottom Actions */}
       <View
-        className={`flex-row px-4 pt-4 border-t ${
+        className={`flex-row px-4 pt-4 ${
           isDarkMode
             ? "bg-black border-[#1A1A1A]"
             : "bg-[#FAFAFA] border-[#F0F3F7]"
@@ -461,11 +461,11 @@ export default function ManageStages() {
         >
           <Ionicons
             name="add-circle-outline"
-            size={22}
+            size={20}
             color={isDarkMode ? "#fff" : "#000"}
           />
           <Text
-            className={`ml-2 font-poppinsMedium text-[16px] ${
+            className={`ml-2 font-dm text-[16px] ${
               isDarkMode ? "text-white" : "text-black"
           }`}
           >
@@ -483,7 +483,7 @@ export default function ManageStages() {
             end={{ x: 1, y: 0 }}
             className="py-4 items-center justify-center"
           >
-            <Text className="text-white font-poppinsMedium text-[16px]">
+            <Text className="text-white font-dm text-[16px]">
               Save
             </Text>
           </LinearGradient>
