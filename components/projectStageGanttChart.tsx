@@ -82,12 +82,48 @@ const GanttChart: React.FC<Props> = ({ stages, stage }) => {
     [stages, displayMinDate]
   );
 
+  const today = new Date();
+  const todayOffset = useMemo(() => {
+    return daysBetween(displayMinDate, today) * DAY_WIDTH;
+  }, [displayMinDate]);
+
   if (!stages?.length || !validStages.length) return null;
 
   return (
     <View className="p-4 pt-4">
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
+        <View style={{ position: "relative" }} className="mt-2">
+          {/* Today Line Indicator */}
+          <View
+            style={{
+              position: "absolute",
+              left: 45 + todayOffset + 5, // 45 for Y-axis, 5 for visual padding
+              top: 0,
+              bottom: 50,
+              alignItems: "center",
+              zIndex: 10,
+            }}
+          >
+            {/* Kite/Diamond at top */}
+            <View
+              style={{
+                width: 10,
+                height: 10,
+                backgroundColor: "#EF4444",
+                transform: [{ rotate: "45deg" }],
+                marginTop: -2,
+              }}
+            />
+            {/* Red Line */}
+            <View
+              style={{
+                width: 1.5,
+                flex: 1,
+                backgroundColor: "#EF4444",
+              }}
+            />
+          </View>
+
           {/* Rows */}
           {computedStages.map((item, index) => {
             if (!item) return null;
