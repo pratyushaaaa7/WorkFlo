@@ -247,15 +247,9 @@ const ProjectStage: React.FC = () => {
                     })
                   }
                   className={`mb-3 p-4 rounded-[16px] flex-row justify-between items-center ${
-                    isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F6F8FA]"
                   }`}
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: isDarkMode ? 0 : 0.05,
-                    shadowRadius: 10,
-                    elevation: 2,
-                  }}
+                  
                 >
                   <View className="flex-1 mr-4">
                     <Text
@@ -305,16 +299,10 @@ const ProjectStage: React.FC = () => {
                     },
                   })
                 }
-                className={`mb-3 p-5 rounded-[16px] border border-transparent ${
-                  isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                className={`mb-3 p-5 rounded-[16px]  ${
+                  isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F6F8FA]"
                 }`}
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isDarkMode ? 0 : 0.05,
-                  shadowRadius: 10,
-                  elevation: 2,
-                }}
+               
               >
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-2">
@@ -385,7 +373,7 @@ const ProjectStage: React.FC = () => {
                 params: { projectId, projectName, company },
               })
             }
-            className="rounded-xl shadow-md w-full overflow-hidden"
+            className="rounded-xl  w-full overflow-hidden"
             activeOpacity={0.8}
           >
             <LinearGradient
