@@ -1,8 +1,9 @@
 import api from "@/lib/api";
 import {
   ArrowLeft01Icon,
-  Calendar03Icon,
+  Calendar04Icon,
   MoreHorizontalIcon,
+  Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker, {
@@ -21,6 +22,8 @@ import {
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import GanttChart from "../components/projectStageGanttChart";
 import { AuthContext } from "../context/AuthContext";
 
@@ -37,13 +40,13 @@ type Revision = {
   delayDays?: number;
 };
 
-const calculateDelay = (originalEnd?: string, end?: string) => {
-  if (!originalEnd || !end) return 0;
-  const diff = Math.ceil(
-    (new Date(end).getTime() - new Date(originalEnd).getTime()) /
-      (1000 * 60 * 60 * 24),
-  );
-  return diff > 0 ? diff : 0;
+const formatDateToDDMMYYYY = (dateStr?: string) => {
+  if (!dateStr) return "DD-MM-YYYY";
+  const date = new Date(dateStr);
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}-${m}-${y}`;
 };
 
 const StageDetail: React.FC = () => {
@@ -160,6 +163,15 @@ const StageDetail: React.FC = () => {
     });
   };
 
+  const handleRemove = (index: number) => {
+    setStages((prev) => {
+      const updated = [...(prev[stageId!] || [])];
+      // remove the item at index
+      updated.splice(index, 1);
+      return { ...prev, [stageId!]: updated };
+    });
+  };
+
   const canSave = (item: Revision) => {
     // must have at least something
     if (!item.start && !item.end && !item.remark) return false;
@@ -268,6 +280,7 @@ const StageDetail: React.FC = () => {
     }
   };
 
+  const insets = useSafeAreaInsets();
   const isDarkMode = useColorScheme() === "dark";
 
   return (
@@ -284,7 +297,7 @@ const StageDetail: React.FC = () => {
             color={isDarkMode ? "#fff" : "#000"}
           />
           <Text
-            className={`text-[20px] font-dmSemiBold ml-2 ${
+            className={`text-[18px] font-dmSemiBold ml-2 ${
               isDarkMode ? "text-white" : "text-black"
             }`}
           >
@@ -356,11 +369,11 @@ const StageDetail: React.FC = () => {
           <View
             key={index}
             className={`rounded-[24px] mb-5 overflow-hidden ${
-              isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+              isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
             }`}
           >
             {/* Revision Header */}
-            <View className="p-5 flex-row justify-between items-center">
+            <View className="pt-4 mb-4 px-4 pb-2 flex-row justify-between border-b dark:border-[#413E47] border-[#E0E5EB] items-center">
               <Text
                 className={`text-[16px] font-dmSemiBold ${
                   isDarkMode ? "text-white" : "text-black"
@@ -378,10 +391,10 @@ const StageDetail: React.FC = () => {
             </View>
 
             {/* Dates */}
-            <View className="px-5 flex-row justify-between gap-4">
+            <View className="px-4 flex-row justify-between gap-4">
               <View className="flex-1">
                 <Text
-                  className={`text-[14px] font-poppins mb-2 ${
+                  className={`text-[14px] font-poppinsMedium mb-2 ${
                     isDarkMode ? "text-white" : "text-black"
                   }`}
                 >
@@ -392,7 +405,7 @@ const StageDetail: React.FC = () => {
                     setPicker({ show: true, stageId, type: "start", index })
                   }
                   className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
-                    isDarkMode ? "bg-[#2D2D2D]" : "bg-[#F0F3F7]"
+                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                   }`}
                 >
                   <Text
@@ -400,19 +413,19 @@ const StageDetail: React.FC = () => {
                       isDarkMode ? "text-white" : "text-[#4B5563]"
                     }`}
                   >
-                    {stageItem.start ? stageItem.start : "DD-MM-YYYY"}
+                    {formatDateToDDMMYYYY(stageItem.start)}
                   </Text>
                   <HugeiconsIcon
-                    icon={Calendar03Icon}
+                    icon={Calendar04Icon}
                     size={20}
-                    color={isDarkMode ? "#fff" : "#6B7280"}
+                    color={isDarkMode ? "#bbb" : "#454545"}
                   />
                 </TouchableOpacity>
               </View>
 
               <View className="flex-1">
                 <Text
-                  className={`text-[14px] font-poppins mb-2 ${
+                  className={`text-[14px] font-poppinsMedium mb-2 ${
                     isDarkMode ? "text-white" : "text-black"
                   }`}
                 >
@@ -424,7 +437,7 @@ const StageDetail: React.FC = () => {
                     setPicker({ show: true, stageId, type: "end", index })
                   }
                   className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
-                    isDarkMode ? "bg-[#2D2D2D]" : "bg-[#F0F3F7]"
+                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                   }`}
                   style={{ opacity: !stageItem.start ? 0.5 : 1 }}
                 >
@@ -433,12 +446,12 @@ const StageDetail: React.FC = () => {
                       isDarkMode ? "text-white" : "#4B5563"
                     }`}
                   >
-                    {stageItem.end ? stageItem.end : "DD-MM-YYYY"}
+                    {formatDateToDDMMYYYY(stageItem.end)}
                   </Text>
                   <HugeiconsIcon
-                    icon={Calendar03Icon}
+                    icon={Calendar04Icon}
                     size={20}
-                    color={isDarkMode ? "#fff" : "#6B7280"}
+                    color={isDarkMode ? "#bbb" : "#454545"}
                   />
                 </TouchableOpacity>
               </View>
@@ -448,7 +461,7 @@ const StageDetail: React.FC = () => {
             <View className="p-5">
               <View className="flex-row justify-between items-center mb-2">
                 <Text
-                  className={`text-[14px] font-poppins ${
+                  className={`text-[14px] font-poppinsMedium ${
                     isDarkMode ? "text-white" : "text-black"
                   }`}
                 >
@@ -458,7 +471,7 @@ const StageDetail: React.FC = () => {
                 {stageItem.revisionNumber > 0 &&
                   stageItem.delayDays !== undefined &&
                   stageItem.delayDays > 0 && (
-                    <Text className="text-[#E11D48] text-[13px] font-poppinsMedium">
+                    <Text className="text-[#E11D48] text-[13px] font-poppins">
                       Delayed by {stageItem.delayDays} days
                     </Text>
                   )}
@@ -477,15 +490,33 @@ const StageDetail: React.FC = () => {
                 textAlignVertical="top"
                 className={`rounded-[12px] px-4 py-3 h-20 font-poppins text-[14px] ${
                   isDarkMode
-                    ? "bg-[#2D2D2D] text-white"
+                    ? "bg-[#1A1A1A] text-white"
                     : "bg-[#F0F3F7] text-black"
                 }`}
               />
             </View>
 
-            {/* Save Button */}
+            {/* Save & Remove Buttons */}
             {!stageItem.saved && (
-              <View className="px-5 pb-5 items-end">
+              <View className="px-5 pb-5 flex-row justify-between items-center">
+                <TouchableOpacity
+                  onPress={() => handleRemove(index)}
+                  className="px-0 py-3 flex-row items-center bg-transparent"
+                >
+                  <Ionicons
+                    name="remove-circle"
+                    size={20}
+                    color={isDarkMode ? "#FF6B6B" : "#EF4444"}
+                  />
+                  <Text
+                    className={`ml-2 text-[14px] font-poppins ${
+                      isDarkMode ? "text-[#FF6B6B]" : "text-[#EF4444]"
+                    }`}
+                  >
+                    Remove
+                  </Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   onPress={() => saveStage(index)}
                   disabled={!canSave(stageItem)}
@@ -505,25 +536,6 @@ const StageDetail: React.FC = () => {
             )}
           </View>
         ))}
-
-        {/* Add Revision Button */}
-        {stageData[stageData.length - 1]?.saved && (
-          <TouchableOpacity
-            onPress={() => addRevision(stageData.length - 1)}
-            className="rounded-[12px] overflow-hidden mt-2"
-          >
-            <LinearGradient
-              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="py-3 items-center"
-            >
-              <Text className="text-white font-poppinsMedium text-[14px]">
-                Add Revision
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
 
         {picker.show && (
           <DateTimePicker
@@ -547,6 +559,32 @@ const StageDetail: React.FC = () => {
           />
         )}
       </KeyboardAwareScrollView>
+
+      {/* Add Revision Button - Sticky at bottom */}
+      {stageData[stageData.length - 1]?.saved && (
+        <View
+          className={`px-4 pb-2 pt-2  ${
+            isDarkMode ? "bg-[#0D0D0D] border-[#1A1A1A]" : "bg-white border-[#F0F3F7]"
+          }`}
+          style={{ paddingBottom: Math.max(insets.bottom, 15) }}
+        >
+          <TouchableOpacity
+            onPress={() => addRevision(stageData.length - 1)}
+            className="rounded-[12px] overflow-hidden"
+          >
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-4 items-center"
+            >
+              <Text className="text-white font-dm text-[16px]">
+                Add Revision
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
