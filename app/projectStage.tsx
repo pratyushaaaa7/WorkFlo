@@ -6,10 +6,11 @@ import {
   ScrollView,
   ActivityIndicator,
   useColorScheme,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { AuthContext } from "../context/AuthContext"; // adjust path
 import api from "@/lib/api";
 import { Image } from "expo-image";
@@ -91,32 +92,45 @@ const ProjectStage: React.FC = () => {
 
   const [stages, setStages] = useState<ProjectStageType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStages = async (isSilent = false) => {
+    if (!projectId || !token) return;
+    try {
+      if (!isSilent) setLoading(true);
+
+      const res = await api.get(`/stages/${projectId}/stages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const fetchedStages = res.data.stages || [];
+      console.log("API stages:", fetchedStages);
+
+      setStages(fetchedStages);
+    } catch (err) {
+      console.error("Error fetching project stages:", err);
+      setStages([]);
+    } finally {
+      if (!isSilent) setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchStages(true);
+  };
 
   useEffect(() => {
-    if (!projectId || !token) return;
-
-    const fetchStages = async () => {
-      try {
-        setLoading(true);
-
-        const res = await api.get(`/stages/${projectId}/stages`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const fetchedStages = res.data.stages || [];
-        console.log("API stages:", fetchedStages); // ✅ correct
-
-        setStages(fetchedStages);
-      } catch (err) {
-        console.error("Error fetching project stages:", err);
-        setStages([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStages();
   }, [projectId, token]);
+
+  // Silent refresh when screen is focused (returning from ManageStage)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchStages(true); 
+    }, [projectId, token])
+  );
 
   return (
     <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}>
@@ -162,6 +176,14 @@ const ProjectStage: React.FC = () => {
           { padding: 12, paddingBottom: 40 },
           stages.length === 0 && !loading && { flex: 1 },
         ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#5B4CCC"]}
+            tintColor={isDarkMode ? "#fff" : "#5B4CCC"}
+          />
+        }
       >
         {/* Manage Stages button removed from here as it's now in the header icon */}
 
