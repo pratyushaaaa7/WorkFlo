@@ -313,18 +313,20 @@ const StageDetail: React.FC = () => {
             isDarkMode ? "bg-[#0D0D0D]" : "bg-white"
           }`}
         >
-          <View className="p-5 pb-0 flex-row justify-between items-center">
-            <Text
-              numberOfLines={1}
-              className={`text-[17px] font-dmSemiBold ${
-                isDarkMode ? "text-white" : "text-black"
-              }`}
-            >
-              Revision Timeline
-            </Text>
+          <View className="p-4 pb-0 flex-row items-center">
+            <View className="flex-1 mr-3">
+              <Text
+                numberOfLines={1}
+                className={`text-[17px] font-dmSemiBold ${
+                  isDarkMode ? "text-white" : "text-black"
+                }`}
+              >
+                Timeline
+              </Text>
+            </View>
             {stageData[0]?.start && stageData[0]?.end && (
               <View
-                className={`px-3 py-1 rounded-[8px] ${
+                className={`px-3 py-1 rounded-[8px] flex-shrink-0 ${
                   isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                 }`}
               >
