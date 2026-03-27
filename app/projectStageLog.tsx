@@ -485,26 +485,21 @@ const StageDetail: React.FC = () => {
 
             {/* Save Button */}
             {!stageItem.saved && (
-              <View className="px-5 pb-5">
+              <View className="px-5 pb-5 items-end">
                 <TouchableOpacity
                   onPress={() => saveStage(index)}
                   disabled={!canSave(stageItem)}
-                  className="rounded-[12px] overflow-hidden"
+                  className={`rounded-[12px] px-8 py-3 ${
+                    canSave(stageItem)
+                      ? isDarkMode
+                        ? "bg-[#1A1A1A]"
+                        : "bg-black"
+                      : "bg-gray-300"
+                  }`}
                 >
-                  <LinearGradient
-                    colors={
-                      canSave(stageItem)
-                        ? ["#5B4CCC", "#6347C2", "#8056D1"]
-                        : ["#E5E7EB", "#E5E7EB", "#E5E7EB"]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className="py-3 items-center"
-                  >
-                    <Text className="text-white font-poppinsMedium text-[14px]">
-                      Save
-                    </Text>
-                  </LinearGradient>
+                  <Text className="text-white font-poppinsMedium text-[14px]">
+                    Save
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}

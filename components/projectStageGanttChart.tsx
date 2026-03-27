@@ -185,22 +185,22 @@ const GanttChart: React.FC<Props> = ({ stages, stage }) => {
           })}
 
           {/* X-axis Labels */}
-          <View className="flex-row mt-6 justify-between px-10">
+          <View className="flex-row mt-4 justify-between px-10">
             <View style={{ width: 45 }} />
             {months.map((month, idx) => (
               <React.Fragment key={idx}>
                 {idx > 0 && (
                   <Text
-                    className={`mx-8 text-[14px] ${
-                      isDarkMode ? "text-gray-600" : "text-gray-300"
+                    className={`mx-8 text-[12px] ${
+                      isDarkMode ? "text-[#919191]" : "text-[#454545]"
                     }`}
                   >
                     |
                   </Text>
                 )}
                 <Text
-                  className={`text-[14px] font-poppinsMedium ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  className={`text-[12px] font-poppinsMedium ${
+                    isDarkMode ? "text-[#919191]" : "text-[#454545]"
                   }`}
                 >
                   {month.toLocaleDateString("en-GB", {
