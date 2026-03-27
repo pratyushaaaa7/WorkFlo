@@ -26,7 +26,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 
-type StageStatus = "not_started" | "in_progress" | "paused" | "completed";
+type StageStatus = "not_started" | "in_progress" | "paused" | "completed" | "overdue";
 
 type StageActivity = {
   status: StageStatus;
@@ -39,6 +39,11 @@ type ProjectStageType = {
   status: StageStatus;
   latestRemark?: string;
   history?: StageActivity[];
+  revisionCount?: number;
+  startedAt?: string;
+  endedAt?: string;
+  deadlineAt?: string;
+  daysInfo?: string; // Optional field for pre-calculated text
 };
 
 const ProjectStage: React.FC = () => {
@@ -49,18 +54,43 @@ const ProjectStage: React.FC = () => {
     company?: string;
   }>();
 
-  const statusColor: Record<string, string> = {
-    not_started: "bg-gray-400",
-    in_progress: "bg-blue-500",
-    paused: "bg-yellow-400",
-    completed: "bg-green-500",
+  const authContext = useContext(AuthContext);
+  const token = authContext?.token;
+  const isDarkMode = useColorScheme() === "dark";
+
+  const statusConfig: Record<
+    string,
+    { bg: string; text: string; label: string }
+  > = {
+    not_started: {
+      bg: isDarkMode ? "bg-[#2D2D2D]" : "bg-[#F1F3F5]",
+      text: "text-[#868E96]",
+      label: "Not Started",
+    },
+    in_progress: {
+      bg: isDarkMode ? "bg-[#1A2D3C]" : "bg-[#E7F5FF]",
+      text: "text-[#007AFF]",
+      label: "In progress",
+    },
+    completed: {
+      bg: isDarkMode ? "bg-[#1E3024]" : "bg-[#EBFBEE]",
+      text: "text-[#40C057]",
+      label: "Completed",
+    },
+    overdue: {
+      bg: isDarkMode ? "bg-[#342424]" : "bg-[#FFF5F5]",
+      text: "text-[#FA5252]",
+      label: "Overdue",
+    },
+    paused: {
+      bg: isDarkMode ? "bg-[#332B1A]" : "bg-[#FFF9DB]",
+      text: "text-[#FAB005]",
+      label: "Paused",
+    },
   };
 
   const [stages, setStages] = useState<ProjectStageType[]>([]);
   const [loading, setLoading] = useState(true);
-  const authContext = useContext(AuthContext);
-  const token = authContext?.token;
-  const isDarkMode = useColorScheme() === "dark";
 
   useEffect(() => {
     if (!projectId || !token) return;
@@ -172,6 +202,73 @@ const ProjectStage: React.FC = () => {
           </View>
         ) : (
           stages.map((stage, idx) => {
+            const config =
+              statusConfig[stage.status] || statusConfig.not_started;
+            const revCount = stage.revisionCount ?? 0;
+            const startStr = stage.startedAt ? `Started ${stage.startedAt}` : "Started --";
+            const infoText = stage.daysInfo || "";
+
+            // CARD TYPE A: No revisions yet -> Show "Add" button UI
+            if (revCount === 0) {
+              return (
+                <TouchableOpacity
+                  key={stage._id || idx}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/projectStageLog",
+                      params: {
+                        stageId: stage._id,
+                        projectId,
+                        stage: stage.title,
+                      },
+                    })
+                  }
+                  className={`mb-3 p-4 rounded-[16px] flex-row justify-between items-center ${
+                    isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                  }`}
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: isDarkMode ? 0 : 0.05,
+                    shadowRadius: 10,
+                    elevation: 2,
+                  }}
+                >
+                  <View className="flex-1 mr-4">
+                    <Text
+                      className={`text-[17px] font-dmMedium ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {stage.title}
+                    </Text>
+                    <Text
+                      className={`text-[13px] font-poppins mt-1 ${
+                        isDarkMode ? "text-[#919191]" : "text-[#6B6B6B]"
+                      }`}
+                    >
+                      Tap to add revision
+                    </Text>
+                  </View>
+
+                  <View className="rounded-[8px] overflow-hidden">
+                    <LinearGradient
+                      colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      className="px-6 py-2"
+                    >
+                      <Text className="text-white font-poppins text-[13px]">
+                        Add
+                      </Text>
+                    </LinearGradient>
+                  </View>
+                </TouchableOpacity>
+              );
+            }
+
+            // CARD TYPE B: Revisions exist -> Show detailed progress UI
             return (
               <TouchableOpacity
                 key={stage._id || idx}
@@ -186,38 +283,66 @@ const ProjectStage: React.FC = () => {
                     },
                   })
                 }
-                className={`mb-3 p-4 rounded-[16px] flex-row justify-between items-center ${
+                className={`mb-3 p-5 rounded-[16px] border border-transparent ${
                   isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
                 }`}
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDarkMode ? 0 : 0.05,
+                  shadowRadius: 10,
+                  elevation: 2,
+                }}
               >
-                <View className="flex-1 mr-4">
-                  <Text
-                    className={`text-[17px] font-dmMedium ${
-                      isDarkMode ? "text-white" : "text-black"
-                    }`}
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-2">
+                    <Text
+                      className={`text-[17px] font-dmBold ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {stage.title}
+                    </Text>
+                  </View>
+
+                  <View
+                    className={`px-3 py-1 rounded-full ${config.bg}`}
                   >
-                    {stage.title}
-                  </Text>
-                  <Text
-                    className={`text-[13px] font-poppins mt-1 ${
-                      isDarkMode ? "text-[#919191]" : "text-[#6B6B6B]"
-                    }`}
-                  >
-                    Tap to add revision
-                  </Text>
+                    <Text
+                      className={`text-[11px] font-poppinsMedium ${config.text}`}
+                    >
+                      {config.label}
+                    </Text>
+                  </View>
                 </View>
 
-                <View className="rounded-[8px] overflow-hidden">
-                  <LinearGradient
-                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className="px-6 py-2"
+                {/* Status-specific rows */}
+                <View className="mt-2">
+                  <Text
+                    className={`text-[13px] font-poppins ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
-                    <Text className="text-white font-poppins text-[13px]">
-                      Add
+                    {stage.status === "completed" 
+                      ? `Ended ${stage.endedAt || "--"}` 
+                      : startStr} • {revCount} Revisions
+                  </Text>
+                  
+                  {infoText ? (
+                    <Text
+                      className={`text-[13px] font-poppins mt-1 ${
+                        stage.status === "overdue" 
+                          ? "text-[#FA5252]" 
+                          : isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {infoText}
                     </Text>
-                  </LinearGradient>
+                  ) : (
+                     <Text className={`text-[13px] font-poppins mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        Started in {stage.startedAt || "--"}
+                    </Text>
+                  )}
                 </View>
               </TouchableOpacity>
             );
