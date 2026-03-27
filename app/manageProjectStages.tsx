@@ -13,6 +13,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from "react";
 import {
   Animated,
@@ -39,16 +40,22 @@ const CustomToggle = ({
   onValueChange: (val: boolean) => void;
 }) => {
   const isDarkMode = useColorScheme() === "dark";
-  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const [internalValue, setInternalValue] = useState(value);
+  
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  const animatedValue = useRef(new Animated.Value(internalValue ? 1 : 0)).current;
   const stretchValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: value ? 1 : 0,
-      duration: 200,
+    Animated.spring(animatedValue, {
+      toValue: internalValue ? 1 : 0,
+      bounciness: 12,
       useNativeDriver: true,
     }).start();
-  }, [value]);
+  }, [internalValue]);
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -78,20 +85,26 @@ const CustomToggle = ({
   const greenOpacity = animatedValue;
 
   const handlePressIn = () => {
-    Animated.timing(stretchValue, {
+    Animated.spring(stretchValue, {
       toValue: 1,
-      duration: 100,
+      bounciness: 10,
       useNativeDriver: true,
     }).start();
   };
 
   const handlePressOut = () => {
-    Animated.timing(stretchValue, {
+    Animated.spring(stretchValue, {
       toValue: 0,
-      duration: 100,
+      bounciness: 10,
       useNativeDriver: true,
     }).start();
-    onValueChange(!value);
+    
+    const newValue = !internalValue;
+    setInternalValue(newValue);
+    
+    setTimeout(() => {
+      onValueChange(newValue);
+    }, 500);
   };
 
   return (
@@ -466,11 +479,32 @@ export default function ManageStages() {
     }
   };
 
-  const filteredStages = stageList
-    .filter((s) => (tab === "unhide" ? s.selected : !s.selected))
-    .sort((a, b) => a.order - b.order);
+  const filteredStages = useMemo(() => {
+    return stageList
+      .filter((s) => (tab === "unhide" ? s.selected : !s.selected))
+      .sort((a, b) => a.order - b.order);
+  }, [stageList, tab]);
 
-  const unhideCount = stageList.filter((s) => s.selected).length;
+  const unhideCount = useMemo(() => {
+    return stageList.filter((s) => s.selected).length;
+  }, [stageList]);
+
+  const renderStageItem = useCallback(
+    ({ item, getIndex, drag, isActive }: any) => {
+      const index = getIndex() ?? 0;
+      return (
+        <StageItem
+          item={item}
+          index={index}
+          toggleStage={toggleStage}
+          drag={drag}
+          isActive={isActive}
+          isDarkMode={isDarkMode}
+        />
+      );
+    },
+    [toggleStage, isDarkMode]
+  );
 
   return (
     <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-[#FAFAFA]"}`}>
@@ -544,6 +578,12 @@ export default function ManageStages() {
         <DraggableFlatList
           data={filteredStages}
           keyExtractor={(item: Stage) => item.uiId}
+          containerStyle={{ flex: 1 }}
+          animationConfig={{ damping: 20, mass: 0.2, stiffness: 100, overshootClamping: false, restSpeedThreshold: 0.2, restDisplacementThreshold: 0.2 }}
+          windowSize={10}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          removeClippedSubviews={false}
           onDragEnd={({ data }) => {
             const updatedFiltered = data.map((item, i) => ({
               ...item,
@@ -558,19 +598,7 @@ export default function ManageStages() {
               );
             });
           }}
-          renderItem={({ item, getIndex, drag, isActive }) => {
-            const index = getIndex() ?? 0;
-            return (
-              <StageItem
-                item={item}
-                index={index}
-                toggleStage={toggleStage}
-                drag={drag}
-                isActive={isActive}
-                isDarkMode={isDarkMode}
-              />
-            );
-          }}
+          renderItem={renderStageItem}
         />
       </View>
 
