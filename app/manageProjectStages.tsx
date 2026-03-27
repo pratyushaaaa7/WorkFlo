@@ -261,7 +261,7 @@ export default function ManageStages() {
 
     const loadStages = async () => {
       try {
-        const response = await api.get(`/stages/${projectId}/stages`, {
+        const response = await api.get(`/stages/${projectId}/stages?all=true`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -273,7 +273,7 @@ export default function ManageStages() {
             _id: stage._id,
             name: stage.title,
             order: stage.order,
-            selected: true,
+            selected: stage.selected ?? true,
           }));
 
           setStageList(mapped.sort((a: Stage, b: Stage) => a.order - b.order));
@@ -363,13 +363,13 @@ export default function ManageStages() {
 
       {/* Segmented Control UI */}
       <View
-        className={`flex-row mx-4 mt-2 mb-4 p-1 rounded-[12px] ${
+        className={`flex-row mx-4 mt-2 mb-4 p-1 rounded-[8px] ${
           isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
         }`}
       >
         <TouchableOpacity
           onPress={() => setTab("unhide")}
-          className={`flex-1 py-3 rounded-[10px] items-center ${
+          className={`flex-1 py-3 rounded-[5px] items-center ${
             tab === "unhide"
               ? isDarkMode
                 ? "bg-[#000]"
@@ -378,12 +378,16 @@ export default function ManageStages() {
           }`}
         >
           <Text
-            className={`text-[15px] font-dmSemiBold ${
+            className={`text-[15px] ${
+              tab === "unhide" ? "font-poppinsMedium" : "font-poppins"
+            } ${
               tab === "unhide"
                 ? isDarkMode
                   ? "text-white"
                   : "text-black"
-                : "text-gray-500"
+                : isDarkMode
+                ? "text-[#BBBBBB]"
+                : "text-[#454545]"
             }`}
           >
             Unhide
@@ -391,7 +395,7 @@ export default function ManageStages() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setTab("hide")}
-          className={`flex-1 py-3 rounded-[10px] items-center ${
+          className={`flex-1 py-3 rounded-[5px] items-center ${
             tab === "hide"
               ? isDarkMode
                 ? "bg-[#000]"
@@ -400,12 +404,16 @@ export default function ManageStages() {
           }`}
         >
           <Text
-            className={`text-[15px] font-dmSemiBold ${
+            className={`text-[15px] ${
+              tab === "hide" ? "font-poppinsMedium" : "font-poppins"
+            } ${
               tab === "hide"
                 ? isDarkMode
                   ? "text-white"
                   : "text-black"
-                : "text-gray-500"
+                : isDarkMode
+                ? "text-[#BBBBBB]"
+                : "text-[#454545]"
             }`}
           >
             Hide
