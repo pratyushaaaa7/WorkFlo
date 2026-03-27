@@ -321,7 +321,7 @@ const SVRform = () => {
         <View className="pt-16 pb-6 px-4 flex-row items-center border-b border-transparent">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="p-2 -ml-2"
+            className="p-2 -ml-2 "
           >
             <Ionicons
               name="chevron-back"

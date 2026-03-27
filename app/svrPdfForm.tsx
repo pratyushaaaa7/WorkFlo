@@ -1071,7 +1071,7 @@ const SVRPhotoReport: React.FC = () => {
                   setIsPickerVisible(false);
                   setTimeout(takePhoto, 300);
                 }}
-                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-2 items-center "
+                className="flex-1 bg-[#FFF] dark:bg-[#000] rounded-[16px] py-2 items-center "
               >
                 <HugeiconsIcon
                   icon={Camera01Icon}
@@ -1088,7 +1088,7 @@ const SVRPhotoReport: React.FC = () => {
                   setIsPickerVisible(false);
                   setTimeout(pickImage, 300);
                 }}
-                className="flex-1 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-[16px] py-2 items-center"
+                className="flex-1 bg-[#FFF] dark:bg-[#000] rounded-[16px] py-2 items-center"
               >
                 <HugeiconsIcon
                   icon={Image03Icon}
