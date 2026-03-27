@@ -1,23 +1,28 @@
-import React, { useState, useContext, useEffect } from "react";
+import api from "@/lib/api";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Platform,
-  Alert,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+  ArrowLeft01Icon,
+  Calendar03Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Alert,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { AuthContext } from "../context/AuthContext";
 import GanttChart from "../components/projectStageGanttChart";
-import api from "@/lib/api";
+import { AuthContext } from "../context/AuthContext";
 
 type Revision = {
   revisionNumber: number;
@@ -30,14 +35,13 @@ type Revision = {
   updatedAt?: string;
   saved?: boolean;
   delayDays?: number;
-  daysDifference?: number; // ✅ new field from backend
 };
 
 const calculateDelay = (originalEnd?: string, end?: string) => {
   if (!originalEnd || !end) return 0;
   const diff = Math.ceil(
     (new Date(end).getTime() - new Date(originalEnd).getTime()) /
-      (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24),
   );
   return diff > 0 ? diff : 0;
 };
@@ -79,7 +83,7 @@ const StageDetail: React.FC = () => {
       return (
         Math.ceil(
           (new Date(data.end).getTime() - new Date(data.start).getTime()) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         ) + 1
       );
     }
@@ -133,12 +137,13 @@ const StageDetail: React.FC = () => {
   const handleRemarkChange = (
     stageKey: string,
     index: number,
-    text: string
+    text: string,
   ) => {
     setStages((prev) => {
       const updated = [...(prev[stageKey] || [])];
       while (updated.length <= index) {
         updated.push({
+          revisionNumber: updated.length,
           saved: false,
           createdBy: user?.username || "unknown",
         });
@@ -177,7 +182,7 @@ const StageDetail: React.FC = () => {
           `/stages/${projectId}/stages/${stageId}/revisions`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         console.log(res.data);
         const revisionsFromBackend: Revision[] = res.data.revisions.map(
@@ -192,7 +197,7 @@ const StageDetail: React.FC = () => {
             updatedAt: r.updatedAt,
             saved: true, // mark fetched revisions as saved
             delayDays: r.delayDays, // ✅ include this
-          })
+          }),
         );
 
         setStages((prev) => ({
@@ -236,7 +241,7 @@ const StageDetail: React.FC = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const savedRevision = res.data.revision;
@@ -258,29 +263,43 @@ const StageDetail: React.FC = () => {
 
       Alert.alert(
         "Save failed",
-        err?.response?.data?.message || "Something went wrong"
+        err?.response?.data?.message || "Something went wrong",
       );
     }
   };
 
-  return (
-    <View className="flex-1 bg-gray-100">
-      {/* Header */}
-      <LinearGradient colors={["#4F46E5", "#8B5CF6"]}>
-        <View className="pt-16 pb-6 px-4 flex-row items-center shadow-md">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="flex-row items-center"
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-            <Text className="text-xl font-semibold text-white ml-4">
-              {stage} Stage
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+  const isDarkMode = useColorScheme() === "dark";
 
-      <GanttChart stages={stageData} stage={stage ?? "Stage"} />
+  return (
+    <View className={`flex-1 ${isDarkMode ? "bg-black" : "bg-[#F3F4F6]"}`}>
+      {/* Header */}
+      <View className={`pt-16 pb-4 px-4 flex-row items-center justify-between`}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="flex-row items-center"
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+          <Text
+            className={`text-[20px] font-dmSemiBold ml-2 ${
+              isDarkMode ? "text-white" : "text-black"
+            }`}
+          >
+            {stage} Stage
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <HugeiconsIcon
+            icon={MoreHorizontalIcon}
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+        </TouchableOpacity>
+      </View>
 
       <KeyboardAwareScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
@@ -288,148 +307,224 @@ const StageDetail: React.FC = () => {
         extraScrollHeight={120}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Revision Timeline Card */}
+        <View
+          className={`rounded-[24px] mb-6 overflow-hidden ${
+            isDarkMode ? "bg-[#0D0D0D]" : "bg-white"
+          }`}
+        >
+          <View className="p-5 pb-0 flex-row justify-between items-center">
+            <Text
+              numberOfLines={1}
+              className={`text-[17px] font-dmSemiBold ${
+                isDarkMode ? "text-white" : "text-black"
+              }`}
+            >
+              Revision Timeline
+            </Text>
+            {stageData[0]?.start && stageData[0]?.end && (
+              <View
+                className={`px-3 py-1 rounded-[8px] ${
+                  isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                }`}
+              >
+                <Text
+                  className={`text-[12px] font-poppins ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  {new Date(stageData[0].start).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}{" "}
+                  &gt;{" "}
+                  {new Date(stageData[0].end).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </View>
+            )}
+          </View>
+          <GanttChart stages={stageData} stage={stage ?? "Stage"} />
+        </View>
         {stageData.map((stageItem, index) => (
           <View
             key={index}
-            className="bg-white rounded-2xl shadow-md mb-5 border border-gray-100 overflow-hidden"
+            className={`rounded-[24px] mb-5 overflow-hidden ${
+              isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+            }`}
           >
             {/* Revision Header */}
-            <View className="p-4 border-b border-gray-200 flex-row justify-between items-center">
-              <Text className="text-gray-700 font-semibold text-sm">
+            <View className="p-5 flex-row justify-between items-center">
+              <Text
+                className={`text-[16px] font-dmSemiBold ${
+                  isDarkMode ? "text-white" : "text-black"
+                }`}
+              >
                 Revision {stageItem.revisionNumber || 0}
               </Text>
-              <Text className="text-gray-500 text-xs">
-                Duration: {getDuration(stageItem)} day(s)
+              <Text
+                className={`text-[14px] font-poppins ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                Duration {getDuration(stageItem) || 0} days
               </Text>
             </View>
 
             {/* Dates */}
-            <View className="p-4 flex-row justify-between gap-3">
+            <View className="px-5 flex-row justify-between gap-4">
               <View className="flex-1">
-                <Text className="text-gray-600 mb-1 text-sm">Start Date</Text>
+                <Text
+                  className={`text-[14px] font-poppins mb-2 ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  Start Date
+                </Text>
                 <TouchableOpacity
                   onPress={() =>
                     setPicker({ show: true, stageId, type: "start", index })
                   }
-                  className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
-                    stageItem.start ? "bg-gray-100" : "bg-white"
+                  className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
+                    isDarkMode ? "bg-[#2D2D2D]" : "bg-[#F0F3F7]"
                   }`}
                 >
-                  <MaterialCommunityIcons
-                    name="calendar-start"
-                    size={20}
-                    color="#6B7280"
-                  />
-                  <Text className="ml-2 text-gray-700 text-sm">
-                    {stageItem.start
-                      ? new Date(stageItem.start).toDateString()
-                      : "Select"}
+                  <Text
+                    className={`text-[14px] font-poppins ${
+                      isDarkMode ? "text-white" : "text-[#4B5563]"
+                    }`}
+                  >
+                    {stageItem.start ? stageItem.start : "DD-MM-YYYY"}
                   </Text>
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={20}
+                    color={isDarkMode ? "#fff" : "#6B7280"}
+                  />
                 </TouchableOpacity>
               </View>
 
               <View className="flex-1">
-                <Text className="text-gray-600 mb-1 text-sm">End Date</Text>
+                <Text
+                  className={`text-[14px] font-poppins mb-2 ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  End Date
+                </Text>
                 <TouchableOpacity
                   disabled={!stageItem.start}
                   onPress={() =>
                     setPicker({ show: true, stageId, type: "end", index })
                   }
-                  className={`border border-gray-200 rounded-xl px-3 py-2 flex-row items-center ${
-                    stageItem.end
-                      ? "bg-gray-100"
-                      : stageItem.start
-                      ? "bg-white"
-                      : "bg-gray-100 opacity-50"
+                  className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
+                    isDarkMode ? "bg-[#2D2D2D]" : "bg-[#F0F3F7]"
                   }`}
+                  style={{ opacity: !stageItem.start ? 0.5 : 1 }}
                 >
-                  <MaterialCommunityIcons
-                    name="calendar-end"
-                    size={20}
-                    color="#6B7280"
-                  />
-                  <Text className="ml-2 text-gray-700 text-sm">
-                    {stageItem.end
-                      ? new Date(stageItem.end).toDateString()
-                      : "Select"}
+                  <Text
+                    className={`text-[14px] font-poppins ${
+                      isDarkMode ? "text-white" : "#4B5563"
+                    }`}
+                  >
+                    {stageItem.end ? stageItem.end : "DD-MM-YYYY"}
                   </Text>
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={20}
+                    color={isDarkMode ? "#fff" : "#6B7280"}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Delay Calculation */}
-            {stageItem.revisionNumber > 0 &&
-              stageItem.delayDays !== undefined && (
-                <View className="px-4 pb-2">
-                  <Text
-                    className={`text-sm ${
-                      stageItem.delayDays > 0
-                        ? "text-red-500"
-                        : stageItem.delayDays < 0
-                        ? "text-green-500"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {stageItem.delayDays > 0
-                      ? `Delayed by ${stageItem.delayDays} day(s)`
-                      : stageItem.delayDays < 0
-                      ? `Completed ${Math.abs(
-                          stageItem.delayDays
-                        )} day(s) early`
-                      : "Completed on time"}
-                  </Text>
-                </View>
-              )}
+            {/* Remark / Reason and Delay */}
+            <View className="p-5">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text
+                  className={`text-[14px] font-poppins ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  {stageItem.revisionNumber ? "Reason for Revision" : "Remark"}
+                </Text>
 
-            {/* Remark / Reason */}
-            <View className="px-4 pb-4">
-              <Text className="text-gray-600 mb-1 text-sm">
-                {stageItem.revisionNumber ? "Reason for Revision" : "Remark"}
-              </Text>
+                {stageItem.revisionNumber > 0 &&
+                  stageItem.delayDays !== undefined &&
+                  stageItem.delayDays > 0 && (
+                    <Text className="text-[#E11D48] text-[13px] font-poppinsMedium">
+                      Delayed by {stageItem.delayDays} days
+                    </Text>
+                  )}
+              </View>
+
               <TextInput
-                editable={!stageItem.saved} // 👈 KEY LINE
+                editable={!stageItem.saved}
                 showSoftInputOnFocus={!stageItem.saved}
                 multiline
                 value={stageItem.remark || ""}
                 onChangeText={(text) =>
                   handleRemarkChange(stageId!, index, text)
                 }
-                placeholder={
-                  stageItem.revisionNumber
-                    ? "Why revision happened..."
-                    : "Add remark..."
-                }
-                placeholderTextColor="#9CA3AF"
+                placeholder={stageItem.revisionNumber ? "Reason" : "Remark"}
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
                 textAlignVertical="top"
-                className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
+                className={`rounded-[12px] px-4 py-3 h-20 font-poppins text-[14px] ${
+                  isDarkMode
+                    ? "bg-[#2D2D2D] text-white"
+                    : "bg-[#F0F3F7] text-black"
+                }`}
               />
             </View>
 
-            {/* Save / Add Revision */}
-            <View className="px-4 pb-4 flex-row gap-2">
-              {!stageItem.saved && (
+            {/* Save Button */}
+            {!stageItem.saved && (
+              <View className="px-5 pb-5">
                 <TouchableOpacity
                   onPress={() => saveStage(index)}
                   disabled={!canSave(stageItem)}
-                  className={`flex-1 py-3 rounded-xl items-center ${
-                    canSave(stageItem) ? "bg-indigo-500" : "bg-gray-300"
-                  }`}
+                  className="rounded-[12px] overflow-hidden"
                 >
-                  <Text className="text-white font-semibold text-sm">Save</Text>
+                  <LinearGradient
+                    colors={
+                      canSave(stageItem)
+                        ? ["#5B4CCC", "#6347C2", "#8056D1"]
+                        : ["#E5E7EB", "#E5E7EB", "#E5E7EB"]
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    className="py-3 items-center"
+                  >
+                    <Text className="text-white font-poppinsMedium text-[14px]">
+                      Save
+                    </Text>
+                  </LinearGradient>
                 </TouchableOpacity>
-              )}
-            </View>
+              </View>
+            )}
           </View>
         ))}
-        {/* Add Revision button - only if revision 0 exists and is saved */}
-        {stageData[0]?.saved && (
+
+        {/* Add Revision Button */}
+        {stageData[stageData.length - 1]?.saved && (
           <TouchableOpacity
             onPress={() => addRevision(stageData.length - 1)}
-            className="flex-1 py-3 rounded-xl items-center bg-green-500"
+            className="rounded-[12px] overflow-hidden mt-2"
           >
-            <Text className="text-white font-semibold text-sm">
-              Add Revision
-            </Text>
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              className="py-3 items-center"
+            >
+              <Text className="text-white font-poppinsMedium text-[14px]">
+                Add Revision
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
 
@@ -441,8 +536,8 @@ const StageDetail: React.FC = () => {
                   ? new Date(stageData[picker.index ?? 0]!.start!)
                   : new Date()
                 : stageData[picker.index ?? 0]?.end
-                ? new Date(stageData[picker.index ?? 0]!.end!)
-                : new Date()
+                  ? new Date(stageData[picker.index ?? 0]!.end!)
+                  : new Date()
             }
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}

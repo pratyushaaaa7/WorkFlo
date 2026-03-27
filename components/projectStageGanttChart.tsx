@@ -1,11 +1,10 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, useColorScheme } from "react-native";
 
 type StageItem = {
   start?: string;
   end?: string;
   revisionNumber?: number;
-   daysDifference?: number; // ✅ new field
 };
 
 type Props = {
@@ -13,196 +12,167 @@ type Props = {
   stage: string;
 };
 
-const BAR_HEIGHT = 24;
-
-// 📉 Timeline scale
-const MONTH_WIDTH = 90; // 1/4th month width
+const BAR_HEIGHT = 16;
+const MONTH_WIDTH = 120;
 const DAYS_IN_MONTH = 30;
 const DAY_WIDTH = MONTH_WIDTH / DAYS_IN_MONTH;
 
-const MIN_TEXT_WIDTH = 90;
-
-// 🎨 Single bar color
-const BAR_COLOR = "#4F46E5";
-
-const daysBetween = (start: Date, end: Date) =>
-  Math.max(
-    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
-    1
-  );
-
-const formatDate = (date: Date) => {
-  const d = date.getDate().toString().padStart(2, "0");
-  const m = (date.getMonth() + 1).toString().padStart(2, "0");
-  const y = date.getFullYear();
-  return `${d}-${m}-${y}`;
-};
-
-// Month helpers
-const startOfMonth = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), 1);
-
-const addMonths = (date: Date, count: number) =>
-  new Date(date.getFullYear(), date.getMonth() + count, 1);
-
-const formatMonth = (date: Date) =>
-  date.toLocaleString("en-IN", { month: "short", year: "numeric" });
-
 const GanttChart: React.FC<Props> = ({ stages, stage }) => {
-  if (!stages?.length) return null;
+  const isDarkMode = useColorScheme() === "dark";
 
-  const validStages = stages.filter((s) => s.start && s.end);
-  if (!validStages.length) return null;
-
-  const minDate = new Date(
-    Math.min(...validStages.map((s) => new Date(s.start!).getTime()))
-  );
-  const maxDate = new Date(
-    Math.max(...validStages.map((s) => new Date(s.end!).getTime()))
+  const validStages = useMemo(
+    () => (stages || []).filter((s) => s.start && s.end),
+    [stages]
   );
 
-  // Months
-  const months: Date[] = [];
-  let cursor = startOfMonth(minDate);
-  while (cursor <= maxDate) {
-    months.push(new Date(cursor));
-    cursor = addMonths(cursor, 1);
-  }
+  const { displayMinDate, months } = useMemo(() => {
+    if (!validStages.length) {
+      return { displayMinDate: new Date(), months: [] };
+    }
 
-  const totalDays = daysBetween(minDate, maxDate);
+    const minDate = new Date(
+      Math.min(...validStages.map((s) => new Date(s.start!).getTime()))
+    );
+    const maxDate = new Date(
+      Math.max(...validStages.map((s) => new Date(s.end!).getTime()))
+    );
 
-  // Today indicator
-  const today = new Date();
-  const todayOffset =
-    today >= minDate && today <= maxDate
-      ? daysBetween(minDate, today) * DAY_WIDTH
-      : null;
+    const dMin = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const dMax = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
 
-  // Pre-calc bars
+    const mList: Date[] = [];
+    let cursor = new Date(dMin);
+    while (cursor <= dMax) {
+      mList.push(new Date(cursor));
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    return { displayMinDate: dMin, months: mList };
+  }, [validStages]);
+
+  const daysBetween = (start: Date, end: Date) =>
+    Math.max(
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
+      0
+    );
+
+  const formatDate = (date: Date) => {
+    const d = date.getDate();
+    const m = date.toLocaleDateString("en-GB", { month: "short" });
+    const y = date.getFullYear();
+    return `${d} ${m}, ${y}`;
+  };
+
   const computedStages = useMemo(
     () =>
-      validStages.map((item) => {
-        const start = new Date(item.start!);
-        const end = new Date(item.end!);
+      stages.map((item) => {
+        if (!item.start || !item.end) return null;
+        const start = new Date(item.start);
+        const end = new Date(item.end);
+        const width = Math.max(daysBetween(start, end) * DAY_WIDTH, 60);
 
         return {
           ...item,
           start,
           end,
-          offset: daysBetween(minDate, start) * DAY_WIDTH,
-          width: daysBetween(start, end) * DAY_WIDTH,
+          offset: daysBetween(displayMinDate, start) * DAY_WIDTH,
+          width,
         };
       }),
-    [validStages]
+    [stages, displayMinDate]
   );
 
+  if (!stages?.length || !validStages.length) return null;
+
   return (
-    <View className="bg-white mx-4 my-4 p-4 rounded-2xl shadow-md">
-      <Text className="font-semibold text-gray-800 mb-3">
-        {stage} - Timeline
-      </Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator>
+    <View className="p-4 pt-4">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View>
-          {/* Weekly grid lines */}
-          {Array.from({ length: Math.ceil(totalDays / 7) }).map((_, i) => (
-            <View
-              key={i}
-              style={{
-                position: "absolute",
-                left: 50 + i * 7 * DAY_WIDTH,
-                top: 0,
-                bottom: 40,
-                width: 1,
-                backgroundColor: "#E5E7EB",
-              }}
-            />
-          ))}
-
-          {/* Today line */}
-          {todayOffset !== null && (
-            <View
-              style={{
-                position: "absolute",
-                left: 50 + todayOffset,
-                top: 0,
-                bottom: 40,
-                width: 2,
-                backgroundColor: "#EF4444",
-              }}
-            />
-          )}
-
-          {/* Bars */}
+          {/* Rows */}
           {computedStages.map((item, index) => {
-            const showInsideText = item.width >= MIN_TEXT_WIDTH;
-
+            if (!item) return null;
+            const showInside = item.width > 120;
             return (
               <View
                 key={index}
-                className="flex-row items-center"
-                style={{ height: BAR_HEIGHT + 14, marginTop: 8 }}
+                className="flex-row items-center mb-1"
+                style={{ height: 44 }}
               >
-                {/* Y-axis */}
-                <View style={{ width: 50, alignItems: "center" }}>
-                  <Text className="text-sm text-gray-700">
+                {/* Y-axis Label */}
+                <View style={{ width: 45 }}>
+                  <Text
+                    className={`text-[14px] font-dmSemiBold ${
+                      isDarkMode ? "text-white" : "text-black"
+                    }`}
+                  >
                     R{item.revisionNumber ?? 0}
                   </Text>
                 </View>
 
-                {/* Bar */}
-                <View style={{ marginLeft: item.offset }}>
-                  {!showInsideText && (
-                    <Text className="text-[10px] text-gray-600 mb-1">
-                      {formatDate(item.start)} - {formatDate(item.end)}
-                    </Text>
-                  )}
-
+                {/* Track Background */}
+                <View
+                  className={`flex-row items-center rounded-[8px] h-[36px] ${
+                    isDarkMode ? "bg-[#151515]" : "bg-[#F0F3F7]"
+                  }`}
+                  style={{ width: months.length * MONTH_WIDTH }}
+                >
+                  {/* Bar */}
                   <View
+                    className="bg-[#5B4CCC] h-[34px] rounded-[8px] justify-center px-2"
                     style={{
+                      marginLeft: item.offset + 5, // small buffer for visual padding within track
                       width: item.width,
-                      height: BAR_HEIGHT,
-                      backgroundColor: BAR_COLOR,
-                      borderRadius: 6,
-                      justifyContent: "center",
-                      alignItems: "center",
                     }}
                   >
-                    {showInsideText && (
+                    {showInside && (
                       <Text
                         numberOfLines={1}
-                        ellipsizeMode="tail"
-                        className="text-white text-[10px]"
+                        className="text-white text-[11px] font-poppinsMedium text-center"
                       >
-                        {formatDate(item.start)} - {formatDate(item.end)}
+                        {formatDate(item.start)} | {formatDate(item.end)}
                       </Text>
                     )}
-
-                    
                   </View>
+
+                  {!showInside && (
+                    <Text
+                      className={`ml-3 text-[11px] font-poppins ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {formatDate(item.start)} | {formatDate(item.end)}
+                    </Text>
+                  )}
                 </View>
               </View>
             );
           })}
 
-          {/* X-axis Months */}
-          <View className="flex-row mt-4">
-            <View style={{ width: 50 }} />
+          {/* X-axis Labels */}
+          <View className="flex-row mt-6 justify-between px-10">
+            <View style={{ width: 45 }} />
             {months.map((month, idx) => (
-              <View
-                key={idx}
-                style={{
-                  width: MONTH_WIDTH,
-                  alignItems: "center",
-                  borderRightWidth: 1,
-                  borderColor: "#E5E7EB",
-                  paddingVertical: 6,
-                }}
-              >
-                <Text className="text-xs text-gray-600 font-medium">
-                  {formatMonth(month)}
+              <React.Fragment key={idx}>
+                {idx > 0 && (
+                  <Text
+                    className={`mx-8 text-[14px] ${
+                      isDarkMode ? "text-gray-600" : "text-gray-300"
+                    }`}
+                  >
+                    |
+                  </Text>
+                )}
+                <Text
+                  className={`text-[14px] font-poppinsMedium ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {month.toLocaleDateString("en-GB", {
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </Text>
-              </View>
+              </React.Fragment>
             ))}
           </View>
         </View>
