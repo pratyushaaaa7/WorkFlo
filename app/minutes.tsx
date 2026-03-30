@@ -5,6 +5,7 @@ import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
   DashedLineCircleIcon,
+  CircleArrowUpRightIcon,
   Delete03Icon,
   Location01Icon,
   Search01Icon,
@@ -73,16 +74,21 @@ const Minutes = () => {
     async (background = false, pageNum = 1) => {
       try {
         if (!background && pageNum === 1) setLoading(true);
-        const res = await api.get(`/minutes/project/${projectId}?page=${pageNum}&limit=15`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get(
+          `/minutes/project/${projectId}?page=${pageNum}&limit=15`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         const fetchedData = Array.isArray(res.data) ? res.data : [];
         if (fetchedData.length < 15) {
           setHasMore(false);
         } else {
           setHasMore(true);
         }
-        setMeetings(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
+        setMeetings((prev) =>
+          pageNum === 1 ? fetchedData : [...prev, ...fetchedData],
+        );
       } catch (err) {
         console.error("Failed to fetch meetings", err);
       } finally {
@@ -195,7 +201,10 @@ const Minutes = () => {
     } catch (err: any) {
       setFocusedMeeting(null);
       console.error("Share failed", err);
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Please try again later.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Please try again later.";
       Toast.show({
         type: "error",
         text1: "Share failed",
@@ -209,8 +218,11 @@ const Minutes = () => {
 
   const filteredMeetings = meetings.filter((m) => {
     const mProj = String(m.projectId?._id || m.projectId);
-    const matchesTab = activeTab === "Shared" ? mProj !== String(projectId) : mProj === String(projectId);
-    
+    const matchesTab =
+      activeTab === "Shared"
+        ? mProj !== String(projectId)
+        : mProj === String(projectId);
+
     if (!matchesTab) return false;
 
     if (searchQuery.trim()) {
@@ -231,10 +243,19 @@ const Minutes = () => {
     meeting: any;
     isFocused?: boolean;
   }) => {
-    const total = meeting.totalMinutes || 0;
-    const open = meeting.openCount || 0;
-    const progress = total > 0 ? ((total - open) / total) * 100 : 0;
-    const progressText = total > 0 ? `${total - open}/${total}` : "0/0";
+    const open =
+      meeting.minutes?.filter((m: any) => m.status === "open").length || 0;
+    const closed =
+      meeting.minutes?.filter((m: any) => m.status === "closed").length || 0;
+    const forInfo =
+      meeting.minutes?.filter((m: any) => m.status === "forInfo").length || 0;
+    const total = meeting.minutes?.length || 0;
+    const forwarded =
+      meeting.minutes?.filter((m: any) => m.status === "forwarded").length || 0;
+
+    const openPerc = total > 0 ? (open / total) * 100 : 0;
+    const closedPerc = total > 0 ? (closed / total) * 100 : 0;
+    const forInfoPerc = total > 0 ? (forInfo / total) * 100 : 0;
 
     const dateStr = isValid(new Date(meeting.meetingDate))
       ? format(new Date(meeting.meetingDate), "dd MMM yyyy")
@@ -293,61 +314,76 @@ const Minutes = () => {
           #{meeting.meetingNumber}
         </Text>
 
-        {meeting.meetingStage === "mom_submitted" && (
-          <View className="mb-4">
-            <View className="flex-row justify-between items-center mb-2">
+        {/* Stats & Progress Bar Segmented */}
+        <View className="mb-4">
+          <View className="flex-row justify-between items-center mb-2">
+            <View className="flex-row items-center">
               <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
-                Progress
+                {open} Open
               </Text>
-              <View className="flex-row items-center">
-                <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191] mr-1.5">
-                  {Math.round(progress)}%
-                </Text>
-                <Text className="text-[13px] font-poppinsMedium text-[#2F76E6]">
-                  ({progressText})
-                </Text>
-              </View>
+              <Text className="mx-1 text-[#454545] dark:text-[#919191]">•</Text>
+              <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
+                {closed} Closed
+              </Text>
+              <Text className="mx-1 text-[#454545] dark:text-[#919191]">•</Text>
+              <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
+                {forInfo} For info
+              </Text>
             </View>
-            <View className="h-2 bg-[#E0E5EB] dark:bg-[#2F2F2F] rounded-full overflow-hidden">
-              <View
-                className="h-full bg-[#1AA45B] rounded-full"
-                style={{ width: `${progress}%` }}
-              />
-            </View>
+            <Text className="text-[13px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
+              {total} Minutes
+            </Text>
           </View>
-        )}
+          <View className="h-2 bg-[#F1F5F9] dark:bg-[#111111] rounded-full flex-row gap-[4px]">
+            {open > 0 && (
+              <View
+                style={{ flex: open }}
+                className="h-full bg-[#DF5B5B] rounded-full"
+              />
+            )}
+            {closed > 0 && (
+              <View
+                style={{ flex: closed }}
+                className="h-full bg-[#1AA45B] rounded-full"
+              />
+            )}
+            {forInfo > 0 && (
+              <View
+                style={{ flex: forInfo }}
+                className="h-full bg-[#E0E5EB] dark:bg-[#2F2F2F] rounded-full"
+              />
+            )}
+          </View>
+        </View>
 
-        <View className="gap-1">
-          <View className="flex-row items-center">
+        {/* Bottom Info Box */}
+        <View className="bg-[#F1F5F9] dark:bg-[#262626] rounded-[12px] p-3 flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1">
             <HugeiconsIcon
               icon={Calendar03Icon}
-              size={18}
+              size={16}
               color={isDarkMode ? "#919191" : "#454545"}
             />
-            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
-              {dateStr} at {meeting.meetingTime}
+            <Text className="ml-2 text-[11px] font-poppinsMedium text-[#454545] dark:text-[#919191]">
+              {dateStr} at {meeting.meetingTime || "--:--"}
             </Text>
           </View>
-          <View className="flex-row items-center">
-            <HugeiconsIcon
-              icon={Location01Icon}
-              size={18}
-              color={isDarkMode ? "#919191" : "#454545"}
-            />
-            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
-              {meeting.meetingVenue || "No venue added"}
-            </Text>
-          </View>
-          <View className="flex-row items-center">
-            <HugeiconsIcon
-              icon={UserCircleIcon}
-              size={18}
-              color={isDarkMode ? "#919191" : "#454545"}
-            />
-            <Text className="ml-2 text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
-              Created by {meeting.createdBy || "Admin"}
-            </Text>
-          </View>
+
+          {forwarded > 0 && (
+            <View className="flex-row items-center flex-1 justify-end">
+              <HugeiconsIcon
+                icon={CircleArrowUpRightIcon}
+                size={16}
+                color={isDarkMode ? "#919191" : "#454545"}
+              />
+              <Text
+                className="ml-2 text-[11px] font-poppinsMedium text-[#454545] dark:text-[#919191]"
+                numberOfLines={1}
+              >
+                {forwarded} task forwarded
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -380,8 +416,18 @@ const Minutes = () => {
       >
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center gap-2">
-            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={70} height={20} radius="round" />
-            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={20} radius="round" />
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={70}
+              height={20}
+              radius="round"
+            />
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={100}
+              height={20}
+              radius="round"
+            />
           </View>
         </View>
 
@@ -399,7 +445,7 @@ const Minutes = () => {
             radius={4}
           />
           <View className="mt-2 text-center items-center justify-center">
-             <Skeleton
+            <Skeleton
               colorMode={isDarkMode ? "dark" : "light"}
               width="100%"
               height={16}
@@ -416,10 +462,25 @@ const Minutes = () => {
           </View>
         </View>
 
-        <View className="gap-3 mt-4">
-          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="60%" height={14} radius={4} />
-          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="80%" height={14} radius={4} />
-          <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={14} radius={4} />
+        {/* Bottom Info Box */}
+        <View className="bg-[#F1F5F9] dark:bg-[#262626] rounded-[12px] p-3 flex-row items-center justify-between">
+          <View className="flex-1">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="80%"
+              height={14}
+              radius={4}
+            />
+          </View>
+          <View className="w-[1px] h-4 bg-[#CBD5E1] dark:bg-[#404040] mx-3" />
+          <View className="flex-1 items-end">
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width="80%"
+              height={14}
+              radius={4}
+            />
+          </View>
         </View>
       </View>
     );
@@ -441,7 +502,7 @@ const Minutes = () => {
           </Text>
         </View>
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => {
               if (showSearch) setSearchQuery("");
               setShowSearch(!showSearch);
@@ -493,7 +554,7 @@ const Minutes = () => {
 
       {/* Tabs */}
       <View className="flex-row items-center pt-1 justify-between pb-0">
-        {(["Project", "Shared"]).map((tab) => {
+        {["Project", "Shared"].map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
@@ -537,7 +598,13 @@ const Minutes = () => {
             removeClippedSubviews={true}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#6366F1"/> : <View className="h-4" />}
+            ListFooterComponent={
+              hasMore && page > 1 ? (
+                <ActivityIndicator className="my-4" color="#6366F1" />
+              ) : (
+                <View className="h-4" />
+              )
+            }
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -619,7 +686,11 @@ const Minutes = () => {
                         activeOpacity={0.7}
                         className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                       >
-                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDarkMode ? "#FFFFFF" : "#000000"} />
+                        <HugeiconsIcon
+                          icon={Share08Icon}
+                          size={22}
+                          color={isDarkMode ? "#FFFFFF" : "#000000"}
+                        />
                         <Text className="ml-3 text-black dark:text-white font-dmBold text-base">
                           Share
                         </Text>
@@ -633,7 +704,11 @@ const Minutes = () => {
                     activeOpacity={0.7}
                     className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                   >
-                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <HugeiconsIcon
+                      icon={Delete03Icon}
+                      size={22}
+                      color="#DF5B5B"
+                    />
                     <Text className="ml-3 text-[#DF5B5B] font-dmBold text-base">
                       Delete Meeting
                     </Text>
