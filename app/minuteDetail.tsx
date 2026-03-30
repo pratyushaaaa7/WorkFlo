@@ -23,7 +23,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -37,7 +37,9 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
+  FlatList,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
@@ -566,11 +568,171 @@ const MinuteDetail = () => {
     }
   };
 
-  const activityLog = [...notes, ...activities].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const activityLog = useMemo(
+    () =>
+      [...notes, ...activities].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [notes, activities],
   );
 
-  // console.log("Fetching minute detail", { meetingId, minuteId, token: !!auth?.token });
+  const renderActivityItem = useCallback(
+    ({ item }: { item: any }) => {
+      const style = getActivityStyles(item.type, isDark);
+      return (
+        <View className="mb-2 px-4">
+          {/* Activity Card */}
+          <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
+            <View className="flex-row items-start">
+              <View className="mr-3 mt-0.5">
+                <HugeiconsIcon
+                  icon={style.icon}
+                  size={20}
+                  color={style.iconColor}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className={`font-poppinsMedium text-[14px] ${style.text} `}>
+                  {style.title}
+                </Text>
+
+                {/* Details */}
+                {item.type === "status" && item.newValue && (
+                  <View className="flex-row items-center mt-2 mb-2">
+                    {/* Old Status Pill */}
+                    <View
+                      style={{
+                        backgroundColor: getStatusBadgeStyles(
+                          item.oldValue,
+                          isDark,
+                        ).badgeBg,
+                      }}
+                      className="flex-row items-center rounded-lg px-2.5 py-1"
+                    >
+                      <HugeiconsIcon
+                        icon={getStatusBadgeStyles(item.oldValue, isDark).icon}
+                        size={14}
+                        color={
+                          getStatusBadgeStyles(item.oldValue, isDark).badgeText
+                        }
+                      />
+                      <Text
+                        style={{
+                          color: getStatusBadgeStyles(item.oldValue, isDark)
+                            .badgeText,
+                        }}
+                        className="ml-1 text-xs font-dmMedium"
+                      >
+                        {getStatusBadgeStyles(item.oldValue, isDark).statusLabel}
+                      </Text>
+                    </View>
+
+                    {/* Arrow */}
+                    <View className="mx-2">
+                      <HugeiconsIcon
+                        icon={ArrowRight02Icon}
+                        size={16}
+                        color={isDark ? "#9CA3AF" : "#454545"}
+                      />
+                    </View>
+
+                    {/* New Status Pill */}
+                    <View
+                      style={{
+                        backgroundColor: getStatusBadgeStyles(
+                          item.newValue,
+                          isDark,
+                        ).badgeBg,
+                      }}
+                      className="flex-row items-center rounded-lg px-2.5 py-1"
+                    >
+                      <HugeiconsIcon
+                        icon={getStatusBadgeStyles(item.newValue, isDark).icon}
+                        size={14}
+                        color={
+                          getStatusBadgeStyles(item.newValue, isDark).badgeText
+                        }
+                      />
+                      <Text
+                        style={{
+                          color: getStatusBadgeStyles(item.newValue, isDark)
+                            .badgeText,
+                        }}
+                        className="ml-1 text-xs font-dmMedium"
+                      >
+                        {getStatusBadgeStyles(item.newValue, isDark).statusLabel}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                {(item.type === "targetDate" ||
+                  item.type === "activity" ||
+                  item.type === "assignee" ||
+                  item.type === "responsibility") && (
+                  <View className="mt-1 mb-2">
+                    {item.oldValue && item.oldValue !== "—" && (
+                      <Text
+                        className={`text-[12px] font-poppins ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
+                      >
+                        From :{" "}
+                        {item.type === "targetDate"
+                          ? fmtDate(item.oldValue)
+                          : item.oldValue}
+                      </Text>
+                    )}
+                    <Text
+                      className={`text-[12px] font-poppins mt-0.5 ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
+                    >
+                      To :{" "}
+                      {item.type === "targetDate"
+                        ? fmtDate(item.newValue)
+                        : item.newValue}
+                    </Text>
+                  </View>
+                )}
+
+                {item.type === "note" && item.text && (
+                  <Text
+                    className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-zinc-300" : "text-[#454545]"}`}
+                  >
+                    {item.text}
+                  </Text>
+                )}
+
+                {item.note && item.type !== "note" && (
+                  <Text
+                    className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-zinc-300" : "text-[#454545]"}`}
+                  >
+                    Note : {item.note}
+                  </Text>
+                )}
+
+                {/* Footer */}
+                <Text
+                  className={`text-[11px] font-poppins mt-1 ${isDark ? "text-zinc-500" : "text-[#454545] opacity-60"}`}
+                >
+                  By{" "}
+                  {item.addedBy?.fullName ||
+                    item.addedBy?.individualName ||
+                    item.createdBy?.fullName ||
+                    "Unknown"}{" "}
+                  • {fmtDate(item.createdAt)} -{" "}
+                  {new Date(item.createdAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      );
+    },
+    [isDark],
+  );
 
   return (
     <View className={`flex-1 ${isDark ? "bg-black" : "bg-[#FBFCFD]"}`}>
@@ -598,11 +760,13 @@ const MinuteDetail = () => {
         </View>
       </View>
       <View className="flex-1">
-        <KeyboardAwareScrollView
-          className="px-4"
-          contentContainerStyle={{ paddingBottom: 40 }}
+        <FlatList
+          data={activityLog}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderActivityItem}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 60 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -611,7 +775,8 @@ const MinuteDetail = () => {
               tintColor={isDark ? "#ffffff" : "#5B4CCC"}
             />
           }
-        >
+          ListHeaderComponent={
+            <View className="px-4">
           {loading ? (
             <View className="mt-4 gap-6">
               <Skeleton colorMode={isDark ? "dark" : "light"} width="60%" height={20} radius={4} />
@@ -955,12 +1120,12 @@ const MinuteDetail = () => {
                                 }}
                               >
                                 {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
-                                  <View className="w-full h-24 bg-gray-200 dark:bg-zinc-700 items-center justify-center">
-                                    {/* Ideally an Image component here if it's an image */}
-                                    <Ionicons
-                                      name="image-outline"
-                                      size={32}
-                                      color="#999"
+                                  <View className="w-full h-24 bg-gray-200 dark:bg-zinc-700 overflow-hidden">
+                                    <ExpoImage
+                                      source={{ uri: url }}
+                                      style={{ width: "100%", height: "100%" }}
+                                      contentFit="cover"
+                                      transition={200}
                                     />
                                   </View>
                                 ) : (
@@ -992,242 +1157,25 @@ const MinuteDetail = () => {
             </View>
           )}
 
-          {/* Quick Actions */}
-          {/* <View className="flex-row my-4">
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedStatus(status);
-                setModalVisible(true);
-              }}
-              className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl mr-2 ${isDark ? "bg-zinc-900" : "bg-gray-100"}`}
-            >
-              <HugeiconsIcon
-                icon={CircleIcon}
-                size={18}
-                color={isDark ? "#D2D2D2" : "#454545"}
-              />
-              <Text
-                className={`ml-2 font-poppinsMedium ${isDark ? "text-[#D2D2D2]" : "text-[#454545]"}`}
-              >
-                Status
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                noteInputRef.current?.focus();
-              }}
-              className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${isDark ? "bg-zinc-900" : "bg-gray-100"}`}
-            >
-              <HugeiconsIcon
-                icon={Note03Icon}
-                size={18}
-                color={isDark ? "#D2D2D2" : "#454545"}
-              />
-              <Text
-                className={`ml-2 font-poppinsMedium ${isDark ? "text-[#D2D2D2]" : "text-[#454545]"}`}
-              >
-                Note
-              </Text>
-            </TouchableOpacity>
-          </View> */}
-
-          {/* Activity Log */}
+          {/* Activity Log Header */}
           <Text
             className={`text-lg font-dmSemiBold my-4 ${isDark ? "text-white" : "text-black"}`}
           >
             Activity Log
           </Text>
 
-          {loading ? (
-            <ActivityIndicator size="small" color="#5B4CCC" />
-          ) : activityLog.length === 0 ? (
+          {activityLog.length === 0 && !loading && (
             <Text
               className={`text-sm font-poppins text-center py-8 ${isDark ? "text-zinc-500" : "text-gray-400"}`}
             >
               No activities yet.
             </Text>
-          ) : (
-            <View>
-              {activityLog.map((item, idx) => {
-                const style = getActivityStyles(item.type, isDark);
-                return (
-                  <View key={idx} className="mb-2">
-                    {/* Activity Card */}
-                    <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
-                      <View className="flex-row items-start">
-                        <View className="mr-3 mt-0.5">
-                          <HugeiconsIcon
-                            icon={style.icon}
-                            size={20}
-                            color={style.iconColor}
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Text
-                            className={`font-poppinsMedium text-[14px] ${style.text} `}
-                          >
-                            {style.title}
-                          </Text>
-
-                          {/* Details */}
-                          {item.type === "status" && item.newValue && (
-                            <View className="flex-row items-center mt-2 mb-2">
-                              {/* Old Status Pill */}
-                              <View
-                                style={{
-                                  backgroundColor: getStatusBadgeStyles(
-                                    item.oldValue,
-                                    isDark,
-                                  ).badgeBg,
-                                }}
-                                className="flex-row items-center rounded-lg px-2.5 py-1"
-                              >
-                                <HugeiconsIcon
-                                  icon={
-                                    getStatusBadgeStyles(item.oldValue, isDark)
-                                      .icon
-                                  }
-                                  size={14}
-                                  color={
-                                    getStatusBadgeStyles(item.oldValue, isDark)
-                                      .badgeText
-                                  }
-                                />
-                                <Text
-                                  style={{
-                                    color: getStatusBadgeStyles(
-                                      item.oldValue,
-                                      isDark,
-                                    ).badgeText,
-                                  }}
-                                  className="ml-1 text-xs font-dmMedium"
-                                >
-                                  {
-                                    getStatusBadgeStyles(item.oldValue, isDark)
-                                      .statusLabel
-                                  }
-                                </Text>
-                              </View>
-
-                              {/* Arrow */}
-                              <View className="mx-2">
-                                <HugeiconsIcon
-                                  icon={ArrowRight02Icon}
-                                  size={16}
-                                  color={isDark ? "#9CA3AF" : "#454545"}
-                                />
-                              </View>
-
-                              {/* New Status Pill */}
-                              <View
-                                style={{
-                                  backgroundColor: getStatusBadgeStyles(
-                                    item.newValue,
-                                    isDark,
-                                  ).badgeBg,
-                                }}
-                                className="flex-row items-center rounded-lg px-2.5 py-1"
-                              >
-                                <HugeiconsIcon
-                                  icon={
-                                    getStatusBadgeStyles(item.newValue, isDark)
-                                      .icon
-                                  }
-                                  size={14}
-                                  color={
-                                    getStatusBadgeStyles(item.newValue, isDark)
-                                      .badgeText
-                                  }
-                                />
-                                <Text
-                                  style={{
-                                    color: getStatusBadgeStyles(
-                                      item.newValue,
-                                      isDark,
-                                    ).badgeText,
-                                  }}
-                                  className="ml-1 text-xs font-dmMedium"
-                                >
-                                  {
-                                    getStatusBadgeStyles(item.newValue, isDark)
-                                      .statusLabel
-                                  }
-                                </Text>
-                              </View>
-                            </View>
-                          )}
-
-                          {(item.type === "targetDate" ||
-                            item.type === "activity" ||
-                            item.type === "assignee" ||
-                            item.type === "responsibility") && (
-                            <View className="mt-1 mb-2">
-                              {item.oldValue && item.oldValue !== "—" && (
-                                <Text
-                                  className={`text-[12px] font-poppins ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
-                                >
-                                  From :{" "}
-                                  {item.type === "targetDate"
-                                    ? fmtDate(item.oldValue)
-                                    : item.oldValue}
-                                </Text>
-                              )}
-                              <Text
-                                className={`text-[12px] font-poppins mt-0.5 ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
-                              >
-                                To :{" "}
-                                {item.type === "targetDate"
-                                  ? fmtDate(item.newValue)
-                                  : item.newValue}
-                              </Text>
-                            </View>
-                          )}
-
-                          {item.type === "note" && item.text && (
-                            <Text
-                              className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-zinc-300" : "text-[#454545]"}`}
-                            >
-                              {item.text}
-                            </Text>
-                          )}
-
-                          {item.note && item.type !== "note" && (
-                            <Text
-                              className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-zinc-300" : "text-[#454545]"}`}
-                            >
-                              Note : {item.note}
-                            </Text>
-                          )}
-
-                          {/* Footer */}
-                          <Text
-                            className={`text-[11px] font-poppins mt-1 ${isDark ? "text-zinc-500" : "text-[#454545] opacity-60"}`}
-                          >
-                            By{" "}
-                            {item.addedBy?.fullName ||
-                              item.addedBy?.individualName ||
-                              item.createdBy?.fullName ||
-                              "Unknown"}{" "}
-                            • {fmtDate(item.createdAt)} -{" "}
-                            {new Date(item.createdAt).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
           )}
-        </KeyboardAwareScrollView>
-      </View>
+          {loading && <ActivityIndicator size="small" color="#5B4CCC" />}
+        </View>
+      }
+    />
+  </View>
 
       <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         <View

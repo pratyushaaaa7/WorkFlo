@@ -215,6 +215,7 @@ const CreateMinutes = () => {
   const meetingInfoRef = useRef<View>(null);
   const attendeeSectionRef = useRef<View>(null);
   const minuteSectionRef = useRef<View>(null);
+  const searchTimeoutRef = useRef<any>(null);
 
   // Section Toggles
   const [showMeetingInfo, setShowMeetingInfo] = useState(true);
@@ -309,7 +310,12 @@ const CreateMinutes = () => {
 
   const handleSearchDirectory = useCallback(
     (query: string) => {
-      fetchDirectory(query);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchDirectory(query);
+      }, 500);
     },
     [fetchDirectory],
   );

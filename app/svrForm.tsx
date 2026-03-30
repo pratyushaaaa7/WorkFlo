@@ -33,7 +33,9 @@ import uuid from "react-native-uuid";
 import AttendeeItem from "../components/AttendeeItem";
 import MinuteItem from "../components/MinuteItem";
 import { AuthContext } from "../context/AuthContext";
+import { Image as ExpoImage } from "expo-image";
 import api from "../lib/api";
+import { FlatList } from "react-native";
 
 interface Entry {
   id: string;
@@ -628,70 +630,87 @@ const SVRform = () => {
         </View>
 
         {/* Main scroll area — plain ScrollView, no JS-driven drag overhead */}
-        <ScrollView
-          ref={scrollRef}
+        <FlatList
+          ref={scrollRef as any}
+          data={activeTab === "attendees" ? attendees : entries}
           style={
             isDarkMode
               ? { backgroundColor: "#000" }
               : { backgroundColor: "#FBFCFD" }
           }
-          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 220 }}
+          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 220, paddingHorizontal: 16 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           removeClippedSubviews={Platform.OS === "android"}
-        >
-          {activeTab === "attendees" && (
-            <View className="px-4 py-2 gap-3">
-              {renderedAttendees}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={addAttendee}
-                className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                  isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => {
+            if (activeTab === "attendees") {
+              return (
+                <View className="mb-3">
+                  <AttendeeItem
+                    key={item.id}
+                    item={item}
+                    drag={() => {}}
+                    isActive={false}
+                    expanded={!!item.isExpanded}
+                    onToggleExpand={handleToggleAttendee}
+                    onUpdate={updateAttendee}
+                    onDelete={deleteAttendee}
+                    users={directoryUsers}
+                    onSearch={handleSearchDirectory}
+                    showDelete={attendees.length > 1}
+                    isDarkMode={isDarkMode}
+                    getIndex={() => index}
+                  />
+                </View>
+              );
+            } else {
+              return (
+                <View className="mb-3">
+                  <MinuteItem
+                    key={item.id}
+                    item={item}
+                    drag={() => {}}
+                    isActive={false}
+                    expanded={!!item.isExpanded}
+                    onToggleExpand={handleToggleEntry}
+                    onUpdate={updateEntry}
+                    onDeleteRequest={removeEntry}
+                    users={internalUsers}
+                    showDelete={entries.length > 1}
+                    isDarkMode={isDarkMode}
+                    onOpenDatePicker={onOpenDatePicker}
+                    onPickImage={onPickImage}
+                    onDeleteImage={onDeleteImage}
+                    getIndex={() => index}
+                  />
+                </View>
+              );
+            }
+          }}
+          ListFooterComponent={() => (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={activeTab === "attendees" ? addAttendee : addEntry}
+              className={`py-3.5 rounded-xl flex-row justify-center items-center mt-3 ${
+                isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+              }`}
+            >
+              <HugeiconsIcon
+                icon={PlusSignCircleIcon}
+                size={20}
+                color={isDarkMode ? "#E5E7EB" : "#111827"}
+              />
+              <Text
+                className={`text-[14px] font-poppinsMedium ml-2 ${
+                  isDarkMode ? "text-gray-200" : "text-gray-900"
                 }`}
               >
-                <HugeiconsIcon
-                  icon={PlusSignCircleIcon}
-                  size={20}
-                  color={isDarkMode ? "#E5E7EB" : "#111827"}
-                />
-                <Text
-                  className={`text-[14px] font-poppinsMedium ml-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-900"
-                  }`}
-                >
-                  Add Attendees
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {activeTab === "attendees" ? "Add Attendees" : "Add Discussion"}
+              </Text>
+            </TouchableOpacity>
           )}
-
-          {activeTab === "discussion" && (
-            <View className="px-4 py-2 gap-3">
-              {renderedEntries}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={addEntry}
-                className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                  isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                }`}
-              >
-                <HugeiconsIcon
-                  icon={PlusSignCircleIcon}
-                  size={20}
-                  color={isDarkMode ? "#E5E7EB" : "#111827"}
-                />
-                <Text
-                  className={`text-[14px] font-poppinsMedium ml-2 ${
-                    isDarkMode ? "text-gray-200" : "text-gray-900"
-                  }`}
-                >
-                  Add Discussion
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </ScrollView>
+        />
 
         <DateTimePickerModal
           isVisible={showDatePicker}

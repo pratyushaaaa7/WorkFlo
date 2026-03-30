@@ -4,10 +4,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   Platform,
   Animated,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import { MultiSelect } from "react-native-element-dropdown";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import {
@@ -673,9 +673,11 @@ const MinuteItem = memo(
                 <View className="flex-row flex-wrap gap-3 mt-1">
                   {(item.images || []).map((uri: string, idx: number) => (
                     <View key={idx} className="relative">
-                      <Image
+                      <ExpoImage
                         source={{ uri }}
                         style={{ width: 70, height: 70, borderRadius: 12 }}
+                        contentFit="cover"
+                        transition={200}
                       />
                       <TouchableOpacity
                         onPress={() => {

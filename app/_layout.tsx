@@ -32,6 +32,7 @@ import {
   ActivityIndicator,
   Image,
   LogBox,
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -170,6 +171,14 @@ const CustomDrawerContent = (props: any) => {
     </View>
   );
 };
+
+// Strip console logs in production
+if (!__DEV__) {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
 
 export default function RootLayout() {
   return (

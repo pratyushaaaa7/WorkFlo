@@ -25,7 +25,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Keyboard,
   LayoutAnimation,
   Linking,
@@ -38,7 +37,9 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  FlatList,
 } from "react-native";
+import { Image as ExpoImage } from "expo-image";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
@@ -766,10 +767,11 @@ const IlrActivities = () => {
                             activeOpacity={0.7}
                             onPress={() => Linking.openURL(url)}
                           >
-                            <Image
+                            <ExpoImage
                               source={{ uri: url }}
                               style={{ width: "100%", height: 96 }}
-                              resizeMode="cover"
+                              contentFit="cover"
+                              transition={200}
                             />
                             <View className="p-2">
                               <Text
@@ -811,192 +813,199 @@ const IlrActivities = () => {
             </View>
           ) : (
             <View>
-              {activities.map((act) => {
-                const style = getActivityStyles(act.type);
-                return (
-                  <View key={act._id} className="mb-2">
-                    {/* Activity Card */}
-                    <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
-                      <View className="flex-row items-start">
-                        <View className="mr-3 mt-0.5">
-                          <HugeiconsIcon
-                            icon={style.icon}
-                            size={20}
-                            color={style.iconColor}
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Text
-                            className={`font-poppinsMedium text-[14px] ${style.text} `}
-                          >
-                            {style.title}
-                          </Text>
-
-                          {/* Details */}
-                          {act.type === "status" && act.newValue && (
-                            <View className="flex-row items-center mt-2 mb-2">
-                              {/* Old Status Pill */}
-                              <View
-                                className={`flex-row items-center rounded-lg px-3 py-1.5 ${
-                                  act.oldValue === "Closed"
-                                    ? isDark
-                                      ? "bg-[#0A2E1A]"
-                                      : "bg-[#E6F9F0]"
-                                    : isDark
-                                      ? "bg-[#420A0A]"
-                                      : "bg-[#FDE6E6]"
-                                }`}
-                              >
-                                <HugeiconsIcon
-                                  icon={
-                                    act.oldValue === "Closed"
-                                      ? CheckmarkCircle02Icon
-                                      : DashedLineCircleIcon
-                                  }
-                                  size={16}
-                                  color={
-                                    act.oldValue === "Closed"
-                                      ? "#1AA45B"
-                                      : "#DF5B5B"
-                                  }
-                                />
-                                <Text
-                                  className={`ml-1.5 text-sm font-dmMedium ${
-                                    act.oldValue === "Closed"
-                                      ? "text-[#1AA45B]"
-                                      : "text-[#DF5B5B]"
-                                  }`}
-                                >
-                                  {act.oldValue || "Open"}
-                                </Text>
-                              </View>
-
-                              {/* Arrow */}
-                              <View className="mx-2">
-                                <HugeiconsIcon
-                                  icon={ArrowRight02Icon}
-                                  size={18}
-                                  color={isDark ? "#9CA3AF" : "#454545"}
-                                />
-                              </View>
-
-                              {/* New Status Pill */}
-                              <View
-                                className={`flex-row items-center rounded-lg px-3 py-1.5 ${
-                                  act.newValue === "Closed"
-                                    ? isDark
-                                      ? "bg-[#0A2E1A]"
-                                      : "bg-[#E6F9F0]"
-                                    : isDark
-                                      ? "bg-[#420A0A]"
-                                      : "bg-[#FDE6E6]"
-                                }`}
-                              >
-                                <HugeiconsIcon
-                                  icon={
-                                    act.newValue === "Closed"
-                                      ? CheckmarkCircle02Icon
-                                      : DashedLineCircleIcon
-                                  }
-                                  size={16}
-                                  color={
-                                    act.newValue === "Closed"
-                                      ? "#1AA45B"
-                                      : "#DF5B5B"
-                                  }
-                                />
-                                <Text
-                                  className={`ml-1.5 text-sm font-dmMedium ${
-                                    act.newValue === "Closed"
-                                      ? "text-[#1AA45B]"
-                                      : "text-[#DF5B5B]"
-                                  }`}
-                                >
-                                  {act.newValue}
-                                </Text>
-                              </View>
-                            </View>
-                          )}
-
-                          {act.type === "date" && act.newValue && (
-                            <View className="mt-1 mb-1">
-                              <Text
-                                className={`text-[12px] font-poppins ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
-                              >
-                                From : {act.oldValue} - To : {act.newValue}
-                              </Text>
-                              {act.note && (
-                                <Text
-                                  className={`text-[12px] font-poppins  mt-0.5 ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
-                                >
-                                  Reason : {act.note}
-                                </Text>
-                              )}
-                            </View>
-                          )}
-
-                          {act.type === "remark" && (
-                            <View className="mt-1 mb-2">
-                              <Text
-                                className={`text-[12px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
-                              >
-                                From : {act.oldValue || "No description"}
-                              </Text>
-                              <Text
-                                className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
-                              >
-                                To : {act.newValue || "No description"}
-                              </Text>
-                            </View>
-                          )}
-
-                          {act.type === "assignee" && (
-                            <View className="mt-1 mb-2">
-                              <Text
-                                className={`text-[12px] font-poppins ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
-                              >
-                                From : {act.oldValue}
-                              </Text>
-                              <Text
-                                className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
-                              >
-                                To : {act.newValue}
-                              </Text>
-                            </View>
-                          )}
-
-                          {act.type === "note" && act.note && (
+              <FlatList
+                data={activities}
+                keyExtractor={(item) => item._id}
+                scrollEnabled={false} // Since it's inside KeyboardAwareScrollView
+                renderItem={({ item: act }) => {
+                  const style = getActivityStyles(act.type);
+                  return (
+                    <View className="mb-2">
+                      <View className={`px-4 py-3 rounded-2xl ${style.bg}`}>
+                        <View className="flex-row items-start">
+                          <View className="mr-3 mt-0.5">
+                            <HugeiconsIcon
+                              icon={style.icon}
+                              size={20}
+                              color={style.iconColor}
+                            />
+                          </View>
+                          <View className="flex-1">
                             <Text
-                              className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-[#CAF5DF]" : "text-[#454545]"}`}
+                              className={`font-poppinsMedium text-[14px] ${style.text} `}
                             >
-                              Note : {act.note}{" "}
+                              {style.title}
                             </Text>
-                          )}
 
-                          {/* Footer */}
-                          <Text
-                            className={`text-[12px] font-poppins ${isDark ? "text-[#CCCCCC]" : "text-[#454545]"}`}
-                          >
-                            By {act.createdBy} •{" "}
-                            {new Date(act.createdAt).toLocaleDateString(
-                              "en-GB",
-                            )}{" "}
-                            -{" "}
-                            {new Date(act.createdAt).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
+                            {/* Details: Status Change */}
+                            {act.type === "status" && act.newValue && (
+                              <View className="flex-row items-center mt-2 mb-2">
+                                <View
+                                  className={`flex-row items-center rounded-lg px-3 py-1.5 ${
+                                    act.oldValue === "Closed"
+                                      ? isDark
+                                        ? "bg-[#0A2E1A]"
+                                        : "bg-[#E6F9F0]"
+                                      : isDark
+                                        ? "bg-[#420A0A]"
+                                        : "bg-[#FDE6E6]"
+                                  }`}
+                                >
+                                  <HugeiconsIcon
+                                    icon={
+                                      act.oldValue === "Closed"
+                                        ? CheckmarkCircle02Icon
+                                        : DashedLineCircleIcon
+                                    }
+                                    size={16}
+                                    color={
+                                      act.oldValue === "Closed"
+                                        ? "#1AA45B"
+                                        : "#DF5B5B"
+                                    }
+                                  />
+                                  <Text
+                                    className={`ml-1.5 text-sm font-dmMedium ${
+                                      act.oldValue === "Closed"
+                                        ? "text-[#1AA45B]"
+                                        : "text-[#DF5B5B]"
+                                    }`}
+                                  >
+                                    {act.oldValue || "Open"}
+                                  </Text>
+                                </View>
+                                <View className="mx-2">
+                                  <HugeiconsIcon
+                                    icon={ArrowRight02Icon}
+                                    size={18}
+                                    color={isDark ? "#9CA3AF" : "#454545"}
+                                  />
+                                </View>
+                                <View
+                                  className={`flex-row items-center rounded-lg px-3 py-1.5 ${
+                                    act.newValue === "Closed"
+                                      ? isDark
+                                        ? "bg-[#0A2E1A]"
+                                        : "bg-[#E6F9F0]"
+                                      : isDark
+                                        ? "bg-[#420A0A]"
+                                        : "bg-[#FDE6E6]"
+                                  }`}
+                                >
+                                  <HugeiconsIcon
+                                    icon={
+                                      act.newValue === "Closed"
+                                        ? CheckmarkCircle02Icon
+                                        : DashedLineCircleIcon
+                                    }
+                                    size={16}
+                                    color={
+                                      act.newValue === "Closed"
+                                        ? "#1AA45B"
+                                        : "#DF5B5B"
+                                    }
+                                  />
+                                  <Text
+                                    className={`ml-1.5 text-sm font-dmMedium ${
+                                      act.newValue === "Closed"
+                                        ? "text-[#1AA45B]"
+                                        : "text-[#DF5B5B]"
+                                    }`}
+                                  >
+                                    {act.newValue}
+                                  </Text>
+                                </View>
+                              </View>
                             )}
-                          </Text>
+
+                            {/* Details: Date Change */}
+                            {act.type === "date" && act.newValue && (
+                              <View className="mt-1 mb-1">
+                                <Text
+                                  className={`text-[12px] font-poppins ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
+                                >
+                                  From : {act.oldValue} - To : {act.newValue}
+                                </Text>
+                                {act.note && (
+                                  <Text
+                                    className={`text-[12px] font-poppins mt-0.5 ${isDark ? "text-[#F5CACA]" : "text-[#454545]"}`}
+                                  >
+                                    Reason : {act.note}
+                                  </Text>
+                                )}
+                              </View>
+                            )}
+
+                            {/* Details: Remark / Description Update */}
+                            {act.type === "remark" && (
+                              <View className="mt-1 mb-2">
+                                <Text
+                                  className={`text-[12px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
+                                >
+                                  From : {act.oldValue || "No description"}
+                                </Text>
+                                <Text
+                                  className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
+                                >
+                                  To : {act.newValue || "No description"}
+                                </Text>
+                              </View>
+                            )}
+
+                            {/* Details: Assignee Update */}
+                            {act.type === "assignee" && (
+                              <View className="mt-1 mb-2">
+                                <Text
+                                  className={`text-[12px] font-poppins ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
+                                >
+                                  From : {act.oldValue}
+                                </Text>
+                                <Text
+                                  className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#FFD6BF]" : "text-[#454545]"}`}
+                                >
+                                  To : {act.newValue}
+                                </Text>
+                              </View>
+                            )}
+
+                            {/* Details: Notes */}
+                            {act.type === "note" && act.note && (
+                              <Text
+                                className={`text-[12px] font-poppins mt-1 mb-1 ${isDark ? "text-[#CAF5DF]" : "text-[#454545]"}`}
+                              >
+                                Note : {act.note}{" "}
+                              </Text>
+                            )}
+
+                            {/* Activity Footer */}
+                            <Text
+                              className={`text-[12px] font-poppins ${isDark ? "text-[#CCCCCC]" : "text-[#454545]"}`}
+                            >
+                              By {act.createdBy} •{" "}
+                              {new Date(act.createdAt).toLocaleDateString(
+                                "en-GB",
+                              )}{" "}
+                              -{" "}
+                              {new Date(act.createdAt).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
+                              )}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                }}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
+              />
             </View>
           )}
         </KeyboardAwareScrollView>
