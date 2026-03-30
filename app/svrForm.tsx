@@ -94,7 +94,8 @@ const SVRform = () => {
       isExpanded: true,
     },
   ]);
-  const [users, setUsers] = useState<DirectoryUser[]>([]);
+  const [directoryUsers, setDirectoryUsers] = useState<DirectoryUser[]>([]);
+  const [internalUsers, setInternalUsers] = useState<any[]>([]);
   const [caseStudyRemarks, setCaseStudyRemarks] = useState("");
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
@@ -114,29 +115,72 @@ const SVRform = () => {
     };
   }, []);
 
+  const fetchDirectory = useCallback(
+    async (searchQuery: string = "") => {
+      try {
+        if (!token) return;
+        let directoryUrl = `/directory?`;
+        if (projectId) directoryUrl += `projectId=${projectId}`;
+        if (searchQuery)
+          directoryUrl += `&search=${encodeURIComponent(searchQuery)}`;
+
+        const resDir = await api.get(directoryUrl, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (resDir.data && resDir.data.data) {
+          const formatted = resDir.data.data.map((u: any) => ({
+            label: `${u.name} (${u.firmName || "N/A"})`,
+            value: u._id,
+            attendeeName: u.name,
+            organization: u.firmName,
+            designation: u.designation,
+            email: u.email,
+            phone: u.phone,
+            contactNumbers: u.phones,
+          }));
+          setDirectoryUsers(formatted);
+        }
+      } catch (error) {
+        console.log("Error fetching directory:", error);
+      }
+    },
+    [token, projectId],
+  );
+
+  const handleSearchDirectory = useCallback(
+    (query: string) => {
+      fetchDirectory(query);
+    },
+    [fetchDirectory],
+  );
+
   // Fetch users for dropdowns
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchInternalUsers = async () => {
       try {
         if (!token || !projectId) return;
         const res = await api.get(`/projects/${projectId}/users-dropdown`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const formatted = res.data.map((u: any) => ({
-          label: `${u.individualName} (${u.firmName})`,
+          label: `${u.individualName} (${u.firmName || "N/A"})`,
           value: u._id,
           attendeeName: u.individualName,
           organization: u.firmName || "",
           designation: u.designation || "",
           email: u.email || "",
+          contactNumbers: u.contactNumbers?.length ? u.contactNumbers : [""],
         }));
-        setUsers(formatted);
+        setInternalUsers(formatted);
       } catch (err) {
-        console.log("Fetch users error:", err);
+        console.log("Fetch internal users error:", err);
       }
     };
-    fetchUsers();
-  }, [token, projectId]);
+
+    fetchDirectory();
+    fetchInternalUsers();
+  }, [token, projectId, fetchDirectory]);
 
   // Initial Entry if empty
   useEffect(() => {
@@ -411,7 +455,8 @@ const SVRform = () => {
           onToggleExpand={(idx) => handleToggleAttendee(idx)}
           onUpdate={(idx, field, value) => updateAttendee(idx, field, value)}
           onDelete={(idx) => deleteAttendee(idx)}
-          users={users}
+          users={directoryUsers}
+          onSearch={handleSearchDirectory}
           showDelete={attendees.length > 1}
           isDarkMode={isDarkMode}
           getIndex={getIndex}
@@ -423,7 +468,7 @@ const SVRform = () => {
       handleToggleAttendee,
       updateAttendee,
       deleteAttendee,
-      users,
+      directoryUsers,
       attendees.length,
     ],
   );
@@ -439,7 +484,7 @@ const SVRform = () => {
           onToggleExpand={(idx) => handleToggleEntry(idx)}
           onUpdate={(idx, field, value) => updateEntry(idx, field, value)}
           onDeleteRequest={(idx) => removeEntry(idx)}
-          users={users}
+          users={internalUsers}
           showDelete={entries.length > 1}
           isDarkMode={isDarkMode}
           onOpenDatePicker={onOpenDatePicker}
@@ -450,11 +495,11 @@ const SVRform = () => {
       </ScaleDecorator>
     ),
     [
+      internalUsers,
       isDarkMode,
       handleToggleEntry,
       updateEntry,
       removeEntry,
-      users,
       entries.length,
       onOpenDatePicker,
       onPickImage,
@@ -584,7 +629,7 @@ const SVRform = () => {
             }`}
           >
             <Text
-              className={`text-[15px] font-poppinsMedium ${activeTab === "attendees" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-500" : "text-gray-400"}}`}
+              className={`text-[15px] font-poppinsMedium ${activeTab === "attendees" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
             >
               Attendees
             </Text>
@@ -598,7 +643,7 @@ const SVRform = () => {
             }`}
           >
             <Text
-              className={`text-[15px] font-poppinsMedium ${activeTab === "discussion" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-500" : "text-gray-400"}}`}
+              className={`text-[15px] font-poppinsMedium ${activeTab === "discussion" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
             >
               Discussion
             </Text>

@@ -41,6 +41,9 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import DraggableFlatList, {
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
@@ -163,7 +166,7 @@ const SVRPhotoReport: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const thumbnailListRef = useRef<FlatList>(null);
+  const thumbnailListRef = useRef<any>(null);
   const isProgrammaticScroll = useRef(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const captionInputRef = useRef<TextInput>(null);
@@ -900,7 +903,7 @@ const SVRPhotoReport: React.FC = () => {
                   >
                     Viewing ({currentIndex + 1}/{photos.length})
                   </Text>
-                  <FlatList
+                  <DraggableFlatList
                     ref={thumbnailListRef}
                     data={photos}
                     horizontal
@@ -915,40 +918,55 @@ const SVRPhotoReport: React.FC = () => {
                         viewPosition: 0.5,
                       });
                     }}
-                    renderItem={({ item, index }) => (
-                      <TouchableOpacity
-                        onPress={() => {
-                          isProgrammaticScroll.current = true;
-                          setCurrentIndex(index);
-                          flatListRef.current?.scrollToIndex({
-                            index,
-                            animated: true,
-                          });
-                          thumbnailListRef.current?.scrollToIndex({
-                            index,
-                            animated: true,
-                            viewPosition: 0.5,
-                          });
-                        }}
-                        className={`rounded-[16px] overflow-hidden border-[2px] mr-3 ${
-                          index === currentIndex
-                            ? "border-indigo-600"
-                            : "border-transparent"
-                        }`}
-                        style={{ width: 64, height: 64 }}
-                      >
-                        <ExpoImage
-                          source={item.uri}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            borderRadius: 12,
-                          }}
-                          contentFit="cover"
-                          cachePolicy="memory-disk"
-                        />
-                      </TouchableOpacity>
-                    )}
+                    onDragEnd={({ data }) => {
+                      setPhotos(projectIdStr, data);
+                    }}
+                    renderItem={({ item, getIndex, drag, isActive }) => {
+                      const index = getIndex();
+                      return (
+                        <ScaleDecorator>
+                          <TouchableOpacity
+                            onLongPress={drag}
+                            disabled={isActive}
+                            onPress={() => {
+                              if (index === undefined) return;
+                              isProgrammaticScroll.current = true;
+                              setCurrentIndex(index);
+                              flatListRef.current?.scrollToIndex({
+                                index,
+                                animated: true,
+                              });
+                              thumbnailListRef.current?.scrollToIndex({
+                                index,
+                                animated: true,
+                                viewPosition: 0.5,
+                              });
+                            }}
+                            className={`rounded-[16px] overflow-hidden border-[2px] mr-3 ${
+                              index === currentIndex
+                                ? "border-indigo-600"
+                                : "border-transparent"
+                            }`}
+                            style={{
+                              width: 64,
+                              height: 64,
+                              opacity: isActive ? 0.8 : 1,
+                            }}
+                          >
+                            <ExpoImage
+                              source={item.uri}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: 12,
+                              }}
+                              contentFit="cover"
+                              cachePolicy="memory-disk"
+                            />
+                          </TouchableOpacity>
+                        </ScaleDecorator>
+                      );
+                    }}
                   />
                 </View>
 
@@ -964,14 +982,14 @@ const SVRPhotoReport: React.FC = () => {
                       }
                       multiline
                       textAlignVertical="top" //for placeholder on the top left
-                      className={`rounded-2xl px-4 py-3 font-poppins border ${
+                      className={`rounded-2xl bg-[#FFF] dark:bg-[#000] px-4 py-3 font-poppins border ${
                         showCaptionError === photos[currentIndex].id
                           ? "border-red-500"
                           : "border-transparent"
                       } ${
                         isDarkMode
-                          ? "bg-[#1A1A1A] text-white"
-                          : "bg-[#F0F3F7] text-black"
+                          ? " text-white"
+                          : " text-black"
                       }`}
                       style={{ minHeight: 80 }}
                     />
