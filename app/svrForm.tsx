@@ -11,25 +11,20 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import {
-  NestableDraggableFlatList,
-  NestableScrollContainer,
-  RenderItemParams,
-  ScaleDecorator,
-} from "react-native-draggable-flatlist";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -75,7 +70,7 @@ const SVRform = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<any>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   // Use dynamic storage key based on projectId if available
   const storageKey = `SVR_FORM_DATA_${projectId || "default"}`;
@@ -97,23 +92,8 @@ const SVRform = () => {
   const [directoryUsers, setDirectoryUsers] = useState<DirectoryUser[]>([]);
   const [internalUsers, setInternalUsers] = useState<any[]>([]);
   const [caseStudyRemarks, setCaseStudyRemarks] = useState("");
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [dateIndex, setDateIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Keyboard hooks
-  useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", () =>
-      setIsKeyboardVisible(true),
-    );
-    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
-      setIsKeyboardVisible(false),
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const fetchDirectory = useCallback(
     async (searchQuery: string = "") => {
@@ -222,10 +202,10 @@ const SVRform = () => {
     loadDraft();
   }, [storageKey]);
 
-  // Persistence: Auto-Save
+  // Persistence: Auto-Save (debounced)
   useEffect(() => {
-    const saveDraft = async () => {
-      if (!projectId) return;
+    if (!projectId) return;
+    const timer = setTimeout(async () => {
       try {
         const data = {
           attendees,
@@ -238,17 +218,9 @@ const SVRform = () => {
       } catch (err) {
         console.log("Auto-save error:", err);
       }
-    };
-    const timer = setTimeout(saveDraft, 1000); // Debounce save
+    }, 1500);
     return () => clearTimeout(timer);
-  }, [
-    attendees,
-    entries,
-    caseStudyRemarks,
-    projectId,
-    projectName,
-    storageKey,
-  ]);
+  }, [attendees, entries, caseStudyRemarks, projectId, projectName, storageKey]);
 
   // --- Handlers: Attendees ---
   const updateAttendee = useCallback(
@@ -393,15 +365,18 @@ const SVRform = () => {
     setShowDatePicker(true);
   }, []);
 
-  const onDateConfirm = (date: Date) => {
-    if (dateIndex !== null) {
-      updateEntry(dateIndex, "targetDate", date);
-    }
-    setShowDatePicker(false);
-  };
+  const onDateConfirm = useCallback(
+    (date: Date) => {
+      if (dateIndex !== null) {
+        updateEntry(dateIndex, "targetDate", date);
+      }
+      setShowDatePicker(false);
+    },
+    [dateIndex, updateEntry],
+  );
 
   // --- Final Actions ---
-  const saveAndNext = async () => {
+  const saveAndNext = useCallback(async () => {
     const mappedEntries = entries.map((e) => ({
       ...e,
       agenda: e.issueSubject,
@@ -425,9 +400,9 @@ const SVRform = () => {
         caseStudyRemarks,
       },
     });
-  };
+  }, [entries, attendees, caseStudyRemarks, projectName, projectId, mode, company, teamLeaders, teamMembers, router]);
 
-  const skipAndNext = async () => {
+  const skipAndNext = useCallback(async () => {
     router.push({
       pathname: "/svrPdfForm",
       params: {
@@ -441,66 +416,67 @@ const SVRform = () => {
         caseStudyRemarks: "",
       },
     });
-  };
+  }, [projectName, projectId, company, teamLeaders, teamMembers, router]);
 
-  // --- Renderers ---
-  const renderAttendee = useCallback(
-    ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => (
-      <ScaleDecorator>
+  // --- Memoized rendered lists ---
+  const renderedAttendees = useMemo(
+    () =>
+      attendees.map((item, index) => (
         <AttendeeItem
+          key={item.id}
           item={item}
-          drag={drag}
-          isActive={isActive}
+          drag={() => {}}
+          isActive={false}
           expanded={!!item.isExpanded}
-          onToggleExpand={(idx) => handleToggleAttendee(idx)}
-          onUpdate={(idx, field, value) => updateAttendee(idx, field, value)}
-          onDelete={(idx) => deleteAttendee(idx)}
+          onToggleExpand={handleToggleAttendee}
+          onUpdate={updateAttendee}
+          onDelete={deleteAttendee}
           users={directoryUsers}
           onSearch={handleSearchDirectory}
           showDelete={attendees.length > 1}
           isDarkMode={isDarkMode}
-          getIndex={getIndex}
+          getIndex={() => index}
         />
-      </ScaleDecorator>
-    ),
+      )),
     [
+      attendees,
       isDarkMode,
       handleToggleAttendee,
       updateAttendee,
       deleteAttendee,
       directoryUsers,
-      attendees.length,
+      handleSearchDirectory,
     ],
   );
 
-  const renderMinute = useCallback(
-    ({ item, drag, isActive, getIndex }: RenderItemParams<Entry>) => (
-      <ScaleDecorator>
+  const renderedEntries = useMemo(
+    () =>
+      entries.map((item, index) => (
         <MinuteItem
+          key={item.id}
           item={item}
-          drag={drag}
-          isActive={isActive}
+          drag={() => {}}
+          isActive={false}
           expanded={!!item.isExpanded}
-          onToggleExpand={(idx) => handleToggleEntry(idx)}
-          onUpdate={(idx, field, value) => updateEntry(idx, field, value)}
-          onDeleteRequest={(idx) => removeEntry(idx)}
+          onToggleExpand={handleToggleEntry}
+          onUpdate={updateEntry}
+          onDeleteRequest={removeEntry}
           users={internalUsers}
           showDelete={entries.length > 1}
           isDarkMode={isDarkMode}
           onOpenDatePicker={onOpenDatePicker}
           onPickImage={onPickImage}
           onDeleteImage={onDeleteImage}
-          getIndex={getIndex}
+          getIndex={() => index}
         />
-      </ScaleDecorator>
-    ),
+      )),
     [
+      entries,
       internalUsers,
       isDarkMode,
       handleToggleEntry,
       updateEntry,
       removeEntry,
-      entries.length,
       onOpenDatePicker,
       onPickImage,
       onDeleteImage,
@@ -617,6 +593,7 @@ const SVRform = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Tabs */}
         <View
           className={`flex-row ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}
         >
@@ -650,7 +627,8 @@ const SVRform = () => {
           </TouchableOpacity>
         </View>
 
-        <NestableScrollContainer
+        {/* Main scroll area — plain ScrollView, no JS-driven drag overhead */}
+        <ScrollView
           ref={scrollRef}
           style={
             isDarkMode
@@ -660,19 +638,11 @@ const SVRform = () => {
           contentContainerStyle={{ paddingVertical: 16, paddingBottom: 220 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={Platform.OS === "android"}
         >
           {activeTab === "attendees" && (
             <View className="px-4 py-2 gap-3">
-              <NestableDraggableFlatList
-                data={attendees}
-                renderItem={renderAttendee}
-                keyExtractor={(item) => item.id}
-                onDragEnd={({ data }) =>
-                  setAttendees(data.map((a, i) => ({ ...a, sNo: i + 1 })))
-                }
-                activationDistance={20}
-                removeClippedSubviews={Platform.OS === "android"}
-              />
+              {renderedAttendees}
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={addAttendee}
@@ -698,16 +668,7 @@ const SVRform = () => {
 
           {activeTab === "discussion" && (
             <View className="px-4 py-2 gap-3">
-              <NestableDraggableFlatList
-                data={entries}
-                renderItem={renderMinute}
-                keyExtractor={(item) => item.id}
-                onDragEnd={({ data }) =>
-                  setEntries(data.map((m, i) => ({ ...m, serialNo: i + 1 })))
-                }
-                activationDistance={20}
-                removeClippedSubviews={Platform.OS === "android"}
-              />
+              {renderedEntries}
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={addEntry}
@@ -730,7 +691,7 @@ const SVRform = () => {
               </TouchableOpacity>
             </View>
           )}
-        </NestableScrollContainer>
+        </ScrollView>
 
         <DateTimePickerModal
           isVisible={showDatePicker}
@@ -739,6 +700,7 @@ const SVRform = () => {
           onCancel={() => setShowDatePicker(false)}
         />
 
+        {/* Bottom action bar */}
         <View
           className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-black"
           style={{ paddingBottom: Math.max(insets.bottom, 16) }}
