@@ -22,7 +22,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -38,6 +38,7 @@ import {
   useColorScheme,
   View,
   FlatList,
+  SectionList,
 } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import {
@@ -143,6 +144,87 @@ const IlrActivities = () => {
   const [refreshing, setRefreshing] = useState(false);
   const remarkInputRef = React.useRef<TextInput>(null);
   const dateNoteInputRef = React.useRef<TextInput>(null);
+
+  const filteredUsers = useMemo(() => {
+    const query = assigneeSearchQuery.toLowerCase();
+    const availableUsers = projectUsers.filter((u) => {
+      const isAlreadyIn = tempAssignees.some(
+        (ta) => getSafeId(ta) === getSafeId(u),
+      );
+      return (
+        !isAlreadyIn &&
+        (u.name.toLowerCase().includes(query) ||
+          u.individualName?.toLowerCase().includes(query) ||
+          u.firmName?.toLowerCase().includes(query))
+      );
+    });
+    return availableUsers;
+  }, [projectUsers, tempAssignees, assigneeSearchQuery]);
+
+  const assigneeSections = useMemo(
+    () => [
+      {
+        title: "Assignees",
+        data: tempAssignees,
+        type: "assigned" as const,
+      },
+      {
+        title: "People",
+        data: filteredUsers,
+        type: "available" as const,
+      },
+    ],
+    [tempAssignees, filteredUsers],
+  );
+
+  const renderAssigneeItem = useCallback(
+    ({ item, section }: { item: Responsibility; section: any }) => {
+      const userId = getSafeId(item);
+      const isAssigned = section.type === "assigned";
+
+      return (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            if (isAssigned) {
+              setTempAssignees((prev) =>
+                prev.filter((u) => getSafeId(u) !== userId),
+              );
+            } else {
+              setTempAssignees((prev) => [...prev, item]);
+            }
+          }}
+          className="flex-row items-center justify-between mb-4"
+        >
+          <View className="flex-row items-center flex-1">
+            <GlobalAvatar name={item.name} size={40} />
+            <View className="ml-3 flex-1">
+              <Text
+                className={`font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
+                numberOfLines={1}
+              >
+                {item.name || item.individualName}
+              </Text>
+              {item.firmName && (
+                <Text
+                  className={`font-poppins text-[12px] ${isDark ? "text-gray-400" : "text-gray-500"}`}
+                  numberOfLines={1}
+                >
+                  {item.firmName}
+                </Text>
+              )}
+            </View>
+          </View>
+          {isAssigned ? (
+            <HugeiconsIcon icon={Cancel01Icon} size={20} color="#919191" />
+          ) : (
+            <View className="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600" />
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [isDark, auth?.user?.fullName],
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -1312,95 +1394,41 @@ const IlrActivities = () => {
               />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-              {/* Currently Assigned Section */}
-              {tempAssignees.length > 0 && (
-                <View className="mb-6">
+            <SectionList
+              sections={assigneeSections}
+              keyExtractor={(item) => getSafeId(item)}
+              renderItem={renderAssigneeItem}
+              renderSectionHeader={({ section: { title, data } }) =>
+                data.length > 0 ? (
                   <Text
-                    className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                    className={`text-[12px] font-poppinsMedium mb-3 mt-2 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                   >
-                    Assignees
+                    {title}
                   </Text>
-                  {tempAssignees.map((user) => {
-                    const userId = getSafeId(user);
-                    return (
-                      <View
-                        key={userId}
-                        className="flex-row items-center justify-between mb-4"
-                      >
-                        <View className="flex-row items-center">
-                          <GlobalAvatar name={user.name} size={40} />
-                          <Text
-                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                          >
-                            {user.name === auth?.user?.fullName
-                              ? "Me"
-                              : user.name}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setTempAssignees((prev) =>
-                              prev.filter((u) => getSafeId(u) !== userId),
-                            );
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={Cancel01Icon}
-                            size={20}
-                            color="#919191"
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-
-              {/* People List Section */}
-              <View className="mb-4">
-                <Text
-                  className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                >
-                  People
-                </Text>
-                {loadingProjectUsers ? (
-                  <ActivityIndicator size="small" color="#5B4CCC" />
-                ) : (
-                  projectUsers
-                    .filter((u) => {
-                      const isMatch = u.name
-                        .toLowerCase()
-                        .includes(assigneeSearchQuery.toLowerCase());
-                      const isAlreadyIn = tempAssignees.some((ta) => {
-                        return getSafeId(ta) === getSafeId(u);
-                      });
-                      return isMatch && !isAlreadyIn;
-                    })
-                    .map((user) => {
-                      const userId = getSafeId(user);
-                      return (
-                        <TouchableOpacity
-                          key={userId}
-                          onPress={() => {
-                            setTempAssignees((prev) => [...prev, user]);
-                          }}
-                          className="flex-row items-center mb-4"
-                        >
-                          <GlobalAvatar name={user.name} size={40} />
-                          <Text
-                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                          >
-                            {user.name === auth?.user?.fullName
-                              ? "Me"
-                              : user.name}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })
-                )}
-              </View>
-            </ScrollView>
+                ) : null
+              }
+              stickySectionHeadersEnabled={false}
+              showsVerticalScrollIndicator={false}
+              className="flex-1"
+              ListEmptyComponent={
+                !loadingProjectUsers ? (
+                  <Text
+                    className={`text-center py-10 font-poppins ${isDark ? "text-gray-500" : "text-gray-400"}`}
+                  >
+                    {assigneeSearchQuery ? "No results found" : "No users available"}
+                  </Text>
+                ) : null
+              }
+              ListFooterComponent={
+                loadingProjectUsers ? (
+                  <ActivityIndicator
+                    size="small"
+                    color="#5B4CCC"
+                    className="py-4"
+                  />
+                ) : null
+              }
+            />
 
             {/* Bottom Buttons */}
             <View className="flex-row gap-3 pt-4">
