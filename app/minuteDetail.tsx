@@ -853,21 +853,11 @@ const MinuteDetail = () => {
                 className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
-                  {status === "closed" ? (
-                    <HugeiconsIcon
-                      icon={CheckmarkCircle02Icon}
-                      size={20}
-                      color="#1AA45B"
-                    />
-                  ) : (
-                    <HugeiconsIcon
-                      icon={
-                        status === "open" ? DashedLineCircleIcon : CircleIcon
-                      }
-                      size={20}
-                      color={status === "open" ? "#DF5B5B" : "#5B4CCC"}
-                    />
-                  )}
+                  <HugeiconsIcon
+                    icon={getStatusBadgeStyles(status, isDark).icon}
+                    size={22}
+                    color={getStatusBadgeStyles(status, isDark).badgeText}
+                  />
                 </View>
                 <View className="flex-1">
                   <Text
