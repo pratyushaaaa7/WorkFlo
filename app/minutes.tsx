@@ -2,6 +2,7 @@ import {
   Add01Icon,
   ArrowLeft01Icon,
   Calendar03Icon,
+  Cancel01Icon,
   CheckmarkCircle02Icon,
   DashedLineCircleIcon,
   Delete03Icon,
@@ -16,6 +17,8 @@ import { BlurView } from "@react-native-community/blur";
 import { format, isValid } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
+import { AnimatePresence, MotiView } from "moti";
+import { Ionicons } from "@expo/vector-icons";
 import React, {
   useCallback,
   useContext,
@@ -28,12 +31,14 @@ import {
   Modal,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -53,6 +58,10 @@ const Minutes = () => {
   const meetingRefs = useRef<{ [key: string]: View | null }>({});
 
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const isFirstLoad = useRef(true);
 
@@ -61,13 +70,19 @@ const Minutes = () => {
   }, [projectId]);
 
   const fetchMeetings = useCallback(
-    async (background = false) => {
+    async (background = false, pageNum = 1) => {
       try {
-        if (!background) setLoading(true);
-        const res = await api.get(`/minutes/project/${projectId}`, {
+        if (!background && pageNum === 1) setLoading(true);
+        const res = await api.get(`/minutes/project/${projectId}?page=${pageNum}&limit=15`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setMeetings(Array.isArray(res.data) ? res.data : []);
+        const fetchedData = Array.isArray(res.data) ? res.data : [];
+        if (fetchedData.length < 15) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+        setMeetings(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
       } catch (err) {
         console.error("Failed to fetch meetings", err);
       } finally {
@@ -81,7 +96,8 @@ const Minutes = () => {
   useFocusEffect(
     useCallback(() => {
       if (projectId) {
-        fetchMeetings(!isFirstLoad.current);
+        setPage(1);
+        fetchMeetings(!isFirstLoad.current, 1);
         isFirstLoad.current = false;
       }
     }, [fetchMeetings, projectId]),
@@ -89,7 +105,16 @@ const Minutes = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchMeetings(true);
+    setPage(1);
+    fetchMeetings(true, 1);
+  };
+
+  const loadMore = () => {
+    if (!loading && !refreshing && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchMeetings(true, nextPage);
+    }
   };
 
   const handleLongPress = (meeting: any) => {
@@ -184,8 +209,19 @@ const Minutes = () => {
 
   const filteredMeetings = meetings.filter((m) => {
     const mProj = String(m.projectId?._id || m.projectId);
-    if (activeTab === "Shared") return mProj !== String(projectId);
-    return mProj === String(projectId);
+    const matchesTab = activeTab === "Shared" ? mProj !== String(projectId) : mProj === String(projectId);
+    
+    if (!matchesTab) return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const numMatch = String(m.meetingNumber).includes(q);
+      const venueMatch = (m.meetingVenue || "").toLowerCase().includes(q);
+      const createdMatch = (m.createdBy || "").toLowerCase().includes(q);
+      if (!numMatch && !venueMatch && !createdMatch) return false;
+    }
+
+    return true;
   });
 
   const MeetingCard = ({
@@ -405,15 +441,55 @@ const Minutes = () => {
           </Text>
         </View>
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity className="p-1">
+          <TouchableOpacity 
+            onPress={() => {
+              if (showSearch) setSearchQuery("");
+              setShowSearch(!showSearch);
+            }}
+            className="p-1"
+          >
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={showSearch ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "white" : "#0F172A"}
             />
           </TouchableOpacity>
         </View>
       </View>
+
+      <AnimatePresence>
+        {showSearch && (
+          <MotiView
+            key="search-bar-moti"
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="mb-3"
+          >
+            <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
+              <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
+              <TextInput
+                placeholder="Search by meeting # or venue"
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDarkMode ? "#6B7280" : "#94A3B8"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
       <View className="flex-row items-center pt-1 justify-between pb-0">
@@ -435,18 +511,7 @@ const Minutes = () => {
         })}
       </View>
 
-      <ScrollView
-        className="flex-1 px-4 pt-2"
-        contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#6366F1"]}
-            tintColor="#6366F1"
-          />
-        }
-      >
+      <View className="flex-1 px-4 pt-2">
         {loading ? (
           <View className="mt-2">
             {[1, 2, 3].map((key) => (
@@ -460,13 +525,30 @@ const Minutes = () => {
             </Text>
           </View>
         ) : (
-          (Array.isArray(filteredMeetings) ? filteredMeetings : []).map((meeting) => (
-            <React.Fragment key={meeting._id}>
-              {renderMeetingCard({ item: meeting })}
-            </React.Fragment>
-          ))
+          <FlatList
+            data={filteredMeetings}
+            keyExtractor={(item) => item._id}
+            renderItem={renderMeetingCard}
+            contentContainerStyle={{ paddingBottom: 120 }}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            windowSize={5}
+            removeClippedSubviews={true}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#6366F1"/> : <View className="h-4" />}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#6366F1"]}
+                tintColor="#6366F1"
+              />
+            }
+          />
         )}
-      </ScrollView>
+      </View>
 
       <TouchableOpacity
         activeOpacity={0.8}

@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Skeleton } from "moti/skeleton";
+import { AnimatePresence, MotiView } from "moti";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -114,6 +115,8 @@ const SVRs = () => {
   const [focusedSVR, setFocusedSVR] = useState<FocusedSVR | null>(null);
   
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const isDownloadingRef = useRef(false);
   const isDark = useColorScheme() === "dark";
@@ -121,14 +124,21 @@ const SVRs = () => {
   const itemRefs = useRef<{ [key: string]: View | null }>({});
 
   // Fetch SVR list
-  const fetchSVRs = async () => {
+  const fetchSVRs = async (background = false, pageNum = 1) => {
     try {
-      setLoading(true);
-      const response = await api.get(`/svr?projectId=${projectId}`, {
+      if (!background && pageNum === 1) setLoading(true);
+      const response = await api.get(`/svr?projectId=${projectId}&page=${pageNum}&limit=15`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSvrs(response.data || []);
+      const fetchedData = response.data || [];
+      if (fetchedData.length < 15) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+      
+      setSvrs(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
     } catch (err) {
       console.error("Fetch SVRs failed:", err);
       // Alert.alert("Error", "Failed to fetch SVRs"); // Optional: handle silently on UX
@@ -139,12 +149,22 @@ const SVRs = () => {
   };
 
   useEffect(() => {
-    fetchSVRs();
+    setPage(1);
+    fetchSVRs(false, 1);
   }, [projectId]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchSVRs();
+    setPage(1);
+    fetchSVRs(true, 1);
+  };
+
+  const loadMore = () => {
+    if (!loading && !refreshing && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchSVRs(true, nextPage);
+    }
   };
 
   const filteredSVRs = React.useMemo(() => {
@@ -382,28 +402,44 @@ const SVRs = () => {
         </TouchableOpacity>
       </View>
 
-      {searchVisible && (
-        <View
-          className="px-5 pb-4"
-          style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
-        >
-          <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-3">
-            <HugeiconsIcon
-              icon={Search01Icon}
-              size={20}
-              color={isDark ? "#A1A1A1" : "#606060"}
-            />
-            <TextInput
-              placeholder="Search by name, uploader, or captions..."
-              placeholderTextColor={isDark ? "#606060" : "#9CA3AF"}
-              className="ml-2 flex-1 font-dm text-black dark:text-white text-base"
-              autoFocus
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-      )}
+      <AnimatePresence>
+        {searchVisible && (
+          <MotiView
+            key="search-bar-moti"
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="px-5 pb-4"
+            style={{ backgroundColor: isDark ? "#000000" : "#FBFCFD" }}
+          >
+            <View className="flex-row items-center bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl px-4 py-3">
+              <HugeiconsIcon
+                icon={Search01Icon}
+                size={20}
+                color={isDark ? "#A1A1A1" : "#606060"}
+              />
+              <TextInput
+                placeholder="Search by name, uploader, or captions..."
+                placeholderTextColor={isDark ? "#606060" : "#9CA3AF"}
+                className="ml-2 flex-1 font-dm text-black dark:text-white text-base"
+                autoFocus
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDark ? "#6B7280" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
       <View className="flex-row items-center pt-1 justify-between pb-0">
@@ -447,6 +483,13 @@ const SVRs = () => {
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
+            initialNumToRender={8}
+            maxToRenderPerBatch={6}
+            windowSize={5}
+            removeClippedSubviews={true}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#5B4CCC"/> : <View className="h-4" />}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}

@@ -87,6 +87,8 @@ const ILRs = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // Date Filter Modal State
   const [dateFilterVisible, setDateFilterVisible] = useState(false);
@@ -255,15 +257,20 @@ const ILRs = () => {
   }, [tempStartDate, tempEndDate, isDarkMode, selectionType]);
 
   const fetchILRs = useCallback(
-    async (background = false) => {
+    async (background = false, pageNum = 1) => {
       if (!token || !projectId) return;
       try {
-        if (!background) setLoading(true);
-        const res = await api.get(`/ilrs/${projectId}`, {
+        if (!background && pageNum === 1) setLoading(true);
+        const res = await api.get(`/ilrs/${projectId}?page=${pageNum}&limit=15`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setIlrs(res.data);
-        // console.log(res.data);
+        const fetchedData = res.data;
+        if (fetchedData.length < 15) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+        setIlrs(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -278,8 +285,8 @@ const ILRs = () => {
   useFocusEffect(
     useCallback(() => {
       if (projectId) {
-        // Use silent refresh if not first load
-        fetchILRs(!isFirstLoad.current);
+        setPage(1);
+        fetchILRs(!isFirstLoad.current, 1);
         isFirstLoad.current = false;
       }
     }, [fetchILRs, projectId]),
@@ -287,8 +294,16 @@ const ILRs = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Silent fetch because RefreshControl handles the spinner
-    await fetchILRs(true);
+    setPage(1);
+    await fetchILRs(true, 1);
+  };
+
+  const loadMore = () => {
+    if (!loading && !refreshing && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchILRs(true, nextPage);
+    }
   };
 
   const handleDownloadExcel = async () => {
@@ -754,9 +769,42 @@ const ILRs = () => {
           </View>
         )}
       </View>
+      <AnimatePresence>
+        {showSearch && (
+          <MotiView
+            key="search-bar-moti"
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="mb-3"
+          >
+            <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
+              <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
+              <TextInput
+                placeholder="Search by subject & responsibility"
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDarkMode ? "#6B7280" : "#94A3B8"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
-      <View className="flex-row items-center pt-1 justify-between pb-0">
+      <View className="flex-row items-center pt-1 justify-between pb-6">
         {(["Project", "Shared"]).map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -979,39 +1027,6 @@ const ILRs = () => {
           />
         </View>
 
-        <AnimatePresence>
-          {showSearch && (
-            <MotiView
-              key="search-bar-moti"
-              from={{ opacity: 0, translateY: -10 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              exit={{ opacity: 0, translateY: -10 }}
-              transition={{ type: "timing", duration: 250 }}
-              className="mt-3"
-            >
-              <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
-                <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
-                <TextInput
-                  placeholder="Search by subject & responsibility"
-                  placeholderTextColor="#94A3B8"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
-                  autoFocus
-                />
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery("")}>
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color={isDarkMode ? "#6B7280" : "#94A3B8"}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </MotiView>
-          )}
-        </AnimatePresence>
       </View>
 
       {/* Main List content */}
@@ -1048,6 +1063,13 @@ const ILRs = () => {
             )}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
+            initialNumToRender={10}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            removeClippedSubviews={true}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#5B4CCC"/> : <View className="h-4"/>}
             ListEmptyComponent={() => (
               <View className="flex-1 items-center justify-center pt-20">
                 <Text className="text-gray-500 font-poppinsMedium text-[15px]">
