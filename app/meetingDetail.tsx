@@ -232,6 +232,67 @@ const MinutesDetail = () => {
 
   const isDarkMode = useColorScheme() === "dark";
 
+  const getDueIndicator = (minute: any) => {
+    if (minute.status === "closed") return null;
+
+    if (minute.overdueDays && minute.overdueDays > 0) {
+      const target = new Date(minute.targetDate);
+      return {
+        text: !isNaN(target.getTime())
+          ? target.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "N/A",
+        color: "text-red-500",
+        icon: Calendar03Icon,
+      };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(minute.targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return {
+        text: "Today",
+        color: "text-[#5B4CCC] dark:text-[#9486FB]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    if (diffDays > 0) {
+      return {
+        text: !isNaN(target.getTime())
+          ? target.toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "N/A",
+        color: "text-[#1AA45B] dark:text-[#1AA45B]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    return {
+      text: !isNaN(target.getTime())
+        ? target.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "N/A",
+      color: "text-gray-500 dark:text-gray-400",
+      icon: Calendar03Icon,
+    };
+  };
+
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
       {/* Header */}
@@ -674,15 +735,30 @@ const MinutesDetail = () => {
                           </Text>
                         </View>
 
-                        {minute.targetDate && !minute.targetDateForInfo && (
+                        {minute.targetDate && !minute.targetDateForInfo && getDueIndicator(minute) && (
                           <View className="flex-row items-center">
                             <HugeiconsIcon
-                              icon={Calendar03Icon}
+                              icon={getDueIndicator(minute)!.icon}
                               size={12}
-                              color="#DF5B5B"
+                              color={
+                                getDueIndicator(minute)!.color === "text-red-500"
+                                  ? "#EF4444"
+                                  : getDueIndicator(minute)!.color.includes("green") ||
+                                      getDueIndicator(minute)!.color.includes("#1AA45B")
+                                    ? "#1AA45B"
+                                    : getDueIndicator(minute)!.text === "Today"
+                                      ? isDarkMode
+                                        ? "#9486FB"
+                                        : "#5B4CCC"
+                                      : isDarkMode
+                                        ? "#7C95FF"
+                                        : "#5B4CCC"
+                              }
                             />
-                            <Text className="text-[11px] font-poppinsMedium text-[#DF5B5B] ml-1">
-                              Delay - 52
+                            <Text
+                              className={`text-[11px] font-poppinsMedium ml-1 ${getDueIndicator(minute)!.color}`}
+                            >
+                              {getDueIndicator(minute)!.text}
                             </Text>
                           </View>
                         )}

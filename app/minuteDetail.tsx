@@ -219,6 +219,56 @@ const MinuteDetail = () => {
     [params.raisedBy],
   );
 
+  const getDueIndicator = (minute: any) => {
+    if (!minute || minute.status === "closed") return null;
+
+    if (minute.overdueDays && minute.overdueDays > 0) {
+      const target = new Date(minute.targetDate);
+      return {
+        text: !isNaN(target.getTime())
+          ? fmtDate(target)
+          : "N/A",
+        color: "text-red-500",
+        icon: Calendar03Icon,
+      };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDateObj = minute.targetDate ? new Date(minute.targetDate) : null;
+    if (!targetDateObj) return null;
+    targetDateObj.setHours(0, 0, 0, 0);
+
+    const diffTime = targetDateObj.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return {
+        text: "Today",
+        color: "text-[#5B4CCC] dark:text-[#9486FB]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    if (diffDays > 0) {
+      return {
+        text: !isNaN(targetDateObj.getTime())
+          ? fmtDate(targetDateObj)
+          : "N/A",
+        color: "text-[#1AA45B] dark:text-[#1AA45B]",
+        icon: Calendar03Icon,
+      };
+    }
+
+    return {
+      text: !isNaN(targetDateObj.getTime())
+        ? fmtDate(targetDateObj)
+        : "N/A",
+      color: "text-gray-500 dark:text-gray-400",
+      icon: Calendar03Icon,
+    };
+  };
+
   // --- Status & notes ---
   const [status, setStatus] = useState<Status>(
     (params.status as string as Status) || "open",
@@ -1036,9 +1086,15 @@ const MinuteDetail = () => {
                       Target date
                     </Text>
                     <Text
-                      className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
+                      className={`text-sm font-poppinsMedium ${
+                        getDueIndicator(minuteData)
+                          ? getDueIndicator(minuteData)!.color
+                          : isDark
+                            ? "text-white"
+                            : "text-black"
+                      }`}
                     >
-                      {displayTargetDate}
+                      {getDueIndicator(minuteData)?.text || displayTargetDate}
                     </Text>
                   </View>
                   {minuteData?.delayDays && minuteData.delayDays > 0 ? (
