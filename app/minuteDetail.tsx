@@ -38,6 +38,7 @@ import {
   View,
   useColorScheme,
   FlatList,
+  SectionList,
 } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import {
@@ -242,9 +243,6 @@ const MinuteDetail = () => {
 
   const displayResponsibilityArr = useMemo(() => {
     if (minuteData) {
-      if (minuteData.targetDateForInfo) return []; // Should this be responsibilityForInfo? Check following lines.
-      // The current logic seems to use params.responsibilityForInfo. Let's look at how it's handled in the component.
-      // Usually it's responsibilityForInfo.
       if (minuteData.responsibilityForInfo) return [];
       return (minuteData.responsibility || [])
         .filter((r: any) => !!r)
@@ -322,18 +320,19 @@ const MinuteDetail = () => {
   };
 
   const fetchProjectUsers = async () => {
-    if (!auth?.token || !minuteData?.projectId) return;
+    const pId = minuteData?.projectId || params.projectId;
+    if (!auth?.token || !pId) return;
     setLoadingProjectUsers(true);
     try {
       const res = await api.get(
-        `/projects/${minuteData.projectId}/users-dropdown`,
+        `/projects/${pId}/users-dropdown`,
         {
           headers: { Authorization: `Bearer ${auth?.token}` },
         },
       );
       const mapped = res.data.map((u: any) => ({
         _id: u._id,
-        name: `${u.individualName} (${u.firmName})`,
+        name: u.individualName || u.name,
         individualName: u.individualName,
         firmName: u.firmName,
         designation: u.designation || "",
@@ -353,9 +352,22 @@ const MinuteDetail = () => {
   }, [showAssigneeModal]);
 
   const saveAssigneeChange = async () => {
-    // Backend to be provided later, currently a placeholder/UI-only update
-    Alert.alert("Success", "Assignees updated locally.");
-    setShowAssigneeModal(false);
+    if (!minuteId || !meetingId || !auth?.token) return;
+    setSaving(true);
+    try {
+      await api.put(
+        `/minutes/${meetingId}/minutes/${minuteId}/status`,
+        { responsibility: tempAssignees.map((u) => ({ _id: getSafeId(u), name: u.individualName || u.name })) },
+        { headers: { Authorization: `Bearer ${auth?.token}` } },
+      );
+      setShowAssigneeModal(false);
+      await fetchActivityLog();
+    } catch (err) {
+      console.error("Failed to update responsibility:", err);
+      Alert.alert("Error", "Failed to update responsibility. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getSafeId = (user: any): string => {
@@ -1016,17 +1028,33 @@ const MinuteDetail = () => {
                     color={isDark ? "#919191" : "#454545"}
                   />
                 </View>
-                <View className="flex-1">
-                  <Text
-                    className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                  >
-                    Target Date
-                  </Text>
-                  <Text
-                    className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
-                  >
-                    {displayTargetDate}
-                  </Text>
+                <View className="flex-1 flex-row justify-between items-center pr-2">
+                  <View>
+                    <Text
+                      className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                    >
+                      Target date
+                    </Text>
+                    <Text
+                      className={`text-sm font-poppinsMedium ${isDark ? "text-white" : "text-black"}`}
+                    >
+                      {displayTargetDate}
+                    </Text>
+                  </View>
+                  {minuteData?.delayDays && minuteData.delayDays > 0 ? (
+                    <View className="items-end">
+                      <Text
+                        className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                      >
+                        Delay Days
+                      </Text>
+                      <Text
+                        className={`text-sm font-poppinsMedium text-red-500`}
+                      >
+                        {minuteData.delayDays}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
@@ -1035,7 +1063,7 @@ const MinuteDetail = () => {
                 />
               </TouchableOpacity>
 
-              {/* Description Section */}
+
               {displayDescription ? (
                 <>
                   <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
@@ -1043,7 +1071,7 @@ const MinuteDetail = () => {
                     <Text
                       className={`text-base font-poppinsMedium mb-2 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                     >
-                      Description
+                      Discussion
                     </Text>
                     <Text
                       className={`text-[14px] font-poppins leading-5 ${isDark ? "text-white" : "text-black"}`}
@@ -1650,98 +1678,78 @@ const MinuteDetail = () => {
               />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-              {/* Currently Assigned Section */}
-              {tempAssignees.length > 0 && (
-                <View className="mb-6">
-                  <Text
-                    className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                  >
-                    Selected
-                  </Text>
-                  {tempAssignees.map((user) => {
-                    const userId = getSafeId(user);
-                    return (
-                      <View
-                        key={userId}
-                        className="flex-row items-center justify-between mb-4"
-                      >
-                        <View className="flex-row items-center">
-                          <GlobalAvatar
-                            name={user.individualName || user.name}
-                            size={40}
-                          />
-                          <Text
-                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                          >
-                            {user.individualName || user.name}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setTempAssignees((prev) =>
-                              prev.filter((u) => getSafeId(u) !== userId),
-                            );
-                          }}
-                        >
-                          <HugeiconsIcon
-                            icon={Cancel01Icon}
-                            size={20}
-                            color="#919191"
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-
-              {/* People List Section */}
-              <View className="mb-4">
-                <Text
-                  className={`text-[12px] font-poppinsMedium mb-3 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                >
-                  People
+        <SectionList
+              sections={[
+                {
+                  title: 'selected',
+                  data: tempAssignees.length > 0 ? tempAssignees : [{ _placeholder: true }],
+                },
+                {
+                  title: 'people',
+                  data: projectUsers.filter((u) => {
+                    const name = (u.individualName || u.name || '').toLowerCase();
+                    const firm = (u.firmName || '').toLowerCase();
+                    const query = assigneeSearchQuery.toLowerCase();
+                    const isMatch = name.includes(query) || firm.includes(query);
+                    const isAlreadyIn = tempAssignees.some((ta) => getSafeId(ta) === getSafeId(u));
+                    return isMatch && !isAlreadyIn;
+                  }),
+                },
+              ]}
+              keyExtractor={(item, index) => getSafeId(item) || index.toString()}
+              showsVerticalScrollIndicator={false}
+              className="flex-1"
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              keyboardShouldPersistTaps="handled"
+              renderSectionHeader={({ section }) => (
+                <Text className={`text-[12px] font-poppinsMedium mb-3 mt-1 ${
+                  isDark ? 'text-[#919191]' : 'text-[#454545]'
+                }`}>
+                  {section.title === 'selected' ? 'Selected' : 'People'}
                 </Text>
-                {loadingProjectUsers ? (
-                  <ActivityIndicator size="small" color="#5B4CCC" />
-                ) : (
-                  projectUsers
-                    .filter((u) => {
-                      const name = u.individualName || u.name || "";
-                      const isMatch = name
-                        .toLowerCase()
-                        .includes(assigneeSearchQuery.toLowerCase());
-                      const isAlreadyIn = tempAssignees.some((ta) => {
-                        return getSafeId(ta) === getSafeId(u);
-                      });
-                      return isMatch && !isAlreadyIn;
-                    })
-                    .map((user) => {
-                      const userId = getSafeId(user);
-                      return (
-                        <TouchableOpacity
-                          key={userId}
-                          onPress={() => {
-                            setTempAssignees((prev) => [...prev, user]);
-                          }}
-                          className="flex-row items-center mb-4"
-                        >
-                          <GlobalAvatar
-                            name={user.individualName || user.name}
-                            size={40}
-                          />
-                          <Text
-                            className={`ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-                          >
-                            {user.individualName || user.name}
+              )}
+              renderItem={({ item, section }) => {
+                if (item._placeholder) return null;
+                const userId = getSafeId(item);
+                const isSelected = section.title === 'selected';
+                return (
+                  <View className="flex-row items-center justify-between mb-4">
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isSelected) {
+                          setTempAssignees(prev => prev.filter(u => getSafeId(u) !== userId));
+                        } else {
+                          setTempAssignees(prev => [...prev, item]);
+                        }
+                      }}
+                      className="flex-row items-center flex-1"
+                    >
+                      <GlobalAvatar name={item.individualName || item.name} size={40} />
+                      <View className="ml-3 flex-1">
+                        <Text className={`font-poppins text-[15px] ${
+                          isDark ? 'text-white' : 'text-black'
+                        }`} numberOfLines={1}>
+                          {item.individualName || item.name}
+                        </Text>
+                        {item.firmName && (
+                          <Text className={`font-poppins text-[12px] ${
+                            isDark ? 'text-gray-400' : 'text-gray-500'
+                          }`} numberOfLines={1}>
+                            {item.firmName}
                           </Text>
-                        </TouchableOpacity>
-                      );
-                    })
-                )}
-              </View>
-            </ScrollView>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    {isSelected && (
+                      <HugeiconsIcon icon={Cancel01Icon} size={20} color="#919191" />
+                    )}
+                  </View>
+                );
+              }}
+              ListEmptyComponent={loadingProjectUsers ? <ActivityIndicator size="small" color="#5B4CCC" /> : null}
+            />
 
             {/* Bottom Buttons */}
             <View className="flex-row gap-3 pt-4">
