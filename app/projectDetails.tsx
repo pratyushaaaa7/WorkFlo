@@ -660,6 +660,38 @@ const ProjectDetails = () => {
               isRightBold
             />
 
+            {project.associatedProject && (
+              <View>
+                <View className="flex-row justify-between py-[14px]">
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+                      Associated Project
+                    </Text>
+                    <TouchableOpacity
+                      className="flex-row items-center"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/projectDetails",
+                          params: { id: project.associatedProject?._id },
+                        })
+                      }
+                    >
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={14}
+                        color={isDarkMode ? "#818CF8" : "#5B4CCC"}
+                        className="mr-1"
+                      />
+                      <Text className="text-[14px] font-poppinsMedium text-[#5B4CCC] dark:text-[#818CF8] underline">
+                        {project.associatedProject.projectName}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47]" />
+              </View>
+            )}
+
             <ModernDataRow
               leftLabel="Project Code"
               leftValue={project.projectCode || "N/A"}

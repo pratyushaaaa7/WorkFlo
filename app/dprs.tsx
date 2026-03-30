@@ -6,6 +6,7 @@ import {
   Download01Icon,
   Pdf01Icon,
   Search01Icon,
+  Share08Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
@@ -29,6 +30,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import api from "../lib/api";
 
 const ReportSkeleton = ({ isDark }: { isDark: boolean }) => (
@@ -78,6 +80,7 @@ type DprItem = {
   _id: string;
   fileName: string;
   url: string;
+  projectId?: { _id: string } | string;
   uploadedBy?: {
     fullName: string;
   };
@@ -105,6 +108,9 @@ const DPRs = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedDPR, setFocusedDPR] = useState<FocusedDPR | null>(null);
+  
+  const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+
   const isDownloadingRef = useRef(false);
   const isDark = useColorScheme() === "dark";
   const itemRefs = useRef<{ [key: string]: View | null }>({});
@@ -252,17 +258,23 @@ const DPRs = () => {
   };
 
   const filteredDPRs = React.useMemo(() => {
-    if (!searchQuery.trim()) return dprs;
+    const filteredByTab = dprs.filter((d: any) => {
+      const pId = typeof d.projectId === "string" ? d.projectId : d.projectId?._id;
+      if (activeTab === "Shared") return pId !== projectId;
+      return pId === projectId;
+    });
+
+    if (!searchQuery.trim()) return filteredByTab;
     const q = searchQuery.toLowerCase();
-    return dprs.filter((d) => {
+    return filteredByTab.filter((d: any) => {
       const matchFile = d.fileName?.toLowerCase().includes(q);
       const matchUser = d.uploadedBy?.fullName?.toLowerCase().includes(q);
-      const matchCaption = d.captions?.some((c) =>
-        c?.toLowerCase().includes(q),
+      const matchCaption = d.captions?.some((c: any) =>
+        c?.toLowerCase().includes(q)
       );
       return matchFile || matchUser || matchCaption;
     });
-  }, [dprs, searchQuery]);
+  }, [dprs, searchQuery, activeTab, projectId]);
 
   // Long press handler — measures card position, shows blur modal
   const handleLongPress = (item: DprItem) => {
@@ -291,6 +303,28 @@ const DPRs = () => {
       Alert.alert("Error", "Failed to delete DPR");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleShareDPR = async () => {
+    if (!focusedDPR) return;
+    const id = focusedDPR._id;
+    setFocusedDPR(null);
+    try {
+      await api.put(`/dpr/${id}/share`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Refresh list to update status
+      fetchDPRs();
+    } catch (err: any) {
+      console.error("Share DPR failed:", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share DPR";
+      Toast.show({
+        type: "error",
+        text1: "Share failed",
+        text2: errorMessage,
+        position: "bottom",
+      });
     }
   };
 
@@ -420,6 +454,26 @@ const DPRs = () => {
         </View>
       )}
 
+      {/* Tabs */}
+      <View className="flex-row items-center pt-1 justify-between pb-0">
+        {(["Project", "Shared"]).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab as "Project" | "Shared")}
+              className={`py-2 px-2 border-b flex-1 items-center ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+            >
+              <Text
+                className={` font-poppinsMedium  ${isActive ? "text-[#5B4CCC] dark:text-[#5B4CCC]" : "text-[#454545] dark:text-[#BBBBBB]"}`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {/* Content */}
       <View className="flex-1 px-4">
         {loading && !refreshing ? (
@@ -545,23 +599,46 @@ const DPRs = () => {
             >
               <DPRCard item={focusedDPR} />
 
-              <TouchableOpacity
-                onPress={handleConfirmDelete}
-                activeOpacity={0.9}
-                className="mt-2 flex-row items-center justify-center self-end bg-white dark:bg-[#0D0D0D] dark:border-[#262626] border border-[#E0E5EB] px-5 py-4 rounded-2xl"
-                // style={{
-                //   shadowColor: "#000",
-                //   shadowOffset: { width: 0, height: 4 },
-                //   shadowOpacity: 0.15,
-                //   shadowRadius: 12,
-                //   elevation: 5,
-                // }}
-              >
-                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
-                <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
-                  Delete
-                </Text>
-              </TouchableOpacity>
+              <View className="items-end mt-2">
+                <View
+                  className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+                  style={{
+                    elevation: 15,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
+                    minWidth: 160,
+                  }}
+                >
+                  {activeTab === "Project" && (
+                    <>
+                      <TouchableOpacity
+                        onPress={handleShareDPR}
+                        activeOpacity={0.7}
+                        className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                      >
+                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDark ? "#FFFFFF" : "#000000"} />
+                        <Text className="ml-3 text-black dark:text-white font-poppinsMedium text-base">
+                          Share
+                        </Text>
+                      </TouchableOpacity>
+                      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2 my-1" />
+                    </>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={handleConfirmDelete}
+                    activeOpacity={0.7}
+                    className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                  >
+                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
+                      Delete
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           )}
         </View>

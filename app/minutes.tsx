@@ -7,6 +7,7 @@ import {
   Delete03Icon,
   Location01Icon,
   Search01Icon,
+  Share08Icon,
   Tick01Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -50,6 +51,8 @@ const Minutes = () => {
 
   const [focusedMeeting, setFocusedMeeting] = useState<any | null>(null);
   const meetingRefs = useRef<{ [key: string]: View | null }>({});
+
+  const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
 
   const isFirstLoad = useRef(true);
 
@@ -141,7 +144,49 @@ const Minutes = () => {
     }
   };
 
+  const handleShare = async () => {
+    if (!focusedMeeting || !token) return;
+
+    try {
+      const meetingId = focusedMeeting._id;
+      setFocusedMeeting(null);
+      await api.put(
+        `/minutes/${meetingId}/share`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // ✅ SHOW TOAST
+      Toast.show({
+        type: "success",
+        text1: "Shared",
+        text2: "The meeting was shared to its associated project",
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+
+      // Refetch to reflect sharing
+      fetchMeetings(true);
+    } catch (err: any) {
+      setFocusedMeeting(null);
+      console.error("Share failed", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Please try again later.";
+      Toast.show({
+        type: "error",
+        text1: "Share failed",
+        text2: errorMessage,
+        position: "bottom",
+      });
+    }
+  };
+
   const isDarkMode = useColorScheme() === "dark";
+
+  const filteredMeetings = meetings.filter((m) => {
+    const mProj = String(m.projectId?._id || m.projectId);
+    if (activeTab === "Shared") return mProj !== String(projectId);
+    return mProj === String(projectId);
+  });
 
   const MeetingCard = ({
     meeting,
@@ -370,6 +415,26 @@ const Minutes = () => {
         </View>
       </View>
 
+      {/* Tabs */}
+      <View className="flex-row items-center pt-1 justify-between pb-0">
+        {(["Project", "Shared"]).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab as "Project" | "Shared")}
+              className={`py-2 px-2 border-b flex-1 items-center ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+            >
+              <Text
+                className={` font-poppinsMedium  ${isActive ? "text-[#5B4CCC] dark:text-[#5B4CCC]" : "text-[#454545] dark:text-[#BBBBBB]"}`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       <ScrollView
         className="flex-1 px-4 pt-2"
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -388,14 +453,14 @@ const Minutes = () => {
               <MeetingSkeletonCard key={key} />
             ))}
           </View>
-        ) : meetings.length === 0 ? (
+        ) : filteredMeetings.length === 0 ? (
           <View className="mt-20 items-center">
             <Text className="text-[#64748B] dark:text-[#94A3B8] text-lg font-poppinsMedium text-center">
               No meetings found for this project
             </Text>
           </View>
         ) : (
-          (Array.isArray(meetings) ? meetings : []).map((meeting) => (
+          (Array.isArray(filteredMeetings) ? filteredMeetings : []).map((meeting) => (
             <React.Fragment key={meeting._id}>
               {renderMeetingCard({ item: meeting })}
             </React.Fragment>
@@ -453,23 +518,46 @@ const Minutes = () => {
             >
               <MeetingCard meeting={focusedMeeting} isFocused={true} />
 
-              <TouchableOpacity
-                onPress={handleConfirmDelete}
-                activeOpacity={0.9}
-                className="mt-4 flex-row items-center justify-center self-end bg-white dark:bg-[#1A1A1A] px-4 py-4 rounded-2xl"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 12,
-                  elevation: 5,
-                }}
-              >
-                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
-                <Text className="ml-3 text-[#DF5B5B] font-dmBold text-base">
-                  Delete Meeting
-                </Text>
-              </TouchableOpacity>
+              <View className="items-end mt-4">
+                <View
+                  className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+                  style={{
+                    elevation: 15,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
+                    minWidth: 180,
+                  }}
+                >
+                  {activeTab === "Project" && (
+                    <>
+                      <TouchableOpacity
+                        onPress={handleShare}
+                        activeOpacity={0.7}
+                        className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                      >
+                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDarkMode ? "#FFFFFF" : "#000000"} />
+                        <Text className="ml-3 text-black dark:text-white font-dmBold text-base">
+                          Share
+                        </Text>
+                      </TouchableOpacity>
+                      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2 my-1" />
+                    </>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={handleConfirmDelete}
+                    activeOpacity={0.7}
+                    className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                  >
+                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <Text className="ml-3 text-[#DF5B5B] font-dmBold text-base">
+                      Delete Meeting
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           )}
         </View>

@@ -11,6 +11,7 @@ import {
   MoreHorizontalIcon,
   Pdf01Icon,
   Search01Icon,
+  Share08Icon,
   Tick02Icon,
   Xsl01Icon,
 } from "@hugeicons/core-free-icons";
@@ -41,6 +42,8 @@ import {
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Modal from "react-native-modal";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 // import { exportILRsToExcel } from "../utils/ilrExcel";
@@ -82,6 +85,8 @@ const ILRs = () => {
   const [exportMenuVisible, setExportMenuVisible] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
 
   // Date Filter Modal State
   const [dateFilterVisible, setDateFilterVisible] = useState(false);
@@ -319,7 +324,14 @@ const ILRs = () => {
   };
 
   const sections = useMemo(() => {
-    const filtered = ilrs.filter((ilr) => {
+    const filtered = ilrs.filter((ilr: any) => {
+      const pId = String(ilr.projectId?._id || ilr.projectId);
+      if (activeTab === "Shared") {
+        if (pId === String(projectId)) return false;
+      } else {
+        if (pId !== String(projectId)) return false;
+      }
+
       if (filter !== "  All  " && ilr.status !== filter) return false;
 
       const created = new Date(ilr.createdAt || ilr.targetDate);
@@ -342,7 +354,7 @@ const ILRs = () => {
         const q = searchQuery.toLowerCase();
         const descMatch = ilr.description?.toLowerCase().includes(q);
         const numMatch = String(ilr.ilrNumber).includes(q);
-        const responsibilityMatch = (ilr.responsibility || []).some((r) =>
+        const responsibilityMatch = (ilr.responsibility || []).some((r: any) =>
           (r.name || r.individualName || "").toLowerCase().includes(q),
         );
         if (!descMatch && !numMatch && !responsibilityMatch) return false;
@@ -385,7 +397,7 @@ const ILRs = () => {
       title: date,
       data: groups[date],
     }));
-  }, [ilrs, filter, searchQuery, startDate, endDate]);
+  }, [ilrs, filter, searchQuery, startDate, endDate, activeTab, projectId]);
 
   const getStatusConfig = (status: string) => {
     const s = status?.toLowerCase();
@@ -658,13 +670,47 @@ const ILRs = () => {
                 {selectedIds.size} Selected
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
-              <HugeiconsIcon
-                icon={MoreHorizontalIcon}
-                size={24}
-                color={isDarkMode ? "#FFF" : "#2D3436"}
-              />
-            </TouchableOpacity>
+            <View className="flex-row items-center gap-4">
+              {activeTab === "Project" && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (selectedIds.size === 0) return;
+                    for (const id of selectedIds) {
+                      try {
+                        await api.put(`/ilrs/${id}/share`, {}, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                      } catch (err: any) {
+                        console.error("Failed to share ILR " + id, err);
+                        const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share ILR";
+                        Toast.show({
+                          type: "error",
+                          text1: "Share failed",
+                          text2: errorMessage,
+                          position: "bottom",
+                        });
+                      }
+                    }
+                    setSelectionMode(false);
+                    setSelectedIds(new Set());
+                    fetchILRs(true);
+                  }}
+                >
+                  <HugeiconsIcon
+                    icon={Share08Icon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#2D3436"}
+                  />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
+                <HugeiconsIcon
+                  icon={MoreHorizontalIcon}
+                  size={24}
+                  color={isDarkMode ? "#FFF" : "#2D3436"}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <View
@@ -707,6 +753,30 @@ const ILRs = () => {
             </View>
           </View>
         )}
+      </View>
+
+      {/* Tabs */}
+      <View className="flex-row items-center pt-1 justify-between pb-0">
+        {(["Project", "Shared"]).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => {
+                setActiveTab(tab as "Project" | "Shared");
+                setSelectionMode(false);
+                setSelectedIds(new Set());
+              }}
+              className={`py-2 px-2 border-b flex-1 items-center ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+            >
+              <Text
+                className={` font-poppinsMedium  ${isActive ? "text-[#5B4CCC] dark:text-[#5B4CCC]" : "text-[#454545] dark:text-[#BBBBBB]"}`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Export Menu (Fast Overlay) */}

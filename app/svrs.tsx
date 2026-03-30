@@ -8,6 +8,7 @@ import {
   Note01Icon,
   Pdf01Icon,
   Search01Icon,
+  Share08Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
@@ -32,6 +33,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -80,8 +82,8 @@ type SVRItem = {
   _id: string;
   fileName: string;
   url: string;
-  svrNumber?: number;
   uploadedBy?: { fullName?: string };
+  projectId?: { _id: string } | string;
   caseStudyNumber?: number;
   captions?: string[];
 };
@@ -110,6 +112,9 @@ const SVRs = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedSVR, setFocusedSVR] = useState<FocusedSVR | null>(null);
+  
+  const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+
   const isDownloadingRef = useRef(false);
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
@@ -143,17 +148,23 @@ const SVRs = () => {
   };
 
   const filteredSVRs = React.useMemo(() => {
-    if (!searchQuery.trim()) return svrs;
+    const filteredByTab = svrs.filter((s: any) => {
+      const pId = typeof s.projectId === "string" ? s.projectId : s.projectId?._id;
+      if (activeTab === "Shared") return pId !== String(projectId);
+      return pId === String(projectId);
+    });
+
+    if (!searchQuery.trim()) return filteredByTab;
     const q = searchQuery.toLowerCase();
-    return svrs.filter((s) => {
+    return filteredByTab.filter((s: any) => {
       const matchFile = s.fileName?.toLowerCase().includes(q);
       const matchUser = s.uploadedBy?.fullName?.toLowerCase().includes(q);
-      const matchCaption = s.captions?.some((c) =>
+      const matchCaption = s.captions?.some((c: any) =>
         c?.toLowerCase().includes(q),
       );
       return matchFile || matchUser || matchCaption;
     });
-  }, [svrs, searchQuery]);
+  }, [svrs, searchQuery, activeTab, projectId]);
 
   const openTypeSelector = () => {
     setModalVisible(true);
@@ -243,6 +254,28 @@ const SVRs = () => {
       Alert.alert("Error", "Failed to delete SVR");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleShareSVR = async () => {
+    if (!focusedSVR) return;
+    const id = focusedSVR._id;
+    setFocusedSVR(null);
+    try {
+      await api.put(`/svr/${id}/share`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Refresh list
+      fetchSVRs();
+    } catch (err: any) {
+      console.error("Share SVR failed:", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share SVR";
+      Toast.show({
+        type: "error",
+        text1: "Share failed",
+        text2: errorMessage,
+        position: "bottom",
+      });
     }
   };
 
@@ -371,6 +404,26 @@ const SVRs = () => {
           </View>
         </View>
       )}
+
+      {/* Tabs */}
+      <View className="flex-row items-center pt-1 justify-between pb-0">
+        {(["Project", "Shared"]).map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab as "Project" | "Shared")}
+              className={`py-2 px-2 border-b flex-1 items-center ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+            >
+              <Text
+                className={` font-poppinsMedium  ${isActive ? "text-[#5B4CCC] dark:text-[#5B4CCC]" : "text-[#454545] dark:text-[#BBBBBB]"}`}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {/* Content */}
       <View className="flex-1 px-4">
@@ -530,23 +583,46 @@ const SVRs = () => {
             >
               <SVRCard item={focusedSVR} />
 
-              <TouchableOpacity
-                onPress={handleConfirmDelete}
-                activeOpacity={0.9}
-                className="mt-2 flex-row items-center justify-center self-end bg-white dark:bg-[#0D0D0D] dark:border-[#262626] border border-[#E0E5EB] px-5 py-4 rounded-2xl"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 12,
-                  elevation: 5,
-                }}
-              >
-                <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
-                <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
-                  Delete
-                </Text>
-              </TouchableOpacity>
+              <View className="items-end mt-2">
+                <View
+                  className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+                  style={{
+                    elevation: 15,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
+                    minWidth: 160,
+                  }}
+                >
+                  {activeTab === "Project" && (
+                    <>
+                      <TouchableOpacity
+                        onPress={handleShareSVR}
+                        activeOpacity={0.7}
+                        className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                      >
+                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDark ? "#FFFFFF" : "#000000"} />
+                        <Text className="ml-3 text-black dark:text-white font-poppinsMedium text-base">
+                          Share
+                        </Text>
+                      </TouchableOpacity>
+                      <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2 my-1" />
+                    </>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={handleConfirmDelete}
+                    activeOpacity={0.7}
+                    className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                  >
+                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
+                      Delete
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           )}
         </View>
