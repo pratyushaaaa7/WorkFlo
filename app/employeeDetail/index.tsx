@@ -35,6 +35,7 @@ import ProjectsTab from "../../components/employeeDetail/ProjectsTab";
 import ReviewsTab from "../../components/employeeDetail/ReviewsTab";
 import { AuthContext, useAuth } from "../../context/AuthContext";
 import api from "../../lib/api";
+import AnimatedTabIndicator from "../../components/AnimatedTabIndicator";
 
 const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
@@ -479,7 +480,7 @@ const EmployeeDetail = () => {
           className="bg-white dark:bg-black pt-2 pb-0 z-50 elevation-5"
           style={{ zIndex: 50 }}
         >
-          <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525]">
+          <View className="flex-row border-b border-[#E0E5EB] dark:border-[#252525] relative">
             {tabs.map((tab) => {
               const isActive = activeTab === tab;
               return (
@@ -492,11 +493,6 @@ const EmployeeDetail = () => {
                   }}
                   className="flex-1 items-center pb-3 pt-1"
                   activeOpacity={0.7}
-                  style={
-                    isActive
-                      ? { borderBottomWidth: 2, borderBottomColor: "#5B4CCC" }
-                      : {}
-                  }
                 >
                   <Text
                     className={`text-sm font-poppinsMedium ${
@@ -510,6 +506,7 @@ const EmployeeDetail = () => {
                 </TouchableOpacity>
               );
             })}
+            <AnimatedTabIndicator tabs={tabs} activeTab={activeTab} />
           </View>
         </View>
 

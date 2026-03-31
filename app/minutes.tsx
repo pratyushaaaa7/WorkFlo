@@ -41,6 +41,7 @@ import {
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
+import AnimatedTabIndicator from "../components/AnimatedTabIndicator";
 
 const Minutes = () => {
   const { projectId, projectName, company } = useLocalSearchParams();
@@ -546,14 +547,14 @@ const Minutes = () => {
       </AnimatePresence>
 
       {/* Tabs */}
-      <View className="flex-row items-center pt-1 justify-between pb-0">
+      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
         {["Project", "Shared"].map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveTab(tab as "Project" | "Shared")}
-              className={`py-2 px-2 border-b flex-1 items-center ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+              className="py-2 px-2 flex-1 items-center"
             >
               <Text
                 className={` font-poppinsMedium  ${isActive ? "text-[#5B4CCC] dark:text-[#5B4CCC]" : "text-[#454545] dark:text-[#BBBBBB]"}`}
@@ -563,6 +564,7 @@ const Minutes = () => {
             </TouchableOpacity>
           );
         })}
+        <AnimatedTabIndicator tabs={["Project", "Shared"]} activeTab={activeTab} />
       </View>
 
       <View className="flex-1 px-4 pt-2">

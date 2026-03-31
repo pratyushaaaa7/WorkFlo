@@ -12,6 +12,7 @@ import { Skeleton } from "moti/skeleton";
 import React, { memo, useContext, useEffect, useState, useCallback, useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   FlatList,
   Image,
@@ -27,6 +28,7 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import { Project } from "../../types/Project";
 import GlobalAvatar from "../GlobalAvatar";
+import AnimatedTabIndicator from "../AnimatedTabIndicator";
 import { useProject } from "../../context/ProjectContext";
 const { width } = Dimensions.get("window");
 
@@ -206,14 +208,14 @@ const ProjectCard = memo(
             </View>
           </View>
           {/* Deadline/Start Date */}
-          {project.startDate && (
+          {/* {project.startDate && (
             <View className="flex-row items-center">
               <HugeiconsIcon icon={Calendar03Icon} size={13} color="#DF5B5B" />
               <Text className="text-[#DF5B5B] text-[11px] font-poppins ml-1.5 mt-0.5">
                 {new Date(project.startDate).toLocaleDateString()}
               </Text>
             </View>
-          )}
+          )} */}
         </View>
 
         {/* Content */}
@@ -271,6 +273,7 @@ const ProjectsTab = ({
   
   const { projectsMap, fetchProjects } = useProject();
   const isDarkMode = useColorScheme() === "dark";
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   const subTabs = ["WALL", "WP", "WCORP"];
 
@@ -438,8 +441,8 @@ const ProjectsTab = ({
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#0D0D0D]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row items-center justify-between"
-      style={{ }}
+      <View
+        className="flex-row items-center justify-between border-b border-[#E0E5EE] dark:border-[#63615F] relative"
       >
         {subTabs.map((tab, index) => {
           const isActive = activeSubTab === tab;
@@ -447,7 +450,7 @@ const ProjectsTab = ({
             <TouchableOpacity
               key={tab}
               onPress={() => handleTabPress(index)}
-              className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+              className="flex-1 items-center pt-4 pb-3"
             >
               <Text
                 className={`font-poppinsMedium ${
@@ -461,13 +464,19 @@ const ProjectsTab = ({
             </TouchableOpacity>
           );
         })}
+        <AnimatedTabIndicator tabs={subTabs} activeTab={activeSubTab} scrollX={scrollX} />
       </View>
 
-      <FlatList
-        ref={flatListRef}
+      <Animated.FlatList
+        ref={flatListRef as any}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
         data={subTabs}
         keyExtractor={(item) => item}
         onMomentumScrollEnd={onMomentumScrollEnd}

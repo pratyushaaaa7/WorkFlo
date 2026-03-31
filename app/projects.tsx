@@ -26,8 +26,12 @@ import {
   useColorScheme,
   useWindowDimensions,
   View,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
 } from "react-native";
 import GlobalAvatar from "../components/GlobalAvatar";
+import AnimatedTabIndicator from "../components/AnimatedTabIndicator";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -116,6 +120,7 @@ const ProjectsScreen = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [activeTab, setActiveTab] = useState("ALL");
   const scrollViewRef = useRef<ScrollView>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   const fetchAssignedProjects = async () => {
     try {
@@ -324,14 +329,14 @@ const ProjectsScreen = () => {
           </View>
 
           {/* Date */}
-          {formattedDate && (
+          {/* {formattedDate && (
             <View className="flex-row items-center">
               <HugeiconsIcon icon={Calendar03Icon} size={14} color="#DF5B5B" />
               <Text className="text-[#DF5B5B] text-[11px] font-poppins ml-1.5 mt-0.5">
                 {formattedDate}
               </Text>
             </View>
-          )}
+          )} */}
         </View>
 
         {/* Project Name & Description */}
@@ -447,18 +452,14 @@ const ProjectsScreen = () => {
       </AnimatePresence>
 
       {/* COMPANY TABS */}
-      <View className="flex-row items-center pt-1 justify-between pb-0">
+      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
         {TABS.map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => handleTabPress(tab)}
-              className={`py-2 px-2 border-b flex-1 items-center ${
-                isActive
-                  ? "border-[#5B4CCC] dark:border-[#5B4CCC]"
-                  : "border-[#E0E5EE] dark:border-[#63615F]"
-              }`}
+              className="py-2 px-2 flex-1 items-center"
             >
               <Text
                 className={`font-poppinsMedium  ${
@@ -474,14 +475,19 @@ const ProjectsScreen = () => {
             </TouchableOpacity>
           );
         })}
+        <AnimatedTabIndicator tabs={TABS} activeTab={activeTab} scrollX={scrollX} />
       </View>
 
       {/* Swipeable Content Area */}
-      <ScrollView
-        ref={scrollViewRef}
+      <Animated.ScrollView
+        ref={scrollViewRef as any}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false } // layout mapping uses tab width, fallback
+        )}
         onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}
         style={{ flex: 1 }}
@@ -578,7 +584,7 @@ const ProjectsScreen = () => {
             </View>
           );
         })}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 };

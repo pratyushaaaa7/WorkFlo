@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   FlatList,
   LayoutAnimation,
@@ -20,6 +21,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import AnimatedTabIndicator from "../AnimatedTabIndicator";
 
 const { width } = Dimensions.get("window");
 
@@ -252,6 +254,7 @@ const TasksTab = ({
   const isDarkMode = useColorScheme() === "dark";
   const subTabs = ["MOM Tasks", "Running Notes", "ILR Tasks"];
   const flatListRef = React.useRef<FlatList>(null);
+  const scrollX = React.useRef(new Animated.Value(0)).current;
 
   const getTransformedData = (subTab: string) => {
     // Map Sub-Tab names to Backend Types
@@ -344,14 +347,16 @@ const TasksTab = ({
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View className="flex-row ">
+      <View
+        className="flex-row items-center justify-between border-b border-[#E0E5EE] dark:border-[#63615F] relative"
+      >
         {subTabs.map((tab, index) => {
           const isActive = activeSubTab === tab;
           return (
             <TouchableOpacity
               key={tab}
               onPress={() => handleTabPress(index)}
-              className={`flex-1 items-center pt-4 pb-3 border-b ${isActive ? "border-[#5B4CCC] dark:border-[#5B4CCC]" : "border-[#E0E5EE] dark:border-[#63615F]"}`}
+              className="flex-1 items-center pt-4 pb-3"
             >
               <Text
                 numberOfLines={1}
@@ -367,13 +372,19 @@ const TasksTab = ({
             </TouchableOpacity>
           );
         })}
+        <AnimatedTabIndicator tabs={subTabs} activeTab={activeSubTab} scrollX={scrollX} />
       </View>
 
-      <FlatList
-        ref={flatListRef}
+      <Animated.FlatList
+        ref={flatListRef as any}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false }
+        )}
         data={subTabs}
         keyExtractor={(item) => item}
         onMomentumScrollEnd={onMomentumScrollEnd}
