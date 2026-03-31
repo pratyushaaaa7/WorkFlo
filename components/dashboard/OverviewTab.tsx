@@ -56,22 +56,11 @@ const OverviewTab = ({
     try {
       if (!refreshing) setStatsLoading(true);
       setIsOffline(false);
-      const res = await api.get("/projects", {
+      const res = await api.get("/projects/status-counts", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const projects = res.data.projects;
-      if (Array.isArray(projects)) {
-        const counts = { active: 0, closed: 0, bd: 0, inactive: 0 };
-
-        for (const proj of projects) {
-          const status = proj.status?.toLowerCase();
-          if (status === "active") counts.active++;
-          else if (status === "closed" || status === "close") counts.closed++;
-          else if (status === "bd" || status === "b.d") counts.bd++;
-          else if (status === "inactive" || status === "in-active")
-            counts.inactive++;
-        }
-        setProjectCounts(counts);
+      if (res.data.success && res.data.counts) {
+        setProjectCounts(res.data.counts);
       }
     } catch (error: any) {
       console.error("Failed to fetch project stats:", error);
