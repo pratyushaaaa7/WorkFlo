@@ -95,19 +95,26 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // We only prefetch if we haven't loaded anything yet
     const companies = ["WAL", "WP", "WCorp"];
     
-    // Parallel fetch for first pages
-    await Promise.all(
-        companies.map(company => {
-            if (projectsMap[company].projects.length === 0) {
-                return fetchProjects(company, 1);
-            }
-            return Promise.resolve();
-        })
-    );
+    // Staggered fetch for first pages to avoid network congestion
+    for (let i = 0; i < companies.length; i++) {
+      const company = companies[i];
+      if (projectsMap[company].projects.length === 0) {
+        // Stagger each call by 200ms
+        setTimeout(() => {
+          fetchProjects(company, 1);
+        }, i * 200);
+      }
+    }
   }, [token, fetchProjects, projectsMap]);
 
+  const value = React.useMemo(() => ({
+    projectsMap,
+    fetchProjects,
+    prefetchFirstPages
+  }), [projectsMap, fetchProjects, prefetchFirstPages]);
+
   return (
-    <ProjectContext.Provider value={{ projectsMap, fetchProjects, prefetchFirstPages }}>
+    <ProjectContext.Provider value={value}>
       {children}
     </ProjectContext.Provider>
   );
