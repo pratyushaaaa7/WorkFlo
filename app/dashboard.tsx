@@ -31,6 +31,7 @@ import GlassNav from "../components/GlassNav";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
+import { useProject } from "../context/ProjectContext";
 
 // Tab Components
 import CalendarTab from "../components/dashboard/CalendarTab";
@@ -79,8 +80,17 @@ const Dashboard = () => {
     }
   };
 
+  const { prefetchFirstPages } = useProject();
+
   useEffect(() => {
     fetchDashboardData();
+    
+    // Background pre-fetch projects after 2 seconds
+    const timer = setTimeout(() => {
+        prefetchFirstPages();
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useFocusEffect(

@@ -49,6 +49,7 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { ProjectProvider } from "../context/ProjectContext";
 import "../global.css";
 import { useUsageTracking } from "../hooks/useUsageTracking";
 
@@ -185,13 +186,15 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <KeyboardProvider>
         <AuthProvider>
-          <StatusBar
-            translucent
-            backgroundColor="transparent"
-            barStyle="dark-content"
-          />
-          <AppLayout />
-          <Toast config={toastConfig} />
+          <ProjectProvider>
+            <StatusBar
+              translucent
+              backgroundColor="transparent"
+              barStyle="dark-content"
+            />
+            <AppLayout />
+            <Toast config={toastConfig} />
+          </ProjectProvider>
         </AuthProvider>
       </KeyboardProvider>
     </SafeAreaProvider>

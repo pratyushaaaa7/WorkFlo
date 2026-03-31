@@ -1,25 +1,23 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   ArrowLeft01Icon,
   Calendar03Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
   CircleArrowUpRightIcon,
+  DashedLineCircleIcon,
   Delete03Icon,
-  Location01Icon,
   Search01Icon,
   Share08Icon,
   Tick01Icon,
-  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
 import { format, isValid } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { Skeleton } from "moti/skeleton";
 import { AnimatePresence, MotiView } from "moti";
-import { Ionicons } from "@expo/vector-icons";
+import { Skeleton } from "moti/skeleton";
 import React, {
   useCallback,
   useContext,
@@ -28,7 +26,8 @@ import React, {
   useState,
 } from "react";
 import {
-  Animated,
+  ActivityIndicator,
+  FlatList,
   Modal,
   Pressable,
   RefreshControl,
@@ -38,8 +37,6 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
-  FlatList,
-  ActivityIndicator,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
