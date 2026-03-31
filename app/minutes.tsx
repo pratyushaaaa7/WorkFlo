@@ -240,15 +240,11 @@ const Minutes = () => {
     meeting: any;
     isFocused?: boolean;
   }) => {
-    const open =
-      meeting.minutes?.filter((m: any) => m.status === "open").length || 0;
-    const closed =
-      meeting.minutes?.filter((m: any) => m.status === "closed").length || 0;
-    const forInfo =
-      meeting.minutes?.filter((m: any) => m.status === "forInfo").length || 0;
-    const total = meeting.minutes?.length || 0;
-    const forwarded =
-      meeting.minutes?.filter((m: any) => m.status === "forwarded").length || 0;
+    const open = meeting.openCount || 0;
+    const closed = meeting.closedCount || 0;
+    const forInfo = meeting.forInfoCount || 0;
+    const total = meeting.totalCount || 0;
+    const forwarded = meeting.forwardedCount || 0;
 
     const openPerc = total > 0 ? (open / total) * 100 : 0;
     const closedPerc = total > 0 ? (closed / total) * 100 : 0;
