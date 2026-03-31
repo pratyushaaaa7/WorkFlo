@@ -49,8 +49,8 @@ export class PdfEngine {
         .page-header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .page-header-table td { border: none; vertical-align: top; }
         .header-left { font-size: 14px; font-weight: bold; }
-        .header-right { text-align: right; width: 200px; }
-        .header-right img { width: 160px; object-fit: contain; display: block; margin: 0 0 0 auto; }
+        .header-right { text-align: right; width: 180px; }
+        .header-right img { width: 150px; object-fit: contain; display: block; margin: 0 0 0 auto; }
         
         /* Standard Tables */
         .content-table { width: 100%; border-collapse: collapse; margin-top: 10px; }

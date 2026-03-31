@@ -449,14 +449,14 @@ const ReportForm: React.FC = () => {
           typeof companyStr === "string" &&
           companyStr.toLowerCase() === "wp"
         ) {
-          selectedLogo = require("../assets/images/logoWPcrop.png");
+          selectedLogo = require("../assets/images/newWPlogo.png");
         } else if (
           typeof companyStr === "string" &&
           companyStr.toLowerCase() === "wal"
         ) {
-          selectedLogo = require("../assets/images/logoWALL.png");
+          selectedLogo = require("../assets/images/newWALLlogo.png");
         } else {
-          selectedLogo = require("../assets/images/logoW.png");
+          selectedLogo = require("../assets/images/newWlogo.png");
         }
 
         let base64 = await getBase64ImageFromAsset(selectedLogo);
