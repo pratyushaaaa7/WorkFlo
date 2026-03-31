@@ -52,6 +52,7 @@ import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ProjectProvider } from "../context/ProjectContext";
 import "../global.css";
 import { useUsageTracking } from "../hooks/useUsageTracking";
+import SplashScreen from "../components/SplashScreen";
 
 const CustomDrawerContent = (props: any) => {
   const router = useRouter();
@@ -299,20 +300,12 @@ function AppLayout() {
   }, [authLoading, isAuthenticated, segments]);
 
   if (authLoading || !fontsLoaded) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <SplashScreen />;
   }
 
-  // If authenticated but no user object yet, show loader
+  // If authenticated but no user object yet, show splash
   if (isAuthenticated && !user) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <SplashScreen />;
   }
 
   if (!isAuthenticated) {
