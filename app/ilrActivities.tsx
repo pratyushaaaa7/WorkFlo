@@ -1327,7 +1327,7 @@ const IlrActivities = () => {
                         }}
                       >
                         <Text className="text-[16px] font-poppins text-white">
-                          Savee
+                          Save
                         </Text>
                       </LinearGradient>
                     )}
