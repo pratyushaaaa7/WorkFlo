@@ -161,15 +161,8 @@ const SVRPhotoReport: React.FC = () => {
   const [loadingImages, setLoadingImages] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [logoBase64, setLogoBase64] = useState<string | null>(null);
-  const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
-  const thumbnailListRef = useRef<any>(null);
-  const isProgrammaticScroll = useRef(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const captionInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -184,6 +177,14 @@ const SVRPhotoReport: React.FC = () => {
       hideSubscription.remove();
     };
   }, []);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const thumbnailListRef = useRef<any>(null);
+  const isProgrammaticScroll = useRef(false);
+  const captionInputRef = useRef<TextInput>(null);
 
   // Auto-focus when index changes IF keyboard was already open
   useEffect(() => {
@@ -1009,7 +1010,7 @@ const SVRPhotoReport: React.FC = () => {
           }`}
           style={{
             paddingTop: 16,
-            paddingBottom: Math.max(insets.bottom, 16),
+            paddingBottom: isKeyboardVisible ? 16 : Math.max(insets.bottom, 16),
           }}
         >
           <View className="flex-row items-center justify-between gap-3">
