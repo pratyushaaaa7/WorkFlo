@@ -1802,8 +1802,8 @@ const CreateMinutes = () => {
                         <ExpoImage
                           source={
                             isDarkMode
-                              ? require("../assets/images/forwardedMinutesDark.svg")
-                              : require("../assets/images/forwardedMinutesLight.svg")
+                              ? require("../assets/images/forwardedMinutesDark.png")
+                              : require("../assets/images/forwardedMinutesLight.png")
                           }
                           style={{ width: 125, height: 125 }}
                           contentFit="contain"

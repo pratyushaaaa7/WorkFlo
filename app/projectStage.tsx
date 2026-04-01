@@ -197,8 +197,8 @@ const ProjectStage: React.FC = () => {
             <Image
               source={
                 isDarkMode
-                  ? require("../assets/images/darkStages.svg")
-                  : require("../assets/images/lightStages.svg")
+                  ? require("../assets/images/darkStages.png")
+                  : require("../assets/images/lightStages.png")
               }
               style={{ width: 140, height: 140 }}
               contentFit="contain"
