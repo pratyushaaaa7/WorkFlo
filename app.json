@@ -4,7 +4,7 @@
     "slug": "Thuhroh",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logoIconThuhroh.png",
+    "icon": "./assets/images/logoLight.png",
     "scheme": "thuhroh",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
