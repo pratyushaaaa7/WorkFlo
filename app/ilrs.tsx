@@ -1368,7 +1368,12 @@ const ILRs = () => {
                       locations={[0, 0.5183, 1]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0.1 }}
-                      className="w-full py-4 items-center justify-center"
+                      style={{
+                        width: "100%",
+                        paddingVertical: 16,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
                       <Text className="text-[18px] font-poppins text-white">
                         Apply

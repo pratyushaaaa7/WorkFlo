@@ -611,7 +611,10 @@ const StageDetail: React.FC = () => {
               colors={["#5B4CCC", "#6347C2", "#8056D1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="py-4 items-center"
+              style={{
+                paddingVertical: 16,
+                alignItems: "center",
+              }}
             >
               <Text className="text-white font-dm text-[16px]">
                 Add Revision

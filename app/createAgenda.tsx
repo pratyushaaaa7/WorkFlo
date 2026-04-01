@@ -203,7 +203,13 @@ const CreateAgenda = () => {
       {/* Header */}
       <LinearGradient
         colors={["#6366F1", "#8B5CF6"]}
-        className="pt-16 pb-6 px-4 flex-row items-center"
+        style={{
+          paddingTop: 64,
+          paddingBottom: 24,
+          paddingHorizontal: 16,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
       >
         <TouchableOpacity
           onPress={() => router.back()}

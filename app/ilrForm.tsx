@@ -915,8 +915,12 @@ const ILRForm = () => {
               locations={saving ? [0, 1] : [0, 0.5183, 1]}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
-              className="py-4 rounded-xl items-center"
-              style={{ borderRadius: 11 }}
+              style={{
+                borderRadius: 11,
+                paddingVertical: 16,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
               {saving ? (
                 <ActivityIndicator size="small" color="#fff" />

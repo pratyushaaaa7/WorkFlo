@@ -882,8 +882,13 @@ const MinutesDetail = () => {
               locations={[0, 0.5183, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0.1 }}
-              className="px-10 py-3 items-center justify-center"
-              style={{ borderRadius: 8 }}
+              style={{
+                paddingHorizontal: 40,
+                paddingVertical: 12,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+              }}
             >
               <Text className="text-white font-poppins text-[16px]">
                 Edit MOM

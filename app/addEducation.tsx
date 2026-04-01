@@ -259,9 +259,10 @@ const AddEducation = () => {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             locations={[0, 0.5183, 1]}
-            className="rounded-xl py-3 items-center"
             style={{
               borderRadius: 12,
+              paddingVertical: 12,
+              alignItems: "center",
             }}
           >
             <Text className="text-white font-poppinsMedium text-base">

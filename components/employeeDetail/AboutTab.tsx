@@ -218,7 +218,13 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
                     "transparent",
                     isDarkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
                   ]}
-                  className="absolute bottom-0 left-0 right-0 h-10"
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 40,
+                  }}
                   pointerEvents="none"
                 />
               )}

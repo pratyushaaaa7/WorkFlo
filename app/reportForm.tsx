@@ -1024,7 +1024,13 @@ const ReportForm: React.FC = () => {
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="w-full h-full flex-row justify-center items-center"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
                 {uploading ? (
                   <View className="flex-row items-center">

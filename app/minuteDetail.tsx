@@ -1447,8 +1447,12 @@ const MinuteDetail = () => {
                   locations={[0, 0.5183, 1]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0.1 }}
-                  style={{ borderRadius: 12 }}
-                  className="py-3.5 items-center justify-center"
+                  style={{
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   <Text
                     className={`text-[16px] font-poppins ${
@@ -1649,8 +1653,12 @@ const MinuteDetail = () => {
                   locations={[0, 0.5183, 1]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0.1 }}
-                  style={{ borderRadius: 12 }}
-                  className="py-3.5 items-center justify-center"
+                  style={{
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   <Text
                     className={`text-[16px] font-poppins ${
@@ -1825,8 +1833,12 @@ const MinuteDetail = () => {
                   colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={{ borderRadius: 12 }}
-                  className="py-3 items-center justify-center"
+                  style={{
+                    borderRadius: 12,
+                    paddingVertical: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   <Text className="text-[16px] font-poppins text-white">
                     Save

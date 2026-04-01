@@ -414,23 +414,28 @@ const UserDetail = () => {
                 </View>
               </View>
 
-              <LinearGradient
-                colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ borderRadius: 16 }}
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                activeOpacity={0.85}
               >
-                <TouchableOpacity
-                  onPress={() => setModalVisible(true)}
-                  activeOpacity={0.85}
-                  className="flex-row items-center justify-center py-4 rounded-2xl"
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    borderRadius: 16,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 16,
+                  }}
                 >
                   <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
                   <Text className="text-white font-dmMedium ml-3">
                     Write a review
                   </Text>
-                </TouchableOpacity>
-              </LinearGradient>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -504,23 +509,28 @@ const UserDetail = () => {
       {/* 🔹 FIXED FOOTER BUTTON (Only if NO reviews exist) */}
       {!loading && (!ratings || ratings.length === 0) && (
         <View className="absolute bottom-12 left-4 right-4">
-          <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 16 }}
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.85}
           >
-            <TouchableOpacity
-              onPress={() => setModalVisible(true)}
-              activeOpacity={0.85}
-              className="flex-row items-center justify-center py-4 rounded-2xl"
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 16,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 16,
+              }}
             >
               <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
               <Text className="text-white font-dmMedium ml-3">
                 Write a review
               </Text>
-            </TouchableOpacity>
-          </LinearGradient>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -628,21 +638,25 @@ const UserDetail = () => {
 
               {newStars && newStars > 0 && newNote.trim().length > 0 ? (
                 <View className="flex-1">
-                  <LinearGradient
-                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ borderRadius: 16 }}
+                  <TouchableOpacity
+                    onPress={handleSubmit}
                   >
-                    <TouchableOpacity
-                      onPress={handleSubmit}
-                      className="py-4 items-center"
+                    <LinearGradient
+                      colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={{
+                        borderRadius: 16,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingVertical: 16,
+                      }}
                     >
                       <Text className="text-white font-dmMedium text-base">
                         Submit
                       </Text>
-                    </TouchableOpacity>
-                  </LinearGradient>
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity

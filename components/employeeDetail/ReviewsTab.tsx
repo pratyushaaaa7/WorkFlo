@@ -126,12 +126,17 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                   colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
-                  style={{ borderRadius: 16 }}
+                  style={{
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                  }}
                 >
                   <TouchableOpacity
                     onPress={() => setModalVisible(true)}
                     activeOpacity={0.85}
-                    className="flex-row items-center justify-center py-4"
                   >
                     <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
                     <Text className="text-white font-dmBold text-base ml-3">
@@ -206,12 +211,17 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                   colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
-                  style={{ borderRadius: 16 }}
+                  style={{
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                  }}
                 >
                   <TouchableOpacity
                     onPress={() => setModalVisible(true)}
                     activeOpacity={0.85}
-                    className="flex-row items-center justify-center py-4 rounded-2xl"
                   >
                     <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
                     <Text className="text-white font-dmMedium ml-3">
@@ -397,12 +407,16 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                     colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    style={{ borderRadius: 16 }}
+                    style={{
+                      borderRadius: 16,
+                      paddingVertical: 16,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <TouchableOpacity
                       onPress={handleSubmit}
                       disabled={submitting}
-                      className="py-4 items-center"
                     >
                       {submitting ? (
                         <ActivityIndicator color="white" size="small" />

@@ -1749,8 +1749,11 @@ const RegisterUserScreen = () => {
             colors={["#5B4CCC", "#6347C2", "#8056D1"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className=" py-4 items-center rounded-xl shadow-lg"
-            style={{ borderRadius: 10 }}
+            style={{
+              paddingVertical: 16,
+              alignItems: "center",
+              borderRadius: 12,
+            }}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />

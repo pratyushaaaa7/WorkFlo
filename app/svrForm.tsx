@@ -556,7 +556,13 @@ const SVRform = () => {
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="items-center justify-center py-4 w-full h-full"
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 16,
+                width: "100%",
+                height: "100%",
+              }}
             >
               <Text className="text-white font-poppins text-[15px]">
                 Save & Next
@@ -744,7 +750,13 @@ const SVRform = () => {
                 colors={["#5B4CCC", "#8056D1"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                className="items-center justify-center py-4 w-full h-full"
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 16,
+                  width: "100%",
+                  height: "100%",
+                }}
               >
                 <Text className="text-white font-poppins text-[15px]">
                   Save & Next

@@ -115,15 +115,15 @@ const CreateSupport = () => {
     formData.append("date", date);
 
     if (imageUri) {
-      const filename = imageUri.split("/").pop();
+      const filename = imageUri.split("/").pop() || "upload.jpg";
       const match = /\.(\w+)$/.exec(filename);
-      const fileType = match ? `image/${match[1]}` : `image`;
+      const fileType = match ? `image/${match[1]}` : "image/jpeg";
 
       formData.append("file", {
         uri: imageUri,
         name: filename,
         type: fileType,
-      });
+      } as any);
     }
 
     try {
@@ -360,14 +360,16 @@ const CreateSupport = () => {
             colors={["#5B4CCC", "#6347C2", "#8056D1"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="py-4 rounded-2xl items-center justify-center shadow-lg"
             style={{
+              paddingVertical: 16,
+              borderRadius: 12,
+              alignItems: "center",
+              justifyContent: "center",
               shadowColor: "#5B4CCC",
               shadowOffset: { width: 0, height: 10 },
               shadowOpacity: 0.3,
               shadowRadius: 15,
               elevation: 8,
-              borderRadius: 12,
             }}
           >
             {loading ? (

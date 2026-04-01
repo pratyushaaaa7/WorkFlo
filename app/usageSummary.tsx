@@ -506,8 +506,12 @@ export default function UsageSummaryScreen() {
                           colors={["#F0E7F8", "#E1D2F9"]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
-                          className="h-3 rounded-full overflow-hidden w-full flex-row"
                           style={{
+                            height: 12,
+                            borderRadius: 9999,
+                            overflow: "hidden",
+                            width: "100%",
+                            flexDirection: "row",
                             backgroundColor: isDark ? "#2A0066" : "#EAE0FC",
                           }}
                         >
@@ -515,8 +519,11 @@ export default function UsageSummaryScreen() {
                             colors={["#C08EFF", "#6A28D8"]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            className="h-full rounded-full"
-                            style={{ width: `${percentage}%` }}
+                            style={{
+                              height: "100%",
+                              borderRadius: 9999,
+                              width: `${percentage}%`,
+                            }}
                           />
                         </LinearGradient>
                       </View>
@@ -822,7 +829,11 @@ export default function UsageSummaryScreen() {
                     locations={[0, 0.5183, 1]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0.1 }}
-                    className="py-3 items-center justify-center"
+                    style={{
+                      paddingVertical: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <Text className="text-[16px] font-poppins text-white">
                       Apply

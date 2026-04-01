@@ -706,8 +706,14 @@ const AddUserForm: React.FC = () => {
               colors={["#5B4CCC", "#6347C2", "#8056D1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 16 }}
-              className="w-full h-full items-center justify-center flex-row"
+              style={{
+                borderRadius: 16,
+                width: "100%",
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+              }}
             >
               {saving ? (
                 <ActivityIndicator size="small" color="#FFF" />

@@ -1527,8 +1527,10 @@ const RunningNotes = () => {
                   start={{ x: 0, y: 0.5 }}
                   end={{ x: 1, y: 0.5 }}
                   locations={[0, 0.5183, 1]}
-                  className="h-[44px]  items-center justify-center"
                   style={{
+                    height: 44,
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: 12,
                   }}
                 >

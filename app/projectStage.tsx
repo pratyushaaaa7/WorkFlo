@@ -273,7 +273,7 @@ const ProjectStage: React.FC = () => {
                       colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
-                      className="px-6 py-2"
+                      style={{ paddingHorizontal: 24, paddingVertical: 8 }}
                     >
                       <Text className="text-white font-poppins text-[13px]">
                         Add
@@ -380,7 +380,12 @@ const ProjectStage: React.FC = () => {
               colors={["#5B4CCC", "#6347C2", "#8056D1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              className="flex-row items-center justify-center py-4"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 16,
+              }}
             >
               <MaterialCommunityIcons name="tune" size={18} color="#fff" />
               <Text className="text-white font-semibold text-[15px] ml-2">

@@ -977,7 +977,11 @@ export default function UsageScreen() {
                     locations={[0, 0.5183, 1]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0.1 }}
-                    className="py-4 items-center justify-center"
+                    style={{
+                      paddingVertical: 16,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <Text className="text-[18px] font-poppins text-white">
                       Apply

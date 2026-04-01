@@ -355,14 +355,16 @@ export default function TicketDetails() {
               colors={["#5B4CCC", "#6347C2", "#8056D1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="py-4 rounded-2xl items-center justify-center shadow-lg"
               style={{
+                borderRadius: 12,
+                paddingVertical: 16,
+                alignItems: "center",
+                justifyContent: "center",
                 shadowColor: "#5B4CCC",
                 shadowOffset: { width: 0, height: 10 },
                 shadowOpacity: 0.3,
                 shadowRadius: 15,
                 elevation: 8,
-                borderRadius: 12,
               }}
             >
               {loading ? (
