@@ -1321,11 +1321,13 @@ const IlrActivities = () => {
                         end={{ x: 1, y: 0 }}
                         style={{
                           borderRadius: 12,
+                          paddingVertical: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
-                        className="py-3 items-center justify-center"
                       >
                         <Text className="text-[16px] font-poppins text-white">
-                          Save
+                          Savee
                         </Text>
                       </LinearGradient>
                     )}
@@ -1469,8 +1471,12 @@ const IlrActivities = () => {
                     colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={{ borderRadius: 12 }}
-                    className="py-3 items-center justify-center"
+                    style={{
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <Text className="text-[16px] font-poppins text-white">
                       Save
@@ -1630,8 +1636,10 @@ const IlrActivities = () => {
                         end={{ x: 1, y: 0 }}
                         style={{
                           borderRadius: 12,
+                          paddingVertical: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
-                        className="py-3 items-center justify-center"
                       >
                         <Text className="text-[16px] font-poppins text-white">
                           Save
