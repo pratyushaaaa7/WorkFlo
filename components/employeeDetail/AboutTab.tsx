@@ -42,7 +42,7 @@ const InfoField = ({
   loading: boolean;
   copyable?: boolean;
 }) => (
-  <View className="mb-2">
+  <View className="mb-3.5">
     <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">
       {label}
     </Text>
@@ -159,7 +159,7 @@ const Section = ({
   children: React.ReactNode;
 }) => (
   <View className="mb-4">
-    <Text className="text-xl font-dmBold text-black dark:text-white mb-2">
+    <Text className="text-xl font-dmBold text-black dark:text-white mb-4">
       {title}
     </Text>
     {children}
