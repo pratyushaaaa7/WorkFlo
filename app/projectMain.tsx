@@ -294,7 +294,7 @@ const ProjectMain = () => {
     {
       key: "directory",
       label: "User directory",
-      image: require("../assets/images/projectTabs/userDirectory.svg"),
+      image: require("../assets/images/projectTabs/userDirectory.png"),
       onPress: () =>
         router.push({
           pathname: "/userDirectory",
@@ -304,7 +304,7 @@ const ProjectMain = () => {
     {
       key: "ilr",
       label: "ILR",
-      image: require("../assets/images/projectTabs/ilr.svg"),
+      image: require("../assets/images/projectTabs/ilr.png"),
       onPress: () =>
         router.push({
           pathname: "/ilrs",
@@ -314,7 +314,7 @@ const ProjectMain = () => {
     {
       key: "dpr",
       label: "Reports",
-      image: require("../assets/images/projectTabs/dpr.svg"),
+      image: require("../assets/images/projectTabs/dpr.png"),
       onPress: () =>
         router.push({
           pathname: "/dprs",
@@ -330,7 +330,7 @@ const ProjectMain = () => {
     {
       key: "svr",
       label: "SVR",
-      image: require("../assets/images/projectTabs/svr.svg"),
+      image: require("../assets/images/projectTabs/svr.png"),
       onPress: () =>
         router.push({
           pathname: "/svrs",
@@ -346,7 +346,7 @@ const ProjectMain = () => {
     {
       key: "mom",
       label: "Minutes",
-      image: require("../assets/images/projectTabs/minutes.svg"),
+      image: require("../assets/images/projectTabs/minutes.png"),
       onPress: () =>
         router.push({
           pathname: "/minutes",
@@ -356,7 +356,7 @@ const ProjectMain = () => {
     {
       key: "runningNotes",
       label: "Running note",
-      image: require("../assets/images/projectTabs/runningNotes.svg"),
+      image: require("../assets/images/projectTabs/runningNotes.png"),
       onPress: () =>
         router.push({
           pathname: "/runningNotes",
@@ -366,7 +366,7 @@ const ProjectMain = () => {
     {
       key: "projectStage",
       label: "Project Stage",
-      image: require("../assets/images/projectTabs/projectStage.svg"),
+      image: require("../assets/images/projectTabs/projectStage.png"),
       onPress: () =>
         router.push({
           pathname: "/projectStage",
@@ -374,6 +374,7 @@ const ProjectMain = () => {
         }),
     },
   ];
+
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
