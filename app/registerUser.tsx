@@ -14,16 +14,18 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import { Dropdown } from "react-native-element-dropdown";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -517,22 +519,17 @@ const RegisterUserScreen = () => {
         </View>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      <KeyboardAwareScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingBottom: 40, // Reduced from 150 as buttons are no longer absolute
+        }}
+        className="bg-white dark:bg-black"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingHorizontal: 16,
-            paddingTop: 20,
-            paddingBottom: 150,
-          }}
-          className="bg-white dark:bg-black"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Full Name */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
@@ -1725,46 +1722,48 @@ const RegisterUserScreen = () => {
             </Text>
           </TouchableOpacity>
         </View> */}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+
       {/* Bottom Action Buttons */}
-      <View
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 pt-4 flex-row gap-3 border-t border-gray-100 dark:border-[#252525]"
-        style={{ paddingBottom: Math.max(bottom, 20) }}
-      >
-        <TouchableOpacity
-          onPress={() => setShowCancelModal(true)}
-          className="flex-1 bg-transparent border border-[#BBB] dark:border-[#333] rounded-xl py-4 items-center"
+      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+        <View
+          className="bg-white dark:bg-black px-4 pt-4 flex-row gap-3"
+          style={{ paddingBottom: Math.max(bottom, 20) }}
         >
-          <Text className="text-[#777777] dark:text-[#919191] font-poppins text-lg">
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleRegister}
-          disabled={loading}
-          className="flex-1 "
-        >
-          <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              paddingVertical: 16,
-              alignItems: "center",
-              borderRadius: 12,
-            }}
+          <TouchableOpacity
+            onPress={() => setShowCancelModal(true)}
+            className="flex-1 bg-transparent border border-[#BBB] dark:border-[#333] rounded-xl py-3 items-center"
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-poppins text-lg">
-                {userId ? "Update" : "Register"}
-              </Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <Text className="text-[#777777] dark:text-[#919191] font-poppins text-lg">
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleRegister}
+            disabled={loading}
+            className="flex-1 "
+          >
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                paddingVertical: 12,
+                alignItems: "center",
+                borderRadius: 12,
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white font-poppins text-lg">
+                  {userId ? "Update" : "Register"}
+                </Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </KeyboardStickyView>
 
       {/* Discard Changes Modal */}
       <Modal

@@ -57,6 +57,9 @@ export default function GlassNav({
   const center = mountainWidth / 2;
   const baseOffset = tabWidth * 3.2;
 
+  const shouldShowGradient =
+    Platform.OS === "android" || (Platform.OS === "ios" && isDarkMode);
+
   useEffect(() => {
     if (tabWidth > 0) {
       Animated.spring(slideAnim, {
@@ -173,7 +176,7 @@ export default function GlassNav({
       </View>
 
       {/* 5. Mixing Gradient (Feathered Edge) - Android only to prevent iOS darkening */}
-      {Platform.OS === "android" && (
+      {shouldShowGradient && (
         <LinearGradient
           pointerEvents="none"
           colors={[
@@ -189,11 +192,9 @@ export default function GlassNav({
             left: 0,
             right: 0,
             height: 65,
-            zIndex: -1,
           }}
         />
       )}
-
     </View>
   );
 }
