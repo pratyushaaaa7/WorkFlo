@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logoIconThuhroh.png",
+        "foregroundImage": "./assets/images/logoLight.png",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
