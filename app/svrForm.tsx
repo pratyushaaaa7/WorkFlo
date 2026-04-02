@@ -75,7 +75,40 @@ const SVRform = () => {
   const scrollRef = useRef<ScrollView>(null);
 
   // Use dynamic storage key based on projectId if available
-  const storageKey = `SVR_FORM_DATA_${projectId || "default"}`;
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const storageKey = `SVR_FORM_DATA_${pIdStr || "default"}`;
+
+  const resetForm = useCallback(() => {
+    setAttendees([
+      {
+        id: "initial-att-1",
+        sNo: 1,
+        attendeeName: "",
+        organization: "",
+        designation: "",
+        email: "",
+        contactNumbers: [""],
+        isExpanded: true,
+      },
+    ]);
+    setEntries([
+      {
+        id: uuid.v4().toString(),
+        serialNo: 1,
+        issueSubject: "",
+        issueDescription: "",
+        responsibility: [],
+        remarks: "",
+        isExpanded: true,
+        raisedBy: [],
+        status: "open",
+        targetDate: null,
+        images: [],
+      },
+    ]);
+    setCaseStudyRemarks("");
+    setActiveTab("attendees");
+  }, []);
 
   const [activeTab, setActiveTab] = useState("attendees");
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -196,6 +229,8 @@ const SVRform = () => {
           if (parsed.entries) setEntries(parsed.entries);
           if (parsed.caseStudyRemarks)
             setCaseStudyRemarks(parsed.caseStudyRemarks);
+        } else {
+          resetForm();
         }
       } catch (err) {
         console.log("Load draft error:", err);

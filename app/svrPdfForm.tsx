@@ -6,6 +6,7 @@ import {
   Image03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import { Image as ExpoImage } from "expo-image";
@@ -151,7 +152,8 @@ const SVRPhotoReport: React.FC = () => {
     clearPhotos,
   } = useSvrStore();
   const insets = useSafeAreaInsets();
-  const projectIdStr = (projectId as string) || "default";
+  const pIdStr = (projectId as string) || (Array.isArray(projectId) ? projectId[0] : "default");
+  const projectIdStr = pIdStr;
   const photos = useMemo(
     () => photosByProject[projectIdStr] || [],
     [photosByProject, projectIdStr],
@@ -640,9 +642,10 @@ const SVRPhotoReport: React.FC = () => {
       clearPhotos(projectIdStr);
       const docDir = FileSystem.documentDirectory;
       if (docDir) {
-        const path = `${docDir}svr_draft_${projectId || "default"}.json`;
+        const path = `${docDir}svr_draft_${pIdStr}.json`;
         await FileSystem.deleteAsync(path, { idempotent: true });
       }
+      await AsyncStorage.removeItem(`SVR_FORM_DATA_${pIdStr}`);
       await FileSystem.deleteAsync(
         FileSystem.cacheDirectory + "ImageManipulator",
         { idempotent: true },

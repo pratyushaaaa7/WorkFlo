@@ -147,7 +147,8 @@ const ReportForm: React.FC = () => {
     clearPhotos,
   } = useDprStore();
   const insets = useSafeAreaInsets();
-  const projectIdStr = (projectId as string) || "default";
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const projectIdStr = pIdStr || "default";
   const photos = useMemo(
     () => photosByProject[projectIdStr] || [],
     [photosByProject, projectIdStr],
@@ -670,6 +671,7 @@ const ReportForm: React.FC = () => {
 
       // Clear photos and navigate to DPRs page
       clearPhotos(projectIdStr);
+      await AsyncStorage.removeItem(`reportData_${projectIdStr}`);
       router.replace("/dprs");
     } catch (err: any) {
       console.error("Report generation error:", err);

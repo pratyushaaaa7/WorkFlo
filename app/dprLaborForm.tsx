@@ -144,7 +144,8 @@ const LaborForm = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const isInitialLoadDone = React.useRef(false);
 
-  const storageKey = `reportData_${projectId}`;
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const storageKey = `reportData_${pIdStr || "default"}`;
 
   const auth = useContext(AuthContext);
   const token = auth?.token;

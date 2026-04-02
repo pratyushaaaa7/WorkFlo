@@ -56,10 +56,13 @@ type Issue = {
 
 const ILRForm = () => {
   const router = useRouter();
-  const { projectId, projectName } = useLocalSearchParams<{
-    projectId: string;
-    projectName: string;
-  }>();
+  const {
+    projectId,
+    projectName,
+  } = useLocalSearchParams();
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const STORAGE_KEY = `ilr_form_${pIdStr || "new"}`;
+  const IMAGES_KEY = `ilr_images_${pIdStr || "new"}`;
 
   const multiSelectRef = useRef<any>(null);
 
@@ -133,6 +136,22 @@ const ILRForm = () => {
         remarks: "",
       },
     ]);
+  };
+
+  const resetForm = () => {
+    setIssues([
+      {
+        serialNo: 1,
+        description: "",
+        targetDate: "",
+        responsibility: [],
+        remarks: "",
+        originalTargetDate: "",
+      },
+    ]);
+    setCollapsedIndices([]);
+    setErrors({});
+    clearAll();
   };
 
   // Remove Issue
@@ -327,7 +346,7 @@ const ILRForm = () => {
       for (let index = 0; index < issues.length; index++) {
         const issue = issues[index];
         const formData = new FormData();
-        formData.append("projectId", projectId);
+        formData.append("projectId", pIdStr);
         formData.append("description", issue.description);
         if (issue.originalTargetDate) {
           formData.append(
@@ -376,19 +395,10 @@ const ILRForm = () => {
 
       // Clear image store and draft storage
       clearAll();
-      await AsyncStorage.removeItem(`ilr_form_${projectId}`);
-      await AsyncStorage.removeItem(`ilr_images_${projectId}`);
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem(IMAGES_KEY);
 
-      setIssues([
-        {
-          serialNo: 1,
-          description: "",
-          targetDate: "",
-          originalTargetDate: "", // baseline date
-          responsibility: [],
-          remarks: "",
-        },
-      ]);
+      resetForm();
 
       router.back();
     } catch (error: any) {
@@ -440,18 +450,18 @@ const ILRForm = () => {
     const loadDraft = async () => {
       try {
         // Load issues
-        const savedIssues = await AsyncStorage.getItem(`ilr_form_${projectId}`);
+        const savedIssues = await AsyncStorage.getItem(STORAGE_KEY);
         if (savedIssues) {
           const parsed = JSON.parse(savedIssues);
           if (Array.isArray(parsed)) {
             setIssues(parsed);
           }
+        } else {
+          resetForm();
         }
 
         // Load images into Zustand store
-        const savedImages = await AsyncStorage.getItem(
-          `ilr_images_${projectId}`,
-        );
+        const savedImages = await AsyncStorage.getItem(IMAGES_KEY);
         if (savedImages) {
           const parsedImages = JSON.parse(savedImages);
           // Only populate if store is currently empty for this project to avoid overwrites
@@ -480,14 +490,8 @@ const ILRForm = () => {
     if (!projectId || !dataLoaded) return;
     const saveDraft = async () => {
       try {
-        await AsyncStorage.setItem(
-          `ilr_form_${projectId}`,
-          JSON.stringify(issues),
-        );
-        await AsyncStorage.setItem(
-          `ilr_images_${projectId}`,
-          JSON.stringify(images),
-        );
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(issues));
+        await AsyncStorage.setItem(IMAGES_KEY, JSON.stringify(images));
       } catch (error) {
         console.log("Error saving draft data:", error);
       }
