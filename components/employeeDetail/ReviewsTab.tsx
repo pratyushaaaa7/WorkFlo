@@ -316,16 +316,19 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
       {/* 🔹 ADD RATING MODAL */}
       <ReactNativeModal
         isVisible={modalVisible}
-        onBackdropPress={() => setModalVisible(false)}
-        onSwipeComplete={() => setModalVisible(false)}
+        onBackdropPress={() => {
+          require("react-native").Keyboard.dismiss();
+          setModalVisible(false);
+        }}
+        onSwipeComplete={() => {
+          require("react-native").Keyboard.dismiss();
+          setModalVisible(false);
+        }}
         swipeDirection={["down"]}
         style={{ margin: 0, justifyContent: "flex-end" }}
         backdropOpacity={0.4}
         animationIn="slideInUp"
         animationOut="slideOutDown"
-        useNativeDriver={true}
-        useNativeDriverForBackdrop={true}
-        hideModalContentWhileAnimating={true}
         backdropTransitionOutTiming={0}
         propagateSwipe
         avoidKeyboard={false}
@@ -401,7 +404,10 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
             {/* Action Buttons */}
             <View className="flex-row justify-between gap-4">
               <TouchableOpacity
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  require("react-native").Keyboard.dismiss();
+                  setModalVisible(false);
+                }}
                 className="flex-1 py-4 rounded-2xl border border-[#E5E7EB] dark:border-[#333] items-center"
               >
                 <Text className="text-[#454545] dark:text-[#919191] font-dmMedium text-base">
