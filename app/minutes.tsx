@@ -536,7 +536,7 @@ const Minutes = () => {
             <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
               <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
               <TextInput
-                placeholder="Search by meeting # or venue"
+                placeholder="Search by meeting number or title "
                 placeholderTextColor="#94A3B8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
