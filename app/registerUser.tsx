@@ -1143,6 +1143,7 @@ const RegisterUserScreen = () => {
                 value={birthDate || new Date()}
                 mode="date"
                 display="default"
+                maximumDate={new Date()}
                 onChange={(event, date) => {
                   if (event.type === "set" && date) {
                     setBirthDate(date);
