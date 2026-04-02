@@ -488,7 +488,7 @@ const UserList = () => {
               color={isDarkMode ? "#FFF" : "#000"}
             />
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() =>
               router.push(
                 `/addProjectUser?projectId=${projectId}&projectName=${projectName}`,
@@ -500,7 +500,7 @@ const UserList = () => {
               size={24}
               color={isDarkMode ? "#FFF" : "#000"}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
             <HugeiconsIcon
               icon={MoreHorizontalIcon}
