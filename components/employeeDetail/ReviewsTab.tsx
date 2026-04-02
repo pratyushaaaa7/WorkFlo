@@ -121,7 +121,10 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                 </Text>
               </View>
 
-              <View className="px-4">
+              <TouchableOpacity
+                onPress={() => setModalVisible(true)}
+                activeOpacity={0.85}
+              >
                 <LinearGradient
                   colors={["#5B4CCC", "#6347C2", "#8056D1"]}
                   start={{ x: 0, y: 0 }}
@@ -129,22 +132,17 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                   style={{
                     borderRadius: 16,
                     paddingVertical: 16,
+                    flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    flexDirection: "row",
                   }}
                 >
-                  <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    activeOpacity={0.85}
-                  >
-                    <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
-                    <Text className="text-white font-dmBold text-base ml-3">
-                      Write a review
-                    </Text>
-                  </TouchableOpacity>
+                  <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
+                  <Text className="text-white font-dmBold text-base ml-3">
+                    Write a review
+                  </Text>
                 </LinearGradient>
-              </View>
+              </TouchableOpacity>
             </View>
           </Skeleton>
         </View>
@@ -207,28 +205,28 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                   </View>
                 </View>
 
-                <LinearGradient
-                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexDirection: "row",
-                  }}
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  activeOpacity={0.85}
                 >
-                  <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    activeOpacity={0.85}
+                  <LinearGradient
+                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      borderRadius: 16,
+                      paddingVertical: 16,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <HugeiconsIcon icon={Edit03Icon} size={18} color="white" />
                     <Text className="text-white font-dmMedium ml-3">
                       Write a review
                     </Text>
-                  </TouchableOpacity>
-                </LinearGradient>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </Skeleton>
           </View>
@@ -403,20 +401,21 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
 
               {newStars && newNote.trim() ? (
                 <View className="flex-1">
-                  <LinearGradient
-                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                      borderRadius: 16,
-                      paddingVertical: 16,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                  <TouchableOpacity
+                    onPress={handleSubmit}
+                    disabled={submitting}
+                    activeOpacity={0.85}
                   >
-                    <TouchableOpacity
-                      onPress={handleSubmit}
-                      disabled={submitting}
+                    <LinearGradient
+                      colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={{
+                        borderRadius: 16,
+                        paddingVertical: 16,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
                       {submitting ? (
                         <ActivityIndicator color="white" size="small" />
@@ -425,8 +424,8 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                           Submit
                         </Text>
                       )}
-                    </TouchableOpacity>
-                  </LinearGradient>
+                    </LinearGradient>
+                  </TouchableOpacity>
                 </View>
               ) : (
                 <View className="flex-1 py-4 rounded-2xl bg-[#C4C4C4] dark:bg-[#333] items-center">
