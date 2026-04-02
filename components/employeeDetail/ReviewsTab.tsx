@@ -121,28 +121,30 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                 </Text>
               </View>
 
-              <TouchableOpacity
-                onPress={() => setModalVisible(true)}
-                activeOpacity={0.85}
-              >
-                <LinearGradient
-                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    borderRadius: 16,
-                    paddingVertical: 16,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+              <View className="px-4">
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  activeOpacity={0.85}
                 >
-                  <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
-                  <Text className="text-white font-dmBold text-base ml-3">
-                    Write a review
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      borderRadius: 16,
+                      paddingVertical: 16,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <HugeiconsIcon icon={Edit03Icon} size={20} color="white" />
+                    <Text className="text-white font-dmBold text-base ml-3">
+                      Write a review
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
           </Skeleton>
         </View>
