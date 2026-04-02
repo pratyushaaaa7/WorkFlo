@@ -926,9 +926,11 @@ const MinuteDetail = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
+                  if (saving) return;
                   setSelectedStatus(status);
                   setModalVisible(true);
                 }}
+                disabled={saving}
                 className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
@@ -991,6 +993,7 @@ const MinuteDetail = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
+                  if (saving) return;
                   setTempAssignees(
                     Array.isArray(minuteData?.responsibility)
                       ? [...minuteData.responsibility]
@@ -999,6 +1002,7 @@ const MinuteDetail = () => {
                   setShowAssigneeModal(true);
                   setAssigneeSearchQuery("");
                 }}
+                disabled={saving}
                 className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
@@ -1076,6 +1080,7 @@ const MinuteDetail = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
+                  if (saving) return;
                   setTempForInfo(isForInfoTarget);
                   if (!isForInfoTarget && minuteData?.targetDate) {
                     setTempTargetDate(new Date(minuteData.targetDate));
@@ -1086,6 +1091,7 @@ const MinuteDetail = () => {
                   setTriedToSaveTarget(false);
                   setTargetModalVisible(true);
                 }}
+                disabled={saving}
                 className="flex-row items-center py-3 -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
@@ -1471,15 +1477,19 @@ const MinuteDetail = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    className={`text-[16px] font-poppins ${
-                      saving || selectedStatus === status
-                        ? "text-gray-400"
-                        : "text-white"
-                    }`}
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </Text>
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text
+                      className={`text-[16px] font-poppins ${
+                        saving || selectedStatus === status
+                          ? "text-gray-400"
+                          : "text-white"
+                      }`}
+                    >
+                      Save
+                    </Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -1677,17 +1687,21 @@ const MinuteDetail = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    className={`text-[16px] font-poppins ${
-                      saving ||
-                      (!tempForInfo && !tempTargetDate) ||
-                      !tempNoteText.trim()
-                        ? "text-gray-400"
-                        : "text-white"
-                    }`}
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </Text>
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text
+                      className={`text-[16px] font-poppins ${
+                        saving ||
+                        (!tempForInfo && !tempTargetDate) ||
+                        !tempNoteText.trim()
+                          ? "text-gray-400"
+                          : "text-white"
+                      }`}
+                    >
+                      Save
+                    </Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -1857,9 +1871,13 @@ const MinuteDetail = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Text className="text-[16px] font-poppins text-white">
-                    Save
-                  </Text>
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text className="text-[16px] font-poppins text-white">
+                      Save
+                    </Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>

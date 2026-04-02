@@ -1647,8 +1647,11 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={addAttendee}
+                      disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
                       className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                        isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                        isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                          ? isDarkMode ? "bg-gray-800" : "bg-gray-200"
+                          : isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <HugeiconsIcon
@@ -1704,10 +1707,13 @@ const CreateMinutes = () => {
                   <TouchableOpacity
                     onPress={fetchForwardedMinutes}
                     activeOpacity={0.7}
+                    disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
                     className={`px-3 py-1.5 rounded-xl border flex-row items-center ml-2 ${
-                      isDarkMode
-                        ? "bg-[#1A1A1A] border-[#333]"
-                        : "bg-[#F0F3F7] border-[#E0E5EB]"
+                      isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                        ? isDarkMode ? "bg-gray-800 border-gray-700" : "bg-gray-200 border-gray-300"
+                        : isDarkMode
+                          ? "bg-[#1A1A1A] border-[#333]"
+                          : "bg-[#F0F3F7] border-[#E0E5EB]"
                     }`}
                   >
                     <HugeiconsIcon
@@ -1742,8 +1748,11 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={addMinute}
+                      disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
                       className={`py-3.5 rounded-xl flex-row justify-center items-center ${
-                        isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                        isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                          ? isDarkMode ? "bg-gray-800" : "bg-gray-200"
+                          : isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
                       }`}
                     >
                       <HugeiconsIcon
@@ -1922,30 +1931,34 @@ const CreateMinutes = () => {
             <View className="flex-row gap-2">
               <TouchableOpacity
                 onPress={() => handleSubmit("agenda")}
-                disabled={isAgendaSubmitting}
+                disabled={isAgendaSubmitting || isMomSubmitting || isDraftSaving}
                 className={`flex-1 rounded-2xl items-center justify-center py-4 ${
-                  isAgendaSubmitting || isMomSubmitting
+                  isAgendaSubmitting || isMomSubmitting || isDraftSaving
                     ? "bg-gray-400"
                     : isDarkMode
                       ? "bg-white/10"
                       : "bg-[#1C1C1E]"
                 }`}
               >
-                <Text
-                  className={`font-poppins text-[15px] ${isDarkMode ? "text-white" : "text-white"}`}
-                >
-                  Submit Agenda
-                </Text>
+                {isAgendaSubmitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text
+                    className={`font-poppins text-[15px] ${isDarkMode ? "text-white" : "text-white"}`}
+                  >
+                    Submit Agenda
+                  </Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => handleSubmit("mom")}
-                disabled={isMomSubmitting}
+                disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
                 className="flex-1 rounded-2xl overflow-hidden"
               >
                 <LinearGradient
                   colors={
-                    isMomSubmitting || isAgendaSubmitting
+                    isMomSubmitting || isAgendaSubmitting || isDraftSaving
                       ? ["#9CA3AF", "#9CA3AF"]
                       : ["#5B4CCC", "#8056D1"]
                   }
@@ -1953,9 +1966,13 @@ const CreateMinutes = () => {
                   end={{ x: 1, y: 0 }}
                   className="items-center justify-center py-4"
                 >
-                  <Text className="text-white font-poppins text-[15px]">
-                    Submit Minutes
-                  </Text>
+                  {isMomSubmitting ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text className="text-white font-poppins text-[15px]">
+                      Submit Minutes
+                    </Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
