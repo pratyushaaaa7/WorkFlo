@@ -58,7 +58,7 @@ const AddNoteCard = ({ users, onAdd }: any) => {
         multiline
         onChangeText={setNoteText}
         style={{
-          backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+          backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
 
           borderRadius: 12,
           padding: 8,
@@ -76,7 +76,7 @@ const AddNoteCard = ({ users, onAdd }: any) => {
         <Dropdown
           style={{
             flex: 1,
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
             // borderWidth: 1,
             // borderColor: isDarkMode ? "#5B4CCC" : "transparent",
             borderRadius: 12,
@@ -128,7 +128,7 @@ const AddNoteCard = ({ users, onAdd }: any) => {
         <TouchableOpacity
           style={{
             flex: 1,
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
             borderWidth: 1,
             borderColor: "transparent",
             borderRadius: 12,
@@ -195,7 +195,7 @@ const AddNoteCard = ({ users, onAdd }: any) => {
           ref={multiSelectRef}
           style={{
             flex: 1,
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
             borderRadius: 12,
             height: 40,
             paddingHorizontal: 12,
