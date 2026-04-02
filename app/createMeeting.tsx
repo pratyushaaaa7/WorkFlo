@@ -175,7 +175,8 @@ const CreateMinutes = () => {
   const { images, addImageToIssue, removeImageFromIssue, clearAll } =
     useTempImageStore();
 
-  const STORAGE_KEY = `minutes_draft_${projectId || "new"}`;
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const STORAGE_KEY = `minutes_draft_${pIdStr || "new"}`;
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -322,6 +323,45 @@ const CreateMinutes = () => {
 
   const [meetingNumber, setMeetingNumber] = useState<number | null>(null);
 
+  const resetForm = useCallback(() => {
+    setMeetingTitle("");
+    setMeetingDate(null);
+    setMeetingTime("");
+    setMeetingVenue("");
+    setMeetingNumber(null);
+    setAttendees([
+      {
+        id: "initial-att-1",
+        sNo: 1,
+        attendeeName: "",
+        organization: "",
+        designation: "",
+        email: "",
+        contactNumbers: [""],
+        isExpanded: true,
+      },
+    ]);
+    setMinutes([
+      {
+        id: "initial-min-1",
+        serialNo: 1,
+        raisedBy: [],
+        issueSubject: "",
+        issueDescription: "",
+        targetDate: null,
+        responsibility: [],
+        remarks: "",
+        targetDateForInfo: false,
+        responsibilityForInfo: false,
+        status: "open",
+        images: [],
+        isExpanded: true,
+      },
+    ]);
+    setValidationErrors({});
+    clearAll();
+  }, [clearAll]);
+
   const [forwardedModalVisible, setForwardedModalVisible] = useState(false);
   const [forwardedMinutes, setForwardedMinutes] = useState<any[]>([]);
 
@@ -353,13 +393,16 @@ const CreateMinutes = () => {
               id: m.id || "min-" + Date.now() + "-" + i + "-" + Math.random(),
             })),
           );
+        } else {
+          // 🆕 No draft for this project -> ensure form is clear
+          resetForm();
         }
       } catch (err) {
         console.log("Error loading stored data:", err);
       }
     };
     loadStoredData();
-  }, [projectId]);
+  }, [pIdStr, STORAGE_KEY, resetForm]);
 
   // Save data automatically whenever it changes (Debounced for performance)
   useEffect(() => {
@@ -612,6 +655,7 @@ const CreateMinutes = () => {
     },
     [addImageToIssue],
   );
+
 
   const handleDeleteImage = useCallback(
     (minuteIndex: number, imageUri: string) => {
@@ -1154,7 +1198,7 @@ const CreateMinutes = () => {
         position: "bottom",
       });
       await AsyncStorage.removeItem(STORAGE_KEY); // clear local draft
-      clearAll(); // clear temp images
+      resetForm(); // clear form state
       router.back();
     } catch (err: any) {
       console.error("Submit error:", err?.response?.data || err.message);
@@ -1247,7 +1291,7 @@ const CreateMinutes = () => {
 
       // ✅ Optional: clear local draft storage
       await AsyncStorage.removeItem(STORAGE_KEY);
-      clearAll(); // clear temp images
+      resetForm(); // clear form state
       router.back();
     } catch (err) {
       console.log(err);
