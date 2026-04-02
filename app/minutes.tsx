@@ -289,8 +289,20 @@ const Minutes = () => {
                 </Text>
               </View>
             )}
+            {meeting.meetingStage === "draft" && !meeting.agendaSubmitted && (
+              <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-3  py-1.5 rounded-full flex-row items-center">
+                <HugeiconsIcon
+                  icon={DashedLineCircleIcon}
+                  size={14}
+                  color={isDarkMode ? "#BBBBBB" : "#454545"}
+                />
+                <Text className="text-[#454545] dark:text-[#BBBBBB] text-[12px] font-poppinsMedium ml-1.5">
+                  Draft
+                </Text>
+              </View>
+            )}
             <View className="flex-1" />
-            {meeting.meetingStage === "draft" && (
+            {meeting.meetingStage === "draft" && meeting.agendaSubmitted && (
               <View className="bg-[#EBEFF2] dark:bg-[#2F2F2F] px-3  py-1.5 rounded-full flex-row items-center">
                 <HugeiconsIcon
                   icon={DashedLineCircleIcon}
