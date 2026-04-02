@@ -536,11 +536,11 @@ const Minutes = () => {
             <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
               <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
               <TextInput
-                placeholder="Search by meeting number or title "
+                placeholder="Search by number or title"
                 placeholderTextColor="#94A3B8"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white pt-0.5"
+                className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white"
                 autoFocus
               />
               {searchQuery.length > 0 && (

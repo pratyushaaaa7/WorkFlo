@@ -9,15 +9,19 @@ import {
   UserCircleIcon,
   Xsl01Icon,
   Attachment01Icon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Skeleton } from "moti/skeleton";
+import { AnimatePresence, MotiView } from "moti";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -28,6 +32,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -162,6 +167,8 @@ const MinutesDetail = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showAttendeeModal, setShowAttendeeModal] = useState(false);
   const [selectedAttendee, setSelectedAttendee] = useState<any>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchMeeting = useCallback(
     async (showLoader = true) => {
@@ -294,6 +301,21 @@ const MinutesDetail = () => {
     };
   };
 
+  const filteredMinutes = useMemo(() => {
+    const minArr = (Array.isArray(meeting?.minutes) ? meeting.minutes : []);
+    if (!searchQuery.trim()) return minArr;
+    const q = searchQuery.toLowerCase();
+    return minArr.filter((minute: any) => {
+      const subjectMatch = (minute.issueSubject || "").toLowerCase().includes(q);
+      const descMatch = (minute.description || "").toLowerCase().includes(q);
+      const respNames = (minute.responsibility || [])
+        .map((r: any) => (r.name || r.individualName || "").toLowerCase())
+        .join(" ");
+      const respMatch = respNames.includes(q);
+      return subjectMatch || descMatch || respMatch;
+    });
+  }, [meeting?.minutes, searchQuery]);
+
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
       {/* Header */}
@@ -314,9 +336,15 @@ const MinutesDetail = () => {
           </Text>
         </View>
         <View className="flex-row items-center gap-2">
-          <TouchableOpacity className="p-1">
+          <TouchableOpacity
+            onPress={() => {
+              if (showSearch) setSearchQuery("");
+              setShowSearch(!showSearch);
+            }}
+            className="p-1"
+          >
             <HugeiconsIcon
-              icon={Search01Icon}
+              icon={showSearch ? Cancel01Icon : Search01Icon}
               size={24}
               color={isDarkMode ? "white" : "#0F172A"}
             />
@@ -480,6 +508,40 @@ const MinutesDetail = () => {
         </View>
       )}
 
+      <AnimatePresence>
+        {showSearch && (
+          <MotiView
+            key="search-bar-moti"
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            exit={{ opacity: 0, translateY: -10 }}
+            transition={{ type: "timing", duration: 250 }}
+            className="mb-3"
+          >
+            <View className="flex-row items-center bg-[#F8FAFC] dark:bg-[#1A1A1A] px-4 py-2.5 rounded-[20px] border border-[#F1F5F9] dark:border-zinc-800 mx-4">
+              <HugeiconsIcon icon={Search01Icon} size={18} color="#94A3B8" />
+              <TextInput
+                placeholder="Search subject, desc or resp"
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="flex-1 ml-3 text-[14px] font-poppins text-black dark:text-white"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={isDarkMode ? "#6B7280" : "#94A3B8"}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -537,158 +599,168 @@ const MinutesDetail = () => {
           </View>
         ) : meeting ? (
           <View>
-            {/* Title */}
-            <View className="px-3 pt-2 pb-2">
-              <View className="flex-row items-center gap-2">
-                {(meeting?.meetingTitle || meetingTitle) ? (
-                  <Text
-                    className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight flex-1"
-                    numberOfLines={1}
-                  >
-                    {meeting?.meetingTitle || meetingTitle}
-                  </Text>
-                ) : (
-                  <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
-                    {`Meeting #${meetingNumber}`}
-                  </Text>
-                )}
-              </View>
-            </View>
+            {!searchQuery && (
+              <>
+                {/* Title */}
+                <View className="px-3 pt-2 pb-2">
+                  <View className="flex-row items-center gap-2">
+                    {(meeting?.meetingTitle || meetingTitle) ? (
+                      <Text
+                        className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight flex-1"
+                        numberOfLines={1}
+                      >
+                        {meeting?.meetingTitle || meetingTitle}
+                      </Text>
+                    ) : (
+                      <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
+                        {`Meeting #${meetingNumber}`}
+                      </Text>
+                    )}
+                  </View>
+                </View>
 
-            {/* Details */}
-            <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
-              <View className="flex-row gap-4 items-center">
-                <View className="w-6 items-center">
-                  <HugeiconsIcon
-                    icon={Calendar03Icon}
-                    size={22}
-                    color={isDarkMode ? "#919191" : "#454545"}
-                  />
-                </View>
-                <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
-                    Date
-                  </Text>
-                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
-                    {meetingDate
-                      ? new Date(
-                          Array.isArray(meetingDate)
-                            ? meetingDate[0]
-                            : meetingDate,
-                        )
-                          .toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                          .replace(" ", " ")
-                          .replace(" ", " ")
-                      : ""}{" "}
-                    at {meetingTime}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
-              <View className="flex-row gap-4 items-center">
-                <View className="w-6 items-center">
-                  <HugeiconsIcon
-                    icon={Location01Icon}
-                    size={22}
-                    color={isDarkMode ? "#919191" : "#454545"}
-                  />
-                </View>
-                <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
-                    Location
-                  </Text>
-                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
-                    {meetingVenue || "No venue added"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View className="px-3 py-2 ">
-              <View className="flex-row gap-4 items-center">
-                <View className="w-6 items-center">
-                  <HugeiconsIcon
-                    icon={UserCircleIcon}
-                    size={22}
-                    color={isDarkMode ? "#919191" : "#454545"}
-                  />
-                </View>
-                <View>
-                  <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
-                    Created by
-                  </Text>
-                  <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
-                    {meeting.createdBy?.fullName ||
-                      meeting.createdBy?.username ||
-                      (typeof meeting.createdBy === "string"
-                        ? meeting.createdBy
-                        : "Unknown")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
-
-            {/* Attendees */}
-            <View className="px-3 pt-4 pb-2">
-              <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
-                Attendees
-              </Text>
-              {(Array.isArray(meeting.attendees) ? meeting.attendees : [])
-                .filter((a: any) => !!a)
-                .map((attendee: any, index: number) => {
-                  return (
-                    <TouchableOpacity
-                      key={attendee._id || index}
-                      onPress={() => {
-                        setSelectedAttendee(attendee);
-                        setShowAttendeeModal(true);
-                      }}
-                      className="flex-row items-center justify-between mb-4"
-                    >
-                      <View className="flex-row items-center flex-1">
-                        <GlobalAvatar
-                          name={attendee.attendeeName || "Unknown"}
-                          size={40}
-                          fontSize={16}
-                          index={index}
-                          className="mr-4"
-                        />
-                        <View className="flex-1">
-                          <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
-                            {attendee.attendeeName || "Unknown"}
-                          </Text>
-                          <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
-                            {attendee.designation || "Role"} |{" "}
-                            {attendee.organization || "Company"}
-                          </Text>
-                        </View>
-                      </View>
+                {/* Details */}
+                <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+                  <View className="flex-row gap-4 items-center">
+                    <View className="w-6 items-center">
                       <HugeiconsIcon
-                        icon={ArrowRight01Icon}
-                        size={20}
-                        color={isDarkMode ? "#919191" : "#919191"}
+                        icon={Calendar03Icon}
+                        size={22}
+                        color={isDarkMode ? "#919191" : "#454545"}
                       />
-                    </TouchableOpacity>
-                  );
-                })}
-            </View>
+                    </View>
+                    <View>
+                      <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
+                        Date
+                      </Text>
+                      <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                        {meetingDate
+                          ? new Date(
+                              Array.isArray(meetingDate)
+                                ? meetingDate[0]
+                                : meetingDate,
+                            )
+                              .toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                              .replace(" ", " ")
+                              .replace(" ", " ")
+                          : ""}{" "}
+                        at {meetingTime}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
 
-            <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
+                <View className="px-3 py-2 border-b border-[#F1F5F9] dark:border-[#1A1A1A]">
+                  <View className="flex-row gap-4 items-center">
+                    <View className="w-6 items-center">
+                      <HugeiconsIcon
+                        icon={Location01Icon}
+                        size={22}
+                        color={isDarkMode ? "#919191" : "#454545"}
+                      />
+                    </View>
+                    <View>
+                      <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
+                        Location
+                      </Text>
+                      <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                        {meetingVenue || "No venue added"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View className="px-3 py-2 ">
+                  <View className="flex-row gap-4 items-center">
+                    <View className="w-6 items-center">
+                      <HugeiconsIcon
+                        icon={UserCircleIcon}
+                        size={22}
+                        color={isDarkMode ? "#919191" : "#454545"}
+                      />
+                    </View>
+                    <View>
+                      <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#B1B1B1] ">
+                        Created by
+                      </Text>
+                      <Text className="text-[15px] font-poppinsMedium text-[#0F172A] dark:text-white">
+                        {meeting.createdBy?.fullName ||
+                          meeting.createdBy?.username ||
+                          (typeof meeting.createdBy === "string"
+                            ? meeting.createdBy
+                            : "Unknown")}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
+
+                {/* Attendees */}
+                <View className="px-3 pt-4 pb-2">
+                  <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
+                    Attendees
+                  </Text>
+                  {(Array.isArray(meeting.attendees) ? meeting.attendees : [])
+                    .filter((a: any) => !!a)
+                    .map((attendee: any, index: number) => {
+                      return (
+                        <TouchableOpacity
+                          key={attendee._id || index}
+                          onPress={() => {
+                            setSelectedAttendee(attendee);
+                            setShowAttendeeModal(true);
+                          }}
+                          className="flex-row items-center justify-between mb-4"
+                        >
+                          <View className="flex-row items-center flex-1">
+                            <GlobalAvatar
+                              name={attendee.attendeeName || "Unknown"}
+                              size={40}
+                              fontSize={16}
+                              index={index}
+                              className="mr-4"
+                            />
+                            <View className="flex-1">
+                              <Text className="text-[16px] font-poppinsMedium text-[#0F172A] dark:text-white ">
+                                {attendee.attendeeName || "Unknown"}
+                              </Text>
+                              <Text className="text-[12px] font-poppins text-[#64748B] dark:text-[#919191]">
+                                {attendee.designation || "Role"} |{" "}
+                                {attendee.organization || "Company"}
+                              </Text>
+                            </View>
+                          </View>
+                          <HugeiconsIcon
+                            icon={ArrowRight01Icon}
+                            size={20}
+                            color={isDarkMode ? "#919191" : "#919191"}
+                          />
+                        </TouchableOpacity>
+                      );
+                    })}
+                </View>
+
+                <View className="h-[6px] bg-[#F6F8FA]    dark:bg-[#413E47] w-full" />
+              </>
+            )}
             {/* Minutes */}
             <View className="px-3 pt-4">
               <Text className="text-[18px] font-dmSemiBold text-[#0F172A] dark:text-white mb-4">
-                Minutes
+                {searchQuery ? "Search Results" : "Minutes"}
               </Text>
-              {(Array.isArray(meeting.minutes) ? meeting.minutes : []).map(
-                (minute: any) => {
+              {filteredMinutes.length === 0 ? (
+                <View className="mt-6 items-center py-6">
+                  <Text className="text-[#64748B] dark:text-[#94A3B8] text-base font-poppinsMedium text-center">
+                    No minutes found matching your search
+                  </Text>
+                </View>
+              ) : (
+                filteredMinutes.map((minute: any) => {
                   const { badgeBg, badgeText, statusLabel } =
                     getStatusBadgeStyles(minute.status, isDarkMode);
 
@@ -722,13 +794,6 @@ const MinutesDetail = () => {
                       }
                       activeOpacity={0.7}
                       className="bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-[16px] px-3 py-3 mb-3"
-                      //  style={!isDarkMode ? {
-                      //     shadowColor: "#000",
-                      //     shadowOffset: { width: 0, height: 2 },
-                      //     shadowOpacity: 0.05,
-                      //     shadowRadius: 10,
-                      //     elevation: 2,
-                      //  } : { borderWidth: 1, borderColor: "#262626" }}
                     >
                       <View className="flex-row items-center justify-between mb-4">
                         <View
@@ -854,7 +919,7 @@ const MinutesDetail = () => {
                       </View>
                     </TouchableOpacity>
                   );
-                },
+                })
               )}
             </View>
           </View>
@@ -862,7 +927,8 @@ const MinutesDetail = () => {
           <Text className="text-center mt-10 text-gray-500">
             Meeting not found
           </Text>
-        )}
+        )
+}
       </ScrollView>
 
       {/* Sticky Bottom Edit Button */}
