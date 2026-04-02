@@ -1,11 +1,11 @@
 import {
   Calendar03Icon,
   CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
   Progress03Icon,
   UnavailableIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
@@ -131,7 +131,8 @@ const ProjectCard = memo(
           return {
             bg: isDarkMode ? "#282446" : "#D7DEF2",
             text: isDarkMode ? "#9486FB" : "#5B4CCC",
-            icon: DashedLineCircleIcon,
+            icon: null,
+            useMatIcons: true,
             label: "Active",
           };
         case "bd":
@@ -186,11 +187,15 @@ const ProjectCard = memo(
               className="flex-row items-center px-2 py-1 rounded-full"
               style={{ backgroundColor: statusStyle.bg }}
             >
-              <HugeiconsIcon
-                icon={statusStyle.icon}
-                size={14}
-                color={statusStyle.text}
-              />
+              {(statusStyle as any).useMatIcons ? (
+                <MaterialIcons name="radio-button-checked" size={14} color={statusStyle.text} />
+              ) : (
+                <HugeiconsIcon
+                  icon={statusStyle.icon}
+                  size={14}
+                  color={statusStyle.text}
+                />
+              )}
               <Text
                 className="text-xs font-poppinsMedium ml-1"
                 style={{ color: statusStyle.text }}
@@ -290,7 +295,8 @@ const ProjectsTab = ({
     {
       key: "active",
       label: "Active",
-      icon: DashedLineCircleIcon,
+      icon: null,
+      useMatIcons: true,
       color: isDarkMode ? "#9486FB" : "#5B4CCC",
       bg: "#D7DEF2",
       darkBg: "#282446",
@@ -401,7 +407,11 @@ const ProjectsTab = ({
                   gap: 6,
                 }}
               >
-                {item.icon && <HugeiconsIcon icon={item.icon} size={18} color={item.color} />}
+                {(item as any).useMatIcons ? (
+                  <MaterialIcons name="radio-button-checked" size={18} color={item.color} />
+                ) : (
+                  item.icon && <HugeiconsIcon icon={item.icon} size={18} color={item.color} />
+                )}
                 <Text
                   className="font-poppinsMedium text-sm"
                   style={{ color: isActive ? item.color : (isDarkMode ? "#FFFFFF" : "#000000") }}

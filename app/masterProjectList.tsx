@@ -1,9 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import {
   Add01Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
   Download01Icon,
   Menu02Icon,
   Progress03Icon,
@@ -303,7 +302,8 @@ const MasterProjectList = () => {
           bg: "bg-[#D7DEF2] dark:bg-[#282446]",
           text: "text-[#5B4CCC] dark:text-[#9486FB]",
           iconColor: isDarkMode ? "#9486FB" : "#5B4CCC",
-          icon: DashedLineCircleIcon,
+          icon: null,
+          useMatIcons: true,
           label: "Active",
         };
       case "bd":
@@ -365,11 +365,15 @@ const MasterProjectList = () => {
               <View
                 className={`flex-row items-center px-2 py-1 rounded-full ${statusStyle.bg}`}
               >
-                <HugeiconsIcon
-                  icon={statusStyle.icon}
-                  size={14}
-                  color={statusStyle.iconColor}
-                />
+                {(statusStyle as any).useMatIcons ? (
+                  <MaterialIcons name="radio-button-checked" size={14} color={statusStyle.iconColor} />
+                ) : (
+                  <HugeiconsIcon
+                    icon={statusStyle.icon}
+                    size={14}
+                    color={statusStyle.iconColor}
+                  />
+                )}
                 <Text
                   className={`text-xs font-poppinsMedium ml-1 ${statusStyle.text}`}
                 >
@@ -545,9 +549,9 @@ const MasterProjectList = () => {
             {
               key: "active",
               label: "Active",
-              icon: DashedLineCircleIcon,
+              icon: null,
+              useMatIcons: true,
               color: isDarkMode ? "#9486FB" : "#5B4CCC",
-              // color: "#5B4CCC",
               bg: "#D7DEF2",
               darkBg: "#282446",
             },
@@ -625,12 +629,16 @@ const MasterProjectList = () => {
                   gap: 6,
                 }}
               >
-                {item.icon && (
-                  <HugeiconsIcon
-                    icon={item.icon}
-                    size={18}
-                    color={item.color}
-                  />
+                {(item as any).useMatIcons ? (
+                  <MaterialIcons name="radio-button-checked" size={18} color={item.color} />
+                ) : (
+                  item.icon && (
+                    <HugeiconsIcon
+                      icon={item.icon}
+                      size={18}
+                      color={item.color}
+                    />
+                  )
                 )}
                 <Text
                   className="font-poppinsMedium text-sm"
