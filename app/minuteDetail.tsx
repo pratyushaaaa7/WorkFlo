@@ -898,6 +898,23 @@ const MinuteDetail = () => {
 
           {isExpanded && (
             <View>
+              {/* Forwarded From Badge */}
+              {minuteData?.fromForwardedId?.meetingId?.meetingNumber && (
+                <View 
+                  className="flex-row items-center self-start px-2.5 py-1.5 rounded-lg mt-2"
+                  style={{ backgroundColor: isDark ? "#101F40" : "#E8F0FF" }}
+                >
+                  <HugeiconsIcon
+                    icon={CircleArrowUpRightIcon}
+                    size={14}
+                    color="#2F76E6"
+                  />
+                  <Text className="text-[#2F76E6] text-[12px] font-poppinsMedium ml-1.5">
+                    Forwarded from Meeting #{minuteData.fromForwardedId.meetingId.meetingNumber}
+                  </Text>
+                </View>
+              )}
+
               {/* Title */}
               <Text
                 className={`text-xl font-dmMedium mt-4 mb-2 ${isDark ? "text-white" : "text-black"}`}
