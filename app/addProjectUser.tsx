@@ -274,7 +274,7 @@ export default function AddProjectUsersPage() {
                   iconStyle={{ width: 20, height: 20 }}
                   activeColor={isDarkMode ? "#333" : "#E0E7FF"}
                   itemTextStyle={{
-                    fontSize: 12,
+                    fontSize: 11,
                     color: isDarkMode ? "#FFF" : "#374151",
                     fontFamily: "Poppins-Regular",
                   }}
