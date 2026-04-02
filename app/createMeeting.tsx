@@ -391,6 +391,15 @@ const CreateMinutes = () => {
             (savedData.minutes || []).map((m: any, i: number) => ({
               ...m,
               id: m.id || "min-" + Date.now() + "-" + i + "-" + Math.random(),
+              // Ensure dropdowns are in { value, label } format
+              raisedBy: (m.raisedBy || []).map((r: any) => ({
+                value: r.value || r._id,
+                label: r.label || r.name,
+              })),
+              responsibility: (m.responsibility || []).map((r: any) => ({
+                value: r.value || r._id,
+                label: r.label || r.name,
+              })),
             })),
           );
         } else {
@@ -898,7 +907,7 @@ const CreateMinutes = () => {
               designation: a.designation || "",
               email: a.email || "",
               status: a.status || "",
-              userId: a.userId || null,
+              userId: a.userId?._id || a.userId || null,
               contactNumbers: (a.contactNumbers || []).filter(
                 (n: string) => n.trim() !== "",
               ),
@@ -915,18 +924,14 @@ const CreateMinutes = () => {
             issueDescription: m.description || m.issueDescription || "",
             targetDate: m.targetDate || null,
             remarks: m.remarks || "",
-            raisedBy: Array.isArray(m.raisedBy)
-              ? (m.raisedBy || []).map((r: any) => ({
-                  value: r.value,
-                  label: r.label,
-                }))
-              : [],
-            responsibility: Array.isArray(m.responsibility)
-              ? (m.responsibility || []).map((r: any) => ({
-                  value: r.value,
-                  label: r.label,
-                }))
-              : [],
+            raisedBy: (m.raisedBy || []).map((r: any) => ({
+              value: r.value || r._id,
+              label: r.label || r.name,
+            })),
+            responsibility: (m.responsibility || []).map((r: any) => ({
+              value: r.value || r._id,
+              label: r.label || r.name,
+            })),
             status: m.status || "open",
             targetDateForInfo: !!m.targetDateForInfo,
             responsibilityForInfo: !!m.responsibilityForInfo,
