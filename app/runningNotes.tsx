@@ -1,6 +1,25 @@
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
-// import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
@@ -12,42 +31,16 @@ import {
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
 import { LinearGradient } from "expo-linear-gradient";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import Modal from "react-native-modal";
-
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  ActivityIndicator,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  SectionList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity, // Added Pressable
-  useColorScheme,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { MultiSelect } from "react-native-element-dropdown";
-import { Swipeable } from "react-native-gesture-handler";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Swipeable } from "react-native-gesture-handler";
+import { MultiSelect } from "react-native-element-dropdown";
+import Modal from "react-native-modal";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { AuthContext } from "../context/AuthContext";
 import AddNoteCard from "./../components/runningNotes/AddNoteCard"; // adjust path
@@ -1544,16 +1537,21 @@ const RunningNotes = () => {
         </KeyboardStickyView>
       </Modal>
 
-      <DateTimePickerModal
-        isVisible={showEditDatePicker}
-        mode="date"
-        date={editingNote?.targetDate || new Date()}
-        onConfirm={(date) => {
-          setShowEditDatePicker(false);
-          setEditingNote((prev) => prev && { ...prev, targetDate: date });
-        }}
-        onCancel={() => setShowEditDatePicker(false)}
-      />
+      {showEditDatePicker && (
+        <DateTimePicker
+          value={editingNote?.targetDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            if (event.type === "set" && date) {
+              setShowEditDatePicker(false);
+              setEditingNote((prev) => prev && { ...prev, targetDate: date });
+            } else {
+              setShowEditDatePicker(false);
+            }
+          }}
+        />
+      )}
     </>
   );
 };

@@ -583,7 +583,7 @@ const StageDetail: React.FC = () => {
                   : new Date()
             }
             mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
+            display="default"
             onChange={onChangeDate}
             minimumDate={
               picker.type === "end" && stageData[picker.index ?? 0]?.start

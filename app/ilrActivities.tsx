@@ -46,7 +46,7 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Modal from "react-native-modal";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -1128,13 +1128,20 @@ const IlrActivities = () => {
         </View>
       </KeyboardStickyView>
 
-      <DateTimePickerModal
-        isVisible={showDatePicker}
-        mode="date"
-        date={tempDate || new Date()}
-        onConfirm={onDateConfirm}
-        onCancel={() => setShowDatePicker(false)}
-      />
+      {showDatePicker && (
+        <DateTimePicker
+          value={tempDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            if (event.type === "set" && date) {
+              onDateConfirm(date);
+            } else {
+              setShowDatePicker(false);
+            }
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal

@@ -26,7 +26,7 @@ import {
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
@@ -718,12 +718,20 @@ const SVRform = () => {
           )}
         />
 
-        <DateTimePickerModal
-          isVisible={showDatePicker}
-          mode="date"
-          onConfirm={onDateConfirm}
-          onCancel={() => setShowDatePicker(false)}
-        />
+        {showDatePicker && (
+          <DateTimePicker
+            value={new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, date) => {
+              if (event.type === "set" && date) {
+                onDateConfirm(date);
+              } else {
+                setShowDatePicker(false);
+              }
+            }}
+          />
+        )}
 
         {/* Bottom action bar */}
         <View

@@ -12,7 +12,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { Dropdown, MultiSelect } from "react-native-element-dropdown";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { statusOptions } from "../../utils/runningNotes";
 
 const AddNoteCard = ({ users, onAdd }: any) => {
@@ -173,15 +173,21 @@ const AddNoteCard = ({ users, onAdd }: any) => {
       </View>
 
       {/* Modal Date Picker */}
-      <DateTimePickerModal
-        isVisible={showAddDatePicker}
-        mode="date"
-        onConfirm={(date) => {
-          setTargetDate(date);
-          setShowAddDatePicker(false);
-        }}
-        onCancel={() => setShowAddDatePicker(false)}
-      />
+      {showAddDatePicker && (
+        <DateTimePicker
+          value={targetDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            if (event.type === "set" && date) {
+              setTargetDate(date);
+              setShowAddDatePicker(false);
+            } else {
+              setShowAddDatePicker(false);
+            }
+          }}
+        />
+      )}
 
       {/* Responsible + Add Button Row */}
       <View className="flex-row items-center gap-2">

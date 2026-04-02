@@ -34,7 +34,7 @@ import {
 import { MultiSelect } from "react-native-element-dropdown";
 
 import Modal from "react-native-modal";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -933,44 +933,46 @@ const ILRForm = () => {
       </KeyboardAvoidingView>
 
       {/* Date Picker */}
-      <DateTimePickerModal
-        isVisible={datePickerVisible}
-        mode="date"
-        date={
-          selectedIssueIndex !== null && issues[selectedIssueIndex]?.targetDate
-            ? new Date(issues[selectedIssueIndex].targetDate)
-            : new Date()
-        }
-        onConfirm={(date) => {
-          setDatePickerVisible(false);
-          setSelectedIssueIndex(null);
-
-          setTimeout(() => {
-            if (moment(date).isBefore(moment(), "day")) {
-              Toast.show({
-                type: "error",
-                text1: "Invalid Date",
-                text2: "Target date cannot be in the past",
-                position: "bottom",
-              });
-              return;
-            }
-
-            if (selectedIssueIndex !== null) {
-              const formattedDate = moment(date).format("YYYY-MM-DD");
-              updateIssue(selectedIssueIndex, "targetDate", formattedDate);
-            }
-          }, 150);
-        }}
-        onCancel={() => {
-          if (selectedIssueIndex !== null) {
-            updateIssue(selectedIssueIndex, "targetDate", "");
+      {datePickerVisible && (
+        <DateTimePicker
+          value={
+            selectedIssueIndex !== null && issues[selectedIssueIndex]?.targetDate
+              ? new Date(issues[selectedIssueIndex].targetDate)
+              : new Date()
           }
-          setDatePickerVisible(false);
-          setSelectedIssueIndex(null);
-        }}
-        isDarkModeEnabled={isDarkMode}
-      />
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            if (event.type === "set" && date) {
+              setDatePickerVisible(false);
+              setSelectedIssueIndex(null);
+
+              setTimeout(() => {
+                if (moment(date).isBefore(moment(), "day")) {
+                  Toast.show({
+                    type: "error",
+                    text1: "Invalid Date",
+                    text2: "Target date cannot be in the past",
+                    position: "bottom",
+                  });
+                  return;
+                }
+
+                if (selectedIssueIndex !== null) {
+                  const formattedDate = moment(date).format("YYYY-MM-DD");
+                  updateIssue(selectedIssueIndex, "targetDate", formattedDate);
+                }
+              }, 150);
+            } else {
+              if (selectedIssueIndex !== null) {
+                updateIssue(selectedIssueIndex, "targetDate", "");
+              }
+              setDatePickerVisible(false);
+              setSelectedIssueIndex(null);
+            }
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal

@@ -49,7 +49,7 @@ import {
   RenderItemParams,
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -1470,20 +1470,24 @@ const CreateMinutes = () => {
                         />
                       </TouchableOpacity>
 
-                      <DateTimePickerModal
-                        isVisible={isDatePickerVisible}
-                        mode="date"
-                        onConfirm={(date) => {
-                          setDatePickerVisibility(false);
-                          setMeetingDate(date);
-                          if (validationErrors.meetingDate)
-                            setValidationErrors((prev) => ({
-                              ...prev,
-                              meetingDate: false,
-                            }));
-                        }}
-                        onCancel={() => setDatePickerVisibility(false)}
-                      />
+                      {isDatePickerVisible && (
+                        <DateTimePicker
+                          value={meetingDate || new Date()}
+                          mode="date"
+                          display="default"
+                          onChange={(event, date) => {
+                            setDatePickerVisibility(false);
+                            if (event.type === "set" && date) {
+                              setMeetingDate(date);
+                              if (validationErrors.meetingDate)
+                                setValidationErrors((prev) => ({
+                                  ...prev,
+                                  meetingDate: false,
+                                }));
+                            }
+                          }}
+                        />
+                      )}
 
                       <TouchableOpacity
                         onPress={() => {
@@ -1529,21 +1533,25 @@ const CreateMinutes = () => {
                         />
                       </TouchableOpacity>
 
-                      <DateTimePickerModal
-                        isVisible={isTimePickerVisible}
-                        mode="time"
-                        onConfirm={(time) => {
-                          setTimePickerVisibility(false);
-                          const formattedTime = moment(time).format("hh:mm A");
-                          setMeetingTime(formattedTime);
-                          if (validationErrors.meetingTime)
-                            setValidationErrors((prev) => ({
-                              ...prev,
-                              meetingTime: false,
-                            }));
-                        }}
-                        onCancel={() => setTimePickerVisibility(false)}
-                      />
+                      {isTimePickerVisible && (
+                        <DateTimePicker
+                          value={new Date()}
+                          mode="date"
+                          display="default"
+                          onChange={(event, time) => {
+                            setTimePickerVisibility(false);
+                            if (event.type === "set" && time) {
+                              const formattedTime = moment(time).format("hh:mm A");
+                              setMeetingTime(formattedTime);
+                              if (validationErrors.meetingTime)
+                                setValidationErrors((prev) => ({
+                                  ...prev,
+                                  meetingTime: false,
+                                }));
+                            }
+                          }}
+                        />
+                      )}
                     </View>
 
                     <TextInput
@@ -2060,17 +2068,19 @@ const CreateMinutes = () => {
           <Text className="text-white font-bold">Submit MOM</Text>
         </TouchableOpacity> */}
 
-          <DateTimePickerModal
-            isVisible={showDatePicker}
-            mode="date"
-            onConfirm={(date) => {
-              if (dateIndex !== null) {
-                updateMinute(dateIndex, "targetDate", date);
-              }
-              setShowDatePicker(false);
-            }}
-            onCancel={() => setShowDatePicker(false)}
-          />
+          {showDatePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (event.type === "set" && date && dateIndex !== null) {
+                  updateMinute(dateIndex, "targetDate", date);
+                }
+              }}
+            />
+          )}
 
           <NativeModal
             transparent

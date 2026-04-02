@@ -27,7 +27,7 @@ const ActionButtons = () => {
         <DateTimePicker
           value={ilr.targetDate ? new Date(ilr.targetDate) : new Date()}
           mode="date"
-          display={Platform.OS === "ios" ? "inline" : "default"}
+          display="default"
           onChange={onDateChange}
         />
       )}

@@ -1016,7 +1016,7 @@ const CreateProjectScreen = () => {
               <DateTimePicker
                 value={startDate || new Date()}
                 mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
+                display="default"
                 onChange={(event, selectedDate) => {
                   setShowStartPicker(false);
                   if (selectedDate) setStartDate(selectedDate);
