@@ -1128,7 +1128,7 @@ const RunningNotes = () => {
           <View
             className="rounded-t-[24px] w-full h-[460px] shadow-2xl"
             style={{
-              backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+              backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
             }}
           >
             {/* Handle Bar */}
@@ -1254,7 +1254,7 @@ const RunningNotes = () => {
                               backgroundColor: active
                                 ? styles.bg
                                 : isDarkMode
-                                  ? "#262626"
+                                  ? "#0D0D0D"
                                   : "#F0F3F7",
                             }}
                           >
@@ -1324,7 +1324,7 @@ const RunningNotes = () => {
                     }}
                     containerStyle={{
                       borderRadius: 12,
-                      backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                      backgroundColor: isDarkMode ? "#0D0D0D" : "#FFFFFF",
                       borderColor: isDarkMode ? "#2B2B2B" : "#E2E8F0",
                       marginTop: 10,
                     }}
@@ -1332,7 +1332,7 @@ const RunningNotes = () => {
                       color: isDarkMode ? "#FFFFFF" : "#111827",
                       fontFamily: "Poppins_400Regular",
                     }}
-                    activeColor={isDarkMode ? "#262626" : "#F8FAFC"}
+                    activeColor={isDarkMode ? "#0D0D0D" : "#F3F4F6"}
                     data={users}
                     labelField="label"
                     valueField="value"

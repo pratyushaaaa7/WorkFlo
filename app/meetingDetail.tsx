@@ -986,7 +986,7 @@ const MinutesDetail = () => {
       >
         <View
           style={{
-            backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+            backgroundColor: isDarkMode ? "#1A1A1A" : "#FBFCFD",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingHorizontal: 20,
@@ -1029,7 +1029,8 @@ const MinutesDetail = () => {
             ].map((item, idx) => (
               <View
                 key={idx}
-                className={`p-4 rounded-lg ${isDarkMode ? "bg-[#252528]" : "bg-[#F0F3F7]"}`}
+                className="p-4 rounded-lg"
+                style={{ backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7" }}
               >
                 <Text
                   className={`text-[15px] font-poppins ${isDarkMode ? "text-white" : "text-black"}`}
