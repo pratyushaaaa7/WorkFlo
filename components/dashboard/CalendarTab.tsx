@@ -230,7 +230,7 @@ const DateSection = ({ group }: { group: any }) => {
             <Text className="text-[10px] font-poppins text-[#454545] dark:text-[#919191] uppercase leading-none mb-1">
               {monthName}
             </Text>
-            <Text className="text-2xl font-dmSemiBold text-gray-900 dark:text-white leading-tight">
+            <Text className="text-[20px] font-dmSemiBold text-gray-900 dark:text-white leading-tight">
               {dayNumber}
             </Text>
           </View>
