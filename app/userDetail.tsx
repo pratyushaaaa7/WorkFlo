@@ -616,7 +616,7 @@ const UserDetail = () => {
                   multiline
                   maxLength={200}
                   numberOfLines={4}
-                  className="text-gray-700 dark:text-gray-200 text-sm font-poppins h-20 textAlignVertical-top"
+                  className="text-gray-700 p-2 dark:text-gray-200 text-sm font-poppins h-20 textAlignVertical-top"
                   style={{ textAlignVertical: "top" }}
                 />
                 <Text className="text-right text-xs text-gray-400 font-poppins mr-3 ">
