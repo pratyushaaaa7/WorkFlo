@@ -22,7 +22,6 @@ import {
   Alert,
   FlatList,
   Image,
-  Platform,
   RefreshControl,
   StatusBar,
   Text,
@@ -32,7 +31,7 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import * as XLSX from "xlsx";
+
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { Project } from "../types/Project";
@@ -174,60 +173,35 @@ const MasterProjectList = () => {
     );
   };
 
-  // Export Logic
+  // Export Logic — backend generates xlsx via ExcelJS
   const exportToExcel = async () => {
     try {
-      if (filteredProjects.length === 0) {
-        Toast.show({
-          type: "info",
-          text1: "No Projects",
-          text2: "There are no projects to export in the current view.",
-          position: "bottom",
-        });
-        return;
-      }
       setDownloading(true);
 
-      const data = filteredProjects.map((proj, index) => ({
-        SNo: index + 1,
-        ProjectName: proj.projectName,
-        ProjectCode: proj.projectCode,
-        Company: proj.company,
-        Status: proj.status,
-        FileNumber: proj.fileNumber,
-        Description: proj.projectDescription,
-        Location: proj.location,
-        Area: proj.area,
-        Typology: proj.typology,
-        Scopes: proj.scopes ? proj.scopes.join(", ") : "",
-        StartDate: proj.startDate
-          ? new Date(proj.startDate).toLocaleDateString()
-          : "",
-      }));
+      const response = await api.get("/excel/allProjectsExcel", {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "arraybuffer",
+      });
 
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Projects");
-
-      if (Platform.OS === "web") {
-        const wbout = XLSX.write(wb, { type: "binary", bookType: "xlsx" });
-        Toast.show({
-          type: "info",
-          text1: "Download not implemented for web in this view logic yet",
-        });
-      } else {
-        const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
-        const uri = FileSystem.cacheDirectory + "projects_export.xlsx";
-        await FileSystem.writeAsStringAsync(uri, wbout, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        await Sharing.shareAsync(uri, {
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          dialogTitle: "Share Projects Excel",
-          UTI: "com.microsoft.excel.xlsx",
-        });
+      // Convert arraybuffer → base64
+      const bytes = new Uint8Array(response.data);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
       }
+      const base64 = btoa(binary);
+
+      const uri = FileSystem.cacheDirectory + "Projects.xlsx";
+      await FileSystem.writeAsStringAsync(uri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await Sharing.shareAsync(uri, {
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        dialogTitle: "Share Projects Excel",
+        UTI: "com.microsoft.excel.xlsx",
+      });
     } catch (error) {
       console.error("Export failed", error);
       Toast.show({

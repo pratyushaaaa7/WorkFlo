@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import * as XLSX from "xlsx";
+
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import { Project } from "../types/Project";
@@ -98,52 +98,27 @@ const ProjectList = () => {
     );
   };
 
+  // Export Logic — backend generates xlsx via ExcelJS
   const exportToExcel = async () => {
     try {
-      if (projects.length === 0) {
-        Toast.show({
-          type: "info",
-          text1: "No Projects",
-          text2: "There are no projects to export.",
-          position: "bottom",
-        });
-        return;
+      const response = await api.get("/excel/allProjectsExcel", {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "arraybuffer",
+      });
+
+      // Convert arraybuffer → base64
+      const bytes = new Uint8Array(response.data);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
       }
+      const base64 = btoa(binary);
 
-      // Convert your data into a flat format (avoid nested objects)
-      const data = projects.map((proj, index) => ({
-        SNo: index + 1,
-        ProjectName: proj.projectName,
-        ProjectCode: proj.projectCode,
-        Company: proj.company,
-        Location: proj.location,
-        Area: proj.area,
-        Typology: proj.typology,
-        Scopes: proj.scopes.join(", "),
-        StartDate: proj.startDate
-          ? new Date(proj.startDate).toLocaleDateString()
-          : "",
-        TeamLeaders: proj.teamLeaders
-          .map((u) => u.username ?? u._id)
-          .join(", "),
-        TeamMembers: proj.teamMembers
-          .map((u) => u.username ?? u._id)
-          .join(", "),
-      }));
-
-      // Create a worksheet
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Projects");
-
-      // Write file to temporary path
-      const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
-      const uri = FileSystem.cacheDirectory + "projects.xlsx";
-      await FileSystem.writeAsStringAsync(uri, wbout, {
+      const uri = FileSystem.cacheDirectory + "Projects.xlsx";
+      await FileSystem.writeAsStringAsync(uri, base64, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      // Share file
       await Sharing.shareAsync(uri, {
         mimeType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -152,6 +127,12 @@ const ProjectList = () => {
       });
     } catch (error) {
       console.error("Export failed", error);
+      Toast.show({
+        type: "error",
+        text1: "Export Failed",
+        text2: "An error occurred while exporting.",
+        position: "bottom",
+      });
     }
   };
 
