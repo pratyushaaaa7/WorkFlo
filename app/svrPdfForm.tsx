@@ -572,15 +572,6 @@ const SVRPhotoReport: React.FC = () => {
       );
       await FileSystem.moveAsync({ from: uri, to: newUri });
 
-      // Sharing logic for offline use
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Share SVR Report",
-          UTI: "com.adobe.pdf",
-        });
-      }
-
       // Optional upload
       if (token && Platform.OS !== "web") {
         const formData = new FormData();

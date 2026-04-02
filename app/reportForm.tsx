@@ -653,15 +653,6 @@ const ReportForm: React.FC = () => {
         }
       }
 
-      // Share the PDF
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(newUri, {
-          mimeType: "application/pdf",
-          dialogTitle: "Share DPR Report",
-          UTI: "com.adobe.pdf",
-        });
-      }
-
       Toast.show({
         type: "success",
         text1: "Report Complete",
