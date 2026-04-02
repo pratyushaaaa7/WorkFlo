@@ -56,11 +56,10 @@ type Issue = {
 
 const ILRForm = () => {
   const router = useRouter();
-  const {
-    projectId,
-    projectName,
-  } = useLocalSearchParams();
-  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const { projectId, projectName } = useLocalSearchParams();
+  const pIdStr = Array.isArray(projectId)
+    ? projectId[0]
+    : (projectId as string);
   const STORAGE_KEY = `ilr_form_${pIdStr || "new"}`;
   const IMAGES_KEY = `ilr_images_${pIdStr || "new"}`;
 
@@ -744,7 +743,56 @@ const ILRForm = () => {
                           color="#9CA3AF"
                         />
                       </View>
+
                     </TouchableOpacity>
+                    
+                    {/* Date Picker */}
+                    {datePickerVisible && (
+                      <DateTimePicker
+                        value={
+                          selectedIssueIndex !== null &&
+                          issues[selectedIssueIndex]?.targetDate
+                            ? new Date(issues[selectedIssueIndex].targetDate)
+                            : new Date()
+                        }
+                        mode="date"
+                        display="default"
+                        onChange={(event, date) => {
+                          if (event.type === "set" && date) {
+                            setDatePickerVisible(false);
+                            setSelectedIssueIndex(null);
+
+                            setTimeout(() => {
+                              if (moment(date).isBefore(moment(), "day")) {
+                                Toast.show({
+                                  type: "error",
+                                  text1: "Invalid Date",
+                                  text2: "Target date cannot be in the past",
+                                  position: "bottom",
+                                });
+                                return;
+                              }
+
+                              if (selectedIssueIndex !== null) {
+                                const formattedDate =
+                                  moment(date).format("YYYY-MM-DD");
+                                updateIssue(
+                                  selectedIssueIndex,
+                                  "targetDate",
+                                  formattedDate,
+                                );
+                              }
+                            }, 150);
+                          } else {
+                            if (selectedIssueIndex !== null) {
+                              updateIssue(selectedIssueIndex, "targetDate", "");
+                            }
+                            setDatePickerVisible(false);
+                            setSelectedIssueIndex(null);
+                          }
+                        }}
+                      />
+                    )}
 
                     <TextInput
                       placeholder="Issue Description *"
@@ -865,16 +913,16 @@ const ILRForm = () => {
                         }}
                         className="mt-2 flex-row items-center justify-end"
                       >
-                         <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
-                           <HugeiconsIcon
-                             icon={MinusSignIcon}
-                             size={10}
-                             color="#FFFFFF"
-                           />
-                         </View>
-                         <Text className="text-red-500 font-poppinsMedium text-[13px]">
-                           Remove
-                         </Text>
+                        <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                          <HugeiconsIcon
+                            icon={MinusSignIcon}
+                            size={10}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                        <Text className="text-red-500 font-poppinsMedium text-[13px]">
+                          Remove
+                        </Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -935,48 +983,6 @@ const ILRForm = () => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Date Picker */}
-      {datePickerVisible && (
-        <DateTimePicker
-          value={
-            selectedIssueIndex !== null && issues[selectedIssueIndex]?.targetDate
-              ? new Date(issues[selectedIssueIndex].targetDate)
-              : new Date()
-          }
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            if (event.type === "set" && date) {
-              setDatePickerVisible(false);
-              setSelectedIssueIndex(null);
-
-              setTimeout(() => {
-                if (moment(date).isBefore(moment(), "day")) {
-                  Toast.show({
-                    type: "error",
-                    text1: "Invalid Date",
-                    text2: "Target date cannot be in the past",
-                    position: "bottom",
-                  });
-                  return;
-                }
-
-                if (selectedIssueIndex !== null) {
-                  const formattedDate = moment(date).format("YYYY-MM-DD");
-                  updateIssue(selectedIssueIndex, "targetDate", formattedDate);
-                }
-              }, 150);
-            } else {
-              if (selectedIssueIndex !== null) {
-                updateIssue(selectedIssueIndex, "targetDate", "");
-              }
-              setDatePickerVisible(false);
-              setSelectedIssueIndex(null);
-            }
-          }}
-        />
-      )}
 
       {/* Delete Confirmation Modal */}
       <Modal
