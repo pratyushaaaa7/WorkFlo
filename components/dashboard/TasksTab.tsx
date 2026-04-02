@@ -32,9 +32,9 @@ interface TasksTabProps {
   responsibleItems: any[];
 }
 
-const getDateStatus = (dateString: string | null) => {
+const getDateStatus = (dateString: string | null, isDarkMode: boolean) => {
   if (!dateString || !isValid(new Date(dateString))) {
-    return { color: "#454545", text: "For Info" }; // Gray-400
+    return { color: isDarkMode ? "#919191" : "#454545", text: "For Info" }; // Gray-400
   }
 
   const date = new Date(dateString);
@@ -52,7 +52,7 @@ const getDateStatus = (dateString: string | null) => {
 
 const TaskItem = ({ task }: { task: any }) => {
   const isDarkMode = useColorScheme() === "dark";
-  const dateStatus = getDateStatus(task.date);
+  const dateStatus = getDateStatus(task.date, isDarkMode);
   const router = useRouter();
 
   const handlePress = () => {

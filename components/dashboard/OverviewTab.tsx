@@ -115,7 +115,7 @@ const OverviewTab = ({
 
   const getDateStatus = (dateString: string | null) => {
     if (!dateString || !isValid(new Date(dateString))) {
-      return { color: isDarkMode ? "#D2D2D2" : "#454545", text: "For Info" }; // Gray-400
+      return { color: isDarkMode ? "#919191" : "#454545", text: "For Info" }; // Gray-400
     }
 
     const date = new Date(dateString);
