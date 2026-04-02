@@ -12,11 +12,11 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Skeleton } from "moti/skeleton";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -142,10 +142,14 @@ const DPRs = () => {
     }
   };
 
-  useEffect(() => {
-    setPage(1);
-    fetchDPRs(false, 1);
-  }, [projectId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (projectId) {
+        setPage(1);
+        fetchDPRs(true, 1);
+      }
+    }, [projectId, fetchDPRs])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);

@@ -34,6 +34,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   SectionList,
   StatusBar,
   Text,
@@ -288,8 +289,7 @@ const ILRs = () => {
     useCallback(() => {
       if (projectId) {
         setPage(1);
-        fetchILRs(!isFirstLoad.current, 1);
-        isFirstLoad.current = false;
+        fetchILRs(true, 1);
       }
     }, [fetchILRs, projectId]),
   );
@@ -1056,8 +1056,14 @@ const ILRs = () => {
           </View>
         ) : (
           <SectionList
-            refreshing={refreshing}
-            onRefresh={onRefresh}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#5B4CCC"]}
+                tintColor={isDarkMode ? "#FFF" : "#5B4CCC"}
+              />
+            }
             sections={sections}
             keyExtractor={(item, index) => `${item._id || "item"}-${index}`}
             renderItem={renderItem}

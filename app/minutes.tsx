@@ -99,12 +99,11 @@ const Minutes = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (projectId && meetings.length === 0) {
+      if (projectId) {
         setPage(1);
-        fetchMeetings(!isFirstLoad.current, 1);
-        isFirstLoad.current = false;
+        fetchMeetings(true, 1);
       }
-    }, [fetchMeetings, projectId, meetings.length]),
+    }, [fetchMeetings, projectId]),
   );
 
   const onRefresh = () => {
