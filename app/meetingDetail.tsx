@@ -68,8 +68,8 @@ const getStatusBadgeStyles = (status: string | undefined, isDark: boolean) => {
     badgeText = isDark ? "#BBBBBB" : "#454545";
     statusLabel = "For Info";
   } else if (s === "forwarded") {
-    badgeBg = isDark ? "#282446" : "#D7DEF2";
-    badgeText = isDark ? "#9486FB" : "#5B4CCC";
+    badgeBg = isDark ? "#101F40" : "#E8F0FF";
+    badgeText = "#2F76E6";
     statusLabel = "Forwarded";
   }
 
