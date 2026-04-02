@@ -123,7 +123,9 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
 
               <View className="px-4">
                 <TouchableOpacity
-                  onPress={() => setModalVisible(true)}
+                  onPress={() => {
+                    if (!modalVisible) setModalVisible(true);
+                  }}
                   activeOpacity={0.85}
                 >
                   <LinearGradient
@@ -208,7 +210,9 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => setModalVisible(true)}
+                  onPress={() => {
+                    if (!modalVisible) setModalVisible(true);
+                  }}
                   activeOpacity={0.85}
                 >
                   <LinearGradient
@@ -319,6 +323,10 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({
         backdropOpacity={0.4}
         animationIn="slideInUp"
         animationOut="slideOutDown"
+        useNativeDriver={true}
+        useNativeDriverForBackdrop={true}
+        hideModalContentWhileAnimating={true}
+        backdropTransitionOutTiming={0}
         propagateSwipe
         avoidKeyboard={false}
       >

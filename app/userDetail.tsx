@@ -415,7 +415,9 @@ const UserDetail = () => {
               </View>
 
               <TouchableOpacity
-                onPress={() => setModalVisible(true)}
+                onPress={() => {
+                  if (!modalVisible) setModalVisible(true);
+                }}
                 activeOpacity={0.85}
               >
                 <LinearGradient
@@ -510,7 +512,9 @@ const UserDetail = () => {
       {!loading && (!ratings || ratings.length === 0) && (
         <View className="absolute bottom-12 left-4 right-4">
           <TouchableOpacity
-            onPress={() => setModalVisible(true)}
+            onPress={() => {
+              if (!modalVisible) setModalVisible(true);
+            }}
             activeOpacity={0.85}
           >
             <LinearGradient
@@ -544,10 +548,10 @@ const UserDetail = () => {
         backdropOpacity={0.4}
         animationIn="slideInUp"
         animationOut="slideOutDown"
-        // useNativeDriver
-        // useNativeDriverForBackdrop
-        // swipeThreshold={50}
-        // backdropTransitionOutTiming={0}
+        useNativeDriver={true}
+        useNativeDriverForBackdrop={true}
+        hideModalContentWhileAnimating={true}
+        backdropTransitionOutTiming={0}
         propagateSwipe
         avoidKeyboard={false}
       >
