@@ -835,7 +835,7 @@ const CreateMinutes = () => {
         }
 
         const data = res.data.meeting || res.data;
-        if (data.meetingTitle) setMeetingTitle(data.meetingTitle);
+        setMeetingTitle(data.meetingTitle || "");
 
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
         if (data.meetingTime) setMeetingTime(data.meetingTime);

@@ -99,12 +99,12 @@ const Minutes = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (projectId) {
+      if (projectId && meetings.length === 0) {
         setPage(1);
         fetchMeetings(!isFirstLoad.current, 1);
         isFirstLoad.current = false;
       }
-    }, [fetchMeetings, projectId]),
+    }, [fetchMeetings, projectId, meetings.length]),
   );
 
   const onRefresh = () => {
@@ -226,9 +226,10 @@ const Minutes = () => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const numMatch = String(m.meetingNumber).includes(q);
+      const titleMatch = (m.meetingTitle || "").toLowerCase().includes(q);
       const venueMatch = (m.meetingVenue || "").toLowerCase().includes(q);
       const createdMatch = (m.createdBy || "").toLowerCase().includes(q);
-      if (!numMatch && !venueMatch && !createdMatch) return false;
+      if (!numMatch && !titleMatch && !venueMatch && !createdMatch) return false;
     }
 
     return true;
@@ -304,9 +305,19 @@ const Minutes = () => {
           </View>
         </View>
 
-        <Text className="text-[19px] font-dmMedium text-[#0F172A] dark:text-white mb-2 leading-tight">
-          #{meeting.meetingNumber}
-        </Text>
+        <View className="flex-row items-center gap-2 mb-2">
+          <Text className="text-[18px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
+            #{meeting.meetingNumber}
+          </Text>
+          {meeting.meetingTitle ? (
+            <Text
+              className="text-[18px] font-dmMedium text-[#0F172A] dark:text-white leading-tight flex-1"
+              numberOfLines={1}
+            >
+              . {meeting.meetingTitle}
+            </Text>
+          ) : null}
+        </View>
 
         {/* Stats & Progress Bar Segmented */}
         <View className="mb-4">
@@ -392,7 +403,7 @@ const Minutes = () => {
               `/createMeeting?meetingId=${item._id}&projectName=${projectName}&company=${company}&projectId=${projectId}`,
             )
           : router.push(
-              `/meetingDetail?meetingId=${item._id}&meetingNumber=${item.meetingNumber}&meetingDate=${item.meetingDate}&meetingTime=${item.meetingTime}&meetingVenue=${item.meetingVenue}&projectName=${projectName}&company=${company}`,
+              `/meetingDetail?meetingId=${item._id}&meetingNumber=${item.meetingNumber}&meetingTitle=${encodeURIComponent(item.meetingTitle || "")}&meetingDate=${item.meetingDate}&meetingTime=${item.meetingTime}&meetingVenue=${item.meetingVenue}&projectName=${projectName}&company=${company}`,
             )
       }
       onLongPress={() => handleLongPress(item)}

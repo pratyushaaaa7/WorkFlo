@@ -146,6 +146,7 @@ const MinutesDetail = () => {
   const {
     meetingId,
     meetingNumber,
+    meetingTitle,
     meetingDate,
     meetingTime,
     meetingVenue,
@@ -537,10 +538,21 @@ const MinutesDetail = () => {
         ) : meeting ? (
           <View>
             {/* Title */}
-            <View className="px-3 pt-2 pb-2 ">
-              <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
-                {`Meeting #${meetingNumber}`}
-              </Text>
+            <View className="px-3 pt-2 pb-2">
+              <View className="flex-row items-center gap-2">
+                {(meeting?.meetingTitle || meetingTitle) ? (
+                  <Text
+                    className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight flex-1"
+                    numberOfLines={1}
+                  >
+                    {meeting?.meetingTitle || meetingTitle}
+                  </Text>
+                ) : (
+                  <Text className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight">
+                    {`Meeting #${meetingNumber}`}
+                  </Text>
+                )}
+              </View>
             </View>
 
             {/* Details */}
