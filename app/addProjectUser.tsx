@@ -246,7 +246,7 @@ export default function AddProjectUsersPage() {
           {/* Right Side: Action (Dropdown + Checkbox) */}
           <View className="flex-row items-center gap-3">
             {isSelected && (
-              <View className="w-28">
+              <View className="w-32">
                 <Dropdown
                   style={{
                     height: 32,
