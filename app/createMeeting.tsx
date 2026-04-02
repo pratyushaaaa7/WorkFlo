@@ -176,7 +176,8 @@ const CreateMinutes = () => {
     useTempImageStore();
 
   const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
-  const STORAGE_KEY = `minutes_draft_${pIdStr || "new"}`;
+  const mIdStr = Array.isArray(meetingId) ? meetingId[0] : (meetingId as string);
+  const STORAGE_KEY = mIdStr ? `minutes_draft_${mIdStr}` : `minutes_draft_proj_${pIdStr || "new"}`;
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -371,6 +372,11 @@ const CreateMinutes = () => {
   //to store the minutes data even after the app is closed
   useEffect(() => {
     const loadStoredData = async () => {
+      // If we are editing a specific meeting, we primarily want data from server.
+      // We only load from AsyncStorage if it's a new meeting draft.
+      // (Or we could implement a merge logic, but keeping it simple for now)
+      if (meetingId) return;
+
       try {
         const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
         if (jsonValue) {
@@ -411,7 +417,7 @@ const CreateMinutes = () => {
       }
     };
     loadStoredData();
-  }, [pIdStr, STORAGE_KEY, resetForm]);
+  }, [pIdStr, STORAGE_KEY, resetForm, meetingId]);
 
   // Save data automatically whenever it changes (Debounced for performance)
   useEffect(() => {
