@@ -6,7 +6,6 @@ import {
   Image03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system";
 import { Image as ExpoImage } from "expo-image";
@@ -27,14 +26,10 @@ import {
   Alert,
   Dimensions,
   FlatList,
-  InteractionManager,
-  Keyboard,
-  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -44,6 +39,10 @@ import {
 import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
@@ -161,22 +160,6 @@ const SVRPhotoReport: React.FC = () => {
   const [loadingImages, setLoadingImages] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
 
@@ -186,14 +169,10 @@ const SVRPhotoReport: React.FC = () => {
   const isProgrammaticScroll = useRef(false);
   const captionInputRef = useRef<TextInput>(null);
 
-  // Auto-focus when index changes IF keyboard was already open
+  // Auto-focus when index changes
   useEffect(() => {
-    if (isKeyboardVisible) {
-      InteractionManager.runAfterInteractions(() => {
-        captionInputRef.current?.focus();
-      });
-    }
-  }, [currentIndex, isKeyboardVisible]);
+    // Optional: add logic here if needed
+  }, [currentIndex]);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
@@ -305,17 +284,6 @@ const SVRPhotoReport: React.FC = () => {
       return dest;
     },
     [],
-  );
-
-  const savePhotos = useCallback(
-    async (arr: PhotoItem[]) => {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      } catch (e) {
-        console.warn("Failed to save photos", e);
-      }
-    },
-    [STORAGE_KEY],
   );
 
   const updateCaption = useCallback(
@@ -544,7 +512,6 @@ const SVRPhotoReport: React.FC = () => {
 
       // --- Optimized Image Processing with Batching for Low-End Devices ---
       let photosWithBase64: (SvrPhoto & { base64: string })[] | null = [];
-      const PROCESSING_BATCH_SIZE = 1; // Ultra-safe: 1 at a time for low-end logic
 
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
@@ -776,241 +743,205 @@ const SVRPhotoReport: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: 40,
+        }}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          keyboardShouldPersistTaps="always"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 0 }} // no extra padding if the keyboard is closed
-        >
-          <View className="px-4 mt-4">
-            {/* <View className="flex-row justify-around mb-6">
-              <TouchableOpacity
-                onPress={takePhoto}
-                className="bg-indigo-500 px-6 py-3 rounded-xl flex-row items-center"
-              >
-                <Ionicons name="camera" size={20} color="#fff" />
-                <Text className="text-white ml-2 font-dmSemiBold">Camera</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={pickImage}
-                className="bg-green-500 px-6 py-3 rounded-xl flex-row items-center"
-              >
-                <Ionicons name="images" size={20} color="#fff" />
-                <Text className="text-white ml-2 font-dmSemiBold">Gallery</Text>
-              </TouchableOpacity>
-            </View> */}
-
-            {loadingImages && (
-              <View className="flex-row justify-center items-center my-4">
-                <ActivityIndicator size="large" color="#4f46e5" />
-                <Text className="ml-2 text-black dark:text-white font-dmBold">
-                  Processing images...
-                </Text>
-              </View>
-            )}
-
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className=" font-dmSemiBold text-black dark:text-white">
-                Report Images ({photos.length})
+        <View className="px-4 mt-4">
+          {loadingImages && (
+            <View className="flex-row justify-center items-center my-4">
+              <ActivityIndicator size="large" color="#4f46e5" />
+              <Text className="ml-2 text-black dark:text-white font-dmBold">
+                Processing images...
               </Text>
-              {/* {photos.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    clearPhotos(projectIdStr);
-                    setCurrentIndex(0);
-                  }}
-                >
-                  <Text className="text-red-500 font-dmMedium">Clear All</Text>
-                </TouchableOpacity>
-              )} */}
-            </View>
-
-            {photos.length === 0 && (
-              <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-3xl p-10 items-center border border-dashed border-[#E0E5EB] dark:border-[#262626] mb-6">
-                <Ionicons
-                  name="images-outline"
-                  size={48}
-                  color={isDarkMode ? "#5B5B5B" : "#E0E5EB"}
-                />
-                <Text className="text-black dark:text-white mt-4 font-dmMedium text-center">
-                  Upload site images to document today's progress
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* ... carousel logic ... */}
-
-          {photos.length > 0 && (
-            <View>
-              <FlatList
-                ref={flatListRef}
-                data={photos}
-                extraData={photos} // important for re-renders
-                horizontal
-                pagingEnabled
-                keyboardShouldPersistTaps="always"
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.id}
-                renderItem={renderCarouselItem}
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={viewabilityConfig}
-                className="mb-4"
-                initialNumToRender={width > 0 ? 3 : 1}
-                windowSize={5}
-                maxToRenderPerBatch={5}
-                removeClippedSubviews={false} // Prevents disappearing items on Android
-                getItemLayout={(data, index) => ({
-                  length: width,
-                  offset: width * index,
-                  index,
-                })}
-                onMomentumScrollEnd={() => {
-                  isProgrammaticScroll.current = false;
-                }}
-                onScrollToIndexFailed={(info) => {
-                  const wait = new Promise((resolve) =>
-                    setTimeout(resolve, 500),
-                  );
-                  wait.then(() => {
-                    flatListRef.current?.scrollToIndex({
-                      index: info.index,
-                      animated: true,
-                    });
-                  });
-                }}
-              />
-
-              <View
-                style={{
-                  backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
-                  borderTopLeftRadius: 32,
-                  borderTopRightRadius: 32,
-                  paddingTop: 24,
-                  flex: 1,
-                }}
-              >
-                {/* Thumbnail Preview Strip */}
-                <View className="mb-4">
-                  <Text
-                    className={`px-5 text-sm font-poppinsMedium mb-3 ${
-                      isDarkMode ? "text-white" : "text-black"
-                    }`}
-                  >
-                    Viewing ({currentIndex + 1}/{photos.length})
-                  </Text>
-                  <DraggableFlatList
-                    ref={thumbnailListRef}
-                    data={photos}
-                    horizontal
-                    keyboardShouldPersistTaps="always"
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 16 }}
-                    keyExtractor={(item) => item.id + "_thumb"}
-                    onScrollToIndexFailed={(info) => {
-                      thumbnailListRef.current?.scrollToIndex({
-                        index: info.index,
-                        animated: true,
-                        viewPosition: 0.5,
-                      });
-                    }}
-                    onDragEnd={({ data }) => {
-                      setPhotos(projectIdStr, data);
-                    }}
-                    renderItem={({ item, getIndex, drag, isActive }) => {
-                      const index = getIndex();
-                      return (
-                        <ScaleDecorator>
-                          <TouchableOpacity
-                            onLongPress={drag}
-                            disabled={isActive}
-                            onPress={() => {
-                              if (index === undefined) return;
-                              isProgrammaticScroll.current = true;
-                              setCurrentIndex(index);
-                              flatListRef.current?.scrollToIndex({
-                                index,
-                                animated: true,
-                              });
-                              thumbnailListRef.current?.scrollToIndex({
-                                index,
-                                animated: true,
-                                viewPosition: 0.5,
-                              });
-                            }}
-                            className={`rounded-[16px] overflow-hidden border-[2px] mr-3 ${
-                              index === currentIndex
-                                ? "border-indigo-600"
-                                : "border-transparent"
-                            }`}
-                            style={{
-                              width: 64,
-                              height: 64,
-                              opacity: isActive ? 0.8 : 1,
-                            }}
-                          >
-                            <ExpoImage
-                              source={item.uri}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                borderRadius: 12,
-                              }}
-                              contentFit="cover"
-                              cachePolicy="memory-disk"
-                            />
-                          </TouchableOpacity>
-                        </ScaleDecorator>
-                      );
-                    }}
-                  />
-                </View>
-
-                {photos[currentIndex] && (
-                  <View className="px-4 mb-3">
-                    <TextInput
-                      ref={captionInputRef}
-                      placeholder="Describe the image..."
-                      placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
-                      value={photos[currentIndex].caption}
-                      onChangeText={(t) =>
-                        updateCaption(photos[currentIndex].id, t)
-                      }
-                      multiline
-                      textAlignVertical="top" //for placeholder on the top left
-                      className={`rounded-2xl bg-[#FFF] dark:bg-[#000] px-4 py-3 font-poppins border ${
-                        showCaptionError === photos[currentIndex].id
-                          ? "border-red-500"
-                          : "border-transparent"
-                      } ${
-                        isDarkMode
-                          ? " text-white"
-                          : " text-black"
-                      }`}
-                      style={{ minHeight: 80 }}
-                    />
-                  </View>
-                )}
-              </View>
             </View>
           )}
-        </ScrollView>
 
-        {/* Footer Buttons */}
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className=" font-dmSemiBold text-black dark:text-white">
+              Report Images ({photos.length})
+            </Text>
+          </View>
+
+          {photos.length === 0 && (
+            <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-3xl p-10 items-center border border-dashed border-[#E0E5EB] dark:border-[#262626] mb-6">
+              <Ionicons
+                name="images-outline"
+                size={48}
+                color={isDarkMode ? "#5B5B5B" : "#E0E5EB"}
+              />
+              <Text className="text-black dark:text-white mt-4 font-dmMedium text-center">
+                Upload site images to document today's progress
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {photos.length > 0 && (
+          <View>
+            <FlatList
+              ref={flatListRef}
+              data={photos}
+              extraData={photos} // important for re-renders
+              horizontal
+              pagingEnabled
+              keyboardShouldPersistTaps="always"
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              renderItem={renderCarouselItem}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
+              className="mb-4"
+              initialNumToRender={width > 0 ? 3 : 1}
+              windowSize={5}
+              maxToRenderPerBatch={5}
+              removeClippedSubviews={false} // Prevents disappearing items on Android
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
+              onMomentumScrollEnd={() => {
+                isProgrammaticScroll.current = false;
+              }}
+              onScrollToIndexFailed={(info) => {
+                const wait = new Promise((resolve) => setTimeout(resolve, 500));
+                wait.then(() => {
+                  flatListRef.current?.scrollToIndex({
+                    index: info.index,
+                    animated: true,
+                  });
+                });
+              }}
+            />
+
+            <View
+              style={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderTopLeftRadius: 32,
+                borderTopRightRadius: 32,
+                paddingTop: 24,
+                flex: 1,
+              }}
+            >
+              {/* Thumbnail Preview Strip */}
+              <View className="mb-4">
+                <Text
+                  className={`px-5 text-sm font-poppinsMedium mb-3 ${
+                    isDarkMode ? "text-white" : "text-black"
+                  }`}
+                >
+                  Viewing ({currentIndex + 1}/{photos.length})
+                </Text>
+                <DraggableFlatList
+                  ref={thumbnailListRef}
+                  data={photos}
+                  horizontal
+                  keyboardShouldPersistTaps="always"
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 16 }}
+                  keyExtractor={(item) => item.id + "_thumb"}
+                  onScrollToIndexFailed={(info) => {
+                    thumbnailListRef.current?.scrollToIndex({
+                      index: info.index,
+                      animated: true,
+                      viewPosition: 0.5,
+                    });
+                  }}
+                  onDragEnd={({ data }) => {
+                    setPhotos(projectIdStr, data);
+                  }}
+                  renderItem={({ item, getIndex, drag, isActive }) => {
+                    const index = getIndex();
+                    return (
+                      <ScaleDecorator>
+                        <TouchableOpacity
+                          onLongPress={drag}
+                          disabled={isActive}
+                          onPress={() => {
+                            if (index === undefined) return;
+                            isProgrammaticScroll.current = true;
+                            setCurrentIndex(index);
+                            flatListRef.current?.scrollToIndex({
+                              index,
+                              animated: true,
+                            });
+                            thumbnailListRef.current?.scrollToIndex({
+                              index,
+                              animated: true,
+                              viewPosition: 0.5,
+                            });
+                          }}
+                          className={`rounded-[16px] overflow-hidden border-[2px] mr-3 ${
+                            index === currentIndex
+                              ? "border-indigo-600"
+                              : "border-transparent"
+                          }`}
+                          style={{
+                            width: 64,
+                            height: 64,
+                            opacity: isActive ? 0.8 : 1,
+                          }}
+                        >
+                          <ExpoImage
+                            source={item.uri}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: 12,
+                            }}
+                            contentFit="cover"
+                            cachePolicy="memory-disk"
+                          />
+                        </TouchableOpacity>
+                      </ScaleDecorator>
+                    );
+                  }}
+                />
+              </View>
+
+              {photos[currentIndex] && (
+                <View className="px-4 mb-3">
+                  <TextInput
+                    ref={captionInputRef}
+                    placeholder="Describe the image..."
+                    placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+                    value={photos[currentIndex].caption}
+                    onChangeText={(t) =>
+                      updateCaption(photos[currentIndex].id, t)
+                    }
+                    multiline
+                    textAlignVertical="top" //for placeholder on the top left
+                    className={`rounded-2xl bg-[#FFF] dark:bg-[#000] px-4 py-3 font-poppins border ${
+                      showCaptionError === photos[currentIndex].id
+                        ? "border-red-500"
+                        : "border-transparent"
+                    } ${isDarkMode ? " text-white" : " text-black"}`}
+                    style={{ minHeight: 80 }}
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+      </KeyboardAwareScrollView>
+
+      {/* Footer Buttons */}
+      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         <View
-          className={`px-4 ${
+          className={`px-4 shadow-xl ${
             photos.length === 0
               ? "bg-transparent"
               : "bg-[#F0F3F7] dark:bg-[#1A1A1A]"
           }`}
           style={{
             paddingTop: 16,
-            paddingBottom: isKeyboardVisible ? 16 : Math.max(insets.bottom, 16),
+            paddingBottom: Math.max(insets.bottom, 16),
           }}
         >
           <View className="flex-row items-center justify-between gap-3">
@@ -1076,7 +1007,7 @@ const SVRPhotoReport: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
 
       {/* Image Picker Modal */}
       <Modal
