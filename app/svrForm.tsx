@@ -43,7 +43,6 @@ interface Entry {
   issueSubject: string;
   issueDescription: string;
   responsibility: any[];
-  remarks: string;
   isExpanded: boolean;
   raisedBy: any[];
   status: string;
@@ -98,7 +97,6 @@ const SVRform = () => {
         issueSubject: "",
         issueDescription: "",
         responsibility: [],
-        remarks: "",
         isExpanded: true,
         raisedBy: [],
         status: "open",
@@ -207,7 +205,6 @@ const SVRform = () => {
           issueSubject: "",
           issueDescription: "",
           responsibility: [],
-          remarks: "",
           isExpanded: true,
           raisedBy: [],
           status: "open",
@@ -337,7 +334,6 @@ const SVRform = () => {
           issueSubject: "",
           issueDescription: "",
           responsibility: [],
-          remarks: "",
           isExpanded: true,
           raisedBy: [],
           status: "open",
@@ -514,6 +510,7 @@ const SVRform = () => {
             }
           }}
           multipleImages={false}
+          showRemarks={false}
         />
       )),
     [
@@ -737,6 +734,7 @@ const SVRform = () => {
                     onDeleteImage={onDeleteImage}
                     getIndex={() => entries.findIndex(e => e.id === item.id)}
                     multipleImages={false}
+                    showRemarks={false}
                   />
                 </View>
               );

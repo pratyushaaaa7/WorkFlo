@@ -41,6 +41,7 @@ interface MinuteItemProps {
   showDatePicker?: boolean;
   onDatePickerChange?: (event: any, date?: Date) => void;
   multipleImages?: boolean;
+  showRemarks?: boolean;
 }
 
 const MinuteItem = memo(
@@ -65,6 +66,7 @@ const MinuteItem = memo(
         showDatePicker,
         onDatePickerChange,
         multipleImages = true,
+        showRemarks = true,
       },
       ref,
     ) => {
@@ -637,19 +639,21 @@ const MinuteItem = memo(
                 </View>
               )}
 
-            <TextInput
-              placeholder="Remarks (if any)"
-              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-              value={localRemarks}
-              onChangeText={setLocalRemarks}
-              onBlur={() => handleBlur("remarks", localRemarks)}
-              multiline
-              className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
-              style={{
-                backgroundColor: inputBgColor,
-                color: isDarkMode ? "#fff" : "#111827",
-              }}
-            />
+            {showRemarks && (
+              <TextInput
+                placeholder="Remarks (if any)"
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                value={localRemarks}
+                onChangeText={setLocalRemarks}
+                onBlur={() => handleBlur("remarks", localRemarks)}
+                multiline
+                className="rounded-xl px-4 py-3.5 font-poppins text-[15px]"
+                style={{
+                  backgroundColor: inputBgColor,
+                  color: isDarkMode ? "#fff" : "#111827",
+                }}
+              />
+            )}
 
             {/* Upload Image Section */}
             <View
