@@ -945,11 +945,7 @@ const SVRPhotoReport: React.FC = () => {
       {/* Footer Buttons */}
       <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         <View
-          className={`px-4 shadow-xl ${
-            photos.length === 0
-              ? "bg-transparent"
-              : "bg-[#F0F3F7] dark:bg-[#1A1A1A]"
-          }`}
+          className="px-4 shadow-xl bg-[#F0F3F7] dark:bg-[#1A1A1A]"
           style={{
             paddingTop: 16,
             paddingBottom: Math.max(insets.bottom, 16),
@@ -972,7 +968,7 @@ const SVRPhotoReport: React.FC = () => {
 
             <TouchableOpacity
               onPress={handleSubmit}
-              disabled={photos.length === 0 || uploading}
+              disabled={uploading}
               className="flex-1 overflow-hidden rounded-2xl h-[48px]"
               activeOpacity={0.8}
             >
@@ -980,11 +976,7 @@ const SVRPhotoReport: React.FC = () => {
                 colors={
                   uploading
                     ? ["#9CA3AF", "#9CA3AF", "#9CA3AF"]
-                    : photos.length === 0
-                      ? isDarkMode
-                        ? ["#2F2F2F", "#2F2F2F", "#2F2F2F"]
-                        : ["#BBBBBB", "#BBBBBB", "#BBBBBB"]
-                      : ["#5B4CCC", "#6347C2", "#8056D1"]
+                    : ["#5B4CCC", "#6347C2", "#8056D1"]
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -1004,13 +996,7 @@ const SVRPhotoReport: React.FC = () => {
                     </Text>
                   </View>
                 ) : (
-                  <Text
-                    className={`${
-                      photos.length === 0
-                        ? "dark:text-[#919191] text-[#777777]"
-                        : "text-white"
-                    } font-poppins text-lg`}
-                  >
+                  <Text className="text-white font-poppins text-lg">
                     Submit
                   </Text>
                 )}
