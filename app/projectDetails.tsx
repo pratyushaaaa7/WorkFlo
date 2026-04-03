@@ -53,10 +53,46 @@ import { Project } from "../types/Project";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const PROJECT_IMAGES = [
-  require("../assets/images/projectDefaultImage.jpg"),
   require("../assets/images/projectImage1.jpg"),
   require("../assets/images/projectImage2.jpg"),
+  require("../assets/images/projectDefaultImage.jpg"),
 ];
+
+const getProjectImageSource = (img: any): any => {
+  if (typeof img === "number") return img; // require(...) fallback
+  
+  let stringUri = "";
+  if (typeof img === "string") {
+    stringUri = img;
+  } else if (img && typeof img === "object") {
+    stringUri = img.uri || img.url || "";
+  }
+  
+  if (stringUri) {
+     if (stringUri.startsWith("[")) {
+         try {
+             const parsed = JSON.parse(stringUri);
+             if (Array.isArray(parsed) && parsed.length > 0) {
+                 return getProjectImageSource(parsed[0]);
+             }
+         } catch(e) {}
+     }
+     
+     if (stringUri.includes("file://")) {
+         stringUri = stringUri.replace("file://", "");
+     }
+     
+     if (!stringUri.startsWith("http") && !stringUri.startsWith("data:") && !stringUri.startsWith("content:")) {
+         const baseUrl = api.defaults.baseURL?.replace('/api', '') || "http://192.168.1.118:5000";
+         const prefix = stringUri.startsWith("/") ? "" : "/";
+         return { uri: `${baseUrl}${prefix}${stringUri}` };
+     }
+     
+     return { uri: stringUri };
+  }
+  
+  return img;
+};
 
 const ProjectDetails = () => {
   const { project: projectParam, id } = useLocalSearchParams();
@@ -566,7 +602,7 @@ const ProjectDetails = () => {
             ).map((img, index) => (
               <Image
                 key={index}
-                source={typeof img === "string" ? { uri: img } : img}
+                source={getProjectImageSource(img)}
                 style={{ width: SCREEN_WIDTH, height: 340 }}
                 resizeMode="cover"
               />
@@ -574,19 +610,23 @@ const ProjectDetails = () => {
           </ScrollView>
 
           {/* Indicator Dots */}
-          <View className="absolute bottom-14 w-full flex-row justify-center space-x-2 gap-2">
+          <View
+            className="absolute bottom-16 self-center flex-row justify-center items-center gap-2 px-3 py-1.5 rounded-full"
+            style={{ 
+              backgroundColor: "rgba(0, 0, 0, 0.25)", // Greyish background
+              zIndex: 60 
+            }}
+          >
             {(project.projectImages && project.projectImages.length > 0
               ? project.projectImages
               : PROJECT_IMAGES
             ).map((_, index) => (
               <View
                 key={index}
-                className={`h-2 w-2 rounded-full ${
+                className={`h-1.5 w-1.5 rounded-full ${
                   index === activeImageIndex
-                    ? isDarkMode
-                      ? "bg-black"
-                      : "bg-white"
-                    : "bg-[#9CA3AF]"
+                    ? "bg-white"
+                    : "bg-white/40"
                 }`}
               />
             ))}

@@ -323,13 +323,13 @@ const StageDetail: React.FC = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        {/* <TouchableOpacity>
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
             size={24}
             color={isDarkMode ? "#fff" : "#000"}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <KeyboardAvoidingView

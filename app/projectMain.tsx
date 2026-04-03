@@ -26,10 +26,46 @@ const ITEM_MARGIN = 12;
 const ITEM_WIDTH = (width - ITEM_MARGIN * 3) / 2;
 
 const PROJECT_IMAGES = [
-  require("../assets/images/projectDefaultImage.jpg"),
   require("../assets/images/projectImage1.jpg"),
   require("../assets/images/projectImage2.jpg"),
+  require("../assets/images/projectDefaultImage.jpg"),
 ];
+
+const getProjectImageSource = (img: any): any => {
+  if (typeof img === "number") return img; // require(...) fallback
+  
+  let stringUri = "";
+  if (typeof img === "string") {
+    stringUri = img;
+  } else if (img && typeof img === "object") {
+    stringUri = img.uri || img.url || "";
+  }
+  
+  if (stringUri) {
+     if (stringUri.startsWith("[")) {
+         try {
+             const parsed = JSON.parse(stringUri);
+             if (Array.isArray(parsed) && parsed.length > 0) {
+                 return getProjectImageSource(parsed[0]);
+             }
+         } catch(e) {}
+     }
+     
+     if (stringUri.includes("file://")) {
+         stringUri = stringUri.replace("file://", "");
+     }
+     
+     if (!stringUri.startsWith("http") && !stringUri.startsWith("data:") && !stringUri.startsWith("content:")) {
+         const baseUrl = api.defaults.baseURL?.replace('/api', '') || "http://192.168.1.118:5000";
+         const prefix = stringUri.startsWith("/") ? "" : "/";
+         return { uri: `${baseUrl}${prefix}${stringUri}` };
+     }
+     
+     return { uri: stringUri };
+  }
+  
+  return img;
+};
 
 const ProjectMain = () => {
   const router = useRouter();
@@ -392,7 +428,7 @@ const ProjectMain = () => {
             ).map((img, index) => (
               <Image
                 key={index}
-                source={typeof img === "string" ? { uri: img } : img}
+                source={getProjectImageSource(img)}
                 style={{ width: width, height: height * 0.45 }}
                 contentFit="cover"
                 priority={index === 0 ? "high" : "normal"}
@@ -425,8 +461,11 @@ const ProjectMain = () => {
 
           {/* Indicator Dots - Matched with projectDetails */}
           <View
-            className="absolute bottom-14 w-full flex-row justify-center space-x-2 gap-2"
-            style={{ zIndex: 60 }}
+            className="absolute bottom-16 self-center flex-row justify-center items-center gap-2 px-3 py-1.5 rounded-full"
+            style={{ 
+              backgroundColor: "rgba(0, 0, 0, 0.25)",
+              zIndex: 60 
+            }}
           >
             {(project?.projectImages && project.projectImages.length > 0
               ? project.projectImages
@@ -434,12 +473,10 @@ const ProjectMain = () => {
             ).map((_, index) => (
               <View
                 key={index}
-                className={`h-2 w-2 rounded-full ${
+                className={`h-1.5 w-1.5 rounded-full ${
                   index === activeImageIndex
-                    ? isDarkMode
-                      ? "bg-black"
-                      : "bg-white"
-                    : "bg-[#9CA3AF]"
+                    ? "bg-white"
+                    : "bg-white/40"
                 }`}
               />
             ))}
