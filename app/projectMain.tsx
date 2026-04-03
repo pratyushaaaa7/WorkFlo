@@ -1,17 +1,6 @@
-import {
-  ArrowDown01Icon,
-  ArrowLeft01Icon,
-  ArrowUp01Icon,
-  CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
-  InformationCircleIcon,
-  Progress03Icon,
-  UnavailableIcon,
-  MoreHorizontalIcon,
-  Edit02Icon,
-  Delete03Icon,
-} from "@hugeicons/core-free-icons";
-import { Pressable, Modal } from "react-native";
+import { ArrowDown01Icon, ArrowLeft01Icon, ArrowUp01Icon, CheckmarkCircle02Icon, DashedLineCircleIcon, InformationCircleIcon, Progress03Icon, UnavailableIcon, MoreHorizontalIcon, Edit02Icon, Delete03Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Pressable, Modal, Alert } from "react-native";
+import { ProjectInfoModal } from "../components/ProjectInfoModal";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -66,6 +55,8 @@ const ProjectMain = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
+  const [activeInfoTab, setActiveInfoTab] = useState("directory");
 
   const hScrollHandler = (event: any) => {
     const slide = Math.ceil(
@@ -613,6 +604,10 @@ const ProjectMain = () => {
                 label={item.label}
                 image={item.image}
                 onPress={item.onPress}
+                onPressInfo={() => {
+                  setActiveInfoTab(item.key);
+                  setIsInfoModalVisible(true);
+                }}
                 colors={colors}
                 isDarkMode={isDarkMode}
               />
@@ -620,6 +615,14 @@ const ProjectMain = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* PROJECT INFO MODAL */}
+      <ProjectInfoModal
+        visible={isInfoModalVisible}
+        onClose={() => setIsInfoModalVisible(false)}
+        initialTab={activeInfoTab}
+        isDarkMode={isDarkMode}
+      />
 
       {/* FAST MENU OVERLAY */}
       {menuVisible && (
@@ -750,7 +753,7 @@ export default ProjectMain;
 // --- Performance Optimized Sub-Components ---
 
 const TabCard = React.memo(
-  ({ label, image, onPress, colors, isDarkMode }: any) => {
+  ({ label, image, onPress, onPressInfo, colors, isDarkMode }: any) => {
     return (
       <View
         style={{
@@ -798,7 +801,7 @@ const TabCard = React.memo(
               >
                 {label}
               </Text>
-              <TouchableOpacity onPress={() => {}}>
+              <TouchableOpacity onPress={onPressInfo}>
                 <HugeiconsIcon
                   icon={InformationCircleIcon}
                   size={18}
