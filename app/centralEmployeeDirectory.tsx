@@ -257,6 +257,7 @@ export default function CentralEmployeeDirectory() {
         {/* Global Avatar */}
         <GlobalAvatar
           name={item.fullName || ""}
+          uri={item.profileImage}
           size={48}
           fontSize={18}
           className="mr-4"

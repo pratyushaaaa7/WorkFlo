@@ -125,6 +125,7 @@ const UserRefField = ({
         >
           <GlobalAvatar
             name={displayName || "User"}
+            uri={isObject ? user.profileImage : null}
             fontSize={18}
             size={48}
             borderRadius={12}
@@ -336,6 +337,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
               >
                 <GlobalAvatar
                   name={report.fullName || "User"}
+                  uri={report.profileImage}
                   fontSize={18}
                   size={48}
                   borderRadius={12}

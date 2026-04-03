@@ -20,6 +20,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
+import GlobalAvatar from "../components/GlobalAvatar";
 import api from "../lib/api";
 
 // Filter categories
@@ -221,39 +222,44 @@ export default function CentralUserDirectory() {
         })
       }
     >
-      {/* Row 1: ID | Name | Role */}
-      <View className="flex-row items-center flex-wrap mb-1">
-        <Text className="text-[#DF5B5B] font-poppinsMedium mr-3 text-sm">
-          #{item.userCode || "N/A"}
-        </Text>
-        <Text className="text-lg font-dmSemiBold text-black dark:text-white mr-2">
-          {getDisplayName(item) || "Unnamed"}
-        </Text>
-        <Text className="text-[#454545] dark:text-[#919191] ">•</Text>
-        <Text className="text-[#454545] dark:text-[#919191] text-sm ml-2 font-poppins capitalize">
-          {item.role || "User"}
-        </Text>
-      </View>
+      <View className="flex-row items-center mb-3">
+        <GlobalAvatar
+          name={item.individualName || item.fullName || ""}
+          uri={item.profileImage}
+          size={48}
+          fontSize={18}
+          className="mr-4"
+          borderRadius={12}
+        />
+        <View className="flex-1">
+          {/* Row 1: ID | Name | Role */}
+          <View className="flex-row items-center flex-wrap mb-1">
+            <Text className="text-[#DF5B5B] font-poppinsMedium mr-3 text-sm">
+              #{item.userCode || "N/A"}
+            </Text>
+            <Text className="text-lg font-dmSemiBold text-black dark:text-white mr-2">
+              {getDisplayName(item) || "Unnamed"}
+            </Text>
+            <Text className="text-[#454545] dark:text-[#919191] ">•</Text>
+            <Text className="text-[#454545] dark:text-[#919191] text-sm ml-2 font-poppins capitalize">
+              {item.role || "User"}
+            </Text>
+          </View>
 
-      {/* Row 2: Company • Designation */}
-      <View className="flex-row items-center flex-wrap mb-1">
-        <Text className="text-[#454545] dark:text-[#919191] font-poppins text-sm">
-          {item.firmName || "No Company"}
-        </Text>
-        <Text className="text-[#454545] dark:text-[#919191]  mx-2">•</Text>
-        <Text className="text-[#454545] dark:text-[#919191] font-poppins text-sm">
-          {item.designationList && item.designationList.length > 0
-            ? item.designationList[0]
-            : "No Designation"}
-        </Text>
+          {/* Row 2: Company • Designation */}
+          <View className="flex-row items-center flex-wrap">
+            <Text className="text-[#454545] dark:text-[#919191] font-poppins text-sm">
+              {item.firmName || "No Company"}
+            </Text>
+            <Text className="text-[#454545] dark:text-[#919191]  mx-2">•</Text>
+            <Text className="text-[#454545] dark:text-[#919191] font-poppins text-sm">
+              {item.designationList && item.designationList.length > 0
+                ? item.designationList[0]
+                : "No Designation"}
+            </Text>
+          </View>
+        </View>
       </View>
-
-      {/* Row 3: Specialty */}
-      {/* {item.expertiseList && item.expertiseList.length > 0 && (
-        <Text className="text-gray-500 text-[14px] mt-0.5">
-          {item.expertiseList.join(", ")}
-        </Text>
-      )} */}
     </TouchableOpacity>
   );
 
