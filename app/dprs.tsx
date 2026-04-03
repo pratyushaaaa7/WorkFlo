@@ -419,12 +419,7 @@ const DPRs = () => {
         className="pt-14 pb-4 px-5 flex-row items-center justify-between"
       >
         <TouchableOpacity
-          onPress={() =>
-            router.push(
-              // @ts-ignore
-              `/projectMain?projectId=${projectId}&company=${company}&projectName=${projectName}`,
-            )
-          }
+          onPress={() => router.back()}
           className="flex-row items-center"
           activeOpacity={0.7}
         >
