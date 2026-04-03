@@ -374,14 +374,14 @@ const SVRform = () => {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
+      allowsMultipleSelection: false,
       quality: 0.8,
     });
     if (!result.canceled) {
       const uris = result.assets.map((a: any) => a.uri);
       setEntries((prev) =>
         prev.map((m, i) =>
-          i === index ? { ...m, images: [...(m.images || []), ...uris] } : m,
+          i === index ? { ...m, images: uris } : m,
         ),
       );
     }
@@ -513,6 +513,7 @@ const SVRform = () => {
               setShowDatePicker(false);
             }
           }}
+          multipleImages={false}
         />
       )),
     [
@@ -734,7 +735,8 @@ const SVRform = () => {
                     onOpenDatePicker={onOpenDatePicker}
                     onPickImage={onPickImage}
                     onDeleteImage={onDeleteImage}
-                    getIndex={() => index}
+                    getIndex={() => entries.findIndex(e => e.id === item.id)}
+                    multipleImages={false}
                   />
                 </View>
               );

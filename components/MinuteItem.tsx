@@ -20,6 +20,7 @@ import {
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 interface MinuteItemProps {
   item: any;
@@ -39,9 +40,8 @@ interface MinuteItemProps {
   fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean };
   showDatePicker?: boolean;
   onDatePickerChange?: (event: any, date?: Date) => void;
+  multipleImages?: boolean;
 }
-
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 const MinuteItem = memo(
   forwardRef<View, MinuteItemProps>(
@@ -64,6 +64,7 @@ const MinuteItem = memo(
         fieldErrors,
         showDatePicker,
         onDatePickerChange,
+        multipleImages = true,
       },
       ref,
     ) => {
@@ -77,10 +78,10 @@ const MinuteItem = memo(
 
       useEffect(() => {
         if (item.issueSubject !== localSubject)
-          setLocalSubject(item.issueSubject);
+          setLocalSubject(item.issueSubject || "");
         if (item.issueDescription !== localDescription)
-          setLocalDescription(item.issueDescription);
-        if (item.remarks !== localRemarks) setLocalRemarks(item.remarks);
+          setLocalDescription(item.issueDescription || "");
+        if (item.remarks !== localRemarks) setLocalRemarks(item.remarks || "");
       }, [item.issueSubject, item.issueDescription, item.remarks]);
 
       const handleBlur = (field: string, value: any) => {
@@ -664,23 +665,39 @@ const MinuteItem = memo(
                   borderColor: isDarkMode ? "#333" : "#D1D5DB",
                 }}
               >
-                <TouchableOpacity
-                  onPress={() => {
-                    const idx = getIndex();
-                    if (idx !== undefined) onPickImage(idx);
-                  }}
-                  className="bg-black rounded-xl px-8 py-2.5 flex-row items-center mb-2"
-                  activeOpacity={0.8}
-                >
-                  <HugeiconsIcon icon={Upload01Icon} size={18} color="white" />
-                  <Text className="text-white font-poppinsMedium ml-2.5">
-                    Upload
-                  </Text>
-                </TouchableOpacity>
+                {(!multipleImages && (item.images || []).length >= 1) ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const idx = getIndex();
+                      if (idx !== undefined) onPickImage(idx);
+                    }}
+                    className="bg-[#000] rounded-xl px-8 py-2.5 flex-row items-center mb-2"
+                    activeOpacity={0.8}
+                  >
+                    <HugeiconsIcon icon={Upload01Icon} size={18} color="white" />
+                    <Text className="text-white font-poppinsMedium ml-2.5">
+                      Replace Image
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const idx = getIndex();
+                      if (idx !== undefined) onPickImage(idx);
+                    }}
+                    className="bg-black rounded-xl px-8 py-2.5 flex-row items-center mb-2"
+                    activeOpacity={0.8}
+                  >
+                    <HugeiconsIcon icon={Upload01Icon} size={18} color="white" />
+                    <Text className="text-white font-poppinsMedium ml-2.5">
+                      Upload
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <Text
                   className={`text-[13px] font-poppins ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
                 >
-                  Choose Image
+                  {multipleImages ? "Choose Images" : "Choose 1 Image Only"}
                 </Text>
               </View>
 

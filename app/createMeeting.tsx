@@ -775,6 +775,7 @@ const CreateMinutes = () => {
             fieldErrors={
               idx !== undefined ? validationErrors.minutes?.[idx] : undefined
             }
+            multipleImages={true}
           />
         </ScaleDecorator>
       );
