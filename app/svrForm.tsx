@@ -17,6 +17,7 @@ import React, {
 } from "react";
 import {
   KeyboardAvoidingView,
+  Modal as NativeModal,
   Platform,
   ScrollView,
   Text,
@@ -129,6 +130,8 @@ const SVRform = () => {
   const [dateIndex, setDateIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [validationErrors, setValidationErrors] = useState<any>({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const fetchDirectory = useCallback(
     async (searchQuery: string = "") => {
@@ -400,6 +403,11 @@ const SVRform = () => {
     );
   }, []);
 
+  const handleDeleteEntryRequest = useCallback((index: number) => {
+    setSelectedIndex(index);
+    setShowDeleteModal(true);
+  }, []);
+
   const handleToggleEntry = useCallback((index: number) => {
     setEntries((prev) =>
       prev.map((m, i) => ({
@@ -620,7 +628,7 @@ const SVRform = () => {
           expanded={!!item.isExpanded}
           onToggleExpand={handleToggleEntry}
           onUpdate={updateEntry}
-          onDeleteRequest={removeEntry}
+          onDeleteRequest={handleDeleteEntryRequest}
           users={internalUsers}
           showDelete={entries.length > 1}
           isDarkMode={isDarkMode}
@@ -644,7 +652,7 @@ const SVRform = () => {
       isDarkMode,
       handleToggleEntry,
       updateEntry,
-      removeEntry,
+      handleDeleteEntryRequest,
       onOpenDatePicker,
       onPickImage,
       onDeleteImage,
@@ -850,7 +858,7 @@ const SVRform = () => {
                     expanded={!!item.isExpanded}
                     onToggleExpand={handleToggleEntry}
                     onUpdate={updateEntry}
-                    onDeleteRequest={removeEntry}
+                    onDeleteRequest={handleDeleteEntryRequest}
                     users={internalUsers}
                     showDelete={entries.length > 1}
                     isDarkMode={isDarkMode}
@@ -936,6 +944,57 @@ const SVRform = () => {
             </TouchableOpacity>
           </View>
         </View>
+
+        <NativeModal
+          transparent
+          visible={showDeleteModal}
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View
+              className={`w-80 p-6 rounded-2xl  ${isDarkMode ? "bg-[#1C1C1E]" : "bg-white"}`}
+            >
+              <Text
+                className={`text-lg font-dmSemiBold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+              >
+                Are you sure?
+              </Text>
+
+              <Text
+                className={`mt-2 font-poppins ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+              >
+                Do you really want to remove this discussion?
+              </Text>
+
+              <View className="flex-row justify-end mt-6">
+                <TouchableOpacity
+                  onPress={() => setShowDeleteModal(false)}
+                  className="mr-6"
+                >
+                  <Text
+                    className={`font-poppinsMedium ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (selectedIndex !== null) {
+                      removeEntry(selectedIndex);
+                    }
+                    setShowDeleteModal(false);
+                  }}
+                >
+                  <Text className="text-red-600 font-poppinsMedium">
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </NativeModal>
       </KeyboardAvoidingView>
     </View>
   );
