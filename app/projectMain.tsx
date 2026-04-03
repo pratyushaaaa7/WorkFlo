@@ -1,4 +1,5 @@
-import { ArrowDown01Icon, ArrowLeft01Icon, ArrowUp01Icon, CheckmarkCircle02Icon, DashedLineCircleIcon, InformationCircleIcon, Progress03Icon, UnavailableIcon, MoreHorizontalIcon, Edit02Icon, Delete03Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, ArrowLeft01Icon, ArrowUp01Icon, CheckmarkCircle02Icon, InformationCircleIcon, Progress03Icon, UnavailableIcon, MoreHorizontalIcon, Edit02Icon, Delete03Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, Modal, Alert } from "react-native";
 import { ProjectInfoModal } from "../components/ProjectInfoModal";
 import { HugeiconsIcon } from "@hugeicons/react-native";
@@ -86,7 +87,8 @@ const ProjectMain = () => {
           bg: "#D7DEF2",
           darkBg: "#282446",
           text: "#5B4CCC",
-          icon: DashedLineCircleIcon,
+          icon: null,
+          useMatIcons: true,
           label: "Active",
         };
       case "bd":
@@ -493,11 +495,19 @@ const ProjectMain = () => {
                       leftLabel="Status"
                       leftValue={getStatusStyles(project.status).label}
                       leftIcon={
-                        <HugeiconsIcon
-                          icon={getStatusStyles(project.status).icon}
-                          size={16}
-                          color={getStatusStyles(project.status).text}
-                        />
+                        (getStatusStyles(project.status) as any).useMatIcons ? (
+                          <MaterialIcons
+                            name="radio-button-checked"
+                            size={16}
+                            color={getStatusStyles(project.status).text}
+                          />
+                        ) : (
+                          <HugeiconsIcon
+                            icon={getStatusStyles(project.status).icon}
+                            size={16}
+                            color={getStatusStyles(project.status).text}
+                          />
+                        )
                       }
                       leftStyle={{
                         color: getStatusStyles(project.status).text,

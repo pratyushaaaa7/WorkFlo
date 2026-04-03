@@ -1,9 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import {
   Calendar03Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
   Menu02Icon,
   Progress03Icon,
   Search01Icon,
@@ -232,7 +231,8 @@ const ProjectsScreen = () => {
           bg: isDarkMode ? "bg-[#282446]" : "bg-[#D7DEF2]",
           text: isDarkMode ? "text-[#9486FB]" : "text-[#5B4CCC]",
           iconColor: isDarkMode ? "#9486FB" : "#5B4CCC",
-          icon: DashedLineCircleIcon,
+          icon: null,
+          useMatIcons: true,
           label: "Active",
         };
       case "bd":
@@ -308,11 +308,19 @@ const ProjectsScreen = () => {
             <View
               className={`flex-row items-center px-2 py-1 rounded-full ${statusStyle.bg}`}
             >
-              <HugeiconsIcon
-                icon={statusStyle.icon}
-                size={14}
-                color={statusStyle.iconColor}
-              />
+              {(statusStyle as any).useMatIcons ? (
+                <MaterialIcons
+                  name="radio-button-checked"
+                  size={14}
+                  color={statusStyle.iconColor}
+                />
+              ) : (
+                <HugeiconsIcon
+                  icon={statusStyle.icon}
+                  size={14}
+                  color={statusStyle.iconColor}
+                />
+              )}
               <Text
                 className={`text-[11px] font-poppinsMedium ml-1 uppercase ${statusStyle.text}`}
               >

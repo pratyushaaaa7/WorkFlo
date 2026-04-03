@@ -3,7 +3,6 @@ import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
   CheckmarkCircle02Icon,
-  DashedLineCircleIcon,
   Delete03Icon,
   Edit02Icon,
   MoreHorizontalIcon,
@@ -12,6 +11,7 @@ import {
   UnavailableIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Skeleton } from "moti/skeleton";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -253,7 +253,8 @@ const ProjectDetails = () => {
           bg: "#D7DEF2",
           darkBg: "#282446",
           text: "#5B4CCC",
-          icon: DashedLineCircleIcon,
+          icon: null,
+          useMatIcons: true,
           label: "Active",
         };
       case "bd":
@@ -648,11 +649,19 @@ const ProjectDetails = () => {
               leftLabel="Status"
               leftValue={statusStyle.label}
               leftIcon={
-                <HugeiconsIcon
-                  icon={statusStyle.icon}
-                  size={16}
-                  color={statusStyle.text}
-                />
+                (statusStyle as any).useMatIcons ? (
+                  <MaterialIcons
+                    name="radio-button-checked"
+                    size={16}
+                    color={statusStyle.text}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    icon={statusStyle.icon}
+                    size={16}
+                    color={statusStyle.text}
+                  />
+                )
               }
               leftStyle={{ color: statusStyle.text }}
               rightLabel="Company"
