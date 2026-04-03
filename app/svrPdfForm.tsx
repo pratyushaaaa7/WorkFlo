@@ -1005,7 +1005,8 @@ const SVRPhotoReport: React.FC = () => {
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={uploading}
-              className="flex-1 overflow-hidden rounded-2xl h-[48px]"
+              className="flex-1 overflow-hidden rounded-2xl"
+              style={{ height: 48 }}
               activeOpacity={0.8}
             >
               <LinearGradient
@@ -1033,7 +1034,7 @@ const SVRPhotoReport: React.FC = () => {
                   </View>
                 ) : (
                   <Text className="text-white font-poppins text-lg">
-                    Submit
+                    Submit Minutes
                   </Text>
                 )}
               </LinearGradient>

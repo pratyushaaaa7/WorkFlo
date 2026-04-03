@@ -1990,13 +1990,18 @@ const CreateMinutes = () => {
               <TouchableOpacity
                 onPress={() => handleSubmit("agenda")}
                 disabled={isAgendaSubmitting || isMomSubmitting || isDraftSaving}
-                className={`flex-1 rounded-2xl items-center justify-center py-4 ${
+                className={`flex-1 rounded-2xl ${
                   isAgendaSubmitting || isMomSubmitting || isDraftSaving
                     ? "bg-gray-400"
                     : isDarkMode
                       ? "bg-white/10"
                       : "bg-[#1C1C1E]"
                 }`}
+                style={{
+                  height: 48,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
                 {isAgendaSubmitting ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -2022,7 +2027,13 @@ const CreateMinutes = () => {
                   }
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  className="items-center justify-center py-4"
+                  className="items-center justify-center"
+                  style={{
+                    height: 48,
+                    width: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   {isMomSubmitting ? (
                     <ActivityIndicator size="small" color="#fff" />
