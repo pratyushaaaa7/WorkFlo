@@ -152,7 +152,7 @@ const SVRPhotoReport: React.FC = () => {
     clearPhotos,
   } = useSvrStore();
   const insets = useSafeAreaInsets();
-  const pIdStr = (projectId as string) || (Array.isArray(projectId) ? projectId[0] : "default");
+  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string) || "default";
   const projectIdStr = pIdStr;
   const photos = useMemo(
     () => photosByProject[projectIdStr] || [],
@@ -582,9 +582,9 @@ const SVRPhotoReport: React.FC = () => {
       const uri = await engine.finalize();
 
       const newFileName = `SVR_${projectName || "Project"}_${getFormattedDate()}.pdf`;
-      const newUri = `${FileSystem.documentDirectory}svr/pdfs/${newFileName}`;
+      const newUri = `${FileSystem.cacheDirectory}svr/pdfs/${newFileName}`;
       await FileSystem.makeDirectoryAsync(
-        `${FileSystem.documentDirectory}svr/pdfs`,
+        `${FileSystem.cacheDirectory}svr/pdfs`,
         { intermediates: true },
       );
       await FileSystem.moveAsync({ from: uri, to: newUri });
@@ -592,15 +592,17 @@ const SVRPhotoReport: React.FC = () => {
       // Optional upload
       if (token && Platform.OS !== "web") {
         const formData = new FormData();
-        formData.append("projectName", projectName || "");
-        formData.append("projectId", projectId || "");
+        formData.append("projectName", (projectName as string) || "");
+        formData.append("projectId", (projectId as string) || "");
         formData.append("createdBy", createdBy);
-        formData.append("mode", mode || "");
+        formData.append("mode", (mode as string) || "");
         formData.append("file", {
           uri: newUri,
           name: newFileName,
           type: "application/pdf",
         } as any);
+
+        // --- Searchable metadata for Database (Captions & Discussions) ---
 
         // --- Accumulate searchable text ---
         let searchableText: string[] = [];
@@ -628,49 +630,83 @@ const SVRPhotoReport: React.FC = () => {
 
         formData.append("captions", JSON.stringify(searchableText));
 
+        // Note: No need to send individual images as they are already in the PDF and structured data
+
         try {
-          await api.post("/svr", formData, {
+          const response = await api.post("/svr", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${token}`,
             },
           });
+
+          if (response.status === 200 || response.status === 201) {
+            Toast.show({
+              type: "success",
+              text1: "Uploaded",
+              text2: "Successfully synced with server",
+            });
+
+            // --- Success cleanup (Only if upload succeeds) ---
+            try {
+              await cleanupLocalPhotos(photos);
+              clearPhotos(projectIdStr);
+
+              // Clear AsyncStorage drafts
+              const storageKey = `SVR_FORM_DATA_${projectIdStr}`;
+              await AsyncStorage.removeItem(storageKey);
+
+              // Also clear general svr draft if any
+              const docDir = FileSystem.documentDirectory;
+              if (docDir) {
+                const path = `${docDir}svr_draft_${projectIdStr}.json`;
+                await FileSystem.deleteAsync(path, { idempotent: true });
+              }
+
+              await FileSystem.deleteAsync(
+                FileSystem.cacheDirectory + "ImageManipulator",
+                { idempotent: true },
+              );
+
+              // ✅ Also delete the temporary PDF after sync
+              await FileSystem.deleteAsync(newUri, { idempotent: true });
+            } catch (cleanupErr) {
+              console.warn("Cleanup error (non-fatal):", cleanupErr);
+            }
+
+            setTimeout(() => {
+              router.push(
+                // @ts-ignore
+                `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
+              );
+            }, 500);
+          }
+        } catch (e: any) {
+          console.error("Upload failed:", e?.response?.data || e.message);
           Toast.show({
-            type: "success",
-            text1: "Uploaded",
-            text2: "Successfully synced with server",
+            type: "error",
+            text1: "Sync Failed",
+            text2: e?.response?.data?.message || "Could not save to database",
+            position: "bottom",
           });
-        } catch (e) {
-          console.warn("Upload failed but PDF saved locally", e);
+          // Do not redirect or cleanup so user can try again
         }
+      } else {
+        // If no token or on web, we still show local success?
+        // Standardize: if offline/no-token, user should know it's only local
+        Toast.show({
+          type: "info",
+          text1: "Saved Locally",
+          text2: "PDF saved, but could not sync with server.",
+        });
+        
+        setTimeout(() => {
+          router.push(
+            // @ts-ignore
+            `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
+          );
+        }, 500);
       }
-
-      // Success cleanup
-      await cleanupLocalPhotos(photos);
-      clearPhotos(projectIdStr);
-      const docDir = FileSystem.documentDirectory;
-      if (docDir) {
-        const path = `${docDir}svr_draft_${pIdStr}.json`;
-        await FileSystem.deleteAsync(path, { idempotent: true });
-      }
-      await AsyncStorage.removeItem(`SVR_FORM_DATA_${pIdStr}`);
-      await FileSystem.deleteAsync(
-        FileSystem.cacheDirectory + "ImageManipulator",
-        { idempotent: true },
-      );
-
-      Toast.show({
-        type: "success",
-        text1: "Report Complete",
-        text2: "PDF saved in storage.",
-      });
-
-      setTimeout(() => {
-        router.push(
-          // @ts-ignore
-          `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
-        );
-      }, 500);
     } catch (err: any) {
       console.error("Report generation error:", err);
       Alert.alert("Error", err?.message || "Something went wrong.");

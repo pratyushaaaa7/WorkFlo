@@ -6,7 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
@@ -217,26 +217,28 @@ const SVRform = () => {
     }
   }, [entries.length]);
 
-  // Persistence: Load
-  useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.attendees) setAttendees(parsed.attendees);
-          if (parsed.entries) setEntries(parsed.entries);
-          if (parsed.caseStudyRemarks)
-            setCaseStudyRemarks(parsed.caseStudyRemarks);
-        } else {
-          resetForm();
+  // Persistence: Load on focus
+  useFocusEffect(
+    useCallback(() => {
+      const loadDraft = async () => {
+        try {
+          const saved = await AsyncStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.attendees) setAttendees(parsed.attendees);
+            if (parsed.entries) setEntries(parsed.entries);
+            if (parsed.caseStudyRemarks !== undefined)
+              setCaseStudyRemarks(parsed.caseStudyRemarks);
+          } else {
+            resetForm();
+          }
+        } catch (err) {
+          console.log("Load draft error:", err);
         }
-      } catch (err) {
-        console.log("Load draft error:", err);
-      }
-    };
-    loadDraft();
-  }, [storageKey]);
+      };
+      loadDraft();
+    }, [storageKey, resetForm]),
+  );
 
   // Persistence: Auto-Save (debounced)
   useEffect(() => {

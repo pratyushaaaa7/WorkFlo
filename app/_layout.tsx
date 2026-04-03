@@ -194,7 +194,7 @@ export default function RootLayout() {
               barStyle="dark-content"
             />
             <AppLayout />
-            <Toast config={toastConfig} />
+            <Toast config={toastConfig} position="bottom" />
           </ProjectProvider>
         </AuthProvider>
       </KeyboardProvider>
