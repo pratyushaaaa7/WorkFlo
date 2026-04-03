@@ -154,6 +154,7 @@ const MinuteItem = memo(
                 borderWidth: fieldErrors?.raisedBy ? 1 : 0,
                 borderColor: fieldErrors?.raisedBy ? "#DF5B5B" : "transparent",
               }}
+              placeholder="Raised By *"
               placeholderStyle={{
                 fontSize: 14,
                 fontFamily: "Poppins_400Regular",
@@ -651,7 +652,7 @@ const MinuteItem = memo(
 
             {/* Upload Image Section */}
             <View
-              className="mt-2 rounded-2xl p-4 gap-3"
+              className="rounded-2xl p-4 gap-3"
               style={{ backgroundColor: inputBgColor }}
             >
               <View
@@ -713,7 +714,7 @@ const MinuteItem = memo(
               )}
             </View>
 
-            <View className="flex-row justify-between items-center mt-2 px-1">
+            <View className="flex-row justify-between items-center px-1">
               {item.fromForwardedId ? (
                 <View className="flex-row items-center">
                   <View className=" rounded-full items-center justify-center mr-1.5">
