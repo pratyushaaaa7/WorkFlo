@@ -1,0 +1,574 @@
+import React, { memo, useState, useEffect, useRef, forwardRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
+import { Image as ExpoImage } from "expo-image";
+import { MultiSelect } from "react-native-element-dropdown";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  MinusSignIcon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
+import moment from "moment";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
+interface SvrMinuteItemProps {
+  item: any;
+  drag: () => void;
+  isActive: boolean;
+  expanded: boolean;
+  onToggleExpand: (index: number) => void;
+  onUpdate: (index: number, field: string | object, value?: any) => void;
+  onDeleteRequest: (index: number) => void;
+  users: any[];
+  showDelete: boolean;
+  isDarkMode: boolean;
+  onOpenDatePicker: (index: number) => void;
+  onPickImage: (index: number) => void;
+  onDeleteImage: (index: number, uri: string) => void;
+  getIndex: () => number | undefined;
+  fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean; issueDescription?: boolean };
+  showDatePicker?: boolean;
+  onDatePickerChange?: (event: any, date?: Date) => void;
+}
+
+const SvrMinuteItem = memo(
+  forwardRef<View, SvrMinuteItemProps>(
+    (
+      {
+        item,
+        drag,
+        isActive,
+        expanded,
+        onToggleExpand,
+        onUpdate,
+        onDeleteRequest,
+        users,
+        showDelete,
+        isDarkMode,
+        onOpenDatePicker,
+        onPickImage,
+        onDeleteImage,
+        getIndex,
+        fieldErrors,
+        showDatePicker,
+        onDatePickerChange,
+      },
+      ref,
+    ) => {
+      const [localSubject, setLocalSubject] = useState(item.issueSubject);
+      const [localDescription, setLocalDescription] = useState(
+        item.issueDescription,
+      );
+      const dropdownRef = useRef<any>(null);
+      const responsibilityRef = useRef<any>(null);
+
+      useEffect(() => {
+        if (item.issueSubject !== localSubject)
+          setLocalSubject(item.issueSubject || "");
+        if (item.issueDescription !== localDescription)
+          setLocalDescription(item.issueDescription || "");
+      }, [item.issueSubject, item.issueDescription]);
+
+      const handleBlur = (field: string, value: any) => {
+        const idx = getIndex();
+        if (idx !== undefined) onUpdate(idx, field, value);
+      };
+
+      const handleUpdate = (field: string | object, value?: any) => {
+        const idx = getIndex();
+        if (idx !== undefined) onUpdate(idx, field, value);
+      };
+
+      const inputBgColor = isDarkMode ? "#1A1A1A" : "#F0F3F7";
+      const cardBgColor = isDarkMode ? "#0D0D0D" : "#F6F8FA";
+
+      return (
+        <View
+          ref={ref}
+          collapsable={false}
+          style={{
+            marginBottom: 12,
+            borderRadius: 12,
+            backgroundColor: cardBgColor,
+            elevation: isActive ? 8 : 0,
+            overflow: "hidden",
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onLongPress={drag}
+            delayLongPress={500}
+            onPress={() => {
+              const idx = getIndex();
+              if (idx !== undefined) onToggleExpand(idx);
+            }}
+            className={`flex-row justify-between items-center px-4 py-3.5 ${
+              isActive ? (isDarkMode ? "bg-gray-800" : "bg-gray-100") : ""
+            } ${expanded ? (isDarkMode ? "border-b border-[#262626]" : "border-b border-[#E0E5EB]") : ""}`}
+          >
+            <Text
+              numberOfLines={1}
+              className={`font-poppinsMedium text-[15px] flex-1 mr-2 ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              {item.issueSubject || `Discussion ${item.serialNo}`}
+            </Text>
+            <HugeiconsIcon
+              icon={expanded ? ArrowDown01Icon : ArrowRight01Icon}
+              size={18}
+              color={isDarkMode ? "#9CA3AF" : "#6B7280"}
+            />
+          </TouchableOpacity>
+
+          <View
+            style={{ display: expanded ? "flex" : "none" }}
+            className="px-4 py-4 gap-3"
+          >
+            {/* Raised By */}
+            <MultiSelect
+              ref={dropdownRef}
+              style={{
+                height: 52,
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                backgroundColor: fieldErrors?.raisedBy
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderWidth: fieldErrors?.raisedBy ? 1 : 0,
+                borderColor: fieldErrors?.raisedBy ? "#DF5B5B" : "transparent",
+              }}
+              placeholder="Raised By"
+              placeholderStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#6B7280" : "#9CA3AF",
+              }}
+              selectedTextStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              selectedStyle={{ display: "none" }}
+              itemTextStyle={{
+                fontSize: 14,
+                fontFamily: "Poppins_400Regular",
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              inputSearchStyle={{
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                borderRadius: 14,
+                borderColor: "grey",
+                fontSize: 14,
+                color: isDarkMode ? "#FFFFFF" : "#000000",
+              }}
+              containerStyle={{
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                borderWidth: 0,
+                marginTop: 4,
+              }}
+              activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+              search
+              labelField="label"
+              valueField="value"
+              data={users}
+              value={(item.raisedBy || []).map((r: any) => r.value)}
+              searchPlaceholder="Search..."
+              renderLeftIcon={() => null}
+              onChange={(selectedIds: string[]) => {
+                const selectedUsers = users
+                  .filter((u: any) => selectedIds.includes(u.value))
+                  .map((u: any) => ({ value: u.value, label: u.label }));
+                handleUpdate("raisedBy", selectedUsers);
+                setTimeout(() => {
+                  dropdownRef.current?.close();
+                }, 80);
+              }}
+              renderRightIcon={() => <HugeiconsIcon icon={ArrowDown01Icon} size={20} color="#919191" />}
+            />
+            
+            {/* Raised By Chips */}
+            {(item.raisedBy || []).length > 0 && (
+              <View className="flex-row flex-wrap gap-2">
+                {(item.raisedBy || []).map((r: any) => (
+                  <TouchableOpacity
+                    key={r.value}
+                    onPress={() => {
+                      const filtered = (item.raisedBy || []).filter((u: any) => u.value !== r.value);
+                      handleUpdate("raisedBy", filtered);
+                    }}
+                    className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                      isDarkMode ? "bg-black border-[#262626]" : "bg-white border-[#E0E5EB]"
+                    }`}
+                  >
+                    <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
+                      {r.label}
+                    </Text>
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color={isDarkMode ? "#FFF" : "#000"} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Agenda / Subject */}
+            <TextInput
+              placeholder="Subject"
+              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              value={localSubject}
+              onChangeText={setLocalSubject}
+              onBlur={() => handleBlur("issueSubject", localSubject)}
+              multiline
+              className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                isDarkMode
+                  ? (fieldErrors?.issueSubject && !localSubject?.trim())
+                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                    : "text-white"
+                  : (fieldErrors?.issueSubject && !localSubject?.trim())
+                    ? "bg-[#FFF5F5] text-gray-800 border border-[#DF5B5B]"
+                    : "text-gray-800"
+              }`}
+              style={{
+                backgroundColor: (fieldErrors?.issueSubject && !localSubject?.trim())
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : inputBgColor,
+                color: isDarkMode ? "#fff" : "#111827",
+              }}
+            />
+
+            {/* Meeting Discussion */}
+            <TextInput
+              placeholder="Details of Discussion*"
+              placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+              value={localDescription}
+              onChangeText={(text) => {
+                setLocalDescription(text);
+                // Clear error immediately when user starts typing
+                if (fieldErrors?.issueDescription && text.trim()) {
+                  handleUpdate("issueDescription", text);
+                }
+              }}
+              onBlur={() => handleBlur("issueDescription", localDescription)}
+              multiline
+              className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${
+                (fieldErrors?.issueDescription && !localDescription?.trim())
+                  ? isDarkMode
+                    ? "border border-[#DF5B5B]"
+                    : "border border-[#DF5B5B]"
+                  : ""
+              }`}
+              style={{
+                backgroundColor: (fieldErrors?.issueDescription && !localDescription?.trim())
+                  ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                  : inputBgColor,
+                color: isDarkMode ? "#fff" : "#111827",
+                minHeight: 80,
+              }}
+            />
+
+            {/* Status Selector */}
+            <View className="rounded-xl px-4 py-3 flex-row items-center" style={{ backgroundColor: inputBgColor }}>
+              <Text className={`text-[14px] font-poppins mr-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                Status :
+              </Text>
+              <View className="flex-row items-center gap-6">
+                {(["open", "forInfo"] as const).map((s) => (
+                  <TouchableOpacity
+                    key={s}
+                    onPress={() => {
+                        if (item.status !== s) handleUpdate("status", s);
+                    }}
+                    activeOpacity={0.8}
+                    className="flex-row items-center"
+                  >
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        borderWidth: 2,
+                        borderColor: s === "open" ? "#EF4444" : "#10B981",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 6,
+                      }}
+                    >
+                      {item.status === s && (
+                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: s === "open" ? "#EF4444" : "#10B981" }} />
+                      )}
+                    </View>
+                    <Text className={`text-[15px] font-poppins ${
+                        item.status === s 
+                          ? (s === "open" ? "text-red-500" : "text-emerald-500") 
+                          : isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}>
+                      {s === "open" ? "Open" : "For Info"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Target Date */}
+            <View className="flex-row items-center gap-2">
+              <TouchableOpacity
+                onPress={() => {
+                  const idx = getIndex();
+                  if (idx !== undefined) onOpenDatePicker(idx);
+                }}
+                activeOpacity={0.7}
+                disabled={item.targetDateForInfo}
+                style={{
+                  flex: 1,
+                  backgroundColor: fieldErrors?.targetDate
+                    ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                    : inputBgColor,
+                  borderRadius: 12,
+                  height: 48,
+                  justifyContent: "center",
+                  paddingHorizontal: 16,
+                  borderWidth: fieldErrors?.targetDate ? 1 : 0,
+                  borderColor: fieldErrors?.targetDate ? "#DF5B5B" : "transparent",
+                  opacity: item.targetDateForInfo ? 0.5 : 1,
+                }}
+              >
+                <Text style={{ 
+                  fontSize: 14, 
+                  fontFamily: "Poppins_400Regular", 
+                  color: item.targetDate 
+                    ? isDarkMode ? "#fff" : "#111827"
+                    : isDarkMode ? "#6B7280" : "#9CA3AF" 
+                }}>
+                  {item.targetDate ? moment(item.targetDate).format("DD-MM-YYYY") : "Target Date"}
+                </Text>
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={item.targetDate ? new Date(item.targetDate) : new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={onDatePickerChange}
+                />
+              )}
+
+              <TouchableOpacity
+                onPress={() => {
+                  const newVal = !item.targetDateForInfo;
+                  if (newVal) {
+                      handleUpdate({ targetDate: null, targetDateForInfo: true });
+                  } else {
+                      handleUpdate("targetDateForInfo", false);
+                  }
+                }}
+                className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
+                  item.targetDateForInfo ? (isDarkMode ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-emerald-50 border border-emerald-500/30") : ""
+                }`}
+                style={!item.targetDateForInfo ? { backgroundColor: inputBgColor } : {}}
+              >
+                <Text className={`text-[13px] font-poppinsMedium ${
+                  item.targetDateForInfo 
+                    ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
+                    : isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  For Info
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Responsible */}
+            <View className="flex-row items-center gap-2">
+              <View style={{ flex: 1, opacity: item.responsibilityForInfo ? 0.5 : 1 }}>
+                <MultiSelect
+                  ref={responsibilityRef}
+                  style={{
+                    height: 52,
+                    borderRadius: 16,
+                    paddingHorizontal: 16,
+                    backgroundColor: fieldErrors?.responsibility
+                      ? isDarkMode ? "#2A1A1A" : "#FFF5F5"
+                      : isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    borderWidth: fieldErrors?.responsibility ? 1 : 0,
+                    borderColor: fieldErrors?.responsibility ? "#DF5B5B" : "transparent",
+                  }}
+                  placeholder="Responsible"
+                  placeholderStyle={{
+                    fontSize: 14,
+                    fontFamily: "Poppins_400Regular",
+                    color: isDarkMode ? "#6B7280" : "#9CA3AF",
+                  }}
+                  selectedTextStyle={{
+                    fontSize: 14,
+                    fontFamily: "Poppins_400Regular",
+                    color: isDarkMode ? "#FFFFFF" : "#000000",
+                  }}
+                  selectedStyle={{ display: "none" }}
+                  itemTextStyle={{
+                    fontSize: 14,
+                    fontFamily: "Poppins_400Regular",
+                    color: isDarkMode ? "#FFFFFF" : "#000000",
+                  }}
+                  inputSearchStyle={{
+                    backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
+                    borderRadius: 14,
+                    borderColor: "grey",
+                    fontSize: 14,
+                    color: isDarkMode ? "#FFFFFF" : "#000000",
+                  }}
+                  containerStyle={{
+                    borderRadius: 16,
+                    backgroundColor: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+                    borderWidth: 0,
+                    marginTop: 4,
+                  }}
+                  activeColor={isDarkMode ? "#252525" : "#F3F4F6"}
+                  search
+                  labelField="label"
+                  valueField="value"
+                  data={users}
+                  value={(item.responsibility || []).map((r: any) => r.value)}
+                  searchPlaceholder="Search..."
+                  renderLeftIcon={() => null}
+                  onChange={(selectedIds: string[]) => {
+                    const selectedUsers = users
+                      .filter((u: any) => selectedIds.includes(u.value))
+                      .map((u: any) => ({ value: u.value, label: u.label }));
+                    handleUpdate("responsibility", selectedUsers);
+                    setTimeout(() => {
+                      responsibilityRef.current?.close();
+                    }, 80);
+                  }}
+                  disable={item.responsibilityForInfo}
+                  renderRightIcon={() => (
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={20}
+                      color="#919191"
+                    />
+                  )}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  const newVal = !item.responsibilityForInfo;
+                  if (newVal) {
+                    handleUpdate({
+                        responsibility: [],
+                        responsibilityForInfo: true,
+                    });
+                  } else {
+                    handleUpdate("responsibilityForInfo", false);
+                  }
+                }}
+                className={`px-4 py-3.5 rounded-xl flex-row items-center justify-center ${
+                  item.responsibilityForInfo ? (isDarkMode ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-emerald-50 border border-emerald-500/30") : ""
+                }`}
+                style={!item.responsibilityForInfo ? { backgroundColor: inputBgColor } : {}}
+              >
+                <Text className={`text-[13px] font-poppinsMedium ${
+                  item.responsibilityForInfo 
+                    ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
+                    : isDarkMode ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  For Info
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Responsibility Chips */}
+            {(item.responsibility || []).length > 0 && !item.responsibilityForInfo && (
+              <View className="flex-row flex-wrap gap-2">
+                {(item.responsibility || []).map((r: any) => (
+                  <TouchableOpacity
+                    key={r.value}
+                    onPress={() => {
+                      const filtered = (item.responsibility || []).filter((u: any) => u.value !== r.value);
+                      handleUpdate("responsibility", filtered);
+                    }}
+                    className={`flex-row items-center px-4 py-2 rounded-lg border ${
+                      isDarkMode ? "bg-black border-[#262626]" : "bg-white border-[#E0E5EB]"
+                    }`}
+                  >
+                    <Text className={`text-sm font-poppins mr-2 ${isDarkMode ? "text-gray-200" : "text-gray-900"}`}>
+                      {r.label}
+                    </Text>
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} color={isDarkMode ? "#FFF" : "#000"} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Photo Section */}
+            <View className="rounded-2xl p-4 gap-3" style={{ backgroundColor: inputBgColor }}>
+              <View className={`rounded-2xl p-5 items-center justify-center ${isDarkMode ? "bg-[#0D0D0D]" : "bg-white"}`}
+                style={{ minHeight: 120, borderStyle: "dashed", borderWidth: 1, borderColor: isDarkMode ? "#333" : "#D1D5DB" }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const idx = getIndex();
+                    if (idx !== undefined) onPickImage(idx);
+                  }}
+                  className="bg-black rounded-xl px-8 py-2.5 flex-row items-center mb-2"
+                  activeOpacity={0.8}
+                >
+                  <HugeiconsIcon icon={Upload01Icon} size={18} color="white" />
+                  <Text className="text-white font-poppinsMedium ml-2.5">{(item.images || []).length > 0 ? "Replace Image" : "Upload"}</Text>
+                </TouchableOpacity>
+                <Text className={`text-[13px] font-poppins ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>Choose 1 Image Only</Text>
+              </View>
+
+              {/* Previews */}
+              {(item.images || []).length > 0 && (
+                <View className="flex-row flex-wrap gap-3 mt-1">
+                  {(item.images || []).map((uri: string, idx: number) => (
+                    <View key={idx} className="relative">
+                      <ExpoImage source={{ uri }} style={{ width: 70, height: 70, borderRadius: 12 }} contentFit="cover" />
+                      <TouchableOpacity
+                        onPress={() => {
+                          const idx = getIndex();
+                          if (idx !== undefined) onDeleteImage(idx, uri);
+                        }}
+                        className="absolute -top-1.5 -right-1.5 bg-black/60 rounded-full p-1"
+                      >
+                        <HugeiconsIcon icon={Cancel01Icon} size={12} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Bottom Actions */}
+            <View className="flex-row justify-end items-center px-1">
+              {showDelete && (
+                <TouchableOpacity
+                  onPress={() => {
+                    const idx = getIndex();
+                    if (idx !== undefined) onDeleteRequest(idx);
+                  }}
+                  className="flex-row items-center"
+                  activeOpacity={0.7}
+                >
+                  <View className="mb-0.5 h-4 w-4 rounded-full bg-[#EF4444] items-center justify-center mr-1">
+                    <HugeiconsIcon icon={MinusSignIcon} size={10} color="#FFFFFF" />
+                  </View>
+                  <Text className="text-red-500 font-poppinsMedium text-[13px]">Remove</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      );
+    },
+  ),
+);
+
+export default SvrMinuteItem;
+

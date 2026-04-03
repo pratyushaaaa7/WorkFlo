@@ -534,6 +534,23 @@ const SVRPhotoReport: React.FC = () => {
         setProgress(((i + 1) / photos.length) * 100);
       }
 
+      // --- NEW: Process SVR Point Images (from svrForm) ---
+      if (mode === "svr" && svr && Array.isArray(svr)) {
+        for (let i = 0; i < svr.length; i++) {
+          const entry = svr[i];
+          if (entry.images && entry.images.length > 0) {
+            try {
+              const compressed = await compressImage(entry.images[0]);
+              const b64 = await uriToBase64(compressed);
+              entry.base64 = b64;
+              // Clean up if needed, though lib handles base64 string
+            } catch (err) {
+              console.error(`Failed to process svr entry image at index ${i}:`, err);
+            }
+          }
+        }
+      }
+
       const { PdfEngine } = require("../lib/PdfEngine");
       const engine = new PdfEngine({
         projectName: projectName || "",

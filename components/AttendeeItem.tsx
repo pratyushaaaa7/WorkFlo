@@ -109,7 +109,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
               placeholderStyle={{
                 fontSize: 14,
                 fontFamily: "Poppins_400Regular",
-                color: isDarkMode ? "#919191" : "#454545",
+                color: isDarkMode ? "#6B7280" : "#9CA3AF",
               }}
               selectedTextStyle={{
                 fontSize: 14,
@@ -178,7 +178,7 @@ const AttendeeItem = memo(forwardRef<View, AttendeeItemProps>(({
 
           <TextInput
             placeholder="Name *"
-            placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+            placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
             value={item.attendeeName}
             onChangeText={(val) => handleUpdate("attendeeName", val)}
             className={`rounded-xl px-4 py-3.5 font-poppins text-[15px] ${

@@ -32,6 +32,7 @@ import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
 import AttendeeItem from "../components/AttendeeItem";
 import MinuteItem from "../components/MinuteItem";
+import SvrMinuteItem from "../components/SvrMinuteItem";
 import { AuthContext } from "../context/AuthContext";
 import { Image as ExpoImage } from "expo-image";
 import api from "../lib/api";
@@ -71,7 +72,7 @@ const SVRform = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<FlatList>(null);
 
   // Use dynamic storage key based on projectId if available
   const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
@@ -127,6 +128,7 @@ const SVRform = () => {
   const [caseStudyRemarks, setCaseStudyRemarks] = useState("");
   const [dateIndex, setDateIndex] = useState<number | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<any>({});
 
   const fetchDirectory = useCallback(
     async (searchQuery: string = "") => {
@@ -271,8 +273,30 @@ const SVRform = () => {
           return { ...a, [field]: value };
         }),
       );
+
+      // Clear validation error when field is updated
+      if (validationErrors.attendees?.[index]) {
+        setValidationErrors((prev: any) => {
+          const updatedAttendeeErrors = { ...prev.attendees };
+          const attendeeError = { ...updatedAttendeeErrors[index] };
+          
+          if (typeof field === "string") {
+            delete attendeeError[field as keyof typeof attendeeError];
+          } else if (typeof field === "object") {
+             Object.keys(field).forEach(k => delete attendeeError[k as keyof typeof attendeeError]);
+          }
+
+          if (Object.keys(attendeeError).length === 0) {
+            delete updatedAttendeeErrors[index];
+          } else {
+            updatedAttendeeErrors[index] = attendeeError;
+          }
+
+          return { ...prev, attendees: updatedAttendeeErrors };
+        });
+      }
     },
-    [],
+    [validationErrors],
   );
 
   const addAttendee = useCallback(() => {
@@ -319,8 +343,30 @@ const SVRform = () => {
           return { ...m, [field]: value };
         }),
       );
+
+      // Clear validation error when field is updated
+      if (validationErrors.entries?.[index]) {
+        setValidationErrors((prev: any) => {
+          const updatedEntryErrors = { ...prev.entries };
+          const entryError = { ...updatedEntryErrors[index] };
+          
+          if (typeof field === "string") {
+            delete entryError[field as keyof typeof entryError];
+          } else if (typeof field === "object") {
+             Object.keys(field).forEach(k => delete entryError[k as keyof typeof entryError]);
+          }
+
+          if (Object.keys(entryError).length === 0) {
+            delete updatedEntryErrors[index];
+          } else {
+            updatedEntryErrors[index] = entryError;
+          }
+
+          return { ...prev, entries: updatedEntryErrors };
+        });
+      }
     },
-    [],
+    [validationErrors],
   );
 
   const addEntry = useCallback(() => {
@@ -410,6 +456,85 @@ const SVRform = () => {
 
   // --- Final Actions ---
   const saveAndNext = useCallback(async () => {
+    // Validation logic inspired by createMeeting
+    const errors: any = {};
+    let hasError = false;
+    let firstErrorLocation: "attendees" | "entries" | null = null;
+    let firstErrorIndex = -1;
+
+    // Attendee validation
+    const attendeeErrors: any = {};
+    attendees.forEach((a, idx) => {
+      const fieldErrs: any = {};
+      if (!a.attendeeName?.trim()) {
+        fieldErrs.attendeeName = true;
+        hasError = true;
+      }
+      if (Object.keys(fieldErrs).length > 0) {
+        attendeeErrors[idx] = fieldErrs;
+        if (!firstErrorLocation) {
+          firstErrorLocation = "attendees";
+          firstErrorIndex = idx;
+        }
+      }
+    });
+    if (Object.keys(attendeeErrors).length > 0) errors.attendees = attendeeErrors;
+
+    // Discussion Entry validation
+    const entryErrors: any = {};
+    entries.forEach((e, idx) => {
+      const fieldErrs: any = {};
+      
+      // Discussion is mandatory ONLY when an image is added
+      if (e.images && e.images.length > 0 && !e.issueDescription?.trim()) {
+        fieldErrs.issueDescription = true;
+        hasError = true;
+      }
+
+      if (Object.keys(fieldErrs).length > 0) {
+        entryErrors[idx] = fieldErrs;
+        if (!firstErrorLocation) {
+          firstErrorLocation = "entries";
+          firstErrorIndex = idx;
+        }
+      }
+    });
+    if (Object.keys(entryErrors).length > 0) errors.entries = entryErrors;
+
+    if (hasError) {
+      setValidationErrors(errors);
+      
+      const targetTab = firstErrorLocation === "attendees" ? "attendees" : "discussion";
+      setActiveTab(targetTab);
+
+      // Auto-expand and scroll to first error
+      if (firstErrorIndex !== -1) {
+        if (firstErrorLocation === "attendees") {
+          setAttendees(prev => prev.map((a, i) => ({ ...a, isExpanded: i === firstErrorIndex })));
+        } else {
+          setEntries(prev => prev.map((e, i) => ({ ...e, isExpanded: i === firstErrorIndex })));
+        }
+
+        setTimeout(() => {
+          scrollRef.current?.scrollToIndex?.({
+            index: firstErrorIndex,
+            animated: true,
+            viewPosition: 0
+          });
+        }, 300);
+      }
+
+      Toast.show({
+        type: "error",
+        text1: "Please fill required fields",
+        text2: firstErrorLocation === "entries" ? "Description is required when an image is added" : "Attendee name is required",
+        position: "bottom"
+      });
+      return;
+    }
+
+    setValidationErrors({});
+
     const mappedEntries = entries.map((e) => ({
       ...e,
       agenda: e.issueSubject,
@@ -433,7 +558,7 @@ const SVRform = () => {
         caseStudyRemarks,
       },
     });
-  }, [entries, attendees, caseStudyRemarks, projectName, projectId, mode, company, teamLeaders, teamMembers, router]);
+  }, [entries, attendees, caseStudyRemarks, projectName, projectId, mode, company, teamLeaders, teamMembers, router, scrollRef]);
 
   const skipAndNext = useCallback(async () => {
     router.push({
@@ -485,7 +610,7 @@ const SVRform = () => {
   const renderedEntries = useMemo(
     () =>
       entries.map((item, index) => (
-        <MinuteItem
+        <SvrMinuteItem
           key={item.id}
           item={item}
           drag={() => {}}
@@ -509,8 +634,6 @@ const SVRform = () => {
               setShowDatePicker(false);
             }
           }}
-          multipleImages={false}
-          showRemarks={false}
         />
       )),
     [
@@ -711,14 +834,14 @@ const SVRform = () => {
                     showDelete={attendees.length > 1}
                     isDarkMode={isDarkMode}
                     getIndex={() => index}
+                    fieldErrors={validationErrors.attendees?.[index]}
                   />
                 </View>
               );
             } else {
               return (
                 <View className="mb-3">
-                  <MinuteItem
-                    key={item.id}
+                  <SvrMinuteItem
                     item={item}
                     drag={() => {}}
                     isActive={false}
@@ -733,8 +856,15 @@ const SVRform = () => {
                     onPickImage={onPickImage}
                     onDeleteImage={onDeleteImage}
                     getIndex={() => entries.findIndex(e => e.id === item.id)}
-                    multipleImages={false}
-                    showRemarks={false}
+                    showDatePicker={showDatePicker && dateIndex === entries.findIndex(e => e.id === item.id)}
+                    onDatePickerChange={(event, date) => {
+                      if (event.type === "set" && date) {
+                        onDateConfirm(date);
+                      } else {
+                        setShowDatePicker(false);
+                      }
+                    }}
+                    fieldErrors={validationErrors.entries?.[index]}
                   />
                 </View>
               );
