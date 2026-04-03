@@ -37,7 +37,11 @@ interface MinuteItemProps {
   onDeleteImage: (index: number, uri: string) => void;
   getIndex: () => number | undefined;
   fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean };
+  showDatePicker?: boolean;
+  onDatePickerChange?: (event: any, date?: Date) => void;
 }
+
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const MinuteItem = memo(
   forwardRef<View, MinuteItemProps>(
@@ -58,6 +62,8 @@ const MinuteItem = memo(
         onDeleteImage,
         getIndex,
         fieldErrors,
+        showDatePicker,
+        onDatePickerChange,
       },
       ref,
     ) => {
@@ -423,6 +429,15 @@ const MinuteItem = memo(
                     : "Target Date *"}
                 </Text>
               </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={item.targetDate ? new Date(item.targetDate) : new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={onDatePickerChange}
+                />
+              )}
 
               <TouchableOpacity
                 onPress={() => {

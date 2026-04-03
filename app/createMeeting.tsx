@@ -770,6 +770,8 @@ const CreateMinutes = () => {
             onPickImage={handlePickImage}
             onDeleteImage={handleDeleteImage}
             getIndex={getIndex}
+            showDatePicker={showDatePicker && dateIndex === idx}
+            onDatePickerChange={onDateChange}
             fieldErrors={
               idx !== undefined ? validationErrors.minutes?.[idx] : undefined
             }
@@ -1591,7 +1593,7 @@ const CreateMinutes = () => {
                       {isTimePickerVisible && (
                         <DateTimePicker
                           value={new Date()}
-                          mode="date"
+                          mode="time"
                           display="default"
                           onChange={(event, time) => {
                             setTimePickerVisibility(false);
@@ -2139,20 +2141,6 @@ const CreateMinutes = () => {
         >
           <Text className="text-white font-bold">Submit MOM</Text>
         </TouchableOpacity> */}
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, date) => {
-                setShowDatePicker(false);
-                if (event.type === "set" && date && dateIndex !== null) {
-                  updateMinute(dateIndex, "targetDate", date);
-                }
-              }}
-            />
-          )}
 
           <NativeModal
             transparent

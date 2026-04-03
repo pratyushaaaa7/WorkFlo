@@ -1128,21 +1128,6 @@ const IlrActivities = () => {
         </View>
       </KeyboardStickyView>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={tempDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            if (event.type === "set" && date) {
-              onDateConfirm(date);
-            } else {
-              setShowDatePicker(false);
-            }
-          }}
-        />
-      )}
-
       {/* Delete Confirmation Modal */}
       <Modal
         isVisible={deleteModalVisible}
@@ -1573,6 +1558,22 @@ const IlrActivities = () => {
                   color={isDark ? "#919191" : "#454545"}
                 />
               </TouchableOpacity>
+
+              {/* Date Picker — inline below the date button */}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={tempDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, date) => {
+                    if (event.type === "set" && date) {
+                      onDateConfirm(date);
+                    } else {
+                      setShowDatePicker(false);
+                    }
+                  }}
+                />
+              )}
 
               <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-2" />
 

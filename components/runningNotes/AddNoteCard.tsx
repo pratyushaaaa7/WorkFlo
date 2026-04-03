@@ -170,24 +170,24 @@ const AddNoteCard = ({ users, onAdd }: any) => {
             />
           </View>
         </TouchableOpacity>
-      </View>
 
-      {/* Modal Date Picker */}
-      {showAddDatePicker && (
-        <DateTimePicker
-          value={targetDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            if (event.type === "set" && date) {
-              setTargetDate(date);
-              setShowAddDatePicker(false);
-            } else {
-              setShowAddDatePicker(false);
-            }
-          }}
-        />
-      )}
+        {/* Date Picker — inline below the date button */}
+        {showAddDatePicker && (
+          <DateTimePicker
+            value={targetDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, date) => {
+              if (event.type === "set" && date) {
+                setTargetDate(date);
+                setShowAddDatePicker(false);
+              } else {
+                setShowAddDatePicker(false);
+              }
+            }}
+          />
+        )}
+      </View>
 
       {/* Responsible + Add Button Row */}
       <View className="flex-row items-center gap-2">

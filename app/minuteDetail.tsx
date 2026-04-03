@@ -1572,6 +1572,22 @@ const MinuteDetail = () => {
               />
             </TouchableOpacity>
 
+            {/* Date Picker — inline below the row */}
+            {showPicker && (
+              <DateTimePicker
+                value={tempTargetDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowPicker(false);
+                  if (event.type === "set") {
+                    setTempTargetDate(selectedDate || null);
+                    setTempForInfo(false);
+                  }
+                }}
+              />
+            )}
+
             {/* For Information Row */}
             <View
               className={`h-[1px] w-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
@@ -1705,22 +1721,6 @@ const MinuteDetail = () => {
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-
-            {/* Date Picker */}
-            {showPicker && (
-              <DateTimePicker
-                value={tempTargetDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowPicker(false);
-                  if (event.type === "set") {
-                    setTempTargetDate(selectedDate || null);
-                    setTempForInfo(false);
-                  }
-                }}
-              />
-            )}
           </View>
         </KeyboardStickyView>
       </Modal>

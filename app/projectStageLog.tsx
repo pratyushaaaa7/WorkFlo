@@ -215,15 +215,15 @@ const StageDetail: React.FC = () => {
 
         setStages((prev) => {
           const existing = prev[stageId!] || [];
-          
+
           if (revisionsFromBackend.length > 0) {
             return { ...prev, [stageId!]: revisionsFromBackend };
           }
-          
+
           if (existing.length > 0) {
             return { ...prev, [stageId!]: existing };
           }
-          
+
           // Fallback to inserting Revision 0 if it somehow went missing
           return {
             ...prev,
@@ -332,266 +332,285 @@ const StageDetail: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={{ padding: 16, paddingBottom: 300 }}
           keyboardShouldPersistTaps="handled"
         >
-        {/* Revision Timeline Card - Only show if there are saved revisions */}
-        {stageData.some(r => r.saved) && (
-          <View
-            className={`rounded-[24px] mb-6 overflow-hidden ${
-              isDarkMode ? "bg-[#0D0D0D]" : "bg-white"
-            }`}
-          >
-            <View className="p-4 pb-0 flex-row items-center">
-              <View className="flex-1 mr-3">
-                <Text
-                  numberOfLines={1}
-                  className={`text-[17px] font-dmSemiBold ${
-                    isDarkMode ? "text-white" : "text-black"
-                  }`}
-                >
-                  Timeline
-                </Text>
-              </View>
-              {stageData[0]?.start && stageData[0]?.end && (
-                <View
-                  className={`px-3 py-1 rounded-[8px] flex-shrink-0 ${
-                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                  }`}
-                >
+          {/* Revision Timeline Card - Only show if there are saved revisions */}
+          {stageData.some((r) => r.saved) && (
+            <View
+              className={`rounded-[24px] mb-6 overflow-hidden ${
+                isDarkMode ? "bg-[#0D0D0D]" : "bg-white"
+              }`}
+            >
+              <View className="p-4 pb-0 flex-row items-center">
+                <View className="flex-1 mr-3">
                   <Text
-                    className={`text-[12px] font-poppins ${
+                    numberOfLines={1}
+                    className={`text-[17px] font-dmSemiBold ${
                       isDarkMode ? "text-white" : "text-black"
                     }`}
                   >
-                    {new Date(stageData[0].start).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}{" "}
-                    &gt;{" "}
-                    {new Date(stageData[0].end).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    Timeline
                   </Text>
+                </View>
+                {stageData[0]?.start && stageData[0]?.end && (
+                  <View
+                    className={`px-3 py-1 rounded-[8px] flex-shrink-0 ${
+                      isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[12px] font-poppins ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {new Date(stageData[0].start).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}{" "}
+                      &gt;{" "}
+                      {new Date(stageData[0].end).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <GanttChart stages={stageData} stage={stage ?? "Stage"} />
+            </View>
+          )}
+          {stageData.map((stageItem, index) => (
+            <View
+              key={index}
+              className={`rounded-[24px] mb-5 overflow-hidden ${
+                isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
+              }`}
+            >
+              {/* Revision Header */}
+              <View className="pt-4 mb-3 px-4 pb-3 flex-row justify-between border-b dark:border-[#2D2D2D] border-[#E0E5EB] items-center">
+                <Text
+                  className={`text-[15px] font-poppins ${
+                    isDarkMode ? "text-[#E0E0E0]" : "text-[#454545]"
+                  }`}
+                >
+                  Revision {stageItem.revisionNumber || 0}
+                </Text>
+                {getDuration(stageItem) !== undefined && (
+                  <Text
+                    className={`text-[13px] font-poppins ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    Duration {getDuration(stageItem)} days
+                  </Text>
+                )}
+              </View>
+
+              {/* Dates */}
+              <View className="px-4 flex-row justify-between gap-4">
+                <View className="flex-1">
+                  <Text
+                    className={`text-[14px] font-dmMedium mb-2 ${
+                      isDarkMode ? "text-[#FFFFFF]" : "text-black"
+                    }`}
+                  >
+                    Start Date
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setPicker({ show: true, stageId, type: "start", index })
+                    }
+                    className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
+                      isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[14px] font-poppins ${
+                        isDarkMode ? "text-white" : "text-[#4B5563]"
+                      }`}
+                    >
+                      {formatDateToDDMMYYYY(stageItem.start)}
+                    </Text>
+                    <HugeiconsIcon
+                      icon={Calendar04Icon}
+                      size={20}
+                      color={isDarkMode ? "#bbb" : "#454545"}
+                    />
+                    {picker.show &&
+                      picker.index === index &&
+                      picker.type === "start" && (
+                        <DateTimePicker
+                          value={
+                            stageData[index]?.start
+                              ? new Date(stageData[index]!.start!)
+                              : new Date()
+                          }
+                          mode="date"
+                          display="default"
+                          onChange={onChangeDate}
+                        />
+                      )}
+                  </TouchableOpacity>
+                </View>
+
+                <View className="flex-1">
+                  <Text
+                    className={`text-[14px] font-dmMedium mb-2 ${
+                      isDarkMode ? "#FFFFFF" : "text-black"
+                    }`}
+                  >
+                    End Date
+                  </Text>
+                  <TouchableOpacity
+                    disabled={!stageItem.start}
+                    onPress={() =>
+                      setPicker({ show: true, stageId, type: "end", index })
+                    }
+                    className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
+                      isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                    }`}
+                    style={{ opacity: !stageItem.start ? 0.5 : 1 }}
+                  >
+                    <Text
+                      className={`text-[14px] font-poppins ${
+                        isDarkMode ? "text-white" : "#4B5563"
+                      }`}
+                    >
+                      {formatDateToDDMMYYYY(stageItem.end)}
+                    </Text>
+                    <HugeiconsIcon
+                      icon={Calendar04Icon}
+                      size={20}
+                      color={isDarkMode ? "#bbb" : "#454545"}
+                    />
+                  </TouchableOpacity>
+                  {picker.show &&
+                    picker.index === index &&
+                    picker.type === "end" && (
+                      <DateTimePicker
+                        value={
+                          stageData[index]?.end
+                            ? new Date(stageData[index]!.end!)
+                            : new Date()
+                        }
+                        mode="date"
+                        display="default"
+                        onChange={onChangeDate}
+                        minimumDate={
+                          stageData[index]?.start
+                            ? new Date(stageData[index]!.start!)
+                            : undefined
+                        }
+                      />
+                    )}
+                </View>
+              </View>
+
+              {/* Remark / Reason and Delay */}
+              <View className="px-4 py-4">
+                <View className="flex-row justify-between items-center mb-2">
+                  <Text
+                    className={`text-[14px] font-dmMedium ${
+                      isDarkMode ? "text-white" : "text-black"
+                    }`}
+                  >
+                    Reason for Revision
+                  </Text>
+
+                  {stageItem.delayDays !== undefined &&
+                    stageItem.delayDays !== 0 && (
+                      <Text
+                        className={`${
+                          stageItem.delayDays > 0
+                            ? "text-[#E11D48]"
+                            : "text-[#10B981]"
+                        } text-[13px] font-poppins`}
+                      >
+                        {stageItem.delayDays > 0
+                          ? `Delayed by ${stageItem.delayDays} days`
+                          : `${Math.abs(stageItem.delayDays)} days early`}
+                      </Text>
+                    )}
+                </View>
+
+                <TextInput
+                  editable={!stageItem.saved}
+                  showSoftInputOnFocus={!stageItem.saved}
+                  multiline
+                  value={stageItem.remark || ""}
+                  onChangeText={(text) =>
+                    handleRemarkChange(stageId!, index, text)
+                  }
+                  placeholder="Revision"
+                  placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  textAlignVertical="top"
+                  className={`rounded-[12px] px-4 py-3 h-[70px] font-poppins text-[14px] ${
+                    isDarkMode
+                      ? "bg-[#1A1A1A] text-white"
+                      : "bg-[#F0F3F7] text-black"
+                  }`}
+                />
+              </View>
+
+              {/* Save & Remove Buttons */}
+              {!stageItem.saved && (
+                <View
+                  className={`px-4 pb-4 flex-row items-center justify-end ${
+                    stageItem.revisionNumber > 0 ? "justify-between" : ""
+                  }`}
+                >
+                  {stageItem.revisionNumber > 0 && (
+                    <TouchableOpacity
+                      onPress={() => handleRemove(index)}
+                      className="px-0 py-3 flex-row items-center bg-transparent"
+                    >
+                      <Ionicons
+                        name="remove-circle"
+                        size={20}
+                        color={isDarkMode ? "#FF6B6B" : "#EF4444"}
+                      />
+                      <Text
+                        className={`ml-2 text-[14px] font-poppins ${
+                          isDarkMode ? "text-[#FF6B6B]" : "text-[#EF4444]"
+                        }`}
+                      >
+                        Remove
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={() => saveStage(index)}
+                    disabled={!canSave(stageItem)}
+                    className={`rounded-[14px] px-10 py-3 ${
+                      canSave(stageItem)
+                        ? isDarkMode
+                          ? "bg-[#050505]"
+                          : "bg-[#111111]"
+                        : isDarkMode
+                          ? "bg-[#333]"
+                          : "bg-[#D1D5DB]"
+                    }`}
+                  >
+                    <Text className="text-white font-poppinsMedium text-[14px]">
+                      Save
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
-            <GanttChart stages={stageData} stage={stage ?? "Stage"} />
-          </View>
-        )}
-        {stageData.map((stageItem, index) => (
-          <View
-            key={index}
-            className={`rounded-[24px] mb-5 overflow-hidden ${
-              isDarkMode ? "bg-[#0D0D0D]" : "bg-[#F6F8FA]"
-            }`}
-          >
-            {/* Revision Header */}
-            <View className="pt-4 mb-3 px-4 pb-3 flex-row justify-between border-b dark:border-[#2D2D2D] border-[#E0E5EB] items-center">
-              <Text
-                className={`text-[15px] font-poppins ${
-                  isDarkMode ? "text-[#E0E0E0]" : "text-[#454545]"
-                }`}
-              >
-                Revision {stageItem.revisionNumber || 0}
-              </Text>
-              {getDuration(stageItem) !== undefined && (
-                <Text
-                  className={`text-[13px] font-poppins ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Duration {getDuration(stageItem)} days
-                </Text>
-              )}
-            </View>
-
-            {/* Dates */}
-            <View className="px-4 flex-row justify-between gap-4">
-              <View className="flex-1">
-                <Text
-                  className={`text-[14px] font-dmMedium mb-2 ${
-                    isDarkMode ? "text-[#FFFFFF]" : "text-black"
-                  }`}
-                >
-                  Start Date
-                </Text>
-                <TouchableOpacity
-                  onPress={() =>
-                    setPicker({ show: true, stageId, type: "start", index })
-                  }
-                  className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
-                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                  }`}
-                >
-                  <Text
-                    className={`text-[14px] font-poppins ${
-                      isDarkMode ? "text-white" : "text-[#4B5563]"
-                    }`}
-                  >
-                    {formatDateToDDMMYYYY(stageItem.start)}
-                  </Text>
-                  <HugeiconsIcon
-                    icon={Calendar04Icon}
-                    size={20}
-                    color={isDarkMode ? "#bbb" : "#454545"}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              <View className="flex-1">
-                <Text
-                  className={`text-[14px] font-dmMedium mb-2 ${
-                    isDarkMode ? "text-[#FFFFFF]" : "text-black"
-                  }`}
-                >
-                  End Date
-                </Text>
-                <TouchableOpacity
-                  disabled={!stageItem.start}
-                  onPress={() =>
-                    setPicker({ show: true, stageId, type: "end", index })
-                  }
-                  className={`rounded-[12px] px-4 py-3 flex-row items-center justify-between ${
-                    isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
-                  }`}
-                  style={{ opacity: !stageItem.start ? 0.5 : 1 }}
-                >
-                  <Text
-                    className={`text-[14px] font-poppins ${
-                      isDarkMode ? "text-white" : "#4B5563"
-                    }`}
-                  >
-                    {formatDateToDDMMYYYY(stageItem.end)}
-                  </Text>
-                  <HugeiconsIcon
-                    icon={Calendar04Icon}
-                    size={20}
-                    color={isDarkMode ? "#bbb" : "#454545"}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Remark / Reason and Delay */}
-            <View className="px-4 py-4">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text
-                  className={`text-[14px] font-dmMedium ${
-                    isDarkMode ? "text-white" : "text-black"
-                  }`}
-                >
-                  Reason for Revision
-                </Text>
-
-                {stageItem.delayDays !== undefined && stageItem.delayDays !== 0 && (
-                  <Text
-                    className={`${
-                      stageItem.delayDays > 0 ? "text-[#E11D48]" : "text-[#10B981]"
-                    } text-[13px] font-poppins`}
-                  >
-                    {stageItem.delayDays > 0
-                      ? `Delayed by ${stageItem.delayDays} days`
-                      : `${Math.abs(stageItem.delayDays)} days early`}
-                  </Text>
-                )}
-              </View>
-
-              <TextInput
-                editable={!stageItem.saved}
-                showSoftInputOnFocus={!stageItem.saved}
-                multiline
-                value={stageItem.remark || ""}
-                onChangeText={(text) =>
-                  handleRemarkChange(stageId!, index, text)
-                }
-                placeholder="Revision"
-                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
-                textAlignVertical="top"
-                className={`rounded-[12px] px-4 py-3 h-[70px] font-poppins text-[14px] ${
-                  isDarkMode
-                    ? "bg-[#1A1A1A] text-white"
-                    : "bg-[#F0F3F7] text-black"
-                }`}
-              />
-            </View>
-
-            {/* Save & Remove Buttons */}
-            {!stageItem.saved && (
-              <View className={`px-4 pb-4 flex-row items-center justify-end ${
-                stageItem.revisionNumber > 0 ? "justify-between" : ""
-              }`}>
-                {stageItem.revisionNumber > 0 && (
-                  <TouchableOpacity
-                    onPress={() => handleRemove(index)}
-                    className="px-0 py-3 flex-row items-center bg-transparent"
-                  >
-                    <Ionicons
-                      name="remove-circle"
-                      size={20}
-                      color={isDarkMode ? "#FF6B6B" : "#EF4444"}
-                    />
-                    <Text
-                      className={`ml-2 text-[14px] font-poppins ${
-                        isDarkMode ? "text-[#FF6B6B]" : "text-[#EF4444]"
-                      }`}
-                    >
-                      Remove
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  onPress={() => saveStage(index)}
-                  disabled={!canSave(stageItem)}
-                  className={`rounded-[14px] px-10 py-3 ${
-                    canSave(stageItem)
-                      ? isDarkMode
-                        ? "bg-[#050505]"
-                        : "bg-[#111111]"
-                      : isDarkMode 
-                        ? "bg-[#333]" 
-                        : "bg-[#D1D5DB]"
-                  }`}
-                >
-                  <Text className="text-white font-poppinsMedium text-[14px]">
-                    Save
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
-
-        {picker.show && (
-          <DateTimePicker
-            value={
-              picker.type === "start"
-                ? stageData[picker.index ?? 0]?.start
-                  ? new Date(stageData[picker.index ?? 0]!.start!)
-                  : new Date()
-                : stageData[picker.index ?? 0]?.end
-                  ? new Date(stageData[picker.index ?? 0]!.end!)
-                  : new Date()
-            }
-            mode="date"
-            display="default"
-            onChange={onChangeDate}
-            minimumDate={
-              picker.type === "end" && stageData[picker.index ?? 0]?.start
-                ? new Date(stageData[picker.index ?? 0]!.start!)
-                : undefined
-            }
-          />
-        )}
+          ))}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -599,7 +618,9 @@ const StageDetail: React.FC = () => {
       {stageData[stageData.length - 1]?.saved && (
         <View
           className={`px-4 pb-2 pt-2  ${
-            isDarkMode ? "bg-[#0D0D0D] border-[#1A1A1A]" : "bg-white border-[#F0F3F7]"
+            isDarkMode
+              ? "bg-[#0D0D0D] border-[#1A1A1A]"
+              : "bg-white border-[#F0F3F7]"
           }`}
           style={{ paddingBottom: Math.max(insets.bottom, 15) }}
         >

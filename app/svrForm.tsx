@@ -505,6 +505,14 @@ const SVRform = () => {
           onPickImage={onPickImage}
           onDeleteImage={onDeleteImage}
           getIndex={() => index}
+          showDatePicker={showDatePicker && dateIndex === index}
+          onDatePickerChange={(event, date) => {
+            if (event.type === "set" && date) {
+              onDateConfirm(date);
+            } else {
+              setShowDatePicker(false);
+            }
+          }}
         />
       )),
     [
@@ -517,6 +525,9 @@ const SVRform = () => {
       onOpenDatePicker,
       onPickImage,
       onDeleteImage,
+      showDatePicker,
+      dateIndex,
+      onDateConfirm,
     ],
   );
 
@@ -752,21 +763,6 @@ const SVRform = () => {
             </TouchableOpacity>
           )}
         />
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) => {
-              if (event.type === "set" && date) {
-                onDateConfirm(date);
-              } else {
-                setShowDatePicker(false);
-              }
-            }}
-          />
-        )}
 
         {/* Bottom action bar */}
         <View

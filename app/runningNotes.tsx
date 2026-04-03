@@ -1454,6 +1454,23 @@ const RunningNotes = () => {
                 </View>
               </TouchableOpacity>
 
+              {/* Date Picker — inline below the due date row */}
+              {showEditDatePicker && (
+                <DateTimePicker
+                  value={editingNote?.targetDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, date) => {
+                    if (event.type === "set" && date) {
+                      setShowEditDatePicker(false);
+                      setEditingNote((prev) => prev && { ...prev, targetDate: date });
+                    } else {
+                      setShowEditDatePicker(false);
+                    }
+                  }}
+                />
+              )}
+
               {/* CREATED BY FOOTER */}
               {editingNote?.createdBy && (
                 <View className="px-4 py-1 pt-2 flex-row justify-between items-center">
@@ -1536,22 +1553,6 @@ const RunningNotes = () => {
           </View>
         </KeyboardStickyView>
       </Modal>
-
-      {showEditDatePicker && (
-        <DateTimePicker
-          value={editingNote?.targetDate || new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => {
-            if (event.type === "set" && date) {
-              setShowEditDatePicker(false);
-              setEditingNote((prev) => prev && { ...prev, targetDate: date });
-            } else {
-              setShowEditDatePicker(false);
-            }
-          }}
-        />
-      )}
     </>
   );
 };
