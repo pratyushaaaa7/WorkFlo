@@ -598,7 +598,7 @@ const ProjectMain = () => {
           {/* Project Description */}
           {project?.projectDescription && (
             <Text
-              className="text-base  leading-6 font-poppins text-[#454545] dark:text-[#919191]"
+              className="text-base  leading-6 border-b-[1px] mt-2 pb-2 border-[#E0E5EB] dark:border-[#413E47]  font-poppins text-[#454545] dark:text-[#919191]"
               style={{ color: colors.textSecondary }}
             >
               {project?.projectDescription}
@@ -606,7 +606,7 @@ const ProjectMain = () => {
           )}
 
           {/* Tabs Grid */}
-          <View className="flex-row flex-wrap justify-between border-t-[1px] border-[#E0E5EB] dark:border-[#413E47]  mt-4 pt-4 pb-10">
+          <View className="flex-row flex-wrap justify-between   pt-4 pb-10">
             {menuItems.map((item) => (
               <TabCard
                 key={item.key}
