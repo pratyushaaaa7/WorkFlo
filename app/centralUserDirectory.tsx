@@ -223,14 +223,14 @@ export default function CentralUserDirectory() {
       }
     >
       <View className="flex-row items-center mb-3">
-        <GlobalAvatar
+        {/* <GlobalAvatar
           name={item.individualName || item.fullName || ""}
           uri={item.profileImage}
           size={48}
           fontSize={18}
           className="mr-4"
           borderRadius={12}
-        />
+        /> */}
         <View className="flex-1">
           {/* Row 1: ID | Name | Role */}
           <View className="flex-row items-center flex-wrap mb-1">

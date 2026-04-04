@@ -77,17 +77,42 @@ const getDaysLeft = (targetDate: string) => {
 // Helper to safely extract ID
 const getSafeId = (user: any): string => {
   if (!user) return "";
-  const idInfo = user._id || user.id; // Handle possible id variations
+  if (typeof user === "string") return user;
+
+  const idInfo = user._id || user.id || user.$oid;
 
   if (typeof idInfo === "string") return idInfo;
 
-  // If it's an object, try to extract nested _id
   if (idInfo && typeof idInfo === "object") {
-    if (idInfo._id) return getSafeId(idInfo); // Recursive if needed
-    return idInfo.toString();
+    if (idInfo.$oid) return idInfo.$oid;
+    if (idInfo._id) return getSafeId(idInfo);
+    if (
+      typeof idInfo.toString === "function" &&
+      idInfo.toString() !== "[object Object]"
+    ) {
+      return idInfo.toString();
+    }
   }
 
-  return String(idInfo || Math.random());
+  // Fallback for user being the ID object itself
+  if (user.$oid) return user.$oid;
+  if (
+    typeof user.toString === "function" &&
+    user.toString() !== "[object Object]"
+  ) {
+    return user.toString();
+  }
+
+  return "";
+};
+
+const cleanName = (fullName: string, firmName: string) => {
+  if (!fullName || !firmName) return fullName || "N/A";
+  const bracketed = `(${firmName.trim()})`;
+  if (fullName.trim().toLowerCase().endsWith(bracketed.toLowerCase())) {
+    return fullName.trim().slice(0, -bracketed.length).trim();
+  }
+  return fullName.trim();
 };
 
 const IlrActivities = () => {
@@ -147,9 +172,14 @@ const IlrActivities = () => {
 
   const filteredUsers = useMemo(() => {
     const query = assigneeSearchQuery.toLowerCase();
+    const seen = new Set();
     const availableUsers = projectUsers.filter((u) => {
+      const uId = getSafeId(u);
+      if (!uId || seen.has(uId)) return false;
+      seen.add(uId);
+
       const isAlreadyIn = tempAssignees.some(
-        (ta) => getSafeId(ta) === getSafeId(u),
+        (ta) => getSafeId(ta) === uId,
       );
       return (
         !isAlreadyIn &&
@@ -326,14 +356,17 @@ const IlrActivities = () => {
       const res = await api.get(`/projects/${ilr.projectId}/users-dropdown`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Map API response to Responsibility type
-      const mapped = res.data.map((u: any) => ({
-        _id: u._id,
-        name: `${u.individualName} (${u.firmName})`,
-        individualName: u.individualName,
-        firmName: u.firmName,
-        designation: u.designation || "",
-      }));
+      const mapped = res.data.map((u: any) => {
+        const firm = u.firmName || "";
+        const rawName = u.individualName || u.name || "N/A";
+        return {
+          _id: u._id,
+          name: cleanName(rawName, firm),
+          individualName: cleanName(rawName, firm),
+          firmName: firm,
+          designation: u.designation || "",
+        };
+      });
       setProjectUsers(mapped);
     } catch (err) {
       console.error("Error fetching project users:", err);
@@ -422,8 +455,10 @@ const IlrActivities = () => {
     setShowAssigneeModal(false);
     // Send selected objects (ensure they match responsibility schema)
     const responsibility = tempAssignees.map((a) => ({
-      _id: a._id,
-      name: a.name,
+      _id: getSafeId(a),
+      name: a.individualName || a.name || "N/A",
+      individualName: a.individualName,
+      firmName: a.firmName,
     }));
 
     try {

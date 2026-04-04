@@ -319,13 +319,13 @@ const Dashboard = () => {
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+            {/* <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
               <HugeiconsIcon
                 icon={FilterHorizontalIcon}
                 size={24}
                 color="#606060"
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 

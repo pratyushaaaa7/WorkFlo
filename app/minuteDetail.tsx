@@ -380,13 +380,17 @@ const MinuteDetail = () => {
           headers: { Authorization: `Bearer ${auth?.token}` },
         },
       );
-      const mapped = res.data.map((u: any) => ({
-        _id: u._id,
-        name: u.individualName || u.name,
-        individualName: u.individualName,
-        firmName: u.firmName,
-        designation: u.designation || "",
-      }));
+      const mapped = res.data.map((u: any) => {
+        const firm = u.firmName || "";
+        const rawName = u.individualName || u.name || "N/A";
+        return {
+          _id: u._id,
+          name: cleanName(rawName, firm),
+          individualName: cleanName(rawName, firm),
+          firmName: firm,
+          designation: u.designation || "",
+        };
+      });
       setProjectUsers(mapped);
     } catch (err) {
       console.error("Error fetching project users:", err);
@@ -407,7 +411,14 @@ const MinuteDetail = () => {
     try {
       await api.put(
         `/minutes/${meetingId}/minutes/${minuteId}/status`,
-        { responsibility: tempAssignees.map((u) => ({ _id: getSafeId(u), name: u.individualName || u.name })) },
+        {
+          responsibility: tempAssignees.map((u) => ({
+            _id: getSafeId(u),
+            name: u.individualName || u.name || "N/A",
+            individualName: u.individualName,
+            firmName: u.firmName,
+          })),
+        },
         { headers: { Authorization: `Bearer ${auth?.token}` } },
       );
       setShowAssigneeModal(false);
@@ -422,14 +433,44 @@ const MinuteDetail = () => {
 
   const getSafeId = (user: any): string => {
     if (!user) return "";
-    const idInfo = user._id || user.id;
+    if (typeof user === "string") return user;
+
+    const idInfo = user._id || user.id || user.$oid;
+
     if (typeof idInfo === "string") return idInfo;
+
     if (idInfo && typeof idInfo === "object") {
+      if (idInfo.$oid) return idInfo.$oid;
       if (idInfo._id) return getSafeId(idInfo);
-      return idInfo.toString();
+      if (
+        typeof idInfo.toString === "function" &&
+        idInfo.toString() !== "[object Object]"
+      ) {
+        return idInfo.toString();
+      }
     }
-    return String(idInfo || Math.random());
+
+    // Fallback for user being the ID object itself
+    if (user.$oid) return user.$oid;
+    if (
+      typeof user.toString === "function" &&
+      user.toString() !== "[object Object]"
+    ) {
+      return user.toString();
+    }
+
+    return "";
   };
+
+  const cleanName = (fullName: string, firmName: string) => {
+    if (!fullName || !firmName) return fullName || "N/A";
+    const bracketed = `(${firmName.trim()})`;
+    if (fullName.trim().toLowerCase().endsWith(bracketed.toLowerCase())) {
+      return fullName.trim().slice(0, -bracketed.length).trim();
+    }
+    return fullName.trim();
+  };
+
 
   // --- Fetch activity log from backend ---
   const fetchActivityLog = async (showLoader = true) => {
@@ -1781,14 +1822,21 @@ const MinuteDetail = () => {
                 },
                 {
                   title: 'people',
-                  data: projectUsers.filter((u) => {
-                    const name = (u.individualName || u.name || '').toLowerCase();
-                    const firm = (u.firmName || '').toLowerCase();
-                    const query = assigneeSearchQuery.toLowerCase();
-                    const isMatch = name.includes(query) || firm.includes(query);
-                    const isAlreadyIn = tempAssignees.some((ta) => getSafeId(ta) === getSafeId(u));
-                    return isMatch && !isAlreadyIn;
-                  }),
+                  data: (() => {
+                    const seen = new Set();
+                    return projectUsers.filter((u) => {
+                      const uId = getSafeId(u);
+                      if (!uId || seen.has(uId)) return false;
+                      seen.add(uId);
+
+                      const name = (u.individualName || u.name || '').toLowerCase();
+                      const firm = (u.firmName || '').toLowerCase();
+                      const query = assigneeSearchQuery.toLowerCase();
+                      const isMatch = name.includes(query) || firm.includes(query);
+                      const isAlreadyIn = tempAssignees.some((ta) => getSafeId(ta) === uId);
+                      return isMatch && !isAlreadyIn;
+                    });
+                  })(),
                 },
               ]}
               keyExtractor={(item, index) => getSafeId(item) || index.toString()}
