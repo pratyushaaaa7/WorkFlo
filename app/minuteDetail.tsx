@@ -1367,8 +1367,8 @@ const MinuteDetail = () => {
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={{ justifyContent: "flex-end", margin: 0 }}
+        avoidKeyboard={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             style={{
               backgroundColor: isDark ? "#1A1A1A" : "#fff",
@@ -1535,7 +1535,6 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
 
       {/* Modal for Target Date */}
@@ -1553,7 +1552,6 @@ const MinuteDetail = () => {
         hideModalContentWhileAnimating={true}
         avoidKeyboard={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             style={{
               backgroundColor: isDark ? "#121212" : "#FFFFFF",
@@ -1763,7 +1761,6 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1781,12 +1778,11 @@ const MinuteDetail = () => {
         onBackButtonPress={() => setShowAssigneeModal(false)}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
-            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
             {/* Handle Bar */}
             <View className="w-full items-center mb-4">
@@ -1930,7 +1926,6 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
     </View>
   );

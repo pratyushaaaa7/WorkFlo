@@ -1267,10 +1267,9 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1363,7 +1362,6 @@ const IlrActivities = () => {
               })()}
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1390,12 +1388,11 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
-            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85vh] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
             {/* Handle Bar */}
             <View className="w-full items-center mb-4">
@@ -1513,7 +1510,6 @@ const IlrActivities = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
 
       {/* Change Target Date Modal */}
@@ -1540,10 +1536,9 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1617,17 +1612,16 @@ const IlrActivities = () => {
                 ref={dateNoteInputRef}
                 value={tempDateNote}
                 onChangeText={setTempDateNote}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                className={` rounded-xl font-poppins text-[15px] mb-6 min-h-[100px] ${isDark ? "text-white " : "text-black "}`}
                 placeholder="Reason for change..."
-                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+                placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+                className={`font-poppins text-[15px] p-2 min-h-[80px] ${isDark ? "text-white" : "text-black"}`}
+                multiline
+                textAlignVertical="top"
               />
             </ScrollView>
 
             {/* Buttons */}
-            <View className="flex-row gap-3 mb-5">
+            <View className="flex-row gap-3 mt-4">
               <TouchableOpacity
                 onPress={() => {
                   Keyboard.dismiss();
@@ -1642,59 +1636,44 @@ const IlrActivities = () => {
                 </Text>
               </TouchableOpacity>
 
-              {(() => {
-                const isReasonEmpty = !(tempDateNote || "").trim();
-                const isDateSame =
-                  ilr.targetDate && tempDate
-                    ? new Date(tempDate).toDateString() ===
-                      new Date(ilr.targetDate).toDateString()
-                    : false;
-                const isSaveDisabled = isReasonEmpty || isDateSame || !tempDate;
-
-                return (
-                  <TouchableOpacity
-                    onPress={saveDateChange}
-                    disabled={isSaveDisabled}
-                    className="flex-1"
+              <TouchableOpacity
+                onPress={saveDateChange}
+                disabled={!tempDate || !tempDateNote.trim()}
+                className="flex-1"
+              >
+                {!tempDate || !tempDateNote.trim() ? (
+                  <View
+                    style={{ backgroundColor: isDark ? "#333" : "#BDBDBD" }}
+                    className="py-3 rounded-xl items-center justify-center"
                   >
-                    {isSaveDisabled ? (
-                      <View
-                        style={{
-                          backgroundColor: isDark ? "#333" : "#BDBDBD",
-                        }}
-                        className="py-3 rounded-xl items-center justify-center"
-                      >
-                        <Text
-                          className={`text-[16px] font-poppins ${
-                            isDark ? "text-[#666]" : "text-[#757575]"
-                          }`}
-                        >
-                          Save
-                        </Text>
-                      </View>
-                    ) : (
-                      <LinearGradient
-                        colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={{
-                          borderRadius: 12,
-                          paddingVertical: 12,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Text className="text-[16px] font-poppins text-white">
-                          Save
-                        </Text>
-                      </LinearGradient>
-                    )}
-                  </TouchableOpacity>
-                );
-              })()}
+                    <Text
+                      className={`text-[16px] font-poppins ${
+                        isDark ? "text-[#666]" : "text-[#757575]"
+                      }`}
+                    >
+                      Save
+                    </Text>
+                  </View>
+                ) : (
+                  <LinearGradient
+                    colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text className="text-[16px] font-poppins text-white">
+                      Save
+                    </Text>
+                  </LinearGradient>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
-        </KeyboardStickyView>
       </Modal>
     </View>
   );
