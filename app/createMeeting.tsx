@@ -622,13 +622,28 @@ const CreateMinutes = () => {
     setShowDatePicker(true);
   }, []);
 
-  const onDateChange = (_: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate && dateIndex !== null) {
-      updateMinute(dateIndex, "targetDate", selectedDate.toISOString());
+  const onDateConfirm = useCallback(
+    (date: Date) => {
+      if (dateIndex !== null) {
+        updateMinute(dateIndex, "targetDate", date.toISOString());
+      }
+      setShowDatePicker(false);
       setDateIndex(null);
-    }
-  };
+    },
+    [dateIndex, updateMinute],
+  );
+
+  const onDateChange = useCallback(
+    (event: any, selectedDate?: Date) => {
+      if (event.type === "set" && selectedDate) {
+        onDateConfirm(selectedDate);
+      } else {
+        setShowDatePicker(false);
+        setDateIndex(null);
+      }
+    },
+    [onDateConfirm],
+  );
 
   const onAttendeeDragEnd = useCallback(({ data }: { data: any[] }) => {
     setAttendees(data.map((item, index) => ({ ...item, sNo: index + 1 })));
@@ -750,48 +765,7 @@ const CreateMinutes = () => {
     ],
   );
 
-  const renderMinute = useCallback(
-    ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
-      const idx = getIndex();
-      return (
-        <ScaleDecorator>
-          <MinuteItem
-            item={item}
-            drag={drag}
-            isActive={isActive}
-            expanded={!!item.isExpanded}
-            onToggleExpand={handleToggleMinute}
-            onUpdate={updateMinute}
-            onDeleteRequest={handleDeleteMinuteRequest}
-            users={internalUsers}
-            showDelete={true}
-            isDarkMode={isDarkMode}
-            onOpenDatePicker={openDatePicker}
-            onPickImage={handlePickImage}
-            onDeleteImage={handleDeleteImage}
-            getIndex={getIndex}
-            showDatePicker={showDatePicker && dateIndex === idx}
-            onDatePickerChange={onDateChange}
-            fieldErrors={
-              idx !== undefined ? validationErrors.minutes?.[idx] : undefined
-            }
-            multipleImages={true}
-          />
-        </ScaleDecorator>
-      );
-    },
-    [
-      internalUsers,
-      isDarkMode,
-      handleToggleMinute,
-      updateMinute,
-      handleDeleteMinuteRequest,
-      openDatePicker,
-      handlePickImage,
-      handleDeleteImage,
-      validationErrors,
-    ],
-  );
+
 
   const formatAttendees = () => {
     return attendees.map((a) => ({
@@ -1795,12 +1769,40 @@ const CreateMinutes = () => {
                       data={minutes}
                       onDragEnd={onMinuteDragEnd}
                       keyExtractor={(item) => item.id}
-                      renderItem={renderMinute}
                       activationDistance={20}
                       removeClippedSubviews={Platform.OS === "android"}
                       maxToRenderPerBatch={10}
                       initialNumToRender={10}
                       windowSize={5}
+                      renderItem={({ item, drag, isActive, getIndex }) => {
+                        const idx = getIndex();
+                        return (
+                          <ScaleDecorator>
+                            <MinuteItem
+                              item={item}
+                              drag={drag}
+                              isActive={isActive}
+                              expanded={!!item.isExpanded}
+                              onToggleExpand={handleToggleMinute}
+                              onUpdate={updateMinute}
+                              onDeleteRequest={handleDeleteMinuteRequest}
+                              users={internalUsers}
+                              showDelete={true}
+                              isDarkMode={isDarkMode}
+                              onOpenDatePicker={openDatePicker}
+                              onPickImage={handlePickImage}
+                              onDeleteImage={handleDeleteImage}
+                              getIndex={getIndex}
+                              showDatePicker={showDatePicker && dateIndex === idx}
+                              onDatePickerChange={onDateChange}
+                              fieldErrors={
+                                idx !== undefined ? validationErrors.minutes?.[idx] : undefined
+                              }
+                              multipleImages={true}
+                            />
+                          </ScaleDecorator>
+                        );
+                      }}
                     />
 
                     <TouchableOpacity
