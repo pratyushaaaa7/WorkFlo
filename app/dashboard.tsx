@@ -84,10 +84,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Background pre-fetch projects after 2 seconds
     const timer = setTimeout(() => {
-        prefetchFirstPages();
+      prefetchFirstPages();
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -268,13 +268,13 @@ const Dashboard = () => {
           </View>
 
           <View className="flex-row items-center gap-3">
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <HugeiconsIcon
                 icon={Notification01Icon}
                 size={24}
                 color={isDarkMode ? "#D2D2D2" : "#454545"}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity onPress={() => router.push("/profile")}>
               <GlobalAvatar
                 name={user?.fullName || user?.username || "User"}
