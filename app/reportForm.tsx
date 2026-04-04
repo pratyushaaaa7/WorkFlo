@@ -157,6 +157,7 @@ const ReportForm: React.FC = () => {
   const [loadingImages, setLoadingImages] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [loadingStep, setLoadingStep] = useState("");
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
 
@@ -487,6 +488,7 @@ const ReportForm: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setUploading(true);
+      setLoadingStep("Validating...");
 
       // 0. Validation: All images must have a caption
       for (let i = 0; i < photos.length; i++) {
@@ -533,6 +535,7 @@ const ReportForm: React.FC = () => {
       const createdBy = user?.fullName || "Unknown";
 
       // --- Optimized Image Processing with Batching for Low-End Devices ---
+      setLoadingStep("Compressing images...");
       let photosWithBase64: (DprPhoto & { base64: string })[] | null = [];
       const PROCESSING_BATCH_SIZE = 1; // Ultra-safe: 1 at a time for low-end logic
 
@@ -555,6 +558,7 @@ const ReportForm: React.FC = () => {
         setProgress(((i + 1) / photos.length) * 100);
       }
 
+      setLoadingStep("Generating PDF...");
       // --- DPR PDF GENERATION ---
       const { PdfEngine } = require("../lib/PdfEngine");
       const engine = new PdfEngine({
@@ -597,13 +601,14 @@ const ReportForm: React.FC = () => {
       const uri = await engine.finalize();
 
       const newFileName = `DPR_${projectName || "Project"}_${getFormattedDate()}.pdf`;
-      const newUri = `${FileSystem.documentDirectory}dpr/pdfs/${newFileName}`;
+      const newUri = `${FileSystem.cacheDirectory}dpr/pdfs/${newFileName}`;
       await FileSystem.makeDirectoryAsync(
-        `${FileSystem.documentDirectory}dpr/pdfs`,
+        `${FileSystem.cacheDirectory}dpr/pdfs`,
         { intermediates: true },
       );
       await FileSystem.moveAsync({ from: uri, to: newUri });
 
+      setLoadingStep("Uploading to server...");
       // --- BACKEND SYNC ---
       if (token) {
         try {
@@ -632,38 +637,64 @@ const ReportForm: React.FC = () => {
               "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${token}`,
             },
+            timeout: 60000, // 60 seconds timeout to cancel request if stuck
           });
 
           console.log("DPR successfully synced with backend");
+          
+          await FileSystem.deleteAsync(newUri, { idempotent: true });
+
           Toast.show({
             type: "success",
-            text1: "Synced",
-            text2: "Report data synced with server",
+            text1: "Report Complete",
+            text2: "DPR successfully uploaded to server.",
             position: "bottom",
           });
-        } catch (syncErr) {
+
+          // Clear photos and navigate to DPRs page
+          clearPhotos(projectIdStr);
+          await AsyncStorage.removeItem(`reportData_${projectIdStr}`);
+          router.replace({
+            pathname: "/dprs",
+            params: {
+              projectId,
+              projectName,
+              company,
+              teamLeaders,
+              teamMembers,
+            },
+          });
+          
+        } catch (syncErr: any) {
           console.error("Backend sync failed:", syncErr);
-          // Don't block the user, as the PDF is already saved locally
+          
+          let errText = "Server sync failed. Please try again.";
+          if (syncErr?.code === 'ECONNABORTED' || syncErr?.message?.includes('timeout')) {
+            errText = "Upload timed out. Please try again.";
+          }
+
+          // Delete temp PDF to free cache, they can retry and regenerate
+          await FileSystem.deleteAsync(newUri, { idempotent: true });
+
           Toast.show({
-            type: "info",
-            text1: "Sync Issue",
-            text2: "PDF saved, but server sync failed.",
+            type: "error",
+            text1: "Upload Failed",
+            text2: errText,
             position: "bottom",
           });
+          setUploading(false);
+          return; // Stop here, so they don't lose data and can retry
         }
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Authentication Error",
+          text2: "You are not authenticated to upload.",
+          position: "bottom",
+        });
+        setUploading(false);
+        return;
       }
-
-      Toast.show({
-        type: "success",
-        text1: "Report Complete",
-        text2: "DPR PDF generated successfully.",
-        position: "bottom",
-      });
-
-      // Clear photos and navigate to DPRs page
-      clearPhotos(projectIdStr);
-      await AsyncStorage.removeItem(`reportData_${projectIdStr}`);
-      router.replace("/dprs");
     } catch (err: any) {
       console.error("Report generation error:", err);
       Alert.alert("Error", err?.message || "Something went wrong.");
@@ -1028,8 +1059,8 @@ const ReportForm: React.FC = () => {
                 {uploading ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#fff" />
-                    <Text className="text-[#fff] font-dmBold text-base ml-2">
-                      {progress.toFixed(0)}%
+                    <Text className="text-[#fff] font-dmBold text-xs ml-2">
+                      {loadingStep === "Compressing images..." ? `${progress.toFixed(0)}%` : loadingStep}
                     </Text>
                   </View>
                 ) : (

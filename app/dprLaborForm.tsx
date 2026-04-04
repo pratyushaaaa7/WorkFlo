@@ -3,7 +3,7 @@ import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   Animated,
@@ -202,35 +202,44 @@ const LaborForm = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const loadSaved = async () => {
-      // 🧱 Reset state immediately when projectId changes to prevent data bleeding
-      isInitialLoadDone.current = false;
-      setVendors([defaultVendor()]);
-
-      try {
-        const saved = await AsyncStorage.getItem(storageKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.vendors && parsed.vendors.length > 0) {
-            setVendors(parsed.vendors);
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadSaved = async () => {
+        // 🧱 Reset state immediately when focused to prevent data bleeding
+        isInitialLoadDone.current = false;
+        
+        try {
+          const saved = await AsyncStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.vendors && parsed.vendors.length > 0) {
+              setVendors(parsed.vendors);
+            } else {
+              setVendors([defaultVendor()]);
+            }
+          } else {
+            setVendors([defaultVendor()]);
           }
+        } catch (err) {
+          console.log("Error loading saved vendors:", err);
+          setVendors([defaultVendor()]);
+        } finally {
+          isInitialLoadDone.current = true;
         }
-      } catch (err) {
-        console.log("Error loading saved vendors:", err);
-      } finally {
-        isInitialLoadDone.current = true;
-      }
-    };
-    loadSaved();
+      };
+      
+      loadSaved();
 
-    // Fade-in animation for screen
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
-    }).start();
-  }, [projectId]);
+      // Fade-in animation for screen
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }).start();
+      
+    }, [projectId, storageKey]) // Re-run when focus happens or ID changes
+  );
 
   // Auto-save whenever vendors change
   useEffect(() => {
