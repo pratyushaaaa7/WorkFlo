@@ -520,19 +520,12 @@ const DPRs = () => {
             renderItem={() => <ReportSkeleton isDark={isDark} />}
             showsVerticalScrollIndicator={false}
           />
-        ) : filteredDPRs.length === 0 ? (
-          <Text
-            style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
-            className="text-center font-medium mt-16"
-          >
-            No DPRs found.
-          </Text>
         ) : (
           <FlatList
             data={filteredDPRs}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
             initialNumToRender={8}
             maxToRenderPerBatch={6}
             windowSize={5}
@@ -563,6 +556,14 @@ const DPRs = () => {
                 <DPRCard item={item} />
               </TouchableOpacity>
             )}
+            ListEmptyComponent={
+              <Text
+                style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
+                className="text-center font-medium mt-16"
+              >
+                No DPRs found.
+              </Text>
+            }
           />
         )}
 

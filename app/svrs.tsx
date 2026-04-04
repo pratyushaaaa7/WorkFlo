@@ -474,19 +474,12 @@ const SVRs = () => {
             renderItem={() => <ReportSkeleton isDark={isDark} />}
             showsVerticalScrollIndicator={false}
           />
-        ) : filteredSVRs.length === 0 ? (
-          <Text
-            style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
-            className="text-center font-medium mt-16"
-          >
-            No SVRs found.
-          </Text>
         ) : (
           <FlatList
             data={filteredSVRs}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
             initialNumToRender={8}
             maxToRenderPerBatch={6}
             windowSize={5}
@@ -517,6 +510,14 @@ const SVRs = () => {
                 <SVRCard item={item} />
               </TouchableOpacity>
             )}
+            ListEmptyComponent={
+              <Text
+                style={{ color: isDark ? "#9CA3AF" : "#9CA3AF" }}
+                className="text-center font-medium mt-16"
+              >
+                No SVRs found.
+              </Text>
+            }
           />
         )}
       </View>

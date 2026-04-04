@@ -1071,7 +1071,7 @@ const ILRs = () => {
               <View key={`header-${title}`} className="h-2" />
             )}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
             initialNumToRender={10}
             maxToRenderPerBatch={5}
             windowSize={5}

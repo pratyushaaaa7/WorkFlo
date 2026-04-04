@@ -596,18 +596,12 @@ const Minutes = () => {
               <MeetingSkeletonCard key={key} />
             ))}
           </View>
-        ) : filteredMeetings.length === 0 ? (
-          <View className="mt-20 items-center">
-            <Text className="text-[#64748B] dark:text-[#94A3B8] text-lg font-poppinsMedium text-center">
-              No meetings found for this project
-            </Text>
-          </View>
         ) : (
           <FlatList
             data={filteredMeetings}
             keyExtractor={(item) => item._id}
             renderItem={renderMeetingCard}
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
             showsVerticalScrollIndicator={false}
             initialNumToRender={8}
             maxToRenderPerBatch={6}
@@ -629,6 +623,13 @@ const Minutes = () => {
                 colors={["#6366F1"]}
                 tintColor="#6366F1"
               />
+            }
+            ListEmptyComponent={
+              <View className="mt-20 items-center">
+                <Text className="text-[#64748B] dark:text-[#94A3B8] text-lg font-poppinsMedium text-center">
+                  No meetings found for this project
+                </Text>
+              </View>
             }
           />
         )}
