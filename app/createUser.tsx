@@ -53,7 +53,7 @@ const DynamicInputField: React.FC<DynamicInputFieldProps> = ({
   const isDarkMode = useColorScheme() === "dark";
 
   return (
-    <View className="mb-6">
+    <View className="mb-4">
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-black dark:text-[#F5F5F5] font-dmSemiBold text-sm">
           {label}{" "}
