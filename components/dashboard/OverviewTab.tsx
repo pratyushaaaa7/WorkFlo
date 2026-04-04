@@ -11,6 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
+import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import React, { useContext, useEffect, useState } from "react";
 import {
@@ -31,12 +32,14 @@ const OverviewTab = ({
   refreshing,
   onRefresh,
   responsibleItems,
+  searchQuery = "",
 }: {
   setActiveTab: (tab: string) => void;
   loading: boolean;
   refreshing: boolean;
   onRefresh: () => void;
   responsibleItems: any[];
+  searchQuery?: string;
 }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
@@ -112,8 +115,19 @@ const OverviewTab = ({
     },
   ];
 
-  // Display only top 5 tasks in overview
-  const displayTasks = responsibleItems.slice(0, 5);
+  // Display only top 5 tasks in overview, filtered by searchQuery
+  const filteredTasks = searchQuery.trim()
+    ? responsibleItems.filter((item) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          item.title?.toLowerCase().includes(q) ||
+          item.description?.toLowerCase().includes(q) ||
+          item.projectName?.toLowerCase().includes(q) ||
+          item.type?.toLowerCase().includes(q)
+        );
+      })
+    : responsibleItems;
+  const displayTasks = filteredTasks.slice(0, 5);
 
   const getDateStatus = (dateString: string | null) => {
     if (!dateString || !isValid(new Date(dateString))) {
@@ -425,9 +439,28 @@ const OverviewTab = ({
             })
           ) : (
             <View className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 items-center">
-              <Text className="text-gray-500 dark:text-gray-400 font-poppins">
-                {isOffline ? "Unable to load tasks" : "You have no tasks :)"}
-              </Text>
+              {searchQuery.trim() ? (
+                <MotiView
+                  from={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "timing", duration: 300 }}
+                >
+                  <Text
+                    className={`text-base font-poppins text-center ${
+                      isDarkMode ? "text-[#BBBBBB]" : "text-[#454545]"
+                    }`}
+                  >
+                    No tasks found for{" "}
+                    <Text className="font-poppinsMedium text-black dark:text-white">
+                      "{searchQuery}"
+                    </Text>
+                  </Text>
+                </MotiView>
+              ) : (
+                <Text className="text-gray-500 dark:text-gray-400 font-poppins">
+                  {isOffline ? "Unable to load tasks" : "You have no tasks :)"}
+                </Text>
+              )}
             </View>
           )}
         </View>

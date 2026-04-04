@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid } from "date-fns";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
+import { MotiView } from "moti";
 import {
   ActivityIndicator,
   LayoutAnimation,
@@ -28,6 +29,7 @@ interface CalendarTabProps {
   refreshing: boolean;
   onRefresh: () => void;
   responsibleItems: any[];
+  searchQuery?: string;
 }
 
 const ProgressCircle = ({
@@ -269,7 +271,9 @@ const CalendarTab = ({
   refreshing,
   onRefresh,
   responsibleItems,
+  searchQuery = "",
 }: CalendarTabProps) => {
+  const isDark = useColorScheme() === "dark";
   const transformedData = useMemo(() => {
     if (!responsibleItems) return [];
 
@@ -313,6 +317,24 @@ const CalendarTab = ({
       }));
   }, [responsibleItems]);
 
+  // Filter groups by searchQuery — hide date groups with no matching tasks
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return transformedData;
+    const q = searchQuery.toLowerCase();
+    return transformedData
+      .map((group) => ({
+        ...group,
+        tasks: group.tasks.filter(
+          (task: any) =>
+            task.title?.toLowerCase().includes(q) ||
+            task.description?.toLowerCase().includes(q) ||
+            task.projectName?.toLowerCase().includes(q) ||
+            task.type?.toLowerCase().includes(q)
+        ),
+      }))
+      .filter((group) => group.tasks.length > 0);
+  }, [transformedData, searchQuery]);
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
@@ -334,15 +356,34 @@ const CalendarTab = ({
           />
         }
       >
-        {transformedData.length > 0 ? (
-          transformedData.map((group, index) => (
+        {filteredData.length > 0 ? (
+          filteredData.map((group, index) => (
             <DateSection key={index} group={group} />
           ))
         ) : (
-          <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-gray-500 dark:text-gray-400 text-lg font-poppinsMedium">
-              No tasks found in your calendar
-            </Text>
+          <View className="flex-1 items-center justify-center py-20 px-6">
+            {searchQuery.trim() ? (
+              <MotiView
+                from={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "timing", duration: 300 }}
+              >
+                <Text
+                  className={`text-base font-poppins text-center ${
+                    isDark ? "text-[#BBBBBB]" : "text-[#454545]"
+                  }`}
+                >
+                  No calendar tasks found for{" "}
+                  <Text className="font-poppinsMedium text-black dark:text-white">
+                    "{searchQuery}"
+                  </Text>
+                </Text>
+              </MotiView>
+            ) : (
+              <Text className="text-gray-500 dark:text-[#BBBBBB] text-base font-poppinsMedium text-center">
+                No tasks found in your calendar
+              </Text>
+            )}
           </View>
         )}
         <View className="h-24" />

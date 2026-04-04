@@ -13,7 +13,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   Animated,
   BackHandler,
@@ -27,6 +27,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import GlassNav from "../components/GlassNav";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
@@ -56,6 +57,7 @@ const Dashboard = () => {
   const [searchHeight, setSearchHeight] = useState(70); // Default approx
 
   const [activeTab, setActiveTabState] = useState("Overview");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Dashboard Data State
   const [dashboardData, setDashboardData] = useState<any>(null);
@@ -139,10 +141,11 @@ const Dashboard = () => {
             refreshing={refreshing}
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
+            searchQuery={searchQuery}
           />
         );
       case "Projects":
-        return <ProjectsTab refreshing={refreshing} onRefresh={onRefresh} />;
+        return <ProjectsTab refreshing={refreshing} onRefresh={onRefresh} searchQuery={searchQuery} />;
       case "Tasks":
         return (
           <TasksTab
@@ -150,6 +153,7 @@ const Dashboard = () => {
             refreshing={refreshing}
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
+            searchQuery={searchQuery}
           />
         );
       case "Calendar":
@@ -159,10 +163,11 @@ const Dashboard = () => {
             refreshing={refreshing}
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
+            searchQuery={searchQuery}
           />
         );
       case "Notes":
-        return <NotesTab refreshing={refreshing} onRefresh={onRefresh} />;
+        return <NotesTab refreshing={refreshing} onRefresh={onRefresh} searchQuery={searchQuery} />;
       default:
         return (
           <OverviewTab
@@ -171,6 +176,7 @@ const Dashboard = () => {
             refreshing={refreshing}
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
+            searchQuery={searchQuery}
           />
         );
     }
@@ -298,8 +304,20 @@ const Dashboard = () => {
               <TextInput
                 placeholder="Search"
                 placeholderTextColor="#606060"
-                className="flex-1 ml-3 font-dm text-[#606060] py-1"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                className="flex-1 ml-3 font-dm text-black dark:text-white py-1"
+                returnKeyType="search"
               />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")}>
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={isDarkMode ? "#6B7280" : "#94A3B8"}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
             <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
               <HugeiconsIcon

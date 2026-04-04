@@ -269,9 +269,11 @@ const ProjectCard = memo(
 const ProjectsTab = ({
   refreshing,
   onRefresh,
+  searchQuery = "",
 }: {
   refreshing: boolean;
   onRefresh: () => void;
+  searchQuery?: string;
 }) => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
   const [activeStatusFilter, setActiveStatusFilter] = useState("ALL");
@@ -327,10 +329,24 @@ const ProjectsTab = ({
     },
   ];
 
-  // Filter projects by status - Memoized for performance
+  // Filter projects by status and searchQuery - Memoized for performance
   const getFilteredProjects = (projects: Project[]) => {
-    if (activeStatusFilter === "ALL") return projects;
-    return projects.filter((project) => project.status?.toLowerCase() === activeStatusFilter);
+    let result = projects;
+    if (activeStatusFilter !== "ALL") {
+      result = result.filter((p) => p.status?.toLowerCase() === activeStatusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.projectName?.toLowerCase().includes(q) ||
+          p.projectDescription?.toLowerCase().includes(q) ||
+          (p as any).projectCode?.toLowerCase().includes(q) ||
+          (p as any).clientName?.toLowerCase().includes(q) ||
+          (p as any).location?.toLowerCase().includes(q)
+      );
+    }
+    return result;
   };
 
   const handleStatusPress = (status: string) => {
@@ -428,19 +444,40 @@ const ProjectsTab = ({
 
   const renderEmpty = (isLoading: boolean, companyKey: string) => (
     !isLoading ? (
-      <View className="flex-1 items-center justify-center mt-14">
-        <Image
-          source={isDarkMode ? require("../../assets/images/ghostDarkMode.png") : require("../../assets/images/ghostLightMode.png")}
-          style={{ width: 300, height: 220 }}
-          resizeMode="contain"
-        />
-        <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
-        <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
-          {activeStatusFilter === "ALL"
-            ? `You don't have any project in ${companyKey}`
-            : `You don't have any ${statusFilters.find((f) => f.key === activeStatusFilter)?.label} project in ${companyKey}`}
-        </Text>
-      </View>
+      searchQuery.trim() ? (
+        <View className="flex-1 items-center justify-center mt-14 px-6">
+          <MotiView
+            from={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "timing", duration: 300 }}
+          >
+            <Text
+              className={`text-base font-poppins text-center ${
+                isDarkMode ? "text-[#BBBBBB]" : "text-[#454545]"
+              }`}
+            >
+              No projects found for{" "}
+              <Text className="font-poppinsMedium text-black dark:text-white">
+                "{searchQuery}"
+              </Text>
+            </Text>
+          </MotiView>
+        </View>
+      ) : (
+        <View className="flex-1 items-center justify-center mt-14">
+          <Image
+            source={isDarkMode ? require("../../assets/images/ghostDarkMode.png") : require("../../assets/images/ghostLightMode.png")}
+            style={{ width: 300, height: 220 }}
+            resizeMode="contain"
+          />
+          <Text className="text-black dark:text-white font-dmSemiBold text-lg">No Projects</Text>
+          <Text className="text-[#454545] font-poppins dark:text-[#919191] mt-2 text-center px-10">
+            {activeStatusFilter === "ALL"
+              ? `You don't have any project in ${companyKey}`
+              : `You don't have any ${statusFilters.find((f) => f.key === activeStatusFilter)?.label} project in ${companyKey}`}
+          </Text>
+        </View>
+      )
     ) : (
       <View className="px-4">
         {[1, 2, 3].map((i) => <ProjectSkeleton key={i} />)}

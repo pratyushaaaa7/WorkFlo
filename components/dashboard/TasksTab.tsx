@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import AnimatedTabIndicator from "../AnimatedTabIndicator";
+import { MotiView } from "moti";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +31,7 @@ interface TasksTabProps {
   refreshing: boolean;
   onRefresh: () => void;
   responsibleItems: any[];
+  searchQuery?: string;
 }
 
 const getDateStatus = (dateString: string | null, isDarkMode: boolean) => {
@@ -249,6 +251,7 @@ const TasksTab = ({
   refreshing,
   onRefresh,
   responsibleItems,
+  searchQuery = "",
 }: TasksTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
   const isDarkMode = useColorScheme() === "dark";
@@ -266,9 +269,19 @@ const TasksTab = ({
 
     const activeType = typeMap[subTab];
 
-    // Filter and transform
+    // Filter by type and searchQuery
+    const q = searchQuery.trim().toLowerCase();
     const sourceData = responsibleItems
-      .filter((item) => item.type === activeType)
+      .filter((item) => {
+        if (item.type !== activeType) return false;
+        if (!q) return true;
+        return (
+          item.title?.toLowerCase().includes(q) ||
+          item.description?.toLowerCase().includes(q) ||
+          item.remarks?.toLowerCase().includes(q) ||
+          item.projectName?.toLowerCase().includes(q)
+        );
+      })
       .map((item) => ({
         id: item.id,
         title: item.title,
@@ -422,10 +435,29 @@ const TasksTab = ({
                     <ProjectSection key={idx} project={project} />
                   ))
                 ) : (
-                  <View className="items-center py-10">
-                    <Text className="text-gray-500 font-poppins">
-                      You have nothing in {tabName}
-                    </Text>
+                  <View className="items-center py-14 px-6">
+                    {searchQuery.trim() ? (
+                      <MotiView
+                        from={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "timing", duration: 300 }}
+                      >
+                        <Text
+                          className={`text-base font-poppins text-center ${
+                            isDarkMode ? "text-[#BBBBBB]" : "text-[#454545]"
+                          }`}
+                        >
+                          No tasks found for{" "}
+                          <Text className="font-poppinsMedium text-black dark:text-white">
+                            "{searchQuery}"
+                          </Text>
+                        </Text>
+                      </MotiView>
+                    ) : (
+                      <Text className="text-gray-500 dark:text-[#BBBBBB] font-poppins">
+                        You have nothing in {tabName}
+                      </Text>
+                    )}
                   </View>
                 )}
                 <View className="h-20" />

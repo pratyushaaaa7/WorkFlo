@@ -40,9 +40,11 @@ const NoteSkeleton = ({ isDark }: { isDark: boolean }) => {
 const NotesTab = ({
   refreshing,
   onRefresh,
+  searchQuery = "",
 }: {
   refreshing: boolean;
   onRefresh: () => void;
+  searchQuery?: string;
 }) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -127,8 +129,16 @@ const NotesTab = ({
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const leftColumn = notes.filter((_, index) => index % 2 === 0);
-  const rightColumn = notes.filter((_, index) => index % 2 !== 0);
+  const filteredNotes = searchQuery.trim()
+    ? notes.filter(
+        (note) =>
+          note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.content?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : notes;
+
+  const leftColumn = filteredNotes.filter((_, index) => index % 2 === 0);
+  const rightColumn = filteredNotes.filter((_, index) => index % 2 !== 0);
 
   const NoteCard = ({
     note,
@@ -253,6 +263,27 @@ const NotesTab = ({
                 <NoteSkeleton isDark={isDark} />
               </View>
             </View>
+          </View>
+        ) : filteredNotes.length === 0 && searchQuery.trim() ? (
+          /* 🔹 NO SEARCH RESULTS STATE */
+          <View className="mt-20 items-center justify-center px-6">
+            <MotiView
+              key="no-results"
+              from={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "timing", duration: 300 }}
+            >
+              <Text
+                className={`mt-4 text-base font-poppins text-center ${
+                  isDark ? "text-[#BBBBBB]" : "text-[#454545]"
+                }`}
+              >
+                No notes found for{" "}
+                <Text className="font-poppinsMedium text-black dark:text-white">
+                  "{searchQuery}"
+                </Text>
+              </Text>
+            </MotiView>
           </View>
         ) : notes.length === 0 ? (
           /* 🔹 EMPTY STATE (Only if NOT loading or if strictly empty after fetch) */
