@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
 import Toast from "react-native-toast-message";
 import GlobalAvatar from "../GlobalAvatar";
+import { useAuth } from "../../context/AuthContext";
 
 interface AboutTabProps {
   userData: any;
@@ -169,6 +170,7 @@ const Section = ({
 
 const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const { user } = useAuth();
   const router = useRouter();
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
@@ -235,6 +237,12 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
         <InfoField
           label="Role"
           value={userData?.role}
+          isDarkMode={isDarkMode}
+          loading={loading}
+        />
+        <InfoField
+          label="Level"
+          value={userData?.level}
           isDarkMode={isDarkMode}
           loading={loading}
         />
@@ -365,62 +373,64 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
       )}
 
       {/* Personal Information */}
-      <Section title="Personal Details">
-        <InfoField
-          label="Gender"
-          value={userData?.gender}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="Birth Date"
-          value={
-            userData?.birthDate
-              ? moment(userData.birthDate).format("DD MMM YYYY")
-              : undefined
-          }
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="Father's Name"
-          value={toProperCase(userData?.fatherName)}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="Mother's Name"
-          value={toProperCase(userData?.motherName)}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="Marital Status"
-          value={userData?.maritalStatus}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        {userData?.maritalStatus === "Married" && (
+      {user?.role === "admin" && (
+        <Section title="Personal Details">
           <InfoField
-            label="Spouse Name"
-            value={toProperCase(userData?.spouseName)}
+            label="Gender"
+            value={userData?.gender}
             isDarkMode={isDarkMode}
             loading={loading}
           />
-        )}
-        <InfoField
-          label="Home Address"
-          value={toProperCase(userData?.homeAddress)}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="Blood Group"
-          value={userData?.bloodGroup}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-      </Section>
+          <InfoField
+            label="Birth Date"
+            value={
+              userData?.birthDate
+                ? moment(userData.birthDate).format("DD MMM YYYY")
+                : undefined
+            }
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          <InfoField
+            label="Father's Name"
+            value={toProperCase(userData?.fatherName)}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          <InfoField
+            label="Mother's Name"
+            value={toProperCase(userData?.motherName)}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          <InfoField
+            label="Marital Status"
+            value={userData?.maritalStatus}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          {userData?.maritalStatus === "Married" && (
+            <InfoField
+              label="Spouse Name"
+              value={toProperCase(userData?.spouseName)}
+              isDarkMode={isDarkMode}
+              loading={loading}
+            />
+          )}
+          <InfoField
+            label="Home Address"
+            value={toProperCase(userData?.homeAddress)}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          <InfoField
+            label="Blood Group"
+            value={userData?.bloodGroup}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+        </Section>
+      )}
 
       {/* Contact Information */}
       <Section title="Contact Details">
@@ -475,20 +485,22 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
       </Section>
 
       {/* Identity Information */}
-      <Section title="Identity Information">
-        <InfoField
-          label="Aadhar Number"
-          value={userData?.aadhar}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-        <InfoField
-          label="PAN Number"
-          value={userData?.pan}
-          isDarkMode={isDarkMode}
-          loading={loading}
-        />
-      </Section>
+      {user?.role === "admin" && (
+        <Section title="Identity Information">
+          <InfoField
+            label="Aadhar Number"
+            value={userData?.aadhar}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+          <InfoField
+            label="PAN Number"
+            value={userData?.pan}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+        </Section>
+      )}
 
       {/* Key Strengths */}
       {userData?.keyStrength && userData.keyStrength.length > 0 && (
