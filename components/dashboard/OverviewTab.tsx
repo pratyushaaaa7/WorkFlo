@@ -385,7 +385,10 @@ const OverviewTab = ({
                         />
                       </View>
                       <View className="flex-1">
-                        <Text className=" font-dmSemiBold text-gray-900 dark:text-white mb-1">
+                        <Text
+                          className=" font-dmSemiBold text-gray-900 dark:text-white mb-1"
+                          numberOfLines={2}
+                        >
                           {task.title}
                         </Text>
 

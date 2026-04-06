@@ -121,13 +121,16 @@ const TaskItem = ({ task }: { task: any }) => {
             />
           </View>
           <View className="flex-1">
-            <Text className="font-dmSemiBold text-gray-900 dark:text-white mb-1">
+            <Text
+              className="font-dmSemiBold text-gray-900 dark:text-white mb-1"
+              numberOfLines={3}
+            >
               {task.title}
             </Text>
             {!!task.description && (
               <Text
                 className="text-sm text-[#454545] dark:text-[#919191] font-poppins mb-2"
-                numberOfLines={2}
+                numberOfLines={3}
               >
                 {task.description}
               </Text>
