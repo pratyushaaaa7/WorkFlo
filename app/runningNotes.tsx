@@ -406,6 +406,7 @@ const RunningNotes = () => {
   );
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
   const sectionListRef = useRef<SectionList>(null);
+  const editMultiSelectRef = useRef<any>(null);
   const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(
     null,
   );
@@ -1304,6 +1305,7 @@ const RunningNotes = () => {
                 </View>
                 <View className="flex-1">
                   <MultiSelect
+                    ref={editMultiSelectRef}
                     style={{
                       height: 38,
                       backgroundColor: isDarkMode ? "#0D0D0D" : "#F0F3F7",
@@ -1337,13 +1339,23 @@ const RunningNotes = () => {
                     labelField="label"
                     valueField="value"
                     value={(editingNote?.responsible || []) as string[]}
-                    onChange={(item) =>
+                    onChange={(item) => {
                       setEditingNote(
                         (prev) => prev && { ...prev, responsible: item },
-                      )
-                    }
+                      );
+                      editMultiSelectRef.current?.close();
+                    }}
                     search
                     searchPlaceholder="Search..."
+                    inputSearchStyle={{
+                      backgroundColor: isDarkMode ? "#000" : "#F0F3F7",
+                      color: isDarkMode ? "#fff" : "#000",
+                      borderColor: isDarkMode ? "#2B2B2B" : "#E0E5EB",
+                      borderRadius: 8,
+                      height: 48,
+                      fontSize: 13,
+                      fontFamily: "Poppins_400Regular",
+                    }}
                     renderRightIcon={() => (
                       <View>
                         <HugeiconsIcon
