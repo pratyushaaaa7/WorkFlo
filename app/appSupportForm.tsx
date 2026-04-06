@@ -17,6 +17,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
 
@@ -350,38 +351,40 @@ const CreateSupport = () => {
       </KeyboardAwareScrollView>
 
       {/* 🔹 STICKY SUBMIT BUTTON */}
-      <View className="px-5 pb-10 pt-2 bg-white dark:bg-black">
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              paddingVertical: 16,
-              borderRadius: 12,
-              alignItems: "center",
-              justifyContent: "center",
-              shadowColor: "#5B4CCC",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.3,
-              shadowRadius: 15,
-              elevation: 8,
-            }}
+      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+        <View className="px-5 pb-10 pt-2 bg-white dark:bg-black">
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={loading}
+            activeOpacity={0.8}
           >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white text-lg font-poppinsMedium">
-                Submit
-              </Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                paddingVertical: 16,
+                borderRadius: 12,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#5B4CCC",
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.3,
+                shadowRadius: 15,
+                elevation: 8,
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-lg font-poppinsMedium">
+                  Submit
+                </Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </KeyboardStickyView>
     </View>
   );
 };
