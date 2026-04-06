@@ -160,6 +160,12 @@ export default function TicketDetails() {
   const [isFixed, setIsFixed] = useState<boolean>(parseBool(fixed));
   const [isPublished, setIsPublished] = useState<boolean>(parseBool(published));
   const [remark, setRemark] = useState<string>((initialRemark as string) || "");
+
+  useEffect(() => {
+    setIsFixed(parseBool(fixed));
+    setIsPublished(parseBool(published));
+    setRemark((initialRemark as string) || "");
+  }, [fixed, published, initialRemark]);
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async () => {
@@ -177,6 +183,9 @@ export default function TicketDetails() {
           text1: "Ticket updated successfully!",
           position: "bottom",
         });
+        setIsFixed(false);
+        setIsPublished(false);
+        setRemark("");
         router.back();
       }
     } catch (err) {
@@ -286,16 +295,21 @@ export default function TicketDetails() {
             Remarks by Developer
           </Text>
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
-            <TextInput
-              value={remark}
-              onChangeText={setRemark}
-              placeholder="Add remarks..."
-              placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-              multiline
-              textAlignVertical="top"
-              editable={isAdmin}
-              className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
-            />
+            {isAdmin ? (
+              <TextInput
+                value={remark}
+                onChangeText={setRemark}
+                placeholder="Add remarks..."
+                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                multiline
+                textAlignVertical="top"
+                className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
+              />
+            ) : (
+              <Text className="text-black dark:text-white text-sm font-poppins min-h-[100px]">
+                {remark || "No remarks added yet."}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -336,7 +350,7 @@ export default function TicketDetails() {
               </View>
             </ScrollView>
           ) : (
-            <Text className="text-[#8E8E8E] font-poppins italic text-sm">
+            <Text className="text-[#8E8E8E] font-dm text-sm">
               No image attached
             </Text>
           )}
