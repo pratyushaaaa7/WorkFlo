@@ -162,6 +162,7 @@ const SVRPhotoReport: React.FC = () => {
   const [loadingImages, setLoadingImages] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [loadingStep, setLoadingStep] = useState("");
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [showCaptionError, setShowCaptionError] = useState<string | null>(null);
 
@@ -468,6 +469,7 @@ const SVRPhotoReport: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setUploading(true);
+      setLoadingStep("Validating...");
 
       // 0. Validation: All images must have a caption
       for (let i = 0; i < photos.length; i++) {
@@ -513,6 +515,7 @@ const SVRPhotoReport: React.FC = () => {
       const createdBy = user?.fullName || "Unknown";
 
       // --- Optimized Image Processing with Batching for Low-End Devices ---
+      setLoadingStep("Compressing images...");
       let photosWithBase64: (SvrPhoto & { base64: string })[] | null = [];
 
       for (let i = 0; i < photos.length; i++) {
@@ -551,6 +554,7 @@ const SVRPhotoReport: React.FC = () => {
         }
       }
 
+      setLoadingStep("Generating PDF...");
       const { PdfEngine } = require("../lib/PdfEngine");
       const engine = new PdfEngine({
         projectName: projectName || "",
@@ -590,6 +594,7 @@ const SVRPhotoReport: React.FC = () => {
       await FileSystem.moveAsync({ from: uri, to: newUri });
 
       // Optional upload
+      setLoadingStep("Uploading to server...");
       if (token && Platform.OS !== "web") {
         const formData = new FormData();
         formData.append("projectName", (projectName as string) || "");
@@ -1028,13 +1033,13 @@ const SVRPhotoReport: React.FC = () => {
                 {uploading ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#fff" />
-                    <Text className="text-[#fff] font-dmBold text-base ml-2">
-                      {progress.toFixed(0)}%
+                    <Text className="text-[#fff] font-dmBold text-xs ml-2">
+                      {loadingStep === "Compressing images..." ? `${progress.toFixed(0)}%` : loadingStep}
                     </Text>
                   </View>
                 ) : (
                   <Text className="text-white font-poppins text-lg">
-                    Submit Minutes
+                    Submit Report
                   </Text>
                 )}
               </LinearGradient>

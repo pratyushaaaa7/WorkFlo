@@ -27,6 +27,7 @@ import {
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -474,44 +475,48 @@ const SVRform = () => {
 
     // Attendee validation
     const attendeeErrors: any = {};
-    attendees.forEach((a, idx) => {
-      const fieldErrs: any = {};
-      if (!a.attendeeName?.trim()) {
-        fieldErrs.attendeeName = true;
-        hasError = true;
-      }
-      if (Object.keys(fieldErrs).length > 0) {
-        attendeeErrors[idx] = fieldErrs;
-        if (!firstErrorLocation) {
-          firstErrorLocation = "attendees";
-          firstErrorIndex = idx;
+    if (mode !== "case-study") {
+      attendees.forEach((a, idx) => {
+        const fieldErrs: any = {};
+        if (!a.attendeeName?.trim()) {
+          fieldErrs.attendeeName = true;
+          hasError = true;
         }
-      }
-    });
+        if (Object.keys(fieldErrs).length > 0) {
+          attendeeErrors[idx] = fieldErrs;
+          if (!firstErrorLocation) {
+            firstErrorLocation = "attendees";
+            firstErrorIndex = idx;
+          }
+        }
+      });
+    }
     if (Object.keys(attendeeErrors).length > 0) errors.attendees = attendeeErrors;
 
     // Discussion Entry validation
     const entryErrors: any = {};
-    entries.forEach((e, idx) => {
-      const fieldErrs: any = {};
-      
-      // Discussion is mandatory ONLY when an image is added
-      if (e.images && e.images.length > 0 && !e.issueDescription?.trim()) {
-        fieldErrs.issueDescription = true;
-        hasError = true;
-      }
-
-      if (Object.keys(fieldErrs).length > 0) {
-        entryErrors[idx] = fieldErrs;
-        if (!firstErrorLocation) {
-          firstErrorLocation = "entries";
-          firstErrorIndex = idx;
+    if (mode !== "case-study") {
+      entries.forEach((e, idx) => {
+        const fieldErrs: any = {};
+        
+        // Discussion is mandatory ONLY when an image is added
+        if (e.images && e.images.length > 0 && !e.issueDescription?.trim()) {
+          fieldErrs.issueDescription = true;
+          hasError = true;
         }
-      }
-    });
+
+        if (Object.keys(fieldErrs).length > 0) {
+          entryErrors[idx] = fieldErrs;
+          if (!firstErrorLocation) {
+            firstErrorLocation = "entries";
+            firstErrorIndex = idx;
+          }
+        }
+      });
+    }
     if (Object.keys(entryErrors).length > 0) errors.entries = entryErrors;
 
-    if (hasError) {
+    if (hasError && mode !== "case-study") {
       setValidationErrors(errors);
       
       const targetTab = firstErrorLocation === "attendees" ? "attendees" : "discussion";
@@ -545,7 +550,7 @@ const SVRform = () => {
 
     setValidationErrors({});
 
-    const mappedEntries = entries.map((e) => ({
+    const mappedEntries = mode === "case-study" ? [] : entries.map((e) => ({
       ...e,
       agenda: e.issueSubject,
       discussion: e.issueDescription,
@@ -564,7 +569,7 @@ const SVRform = () => {
         teamLeaders,
         teamMembers,
         svrEntries: JSON.stringify(mappedEntries),
-        attendees: JSON.stringify(attendees),
+        attendees: mode === "case-study" ? "[]" : JSON.stringify(attendees),
         caseStudyRemarks,
       },
     });
@@ -716,37 +721,42 @@ const SVRform = () => {
           </View>
         </KeyboardAwareScrollView>
 
-        <View
-          className="mt-8 pb-4 px-4 flex-row gap-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        >
-          <TouchableOpacity
-            onPress={saveAndNext}
-            disabled={!caseStudyRemarks.trim()}
-            className="flex-1 h-[56px] rounded-2xl overflow-hidden"
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+          <View
+            className="pb-4 px-4 flex-row gap-3"
+            style={{ 
+              paddingBottom: Math.max(insets.bottom, 16),
+              backgroundColor: isDarkMode ? "#000" : "#FBFCFD"
+            }}
           >
-            <LinearGradient
-              colors={
-                !caseStudyRemarks.trim()
-                  ? ["#9CA3AF", "#9CA3AF"]
-                  : ["#5B4CCC", "#8056D1"]
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                paddingVertical: 16,
-                width: "100%",
-                height: "100%",
-              }}
+            <TouchableOpacity
+              onPress={saveAndNext}
+              disabled={!caseStudyRemarks.trim()}
+              className="flex-1 h-[56px] rounded-2xl overflow-hidden"
             >
-              <Text className="text-white font-poppins text-[15px]">
-                Save & Next
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+              <LinearGradient
+                colors={
+                  !caseStudyRemarks.trim()
+                    ? ["#9CA3AF", "#9CA3AF"]
+                    : ["#5B4CCC", "#8056D1"]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 16,
+                  width: "100%",
+                  height: "100%",
+                }}
+              >
+                <Text className="text-white font-poppins text-[15px]">
+                  Save & Next
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </KeyboardStickyView>
       </View>
     );
   }
@@ -905,45 +915,47 @@ const SVRform = () => {
         />
 
         {/* Bottom action bar */}
-        <View
-          className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-black"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        >
-          <View className="flex-row gap-3">
-            <TouchableOpacity
-              onPress={skipAndNext}
-              className={`flex-1 h-[52px] rounded-xl items-center justify-center ${isDarkMode ? "bg-[#1A1A1A]" : "bg-gray-100"}`}
-            >
-              <Text
-                className={`font-poppinsMedium ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+          <View
+            className="p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-gray-800"
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          >
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={skipAndNext}
+                className={`flex-1 h-[52px] rounded-xl items-center justify-center ${isDarkMode ? "bg-[#1A1A1A]" : "bg-gray-100"}`}
               >
-                Skip
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={saveAndNext}
-              className="flex-1 h-[52px] rounded-xl overflow-hidden"
-            >
-              <LinearGradient
-                colors={["#5B4CCC", "#8056D1"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 16,
-                  width: "100%",
-                  height: "100%",
-                }}
-              >
-                <Text className="text-white font-poppins text-[15px]">
-                  Save & Next
+                <Text
+                  className={`font-poppinsMedium ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
+                >
+                  Skip
                 </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={saveAndNext}
+                className="flex-1 h-[52px] rounded-xl overflow-hidden"
+              >
+                <LinearGradient
+                  colors={["#5B4CCC", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingVertical: 16,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  <Text className="text-white font-poppins text-[15px]">
+                    Save & Next
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardStickyView>
 
         <NativeModal
           transparent
