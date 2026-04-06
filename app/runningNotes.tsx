@@ -436,6 +436,7 @@ const RunningNotes = () => {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
     new Set(),
   );
+  const hasScrolledToHighlightRef = useRef<string | null>(null);
 
   const toggleSection = (title: string) => {
     setCollapsedSections((prev) => {
@@ -538,7 +539,24 @@ const RunningNotes = () => {
       }));
 
       if (isInitial) {
-        setNotes(formattedNotes);
+        if (isSilent) {
+          setNotes((prev) => {
+            const existingIds = new Set(prev.map((n) => n.id));
+            const newNotes = formattedNotes.filter(
+              (n: Note) => !existingIds.has(n.id),
+            );
+
+            // Update matched notes in the existing list to reflect status changes
+            const updatedNotes = prev.map((pn) => {
+              const match = formattedNotes.find((fn: Note) => fn.id === pn.id);
+              return match ? match : pn;
+            });
+
+            return [...newNotes, ...updatedNotes];
+          });
+        } else {
+          setNotes(formattedNotes);
+        }
       } else {
         // Prevent duplicate notes if any
         setNotes((prev) => {
@@ -568,30 +586,36 @@ const RunningNotes = () => {
 
   // Redundant fetch removed (handled by useFocusEffect)
 
-  const groupedNotes = notes.reduce<Record<string, Note[]>>((acc, note) => {
-    const dateKey = formatDate(note.createdAt);
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(note);
-    return acc;
-  }, {});
+  // Prepare sections from notes
+  const noteSections = useMemo(() => {
+    const grouped = notes.reduce<Record<string, Note[]>>((acc, note) => {
+      const dateKey = formatDate(note.createdAt);
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(note);
+      return acc;
+    }, {});
 
-  // Prepare sections from groupedNotes
-  const noteSections = useMemo(
-    () =>
-      Object.entries(groupedNotes).map(([date, notes]) => ({
-        title: date,
-        data: collapsedSections.has(date) ? [] : notes,
-      })),
-    [notes, collapsedSections],
-  );
+    return Object.entries(grouped).map(([date, notes]) => ({
+      title: date,
+      data: collapsedSections.has(date) ? [] : notes,
+    }));
+  }, [notes, collapsedSections]);
 
   // 🔹 SCROLL & HIGHLIGHT LOGIC
   useEffect(() => {
-    if (highlightId && notes.length > 0 && noteSections.length > 0) {
+    if (!highlightId) {
+      hasScrolledToHighlightRef.current = null;
+      return;
+    }
+
+    if (
+      notes.length > 0 &&
+      noteSections.length > 0 &&
+      hasScrolledToHighlightRef.current !== highlightId
+    ) {
       const idToFind = Array.isArray(highlightId)
         ? highlightId[0]
         : highlightId;
-      // console.log("Targeting Note for Highlight:", idToFind);
       setHighlightedNoteId(idToFind);
 
       // Find indices
@@ -609,20 +633,25 @@ const RunningNotes = () => {
       }
 
       if (sectionIndex !== -1 && itemIndex !== -1) {
+        hasScrolledToHighlightRef.current = idToFind;
         // Delay slightly to ensure list is rendered
         setTimeout(() => {
-          sectionListRef.current?.scrollToLocation({
-            sectionIndex,
-            itemIndex: itemIndex,
-            viewOffset: 80,
-            animated: true,
-          });
-        }, 500);
+          try {
+            sectionListRef.current?.scrollToLocation({
+              sectionIndex,
+              itemIndex: itemIndex,
+              viewOffset: 80,
+              animated: true,
+            });
+          } catch (e) {
+            console.log("Scroll failed:", e);
+          }
+        }, 800);
 
         // Clear highlight state exactly after animation finishes (300ms in + 2000ms hold + 500ms out)
         setTimeout(() => {
           setHighlightedNoteId(null);
-        }, 3000);
+        }, 3500);
       }
     }
   }, [highlightId, notes, noteSections]);
@@ -981,7 +1010,7 @@ const RunningNotes = () => {
             )}
             stickySectionHeadersEnabled
             onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.3}
+            onEndReachedThreshold={0.5}
             // Performance optimizations
             // removeClippedSubviews={true}
             // maxToRenderPerBatch={10}
