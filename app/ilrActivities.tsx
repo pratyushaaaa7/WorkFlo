@@ -1267,9 +1267,14 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={true}
+        avoidKeyboard={false}
         statusBarTranslucent={true}
       >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1362,6 +1367,7 @@ const IlrActivities = () => {
               })()}
             </View>
           </View>
+        </KeyboardAwareScrollView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1388,11 +1394,11 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={true}
+        avoidKeyboard={false}
         statusBarTranslucent={true}
       >
           <View
-            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+            className={`rounded-t-3xl pt-6 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
             {/* Handle Bar */}
             <View className="w-full items-center mb-4">
@@ -1408,7 +1414,7 @@ const IlrActivities = () => {
 
             {/* Search Bar */}
             <View
-              className={`flex-row items-center px-4 py-1 rounded-xl mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
+              className={`flex-row items-center px-4 py-1 rounded-xl mx-4 mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
             >
               <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
               <TextInput
@@ -1435,7 +1441,7 @@ const IlrActivities = () => {
               }
               stickySectionHeadersEnabled={false}
               showsVerticalScrollIndicator={false}
-              className="flex-1"
+              className="flex-1 px-4"
               ListEmptyComponent={
                 !loadingProjectUsers ? (
                   <Text
@@ -1457,8 +1463,9 @@ const IlrActivities = () => {
             />
 
             {/* Bottom Buttons */}
-            <View className="flex-row gap-3 pt-4">
-              <TouchableOpacity
+            <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+              <View className={`flex-row gap-3 pt-4 px-4 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}>
+                <TouchableOpacity
                 onPress={() => {
                   Keyboard.dismiss();
                   setShowAssigneeModal(false);
@@ -1508,7 +1515,8 @@ const IlrActivities = () => {
                   </LinearGradient>
                 )}
               </TouchableOpacity>
-            </View>
+              </View>
+            </KeyboardStickyView>
           </View>
       </Modal>
 
@@ -1536,9 +1544,14 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={true}
+        avoidKeyboard={false}
         statusBarTranslucent={true}
       >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View
             className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
@@ -1674,6 +1687,7 @@ const IlrActivities = () => {
               </TouchableOpacity>
             </View>
           </View>
+        </KeyboardAwareScrollView>
       </Modal>
     </View>
   );

@@ -782,7 +782,7 @@ const RunningNotes = () => {
       {[
         ["Notes", COL.note],
         ["Resp", COL.responsible],
-        ["T Date", COL.target],
+        ["Target", COL.target],
       ].map(([label, width]) => (
         <View
           key={label as string}

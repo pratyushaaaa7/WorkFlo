@@ -1367,8 +1367,13 @@ const MinuteDetail = () => {
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={{ justifyContent: "flex-end", margin: 0 }}
-        avoidKeyboard={true}
+        avoidKeyboard={false}
       >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View
             style={{
               backgroundColor: isDark ? "#1A1A1A" : "#fff",
@@ -1535,6 +1540,7 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
+        </KeyboardAwareScrollView>
       </Modal>
 
       {/* Modal for Target Date */}
@@ -1550,8 +1556,13 @@ const MinuteDetail = () => {
         backdropOpacity={0.4}
         useNativeDriver={true}
         hideModalContentWhileAnimating={true}
-        avoidKeyboard={true}
+        avoidKeyboard={false}
       >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View
             style={{
               backgroundColor: isDark ? "#121212" : "#FFFFFF",
@@ -1761,6 +1772,7 @@ const MinuteDetail = () => {
               </TouchableOpacity>
             </View>
           </View>
+        </KeyboardAwareScrollView>
       </Modal>
 
       {/* Change Assignee Modal */}
@@ -1778,11 +1790,11 @@ const MinuteDetail = () => {
         onBackButtonPress={() => setShowAssigneeModal(false)}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={true}
+        avoidKeyboard={false}
         statusBarTranslucent={true}
       >
           <View
-            className={`rounded-t-3xl px-4 pt-6 pb-8 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+            className={`rounded-t-3xl pt-6 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
           >
             {/* Handle Bar */}
             <View className="w-full items-center mb-4">
@@ -1798,7 +1810,7 @@ const MinuteDetail = () => {
 
             {/* Search Bar */}
             <View
-              className={`flex-row items-center px-4 py-1 rounded-xl mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
+              className={`flex-row items-center px-4 py-1 rounded-xl mx-4 mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
             >
               <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
               <TextInput
@@ -1837,7 +1849,7 @@ const MinuteDetail = () => {
               ]}
               keyExtractor={(item, index) => getSafeId(item) || index.toString()}
               showsVerticalScrollIndicator={false}
-              className="flex-1"
+              className="flex-1 px-4"
               initialNumToRender={15}
               maxToRenderPerBatch={10}
               windowSize={5}
@@ -1891,11 +1903,12 @@ const MinuteDetail = () => {
             />
 
             {/* Bottom Buttons */}
-            <View className="flex-row gap-3 pt-4">
-              <TouchableOpacity
-                onPress={() => setShowAssigneeModal(false)}
-                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
-              >
+            <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+              <View className={`flex-row gap-3 pt-4 px-4 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}>
+                <TouchableOpacity
+                  onPress={() => setShowAssigneeModal(false)}
+                  className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+                >
                 <Text
                   className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
                 >
@@ -1924,7 +1937,8 @@ const MinuteDetail = () => {
                   )}
                 </LinearGradient>
               </TouchableOpacity>
-            </View>
+              </View>
+            </KeyboardStickyView>
           </View>
       </Modal>
     </View>
