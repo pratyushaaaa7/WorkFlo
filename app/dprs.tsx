@@ -14,9 +14,9 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { Skeleton } from "moti/skeleton";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Skeleton } from "moti/skeleton";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -75,8 +75,8 @@ const ReportSkeleton = ({ isDark }: { isDark: boolean }) => (
   </View>
 );
 // import * as DocumentPicker from "expo-document-picker";
-import { AuthContext } from "../context/AuthContext";
 import AnimatedTabIndicator from "../components/AnimatedTabIndicator";
+import { AuthContext } from "../context/AuthContext";
 
 type DprItem = {
   _id: string;
@@ -110,7 +110,7 @@ const DPRs = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedDPR, setFocusedDPR] = useState<FocusedDPR | null>(null);
-  
+
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -120,27 +120,35 @@ const DPRs = () => {
   const itemRefs = useRef<{ [key: string]: View | null }>({});
 
   // ✅ Fetch DPRs for this project
-  const fetchDPRs = async (background = false, pageNum = 1) => {
-    try {
-      if (!background && pageNum === 1) setLoading(true);
-      const response = await api.get(`/dpr?projectId=${projectId}&page=${pageNum}&limit=15`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const fetchedData = response.data || [];
-      if (fetchedData.length < 15) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
+  const fetchDPRs = useCallback(
+    async (background = false, pageNum = 1) => {
+      try {
+        if (!background && pageNum === 1) setLoading(true);
+        const response = await api.get(
+          `/dpr?projectId=${projectId}&page=${pageNum}&limit=15`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        const fetchedData = response.data || [];
+        if (fetchedData.length < 15) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+        setDprs((prev) =>
+          pageNum === 1 ? fetchedData : [...prev, ...fetchedData],
+        );
+      } catch (err) {
+        console.error("Fetch DPRs failed:", err);
+        // Alert.alert("Error", "Failed to fetch DPRs");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      setDprs(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
-    } catch (err) {
-      console.error("Fetch DPRs failed:", err);
-      // Alert.alert("Error", "Failed to fetch DPRs");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [projectId, token],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -148,7 +156,7 @@ const DPRs = () => {
         setPage(1);
         fetchDPRs(true, 1);
       }
-    }, [projectId, fetchDPRs])
+    }, [projectId, fetchDPRs]),
   );
 
   const onRefresh = () => {
@@ -239,6 +247,15 @@ const DPRs = () => {
     if (isDownloadingRef.current) return; // Prevent multiple downloads (ref avoids stale closure)
     isDownloadingRef.current = true;
     setDownloadingId(id);
+
+    // Timeout to reset loading state if it takes too long
+    const timeoutId = setTimeout(() => {
+      if (isDownloadingRef.current) {
+        isDownloadingRef.current = false;
+        setDownloadingId(null);
+      }
+    }, 10000);
+
     try {
       // Sanitize filename: remove special chars like # that break file URIs
       let safeName = fileName.replace(/[#?&=%]/g, "_");
@@ -276,15 +293,16 @@ const DPRs = () => {
       console.error("Download failed:", error);
       Alert.alert("Error", "Failed to download file");
     } finally {
+      clearTimeout(timeoutId);
       isDownloadingRef.current = false;
       setDownloadingId(null);
     }
   };
 
-
   const filteredDPRs = React.useMemo(() => {
     const filteredByTab = dprs.filter((d: any) => {
-      const pId = typeof d.projectId === "string" ? d.projectId : d.projectId?._id;
+      const pId =
+        typeof d.projectId === "string" ? d.projectId : d.projectId?._id;
       if (activeTab === "Shared") return pId !== projectId;
       return pId === projectId;
     });
@@ -295,7 +313,7 @@ const DPRs = () => {
       const matchFile = d.fileName?.toLowerCase().includes(q);
       const matchUser = d.uploadedBy?.fullName?.toLowerCase().includes(q);
       const matchCaption = d.captions?.some((c: any) =>
-        c?.toLowerCase().includes(q)
+        c?.toLowerCase().includes(q),
       );
       return matchFile || matchUser || matchCaption;
     });
@@ -336,14 +354,21 @@ const DPRs = () => {
     const id = focusedDPR._id;
     setFocusedDPR(null);
     try {
-      await api.put(`/dpr/${id}/share`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(
+        `/dpr/${id}/share`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       // Refresh list to update status
       fetchDPRs();
     } catch (err: any) {
       console.error("Share DPR failed:", err);
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share DPR";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to share DPR";
       Toast.show({
         type: "error",
         text1: "Share failed",
@@ -492,7 +517,7 @@ const DPRs = () => {
 
       {/* Tabs */}
       <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
-        {(["Project", "Shared"]).map((tab) => {
+        {["Project", "Shared"].map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
@@ -508,7 +533,10 @@ const DPRs = () => {
             </TouchableOpacity>
           );
         })}
-        <AnimatedTabIndicator tabs={["Project", "Shared"]} activeTab={activeTab} />
+        <AnimatedTabIndicator
+          tabs={["Project", "Shared"]}
+          activeTab={activeTab}
+        />
       </View>
 
       {/* Content */}
@@ -532,7 +560,13 @@ const DPRs = () => {
             removeClippedSubviews={true}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#5B4CCC"/> : <View className="h-4" />}
+            ListFooterComponent={
+              hasMore && page > 1 ? (
+                <ActivityIndicator className="my-4" color="#5B4CCC" />
+              ) : (
+                <View className="h-4" />
+              )
+            }
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -663,7 +697,11 @@ const DPRs = () => {
                         activeOpacity={0.7}
                         className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                       >
-                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDark ? "#FFFFFF" : "#000000"} />
+                        <HugeiconsIcon
+                          icon={Share08Icon}
+                          size={22}
+                          color={isDark ? "#FFFFFF" : "#000000"}
+                        />
                         <Text className="ml-3 text-black dark:text-white font-poppinsMedium text-base">
                           Share
                         </Text>
@@ -677,7 +715,11 @@ const DPRs = () => {
                     activeOpacity={0.7}
                     className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                   >
-                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <HugeiconsIcon
+                      icon={Delete03Icon}
+                      size={22}
+                      color="#DF5B5B"
+                    />
                     <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
                       Delete
                     </Text>

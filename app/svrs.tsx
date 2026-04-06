@@ -16,11 +16,9 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import GlobalAvatar from "../components/GlobalAvatar";
-import AnimatedTabIndicator from "../components/AnimatedTabIndicator";
-import { Skeleton } from "moti/skeleton";
 import { AnimatePresence, MotiView } from "moti";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Skeleton } from "moti/skeleton";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -37,6 +35,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import AnimatedTabIndicator from "../components/AnimatedTabIndicator";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -117,7 +116,7 @@ const SVRs = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [focusedSVR, setFocusedSVR] = useState<FocusedSVR | null>(null);
-  
+
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -128,29 +127,37 @@ const SVRs = () => {
   const itemRefs = useRef<{ [key: string]: View | null }>({});
 
   // Fetch SVR list
-  const fetchSVRs = async (background = false, pageNum = 1) => {
-    try {
-      if (!background && pageNum === 1) setLoading(true);
-      const response = await api.get(`/svr?projectId=${projectId}&page=${pageNum}&limit=15`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  const fetchSVRs = useCallback(
+    async (background = false, pageNum = 1) => {
+      try {
+        if (!background && pageNum === 1) setLoading(true);
+        const response = await api.get(
+          `/svr?projectId=${projectId}&page=${pageNum}&limit=15`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
-      const fetchedData = response.data || [];
-      if (fetchedData.length < 15) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
+        const fetchedData = response.data || [];
+        if (fetchedData.length < 15) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+
+        setSvrs((prev) =>
+          pageNum === 1 ? fetchedData : [...prev, ...fetchedData],
+        );
+      } catch (err) {
+        console.error("Fetch SVRs failed:", err);
+        // Alert.alert("Error", "Failed to fetch SVRs"); // Optional: handle silently on UX
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      
-      setSvrs(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
-    } catch (err) {
-      console.error("Fetch SVRs failed:", err);
-      // Alert.alert("Error", "Failed to fetch SVRs"); // Optional: handle silently on UX
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [projectId, token],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -158,7 +165,7 @@ const SVRs = () => {
         setPage(1);
         fetchSVRs(true, 1);
       }
-    }, [projectId, fetchSVRs])
+    }, [projectId, fetchSVRs]),
   );
 
   const onRefresh = () => {
@@ -177,7 +184,8 @@ const SVRs = () => {
 
   const filteredSVRs = React.useMemo(() => {
     const filteredByTab = svrs.filter((s: any) => {
-      const pId = typeof s.projectId === "string" ? s.projectId : s.projectId?._id;
+      const pId =
+        typeof s.projectId === "string" ? s.projectId : s.projectId?._id;
       if (activeTab === "Shared") return pId !== String(projectId);
       return pId === String(projectId);
     });
@@ -213,6 +221,15 @@ const SVRs = () => {
     if (isDownloadingRef.current) return; // Prevent multiple downloads (ref avoids stale closure)
     isDownloadingRef.current = true;
     setDownloadingId(id);
+
+    // Timeout to reset loading state if it takes too long
+    const timeoutId = setTimeout(() => {
+      if (isDownloadingRef.current) {
+        isDownloadingRef.current = false;
+        setDownloadingId(null);
+      }
+    }, 10000);
+
     try {
       // Sanitize filename: remove special chars like # that break file URIs
       let safeName = fileName.replace(/[#?&=%]/g, "_");
@@ -250,6 +267,7 @@ const SVRs = () => {
       console.error("Download failed:", error);
       Alert.alert("Error", "Failed to download file");
     } finally {
+      clearTimeout(timeoutId);
       isDownloadingRef.current = false;
       setDownloadingId(null);
     }
@@ -290,14 +308,21 @@ const SVRs = () => {
     const id = focusedSVR._id;
     setFocusedSVR(null);
     try {
-      await api.put(`/svr/${id}/share`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(
+        `/svr/${id}/share`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       // Refresh list
       fetchSVRs();
     } catch (err: any) {
       console.error("Share SVR failed:", err);
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share SVR";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to share SVR";
       Toast.show({
         type: "error",
         text1: "Share failed",
@@ -486,7 +511,13 @@ const SVRs = () => {
             removeClippedSubviews={true}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#5B4CCC"/> : <View className="h-4" />}
+            ListFooterComponent={
+              hasMore && page > 1 ? (
+                <ActivityIndicator className="my-4" color="#5B4CCC" />
+              ) : (
+                <View className="h-4" />
+              )
+            }
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -650,7 +681,11 @@ const SVRs = () => {
                         activeOpacity={0.7}
                         className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                       >
-                        <HugeiconsIcon icon={Share08Icon} size={22} color={isDark ? "#FFFFFF" : "#000000"} />
+                        <HugeiconsIcon
+                          icon={Share08Icon}
+                          size={22}
+                          color={isDark ? "#FFFFFF" : "#000000"}
+                        />
                         <Text className="ml-3 text-black dark:text-white font-poppinsMedium text-base">
                           Share
                         </Text>
@@ -664,7 +699,11 @@ const SVRs = () => {
                     activeOpacity={0.7}
                     className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
                   >
-                    <HugeiconsIcon icon={Delete03Icon} size={22} color="#DF5B5B" />
+                    <HugeiconsIcon
+                      icon={Delete03Icon}
+                      size={22}
+                      color="#DF5B5B"
+                    />
                     <Text className="ml-3 text-[#DF5B5B] font-poppinsMedium text-base">
                       Delete
                     </Text>
