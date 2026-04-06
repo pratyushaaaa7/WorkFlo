@@ -9,17 +9,12 @@ import {
   WhatsappIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
-import * as ImagePicker from "expo-image-picker";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Linking,
   RefreshControl,
@@ -27,15 +22,14 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
-  ActivityIndicator,
 } from "react-native";
+import AnimatedTabIndicator from "../../components/AnimatedTabIndicator";
 import GlobalAvatar from "../../components/GlobalAvatar";
 import AboutTab from "../../components/employeeDetail/AboutTab";
 import ProjectsTab from "../../components/employeeDetail/ProjectsTab";
 import ReviewsTab from "../../components/employeeDetail/ReviewsTab";
-import { AuthContext, useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import api from "../../lib/api";
-import AnimatedTabIndicator from "../../components/AnimatedTabIndicator";
 
 const EmployeeDetail = () => {
   const colorScheme = useColorScheme();
@@ -47,7 +41,9 @@ const EmployeeDetail = () => {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [imageUpdating, setImageUpdating] = useState(false);
-  const [activeTab, setActiveTab] = useState("Profile");
+  const [activeTab, setActiveTab] = useState(
+    userId === user?._id ? "Reviews" : "Profile",
+  );
   const [profileHeaderHeight, setProfileHeaderHeight] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const isFirstLoad = useRef(true);
@@ -56,7 +52,9 @@ const EmployeeDetail = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<any>(null);
 
-  const tabs = ["Profile", "Projects", "Reviews"];
+  const tabs = ["Profile", "Projects", "Reviews"].filter(
+    (tab) => !(tab === "Reviews" && userId === user?._id),
+  );
 
   const fetchUser = useCallback(
     async (isManualRefresh = false) => {
@@ -278,9 +276,7 @@ const EmployeeDetail = () => {
             </View>
           </View>
 
-          <View
-            className="flex-row items-center justify-end"
-          >
+          <View className="flex-row items-center justify-end">
             {user?.role === "admin" ? (
               <View className="flex-row gap-4">
                 <TouchableOpacity
@@ -297,16 +293,19 @@ const EmployeeDetail = () => {
                   disabled={imageUpdating}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                {imageUpdating ? (
-                  <ActivityIndicator size="small" color={isDarkMode ? "#FFF" : "#000"} />
-                ) : (
-                  <HugeiconsIcon
-                    icon={Camera01Icon}
-                    size={24}
-                    color={isDarkMode ? "#FFF" : "#000"}
-                  />
-                )}
-              </TouchableOpacity>
+                  {imageUpdating ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={isDarkMode ? "#FFF" : "#000"}
+                    />
+                  ) : (
+                    <HugeiconsIcon
+                      icon={Camera01Icon}
+                      size={24}
+                      color={isDarkMode ? "#FFF" : "#000"}
+                    />
+                  )}
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() =>
                     router.push({
