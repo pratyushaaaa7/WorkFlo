@@ -61,7 +61,8 @@ const OverviewCalendar = ({
         activeOpacity={0.85}
         onPress={() => !isDisabled && setSelectedDate(date.dateString)}
         style={{
-          aspectRatio: 1,
+          width: 42,
+          height: 54,
           opacity: isDisabled ? 0.35 : 1,
           borderColor: isSelected
             ? "transparent"
@@ -75,7 +76,7 @@ const OverviewCalendar = ({
               : "#F3F4F6",
           // margin: 1.5,
         }}
-        className="flex-1 rounded-lg border justify-between items-center"
+        className="rounded-lg border justify-between items-center py-2 mb-1"
       >
         <Text
           className={`font-dmSemiBold text-[13px] mb-2 text-center ${
@@ -115,10 +116,11 @@ const OverviewCalendar = ({
       <View
         key={`${day}-${index}`}
         style={{
+          width: 48,
           backgroundColor: isDark ? "#151515" : "#F3F4F6",
           borderColor: isDark ? "#252525" : "#E5E7EB",
         }}
-        className="px-3 py-1.5 rounded-lg border min-w-[45px] items-center"
+        className="py-1.5 rounded-lg border items-center"
       >
         <Text
           style={{ color: isDark ? "#919191" : "#6B7280" }}
