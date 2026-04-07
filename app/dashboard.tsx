@@ -12,6 +12,7 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { format } from "date-fns";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
@@ -58,6 +59,7 @@ const Dashboard = () => {
 
   const [activeTab, setActiveTabState] = useState("Overview");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
   // Dashboard Data State
   const [dashboardData, setDashboardData] = useState<any>(null);
@@ -142,6 +144,7 @@ const Dashboard = () => {
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
             searchQuery={searchQuery}
+            setSelectedDate={setSelectedDate}
           />
         );
       case "Projects":
@@ -164,6 +167,7 @@ const Dashboard = () => {
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
             searchQuery={searchQuery}
+            selectedDate={selectedDate}
           />
         );
       case "Notes":
@@ -177,6 +181,7 @@ const Dashboard = () => {
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
             searchQuery={searchQuery}
+            setSelectedDate={setSelectedDate}
           />
         );
     }

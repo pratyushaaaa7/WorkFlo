@@ -35,6 +35,7 @@ const OverviewTab = ({
   onRefresh,
   responsibleItems,
   searchQuery = "",
+  setSelectedDate,
 }: {
   setActiveTab: (tab: string) => void;
   loading: boolean;
@@ -42,6 +43,7 @@ const OverviewTab = ({
   onRefresh: () => void;
   responsibleItems: any[];
   searchQuery?: string;
+  setSelectedDate: (date: string) => void;
 }) => {
   const isDarkMode = useColorScheme() === "dark";
   const router = useRouter();
@@ -472,6 +474,7 @@ const OverviewTab = ({
         <OverviewCalendar
           setActiveTab={setActiveTab}
           responsibleItems={responsibleItems}
+          setSelectedDate={setSelectedDate}
         />
       </View>
     </ScrollView>

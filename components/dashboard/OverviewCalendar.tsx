@@ -16,9 +16,11 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 const OverviewCalendar = ({
   setActiveTab,
   responsibleItems = [],
+  setSelectedDate: setGlobalSelectedDate,
 }: {
   setActiveTab: (tab: string) => void;
   responsibleItems?: any[];
+  setSelectedDate: (date: string) => void;
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -59,7 +61,15 @@ const OverviewCalendar = ({
     return (
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => !isDisabled && setSelectedDate(date.dateString)}
+        onPress={() => {
+          if (!isDisabled) {
+            setSelectedDate(date.dateString);
+            if (taskCount > 0) {
+              setGlobalSelectedDate(date.dateString);
+              setActiveTab("Calendar");
+            }
+          }
+        }}
         style={{
           width: 42,
           height: 54,

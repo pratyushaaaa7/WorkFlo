@@ -2,7 +2,7 @@ import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid } from "date-fns";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { MotiView } from "moti";
 import {
   ActivityIndicator,
@@ -30,6 +30,7 @@ interface CalendarTabProps {
   onRefresh: () => void;
   responsibleItems: any[];
   searchQuery?: string;
+  selectedDate?: string;
 }
 
 const ProgressCircle = ({
@@ -195,9 +196,19 @@ const TaskItem = ({ task }: { task: any }) => {
   );
 };
 
-const DateSection = ({ group }: { group: any }) => {
+const DateSection = ({
+  group,
+  selectedDate,
+  onLayout,
+}: {
+  group: any;
+  selectedDate?: string;
+  onLayout?: (y: number) => void;
+}) => {
   const today = format(new Date(), "yyyy-MM-dd");
-  const [isExpanded, setIsExpanded] = useState(group.date === today);
+  const [isExpanded, setIsExpanded] = useState(
+    selectedDate ? group.date === selectedDate : group.date === today,
+  );
   const isDarkMode = useColorScheme() === "dark";
 
   const rotation = useSharedValue(isExpanded ? 180 : 0);
@@ -221,7 +232,10 @@ const DateSection = ({ group }: { group: any }) => {
   const dayNumber = format(dateObj, "d");
 
   return (
-    <View className="mb-2 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg mx-1 ">
+    <View
+      onLayout={(e) => onLayout?.(e.nativeEvent.layout.y)}
+      className="mb-2 bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-lg mx-1 "
+    >
       <TouchableOpacity
         onPress={toggleExpand}
         activeOpacity={0.7}
@@ -272,8 +286,12 @@ const CalendarTab = ({
   onRefresh,
   responsibleItems,
   searchQuery = "",
+  selectedDate,
 }: CalendarTabProps) => {
   const isDark = useColorScheme() === "dark";
+  const scrollRef = useRef<ScrollView>(null);
+  const itemPositions = useRef<{ [key: string]: number }>({});
+
   const transformedData = useMemo(() => {
     if (!responsibleItems) return [];
 
@@ -343,9 +361,39 @@ const CalendarTab = ({
     );
   }
 
+  useEffect(() => {
+    if (selectedDate) {
+      let attempts = 0;
+      const checkAndScroll = () => {
+        if (itemPositions.current[selectedDate] !== undefined) {
+          scrollRef.current?.scrollTo({
+            y: itemPositions.current[selectedDate],
+            animated: true,
+          });
+          return true;
+        }
+        return false;
+      };
+
+      // Try immediately
+      if (checkAndScroll()) return;
+
+      // If not ready, poll for up to 2 seconds
+      const interval = setInterval(() => {
+        attempts++;
+        if (checkAndScroll() || attempts > 20) {
+          clearInterval(interval);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, [selectedDate, loading, transformedData]);
+
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       <ScrollView
+        ref={scrollRef}
         className="flex-1 pt-4 pb-20"
         refreshControl={
           <RefreshControl
@@ -358,7 +406,14 @@ const CalendarTab = ({
       >
         {filteredData.length > 0 ? (
           filteredData.map((group, index) => (
-            <DateSection key={index} group={group} />
+            <DateSection
+              key={index}
+              group={group}
+              selectedDate={selectedDate}
+              onLayout={(y) => {
+                itemPositions.current[group.date] = y;
+              }}
+            />
           ))
         ) : (
           <View className="flex-1 items-center justify-center py-20 px-6">
