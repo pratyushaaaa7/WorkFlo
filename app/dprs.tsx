@@ -516,7 +516,7 @@ const DPRs = () => {
       </AnimatePresence>
 
       {/* Tabs */}
-      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
+      <View className="flex-row items-center pt-1 mb-4 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
         {["Project", "Shared"].map((tab) => {
           const isActive = activeTab === tab;
           return (

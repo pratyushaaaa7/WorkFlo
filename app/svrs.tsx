@@ -470,7 +470,7 @@ const SVRs = () => {
       </AnimatePresence>
 
       {/* Tabs */}
-      <View className="flex-row items-center pt-1 justify-between pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
+      <View className="flex-row items-center pt-1 justify-between mb-4 pb-0 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
         {TABS.map((tab) => {
           const isActive = activeTab === tab;
           return (
