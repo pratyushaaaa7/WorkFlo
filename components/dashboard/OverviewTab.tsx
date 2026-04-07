@@ -25,6 +25,8 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
+import OverviewCalendar from "./OverviewCalendar";
+
 
 const OverviewTab = ({
   setActiveTab,
@@ -467,10 +469,10 @@ const OverviewTab = ({
         </View>
 
         {/* Calendar Section */}
-        {/* <OverviewCalendar
+        <OverviewCalendar
           setActiveTab={setActiveTab}
           responsibleItems={responsibleItems}
-        /> */}
+        />
       </View>
     </ScrollView>
   );

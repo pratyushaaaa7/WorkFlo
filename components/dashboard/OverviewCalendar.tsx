@@ -24,10 +24,10 @@ const OverviewCalendar = ({
   const isDark = colorScheme === "dark";
 
   const [selectedDate, setSelectedDate] = useState(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [currentMonth, setCurrentMonth] = useState(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
 
@@ -66,13 +66,13 @@ const OverviewCalendar = ({
           borderColor: isSelected
             ? "transparent"
             : isDark
-            ? "#2B2B2B"
-            : "#E5E7EB",
+              ? "#2B2B2B"
+              : "#E5E7EB",
           backgroundColor: isSelected
             ? "#566FEC"
             : isDark
-            ? "#1A1A1A"
-            : "#F3F4F6",
+              ? "#1A1A1A"
+              : "#F3F4F6",
           // margin: 1.5,
         }}
         className="flex-1 rounded-lg border justify-between items-center"
@@ -82,8 +82,8 @@ const OverviewCalendar = ({
             isSelected
               ? "font-bold text-white"
               : isDark
-              ? "font-medium text-white"
-              : "font-medium text-[#111827]"
+                ? "font-medium text-white"
+                : "font-medium text-[#111827]"
           }`}
         >
           {date.day}
@@ -96,8 +96,8 @@ const OverviewCalendar = ({
               isSelected
                 ? "text-white"
                 : isDark
-                ? "text-[#919191]"
-                : "text-[#6B7280]"
+                  ? "text-[#919191]"
+                  : "text-[#6B7280]"
             }`}
           >
             {taskCount} {taskCount === 1 ? "Task" : "Tasks"}
@@ -132,7 +132,7 @@ const OverviewCalendar = ({
 
   return (
     <View
-      style={{ backgroundColor: isDark ? "#0D0D0D" : "#F8F9FA" }}
+      style={{ backgroundColor: isDark ? "#000000" : "#F6F8FA" }}
       className="pt-4 pb-6"
     >
       {/* Header */}
@@ -175,7 +175,7 @@ const OverviewCalendar = ({
       {/* Custom Day Headers */}
       <View className="flex-row justify-around mb-3">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) =>
-          renderDayHeader(day, index)
+          renderDayHeader(day, index),
         )}
       </View>
 
@@ -269,8 +269,8 @@ const OverviewCalendar = ({
                       isCurrent
                         ? "bg-[#566FEC]"
                         : isDark
-                        ? "bg-[#252525]"
-                        : "bg-[#F3F4F6]"
+                          ? "bg-[#252525]"
+                          : "bg-[#F3F4F6]"
                     }`}
                   >
                     <Text
@@ -278,8 +278,8 @@ const OverviewCalendar = ({
                         isCurrent
                           ? "text-white"
                           : isDark
-                          ? "text-gray-400"
-                          : "text-[#6B7280]"
+                            ? "text-gray-400"
+                            : "text-[#6B7280]"
                       }`}
                     >
                       {month}
