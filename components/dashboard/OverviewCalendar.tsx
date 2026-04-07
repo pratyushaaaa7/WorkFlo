@@ -78,7 +78,7 @@ const OverviewCalendar = ({
         className="flex-1 rounded-lg border justify-between items-center"
       >
         <Text
-          className={`font-DM text-[13px] mb-2 text-center ${
+          className={`font-dmSemiBold text-[13px] mb-2 text-center ${
             isSelected
               ? "font-bold text-white"
               : isDark
@@ -92,7 +92,7 @@ const OverviewCalendar = ({
         {taskCount && !isDisabled ? (
           <Text
             numberOfLines={1}
-            className={`text-[8px] font-poppins text-center  ${
+            className={`text-[8px] font-poppinsMedium text-center  ${
               isSelected
                 ? "text-white"
                 : isDark
