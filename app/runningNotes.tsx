@@ -1342,7 +1342,7 @@ const RunningNotes = () => {
                       borderRadius: 12,
                       marginBottom: 8,
                     }}
-                    placeholder="Assignee"
+                    placeholder="Assign to.."
                     placeholderStyle={{
                       fontSize: 11,
                       color: isDarkMode ? "#919191" : "#000",
