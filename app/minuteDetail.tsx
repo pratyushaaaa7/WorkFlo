@@ -779,19 +779,13 @@ const MinuteDetail = () => {
                       <Text
                         className={`text-[12px] font-poppins ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
                       >
-                        From :{" "}
-                        {item.type === "targetDate"
-                          ? fmtDate(item.oldValue)
-                          : item.oldValue}
+                        From : {item.oldValue}
                       </Text>
                     )}
                     <Text
                       className={`text-[12px] font-poppins mt-0.5 ${isDark ? "text-zinc-400" : "text-[#454545]"}`}
                     >
-                      To :{" "}
-                      {item.type === "targetDate"
-                        ? fmtDate(item.newValue)
-                        : item.newValue}
+                      To : {item.newValue}
                     </Text>
                   </View>
                 )}
@@ -1161,18 +1155,20 @@ const MinuteDetail = () => {
                       {getDueIndicator(minuteData)?.text || displayTargetDate}
                     </Text>
                   </View>
-                  {minuteData?.delayDays && minuteData.delayDays > 0 ? (
+                  {minuteData?.delayDays !== undefined && minuteData.delayDays !== 0 ? (
                     <View className="items-end">
                       <Text
-                        className={`text-xs font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                        className={`text-[10px] font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
                       >
-                        Delay Days
+                        {minuteData.delayDays > 0 ? "Delayed" : "Preponed"}
                       </Text>
-                      <Text
-                        className={`text-sm font-poppinsMedium text-red-500`}
-                      >
-                        {minuteData.delayDays}
-                      </Text>
+                      <View className="flex-row items-center  rounded-full  " >
+                        <Text
+                          className={`text-[11px] font-poppinsMedium ${minuteData.delayDays > 0 ? "text-red-500" : "text-green-500"}`}
+                        >
+                          {Math.abs(minuteData.delayDays)} days
+                        </Text>
+                      </View>
                     </View>
                   ) : null}
                 </View>
