@@ -3,13 +3,13 @@ import axios from "axios";
 import { logoutUser } from "../lib/logoutHelper";
 import Toast from "react-native-toast-message";
 
-const api = axios.create({
-  baseURL: "http://192.168.1.45:5000/api", // Change localhost if testing on physical device
-});
-
 // const api = axios.create({
-//   baseURL: "https://api.wprojects.in/api",
+//   baseURL: "http://192.168.1.45:5000/api", // Change localhost if testing on physical device
 // });
+
+const api = axios.create({
+  baseURL: "https://api.wprojects.in/api",
+});
 
 // const api = axios.create({
 //   baseURL: 'https://wtechbackend.onrender.com/api',  // Live backend URL

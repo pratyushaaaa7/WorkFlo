@@ -78,6 +78,7 @@ export default function AddProjectUsersPage() {
       const [allUsersRes, projectUsersRes] = await Promise.all([
         api.get("/user-directory", {
           headers: { Authorization: `Bearer ${token}` },
+          params: { limit: 1000, page: 1 },
         }),
         api.get(`/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
