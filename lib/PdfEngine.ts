@@ -94,8 +94,8 @@ export class PdfEngine {
       <table class="page-header-table">
         <tr>
           <td class="header-left">
-            <div><strong>Project:</strong> ${projectName || "N/A"}</div>
-            <div><strong>Created By:</strong> ${createdBy || "N/A"}</div>
+            <div><strong>Project:</strong> ${this.escapeHtml(projectName)}</div>
+            <div><strong>Created By:</strong> ${this.escapeHtml(createdBy)}</div>
           </td>
           <td class="header-right">
             <img src="${logoBase64}" />
@@ -117,18 +117,18 @@ export class PdfEngine {
         ${this.renderHeader()}
         <h2>Project Information</h2>
         <div style="margin-top: 20px;">
-            <p><strong>Project Name:</strong> ${projectName || ""}</p>
-            <p><strong>Created By:</strong> ${createdBy}</p>
-            <p><strong>Company:</strong> ${company || ""}</p>
+            <p><strong>Project Name:</strong> ${this.escapeHtml(projectName)}</p>
+            <p><strong>Created By:</strong> ${this.escapeHtml(createdBy)}</p>
+            <p><strong>Company:</strong> ${this.escapeHtml(company)}</p>
             <p><strong>Date:</strong> ${dateStr}</p>
             <p><strong>Time:</strong> ${timeStr}</p>
         </div>
         
         <h3>Team Leaders</h3>
-        <ul>${data.leaders.length > 0 ? data.leaders.map((l: any) => `<li>${l.fullName}</li>`).join("") : "<li>None</li>"}</ul>
+        <ul>${data.leaders.length > 0 ? data.leaders.map((l: any) => `<li>${this.escapeHtml(l.fullName)}</li>`).join("") : "<li>None</li>"}</ul>
         
         <h3>Team Members</h3>
-        <ul>${data.members.length > 0 ? data.members.map((m: any) => `<li>${m.fullName}</li>`).join("") : "<li>None</li>"}</ul>
+        <ul>${data.members.length > 0 ? data.members.map((m: any) => `<li>${this.escapeHtml(m.fullName)}</li>`).join("") : "<li>None</li>"}</ul>
       </div>
     `);
 
@@ -143,7 +143,7 @@ export class PdfEngine {
                 ? (data.attendees || [])
                     .map(
                       (a: any, idx: number) => `
-              <tr><td>${idx + 1}</td><td>${a.attendeeName || "-"}</td><td>${a.designation || "-"}</td><td>${a.organization || "-"}</td><td>${a.email || "-"}</td></tr>
+              <tr><td>${idx + 1}</td><td>${this.escapeHtml(a.attendeeName)}</td><td>${this.escapeHtml(a.designation)}</td><td>${this.escapeHtml(a.organization)}</td><td>${this.escapeHtml(a.email)}</td></tr>
             `,
                     )
                     .join("")
@@ -161,7 +161,7 @@ export class PdfEngine {
             <tr><th>S.No</th><th>Agenda</th><th>Discussion</th><th>Responsibility</th></tr>
             ${textOnlyEntries.length > 0 
               ? textOnlyEntries.map((v: any, idx: number) => `
-                <tr><td>${idx + 1}</td><td>${v.agenda || "-"}</td><td>${v.discussion || "-"}</td><td>${v.responsibility || "-"}</td></tr>
+                <tr><td>${idx + 1}</td><td>${this.escapeHtml(v.agenda)}</td><td>${this.escapeHtml(v.discussion)}</td><td>${this.escapeHtml(v.responsibility)}</td></tr>
               `).join("")
               : "<tr><td colspan='4' style='text-align:center;'>No text-only entries</td></tr>"
             }
@@ -190,9 +190,9 @@ export class PdfEngine {
                 <img src="${imgSource}" />
               </div>
               <div class="point-details">
-                <p><strong>Agenda:</strong> ${entry.agenda || "-"}</p>
-                <p><strong>Discussion:</strong> ${entry.discussion || "-"}</p>
-                <p><strong>Responsibility:</strong> ${entry.responsibility || "-"}</p>
+                <p><strong>Agenda:</strong> ${this.escapeHtml(entry.agenda)}</p>
+                <p><strong>Discussion:</strong> ${this.escapeHtml(entry.discussion)}</p>
+                <p><strong>Responsibility:</strong> ${this.escapeHtml(entry.responsibility)}</p>
               </div>
             </div>
           `);
@@ -202,7 +202,7 @@ export class PdfEngine {
         <div class="page">
           ${this.renderHeader()}
           <h2 style="text-align:center; margin-top:20px;">Case Study Remarks</h2>
-          <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.6; margin: 0; padding: 10px 0; font-family: Arial, sans-serif;">${data.caseStudyRemarks || ""}</pre>
+          <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.6; margin: 0; padding: 10px 0; font-family: Arial, sans-serif;">${this.escapeHtml(data.caseStudyRemarks)}</pre>
         </div>
       `);
     } else if (data.mode === "dpr") {
@@ -229,8 +229,8 @@ export class PdfEngine {
                         (v: any, idx: number) => `
                 <tr>
                   <td>${idx + 1}</td>
-                  <td>${v.name || "-"}</td>
-                  <td>${v.expertise || "-"}</td>
+                  <td>${this.escapeHtml(v.name)}</td>
+                  <td>${this.escapeHtml(v.expertise)}</td>
                   <td>${v.skillLabor || 0}</td>
                   <td>${v.unskillLabor || 0}</td>
                   <td>${(Number(v.skillLabor) || 0) + (Number(v.unskillLabor) || 0)}</td>
@@ -262,47 +262,74 @@ export class PdfEngine {
             <img src="${photo.base64}" />
         </div>
         <div class="point-details">
-            <p><strong>Caption:</strong> ${photo.caption?.trim() || "-"}</p>
+            <p><strong>Caption:</strong> ${this.escapeHtml(photo.caption?.trim())}</p>
         </div>
       </div>
     `);
   }
 
+  private escapeHtml(text: string): string {
+    if (!text) return "";
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   async finalize(): Promise<string> {
-    const mergedPdf = await PDFDocument.create();
-
-    for (const pageHtml of this.pages) {
-      const html = `
-        <html>
-          <head>${this.getStyles()}</head>
-          <body>${pageHtml}</body>
-        </html>
-      `;
-
-      const { uri } = await Print.printToFileAsync({ html });
-
-      const pdfBase64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      const pdfDoc = await PDFDocument.load(pdfBase64);
-      const copiedPages = await mergedPdf.copyPages(
-        pdfDoc,
-        pdfDoc.getPageIndices(),
-      );
-      copiedPages.forEach((page: any) => mergedPdf.addPage(page));
-
-      // Cleanup individual page PDF
-      await FileSystem.deleteAsync(uri, { idempotent: true });
+    if (this.pages.length === 0) {
+      throw new Error("No pages to generate PDF");
     }
 
-    const finalBase64 = await mergedPdf.saveAsBase64();
-    const finalUri = `${FileSystem.documentDirectory}merged_${Date.now()}.pdf`;
+    console.log(`[PdfEngine] Starting single-shot generation for ${this.pages.length} pages...`);
 
-    await FileSystem.writeAsStringAsync(finalUri, finalBase64, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    // Combine all pages into one HTML document with page breaks
+    const fullHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          ${this.getStyles()}
+          <style>
+            .page { 
+              page-break-after: always; 
+              break-after: page;
+            }
+            .page:last-child { 
+              page-break-after: auto; 
+              break-after: auto;
+            }
+            /* Ensure images don't break across pages */
+            img { page-break-inside: avoid; }
+          </style>
+        </head>
+        <body>
+          ${this.pages.join("")}
+        </body>
+      </html>
+    `;
 
-    return finalUri;
+    try {
+      const { uri } = await Print.printToFileAsync({
+        html: fullHtml,
+        base64: false,
+      });
+
+      console.log("[PdfEngine] PDF generated successfully.");
+
+      const finalUri = `${FileSystem.documentDirectory}report_${Date.now()}.pdf`;
+      await FileSystem.moveAsync({
+        from: uri,
+        to: finalUri,
+      });
+
+      return finalUri;
+    } catch (error) {
+      console.error("[PdfEngine] Single-shot generation failed:", error);
+      throw error;
+    }
   }
 }
