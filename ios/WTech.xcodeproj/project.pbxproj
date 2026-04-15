@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		104E9FBA857D334944124DE0 /* libPods-WTech.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 64ADF516205B66A1FDBE204A /* libPods-WTech.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		1E4B965DE05F8380B527E974 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A9DB3359AAC23DA5CF8B11 /* ExpoModulesProvider.swift */; };
-		2B6911A5076423073512F9E5 /* libPods-Thuhroh.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E35A41432D31CE79E98DB83 /* libPods-Thuhroh.a */; };
+		321796B0078CE3960F15475C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = EA33D8C0D2455BD6F7CF9FC9 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		58E94FFCD302D2D3277EBDCE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 64C7532ECFC8AD9A2AE6CC48 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		EDB97EDCF1375C16602CBFFF /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A820039B7A24C9D492D4977 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* Thuhroh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Thuhroh.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Thuhroh/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Thuhroh/Info.plist; sourceTree = "<group>"; };
-		2ACC53DA941CE4D74221D50B /* Pods-Thuhroh.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Thuhroh.debug.xcconfig"; path = "Target Support Files/Pods-Thuhroh/Pods-Thuhroh.debug.xcconfig"; sourceTree = "<group>"; };
-		4E35A41432D31CE79E98DB83 /* libPods-Thuhroh.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Thuhroh.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		64C7532ECFC8AD9A2AE6CC48 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Thuhroh/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Thuhroh/SplashScreen.storyboard; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* WTech.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WTech.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = WTech/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = WTech/Info.plist; sourceTree = "<group>"; };
+		541425842C0BB50EA835BB94 /* Pods-WTech.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WTech.release.xcconfig"; path = "Target Support Files/Pods-WTech/Pods-WTech.release.xcconfig"; sourceTree = "<group>"; };
+		5B8A0ABC3C772DBB23900D15 /* Pods-WTech.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WTech.debug.xcconfig"; path = "Target Support Files/Pods-WTech/Pods-WTech.debug.xcconfig"; sourceTree = "<group>"; };
+		64ADF516205B66A1FDBE204A /* libPods-WTech.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WTech.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A820039B7A24C9D492D4977 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WTech/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = WTech/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D7A9DB3359AAC23DA5CF8B11 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Thuhroh/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		DBF6C5B1E380D5B57F8CBCA6 /* Pods-Thuhroh.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Thuhroh.release.xcconfig"; path = "Target Support Files/Pods-Thuhroh/Pods-Thuhroh.release.xcconfig"; sourceTree = "<group>"; };
+		EA33D8C0D2455BD6F7CF9FC9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = WTech/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Thuhroh/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* Thuhroh-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Thuhroh-Bridging-Header.h"; path = "Thuhroh/Thuhroh-Bridging-Header.h"; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = WTech/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* WTech-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "WTech-Bridging-Header.h"; path = "WTech/WTech-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,34 +37,42 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B6911A5076423073512F9E5 /* libPods-Thuhroh.a in Frameworks */,
+				104E9FBA857D334944124DE0 /* libPods-WTech.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* Thuhroh */ = {
+		13B07FAE1A68108700A75B9A /* WTech */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* Thuhroh-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* WTech-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				64C7532ECFC8AD9A2AE6CC48 /* PrivacyInfo.xcprivacy */,
+				EA33D8C0D2455BD6F7CF9FC9 /* PrivacyInfo.xcprivacy */,
 			);
-			name = Thuhroh;
+			name = WTech;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				4E35A41432D31CE79E98DB83 /* libPods-Thuhroh.a */,
+				64ADF516205B66A1FDBE204A /* libPods-WTech.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7FF5A62094779EC6899D481D /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				8D17F9F154B475BD708D9F53 /* WTech */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -77,12 +85,12 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* Thuhroh */,
+				13B07FAE1A68108700A75B9A /* WTech */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				9AFB12B0A618DD404E7CAFBA /* Pods */,
-				A81F2DD94C98E210485D919E /* ExpoModulesProviders */,
+				F510AD2295262408ED73C1F2 /* Pods */,
+				7FF5A62094779EC6899D481D /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -92,27 +100,17 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Thuhroh.app */,
+				13B07F961A680F5B00A75B9A /* WTech.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9AFB12B0A618DD404E7CAFBA /* Pods */ = {
+		8D17F9F154B475BD708D9F53 /* WTech */ = {
 			isa = PBXGroup;
 			children = (
-				2ACC53DA941CE4D74221D50B /* Pods-Thuhroh.debug.xcconfig */,
-				DBF6C5B1E380D5B57F8CBCA6 /* Pods-Thuhroh.release.xcconfig */,
+				7A820039B7A24C9D492D4977 /* ExpoModulesProvider.swift */,
 			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		A81F2DD94C98E210485D919E /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				F2E6D969AE6C6959B69E24E0 /* Thuhroh */,
-			);
-			name = ExpoModulesProviders;
+			name = WTech;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -121,40 +119,42 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = Thuhroh/Supporting;
+			path = WTech/Supporting;
 			sourceTree = "<group>";
 		};
-		F2E6D969AE6C6959B69E24E0 /* Thuhroh */ = {
+		F510AD2295262408ED73C1F2 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				D7A9DB3359AAC23DA5CF8B11 /* ExpoModulesProvider.swift */,
+				5B8A0ABC3C772DBB23900D15 /* Pods-WTech.debug.xcconfig */,
+				541425842C0BB50EA835BB94 /* Pods-WTech.release.xcconfig */,
 			);
-			name = Thuhroh;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* Thuhroh */ = {
+		13B07F861A680F5B00A75B9A /* WTech */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Thuhroh" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "WTech" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				8636D19B84CEC239B346FA2B /* [Expo] Configure project */,
+				267C460377064F89F8B18CEB /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				C0561D5C1E4677D55894D28D /* [CP] Embed Pods Frameworks */,
+				B6EAB4245E6284CCBB536831 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = Thuhroh;
-			productName = Thuhroh;
-			productReference = 13B07F961A680F5B00A75B9A /* Thuhroh.app */;
+			name = WTech;
+			productName = WTech;
+			productReference = 13B07F961A680F5B00A75B9A /* WTech.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -166,13 +166,11 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 4YG6H4P38W;
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Thuhroh" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "WTech" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -185,7 +183,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* Thuhroh */,
+				13B07F861A680F5B00A75B9A /* WTech */,
 			);
 		};
 /* End PBXProject section */
@@ -198,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				58E94FFCD302D2D3277EBDCE /* PrivacyInfo.xcprivacy in Resources */,
+				321796B0078CE3960F15475C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,12 +233,31 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Thuhroh-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-WTech-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
+		};
+		267C460377064F89F8B18CEB /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-WTech/expo-configure-project.sh\"\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -248,7 +265,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Thuhroh/Pods-Thuhroh-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-WTech/Pods-WTech-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
@@ -317,35 +334,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Thuhroh/Pods-Thuhroh-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WTech/Pods-WTech-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8636D19B84CEC239B346FA2B /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Thuhroh/expo-configure-project.sh\"\n";
-		};
-		C0561D5C1E4677D55894D28D /* [CP] Embed Pods Frameworks */ = {
+		B6EAB4245E6284CCBB536831 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Thuhroh/Pods-Thuhroh-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-WTech/Pods-WTech-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -354,7 +352,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Thuhroh/Pods-Thuhroh-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WTech/Pods-WTech-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -365,7 +363,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				1E4B965DE05F8380B527E974 /* ExpoModulesProvider.swift in Sources */,
+				EDB97EDCF1375C16602CBFFF /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,21 +372,18 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2ACC53DA941CE4D74221D50B /* Pods-Thuhroh.debug.xcconfig */;
+			baseConfigurationReference = 5B8A0ABC3C772DBB23900D15 /* Pods-WTech.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Thuhroh/Thuhroh.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = WTech/WTech.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4YG6H4P38W;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = Thuhroh/Info.plist;
+				INFOPLIST_FILE = WTech/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -402,8 +397,8 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.WTech;
-				PRODUCT_NAME = Thuhroh;
-				SWIFT_OBJC_BRIDGING_HEADER = "Thuhroh/Thuhroh-Bridging-Header.h";
+				PRODUCT_NAME = WTech;
+				SWIFT_OBJC_BRIDGING_HEADER = "WTech/WTech-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -413,16 +408,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DBF6C5B1E380D5B57F8CBCA6 /* Pods-Thuhroh.release.xcconfig */;
+			baseConfigurationReference = 541425842C0BB50EA835BB94 /* Pods-WTech.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Thuhroh/Thuhroh.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = WTech/WTech.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4YG6H4P38W;
-				INFOPLIST_FILE = Thuhroh/Info.plist;
+				INFOPLIST_FILE = WTech/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -436,8 +428,8 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.WTech;
-				PRODUCT_NAME = Thuhroh;
-				SWIFT_OBJC_BRIDGING_HEADER = "Thuhroh/Thuhroh-Bridging-Header.h";
+				PRODUCT_NAME = WTech;
+				SWIFT_OBJC_BRIDGING_HEADER = "WTech/WTech-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -571,7 +563,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Thuhroh" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "WTech" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -580,7 +572,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Thuhroh" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "WTech" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
