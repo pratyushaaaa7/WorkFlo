@@ -604,10 +604,12 @@ const ProjectMain = () => {
                           : ["N/A"]
                       }
                       rightLabel="Team Leader"
-                      rightValue={
+                      rightValues={
                         project.teamLeaders && project.teamLeaders.length > 0
-                          ? project.teamLeaders[0].fullName
-                          : "N/A"
+                          ? project.teamLeaders.map(
+                              (u: any) => u.fullName || "N/A",
+                            )
+                          : ["N/A"]
                       }
                     />
 
