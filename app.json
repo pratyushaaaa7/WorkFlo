@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "WTech",
-    "slug": "WTech",
+    "name": "Thuhroh",
+    "slug": "Thuhroh",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logoLight.png",
-    "scheme": "wtech",
+    "scheme": "thuhroh",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
