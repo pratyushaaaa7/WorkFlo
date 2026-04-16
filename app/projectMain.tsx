@@ -505,7 +505,7 @@ const ProjectMain = () => {
                 {projectName || project?.projectName || "Loading..."}
               </Text>
               <HugeiconsIcon
-                icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                icon={isExpanded ? ArrowUp01Icon : InformationCircleIcon}
                 size={22}
                 color={isDarkMode ? "#454545" : "#919191"}
               />
