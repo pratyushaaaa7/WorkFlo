@@ -121,7 +121,7 @@ const OverviewTab = ({
 
   // Display only top 5 tasks in overview, filtered by searchQuery
   const filteredTasks = searchQuery.trim()
-    ? responsibleItems.filter((item) => {
+    ? (responsibleItems || []).filter((item) => {
         const q = searchQuery.toLowerCase();
         return (
           item.title?.toLowerCase().includes(q) ||

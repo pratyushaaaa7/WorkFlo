@@ -274,7 +274,7 @@ const TasksTab = ({
 
     // Filter by type and searchQuery
     const q = searchQuery.trim().toLowerCase();
-    const sourceData = responsibleItems
+    const sourceData = (responsibleItems || [])
       .filter((item) => {
         if (item.type !== activeType) return false;
         if (!q) return true;

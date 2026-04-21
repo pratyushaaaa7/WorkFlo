@@ -130,15 +130,15 @@ const NotesTab = ({
   };
 
   const filteredNotes = searchQuery.trim()
-    ? notes.filter(
+    ? (notes || []).filter(
         (note) =>
           note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           note.content?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : notes;
+    : (notes || []);
 
-  const leftColumn = filteredNotes.filter((_, index) => index % 2 === 0);
-  const rightColumn = filteredNotes.filter((_, index) => index % 2 !== 0);
+  const leftColumn = (filteredNotes || []).filter((_, index) => index % 2 === 0);
+  const rightColumn = (filteredNotes || []).filter((_, index) => index % 2 !== 0);
 
   const NoteCard = ({
     note,

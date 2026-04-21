@@ -505,7 +505,7 @@ const ProjectMain = () => {
                 {projectName || project?.projectName || "Loading..."}
               </Text>
               <HugeiconsIcon
-                icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                icon={isExpanded ? ArrowUp01Icon : InformationCircleIcon}
                 size={22}
                 color={isDarkMode ? "#454545" : "#919191"}
               />
@@ -604,10 +604,12 @@ const ProjectMain = () => {
                           : ["N/A"]
                       }
                       rightLabel="Team Leader"
-                      rightValue={
+                      rightValues={
                         project.teamLeaders && project.teamLeaders.length > 0
-                          ? project.teamLeaders[0].fullName
-                          : "N/A"
+                          ? project.teamLeaders.map(
+                              (u: any) => u.fullName || "N/A",
+                            )
+                          : ["N/A"]
                       }
                     />
 
