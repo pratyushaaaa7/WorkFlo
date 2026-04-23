@@ -25,9 +25,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Slot, useRootNavigationState, useRouter, useSegments } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Image,
   StatusBar,
@@ -202,9 +202,27 @@ export default function RootLayout() {
 function AppLayout() {
   const segments = useSegments();
   const router = useRouter();
+   const rootNavigationState = useRootNavigationState();
   const { isAuthenticated, authLoading, user, token } = useAuth();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+
+  // ─── Drawer Mount Gate ────────────────────────────────────────────────────
+  // React Navigation v7 TabRouter (used by Drawer) crashes when it receives a
+  // stale Stack state (from the Slot/login screen) that has no `history` field.
+  // By flipping drawerMounted via useEffect (i.e. AFTER the current render),
+  // we give React Navigation one full paint to discard the old Slot state
+  // before the Drawer mounts and calls getInitialState() fresh.
+  const [drawerMounted, setDrawerMounted] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user && !authLoading) {
+      setDrawerMounted(true);
+    } else {
+      setDrawerMounted(false);
+    }
+  }, [isAuthenticated, !!user, authLoading]);
+  // ─────────────────────────────────────────────────────────────────────────
 
   // 🚀 Start Usage Tracking
   useUsageTracking();
@@ -287,27 +305,29 @@ function AppLayout() {
   }, [user?.role]);
 
   // Auth Guard
+  // ⚠️ Wait for BOTH rootNavigationState.key (nav container ready) AND
+  // drawerMounted (Drawer's internal state initialized) before navigating.
+  // Firing router.replace() before either of these is ready causes
+  // TabRouter to call state.history.filter() on an undefined value → crash.
   useEffect(() => {
+    if (!rootNavigationState?.key) return;
     if (authLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
       router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && inAuthGroup && drawerMounted) {
+      // Only navigate after the Drawer has fully mounted
       router.replace("/dashboard");
     }
-  }, [authLoading, isAuthenticated, segments]);
+  }, [authLoading, isAuthenticated, segments, rootNavigationState?.key, drawerMounted]);
 
   if (authLoading || !fontsLoaded) {
     return <SplashScreen />;
   }
 
-  // If authenticated but no user object yet, show splash
-  if (isAuthenticated && !user) {
-    return <SplashScreen />;
-  }
-
+  // Not authenticated → Slot (login screen)
   if (!isAuthenticated) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -316,9 +336,17 @@ function AppLayout() {
     );
   }
 
+  // Authenticated but Drawer not yet mounted (one-render gate) → SplashScreen
+  // This prevents the Drawer from receiving a stale Stack state from the
+  // login screen, which would cause state.history to be undefined.
+  if (!drawerMounted) {
+    return <SplashScreen />;
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
+        key={user?._id ?? "drawer"}
         drawerContent={(props) => (
           <CustomDrawerContent {...props} drawerItems={drawerItems} />
         )}
