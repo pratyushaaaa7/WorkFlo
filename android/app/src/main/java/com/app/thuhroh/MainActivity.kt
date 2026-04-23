@@ -1,4 +1,4 @@
-package com.anonymous.WTech
+package com.app.thuhroh
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

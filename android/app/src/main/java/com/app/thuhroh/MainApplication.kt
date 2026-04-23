@@ -1,4 +1,4 @@
-package com.anonymous.WTech
+package com.app.thuhroh
 
 import android.app.Application
 import android.content.res.Configuration

@@ -1,22 +1,22 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
+  Attachment01Icon,
   Calendar03Icon,
+  Cancel01Icon,
   Location01Icon,
   MoreHorizontalIcon,
   Pdf01Icon,
   Search01Icon,
   UserCircleIcon,
   Xsl01Icon,
-  Attachment01Icon,
-  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Skeleton } from "moti/skeleton";
-import { AnimatePresence, MotiView } from "moti";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { AnimatePresence, MotiView } from "moti";
+import { Skeleton } from "moti/skeleton";
 import React, {
   useCallback,
   useContext,
@@ -36,7 +36,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  Modal as RNModal,
 } from "react-native";
 import Modal from "react-native-modal";
 import { AuthContext } from "../context/AuthContext";
@@ -302,11 +301,13 @@ const MinutesDetail = () => {
   };
 
   const filteredMinutes = useMemo(() => {
-    const minArr = (Array.isArray(meeting?.minutes) ? meeting.minutes : []);
+    const minArr = Array.isArray(meeting?.minutes) ? meeting.minutes : [];
     if (!searchQuery.trim()) return minArr;
     const q = searchQuery.toLowerCase();
     return minArr.filter((minute: any) => {
-      const subjectMatch = (minute.issueSubject || "").toLowerCase().includes(q);
+      const subjectMatch = (minute.issueSubject || "")
+        .toLowerCase()
+        .includes(q);
       const descMatch = (minute.description || "").toLowerCase().includes(q);
       const respNames = (minute.responsibility || [])
         .map((r: any) => (r.name || r.individualName || "").toLowerCase())
@@ -564,34 +565,97 @@ const MinutesDetail = () => {
       >
         {loading ? (
           <View className="px-3 pt-2">
-            <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={160} height={28} radius={6} />
+            <Skeleton
+              colorMode={isDarkMode ? "dark" : "light"}
+              width={160}
+              height={28}
+              radius={6}
+            />
             <View className="mt-6 gap-4">
-              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="60%" height={20} radius={4} />
-              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="80%" height={20} radius={4} />
-              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="50%" height={20} radius={4} />
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width="60%"
+                height={20}
+                radius={4}
+              />
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width="80%"
+                height={20}
+                radius={4}
+              />
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width="50%"
+                height={20}
+                radius={4}
+              />
             </View>
             <View className="mt-10">
-              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={24} radius={6} />
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={100}
+                height={24}
+                radius={6}
+              />
               <View className="mt-4 gap-4">
                 {[1, 2, 3].map((i) => (
                   <View key={i} className="flex-row items-center gap-3">
-                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={40} height={40} radius="round" />
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width={40}
+                      height={40}
+                      radius="round"
+                    />
                     <View className="gap-2">
-                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={120} height={16} radius={4} />
-                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={12} radius={4} />
+                      <Skeleton
+                        colorMode={isDarkMode ? "dark" : "light"}
+                        width={120}
+                        height={16}
+                        radius={4}
+                      />
+                      <Skeleton
+                        colorMode={isDarkMode ? "dark" : "light"}
+                        width={80}
+                        height={12}
+                        radius={4}
+                      />
                     </View>
                   </View>
                 ))}
               </View>
             </View>
             <View className="mt-10">
-              <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={24} radius={6} />
+              <Skeleton
+                colorMode={isDarkMode ? "dark" : "light"}
+                width={100}
+                height={24}
+                radius={6}
+              />
               <View className="mt-4 gap-4">
                 {[1, 2].map((i) => (
-                  <View key={i} className="bg-[#F6F8FA] dark:bg-[#1A1A1A] p-4 rounded-2xl gap-3">
-                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="40%" height={16} radius={4} />
-                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="90%" height={20} radius={4} />
-                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="100%" height={14} radius={4} />
+                  <View
+                    key={i}
+                    className="bg-[#F6F8FA] dark:bg-[#1A1A1A] p-4 rounded-2xl gap-3"
+                  >
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width="40%"
+                      height={16}
+                      radius={4}
+                    />
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width="90%"
+                      height={20}
+                      radius={4}
+                    />
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width="100%"
+                      height={14}
+                      radius={4}
+                    />
                   </View>
                 ))}
               </View>
@@ -604,7 +668,7 @@ const MinutesDetail = () => {
                 {/* Title */}
                 <View className="px-3 pt-2 pb-2">
                   <View className="flex-row items-center gap-2">
-                    {(meeting?.meetingTitle || meetingTitle) ? (
+                    {meeting?.meetingTitle || meetingTitle ? (
                       <Text
                         className="text-[20px] font-dmMedium text-[#0F172A] dark:text-white leading-tight flex-1"
                         numberOfLines={1}
@@ -812,33 +876,41 @@ const MinutesDetail = () => {
                           </Text>
                         </View>
 
-                        {minute.targetDate && !minute.targetDateForInfo && getDueIndicator(minute) && (
-                          <View className="flex-row items-center">
-                            <HugeiconsIcon
-                              icon={getDueIndicator(minute)!.icon}
-                              size={12}
-                              color={
-                                getDueIndicator(minute)!.color === "text-red-500"
-                                  ? "#EF4444"
-                                  : getDueIndicator(minute)!.color.includes("green") ||
-                                      getDueIndicator(minute)!.color.includes("#1AA45B")
-                                    ? "#1AA45B"
-                                    : getDueIndicator(minute)!.text === "Today"
-                                      ? isDarkMode
-                                        ? "#9486FB"
-                                        : "#5B4CCC"
-                                      : isDarkMode
-                                        ? "#7C95FF"
-                                        : "#5B4CCC"
-                              }
-                            />
-                            <Text
-                              className={`text-[11px] font-poppinsMedium ml-1 ${getDueIndicator(minute)!.color}`}
-                            >
-                              {getDueIndicator(minute)!.text}
-                            </Text>
-                          </View>
-                        )}
+                        {minute.targetDate &&
+                          !minute.targetDateForInfo &&
+                          getDueIndicator(minute) && (
+                            <View className="flex-row items-center">
+                              <HugeiconsIcon
+                                icon={getDueIndicator(minute)!.icon}
+                                size={12}
+                                color={
+                                  getDueIndicator(minute)!.color ===
+                                  "text-red-500"
+                                    ? "#EF4444"
+                                    : getDueIndicator(minute)!.color.includes(
+                                          "green",
+                                        ) ||
+                                        getDueIndicator(minute)!.color.includes(
+                                          "#1AA45B",
+                                        )
+                                      ? "#1AA45B"
+                                      : getDueIndicator(minute)!.text ===
+                                          "Today"
+                                        ? isDarkMode
+                                          ? "#9486FB"
+                                          : "#5B4CCC"
+                                        : isDarkMode
+                                          ? "#7C95FF"
+                                          : "#5B4CCC"
+                                }
+                              />
+                              <Text
+                                className={`text-[11px] font-poppinsMedium ml-1 ${getDueIndicator(minute)!.color}`}
+                              >
+                                {getDueIndicator(minute)!.text}
+                              </Text>
+                            </View>
+                          )}
                       </View>
 
                       <Text className="text-[16px] font-dmSemiBold text-[#0F172A] dark:text-white mb-1.5 leading-tight">
@@ -863,7 +935,9 @@ const MinutesDetail = () => {
                               />
                               <Text
                                 className={`ml-2 text-[12px] font-poppins ${
-                                  isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                                  isDarkMode
+                                    ? "text-[#919191]"
+                                    : "text-[#454545]"
                                 }`}
                               >
                                 For Info
@@ -927,8 +1001,7 @@ const MinutesDetail = () => {
           <Text className="text-center mt-10 text-gray-500">
             Meeting not found
           </Text>
-        )
-}
+        )}
       </ScrollView>
 
       {/* Sticky Bottom Edit Button */}
@@ -1002,7 +1075,9 @@ const MinutesDetail = () => {
             >
               Attendee Details
             </Text>
-            <View className={`w-full h-[1px] ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`} />
+            <View
+              className={`w-full h-[1px] ${isDarkMode ? "bg-zinc-800" : "bg-gray-100"}`}
+            />
           </View>
 
           {/* Details List */}

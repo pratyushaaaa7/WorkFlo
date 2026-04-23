@@ -676,20 +676,25 @@ const RegisterUserScreen = () => {
           </View>
 
           {/* Password */}
-          {!userId && (
-            <View className="mb-4">
-              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-                Password<Text className="text-red-500">*</Text>
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Password
+              {!userId && <Text className="text-red-500">*</Text>}
+            </Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder={userId ? "Leave blank to keep current password" : "Enter password"}
+              placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
+              // secureTextEntry
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
+            />
+            {/* {userId && (
+              <Text className="text-xs font-poppins text-gray-400 mt-1 ml-1">
+                Leave blank to keep the current password.
               </Text>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter password"
-                placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
-                className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] text-black dark:text-white font-poppins text-[14px]"
-              />
-            </View>
-          )}
+            )} */}
+          </View>
 
           {/* Status */}
           <View className="mb-4">

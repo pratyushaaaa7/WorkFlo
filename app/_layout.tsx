@@ -29,10 +29,7 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useMemo } from "react";
 import {
-  ActivityIndicator,
   Image,
-  LogBox,
-  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -41,18 +38,18 @@ import {
   View,
 } from "react-native";
 
-
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import GlobalAvatar from "../components/GlobalAvatar";
+import SplashScreen from "../components/SplashScreen";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ProjectProvider } from "../context/ProjectContext";
 import "../global.css";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useUsageTracking } from "../hooks/useUsageTracking";
-import SplashScreen from "../components/SplashScreen";
 
 const CustomDrawerContent = (props: any) => {
   const router = useRouter();
@@ -205,12 +202,15 @@ export default function RootLayout() {
 function AppLayout() {
   const segments = useSegments();
   const router = useRouter();
-  const { isAuthenticated, authLoading, user } = useAuth();
+  const { isAuthenticated, authLoading, user, token } = useAuth();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
   // 🚀 Start Usage Tracking
   useUsageTracking();
+
+  // 🔔 Start Push Notifications
+  usePushNotifications(isAuthenticated, token);
 
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,

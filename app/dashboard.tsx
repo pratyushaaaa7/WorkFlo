@@ -279,13 +279,13 @@ const Dashboard = () => {
           </View>
 
           <View className="flex-row items-center gap-3">
-            {/* <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/notifications")}>
               <HugeiconsIcon
                 icon={Notification01Icon}
                 size={24}
                 color={isDarkMode ? "#D2D2D2" : "#454545"}
               />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push("/profile")}>
               <GlobalAvatar
                 name={user?.fullName || user?.username || "User"}

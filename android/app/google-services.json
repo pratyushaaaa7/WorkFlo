@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "154152602200",
+    "project_id": "wcorp2026-36fe7",
+    "storage_bucket": "wcorp2026-36fe7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154152602200:android:e2e47916ff21c454b5d82d",
+        "android_client_info": {
+          "package_name": "com.app.thuhroh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCp1zSPjgDSsOn0U5qb16sa5avmSCfx8yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

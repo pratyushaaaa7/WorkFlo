@@ -35,6 +35,7 @@ import {
   Clock01Icon,
   Download01Icon,
   Note01Icon,
+  Pdf01Icon,
   PlusSignCircleIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
@@ -181,6 +182,7 @@ const CreateMinutes = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [meeting, setMeeting] = useState<any>(null);
 
   const [isAgendaSubmitting, setIsAgendaSubmitting] = useState(false);
   const [isMomSubmitting, setIsMomSubmitting] = useState(false);
@@ -798,10 +800,12 @@ const CreateMinutes = () => {
       raisedBy: (m.raisedBy || []).map((r: any) => ({
         _id: r.value,
         name: r.label,
+        label: r.label,
       })),
       responsibility: (m.responsibility || []).map((r: any) => ({
         _id: r.value,
         name: r.label,
+        label: r.label,
       })),
       targetDate: m.targetDateForInfo ? null : m.targetDate,
       remarks: m.remarks || "",
@@ -871,6 +875,7 @@ const CreateMinutes = () => {
         }
 
         const data = res.data.meeting || res.data;
+        setMeeting(data);
         setMeetingTitle(data.meetingTitle || "");
 
         if (data.meetingDate) setMeetingDate(new Date(data.meetingDate));
@@ -1327,37 +1332,130 @@ const CreateMinutes = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* Draft Button */}
-          {!isEditMOM && (
-            <TouchableOpacity
-              onPress={submitDraft}
-              disabled={isDraftSaving}
-              activeOpacity={0.7}
-              className="flex-row items-center"
-            >
-              {isDraftSaving ? (
-                <ActivityIndicator
-                  size="small"
-                  color={isDarkMode ? "#fff" : "#000"}
-                />
-              ) : (
-                <>
-                  <HugeiconsIcon
-                    icon={AllBookmarkIcon}
-                    size={16}
+          <View className="flex-row items-center">
+            {/* Temporary Download Agenda Buttons */}
+            {/* {meetingId && (
+              <View className="flex-row items-center mr-3">
+                <TouchableOpacity
+                  onPress={async () => {
+                    setIsAgendaDownloading(true);
+                    try {
+                      const currentMeeting = {
+                        ...meeting,
+                        meetingTitle,
+                        meetingDate,
+                        meetingTime,
+                        meetingVenue,
+                        attendees: formatAttendees(),
+                        minutes: formatMinutes(),
+                      };
+                      await handleDownloadAgenda(
+                        currentMeeting,
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        token,
+                        "pdf",
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                  className="flex-row items-center bg-[#F1F5F9] dark:bg-[#1A1A1A] px-2 py-1.5 rounded-lg border border-[#E2E8F0] dark:border-[#2A2A2A] mr-1.5"
+                >
+                  {isAgendaDownloading ? (
+                    <ActivityIndicator size="small" color={isDarkMode ? "#D2D2D2" : "#454545"} />
+                  ) : (
+                    <>
+                      <HugeiconsIcon
+                        icon={Pdf01Icon}
+                        size={16}
+                        color={isDarkMode ? "#D2D2D2" : "#454545"}
+                      />
+                      <Text className="ml-1 text-[11px] font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                        PDF
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={async () => {
+                    setIsAgendaDownloading(true);
+                    try {
+                      const currentMeeting = {
+                        ...meeting,
+                        meetingTitle,
+                        meetingDate,
+                        meetingTime,
+                        meetingVenue,
+                        attendees: formatAttendees(),
+                        minutes: formatMinutes(),
+                      };
+                      await handleDownloadAgenda(
+                        currentMeeting,
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        token,
+                        "excel",
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                  className="flex-row items-center bg-[#F1F5F9] dark:bg-[#1A1A1A] px-2 py-1.5 rounded-lg border border-[#E2E8F0] dark:border-[#2A2A2A]"
+                >
+                  {isAgendaDownloading ? (
+                    <ActivityIndicator size="small" color={isDarkMode ? "#D2D2D2" : "#454545"} />
+                  ) : (
+                    <>
+                      <HugeiconsIcon
+                        icon={Download01Icon}
+                        size={16}
+                        color={isDarkMode ? "#D2D2D2" : "#454545"}
+                      />
+                      <Text className="ml-1 text-[11px] font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                        XLS
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )} */}
+
+            {/* Draft Button */}
+            {!isEditMOM && (
+              <TouchableOpacity
+                onPress={submitDraft}
+                disabled={isDraftSaving}
+                activeOpacity={0.7}
+                className="flex-row items-center"
+              >
+                {isDraftSaving ? (
+                  <ActivityIndicator
+                    size="small"
                     color={isDarkMode ? "#fff" : "#000"}
                   />
-                  <Text
-                    className={`text-[13px] font-poppins ml-1.5 font-medium ${
-                      isDarkMode ? "text-white" : "text-black"
-                    }`}
-                  >
-                    Draft
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
+                ) : (
+                  <>
+                    <HugeiconsIcon
+                      icon={AllBookmarkIcon}
+                      size={16}
+                      color={isDarkMode ? "#fff" : "#000"}
+                    />
+                    <Text
+                      className={`text-[13px] font-poppins ml-1.5 font-medium ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
+                    >
+                      Draft
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Tab Switcher */}

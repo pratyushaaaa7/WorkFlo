@@ -8,7 +8,6 @@ import {
   WifiOffIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { MaterialIcons } from "@expo/vector-icons";
 import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
@@ -26,7 +25,6 @@ import {
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../lib/api";
 import OverviewCalendar from "./OverviewCalendar";
-
 
 const OverviewTab = ({
   setActiveTab,
@@ -283,9 +281,7 @@ const OverviewTab = ({
                 className="bg-[#F0F3F7] dark:bg-[#1A1A1A] border border-[#E0E5EB] dark:border-[#2B2B2B] rounded-2xl p-2 px-3"
                 style={{ width: 100 }}
               >
-               
-                  <HugeiconsIcon icon={stat.icon} size={22} color={stat.color} />
-              
+                <HugeiconsIcon icon={stat.icon} size={22} color={stat.color} />
 
                 <Text className="text-2xl mt-4 font-dmSemiBold text-gray-900 dark:text-[#F5F5F5] mb-1">
                   {statsLoading ? "..." : stat.count}

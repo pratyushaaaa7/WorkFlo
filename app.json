@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.WTech"
+      "bundleIdentifier": "com.app.thuhroh"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,8 @@
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.WTech"
+      "package": "com.app.thuhroh",
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -40,7 +41,8 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
@@ -48,7 +50,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1e200b30-6c2f-48a1-aed9-06edca468b0b"
+        "projectId": "52f1329e-b60c-4d03-877d-18c4f35e0057"
       }
     }
   }
