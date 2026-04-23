@@ -29,7 +29,10 @@ import { Slot, useRootNavigationState, useRouter, useSegments } from "expo-route
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
+  LogBox,
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -38,18 +41,19 @@ import {
   View,
 } from "react-native";
 
+
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/CustomToast";
 import GlobalAvatar from "../components/GlobalAvatar";
-import SplashScreen from "../components/SplashScreen";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ProjectProvider } from "../context/ProjectContext";
 import "../global.css";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { useUsageTracking } from "../hooks/useUsageTracking";
+import SplashScreen from "../components/SplashScreen";
 
 const CustomDrawerContent = (props: any) => {
   const router = useRouter();
@@ -202,7 +206,7 @@ export default function RootLayout() {
 function AppLayout() {
   const segments = useSegments();
   const router = useRouter();
-   const rootNavigationState = useRootNavigationState();
+  const rootNavigationState = useRootNavigationState();
   const { isAuthenticated, authLoading, user, token } = useAuth();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
