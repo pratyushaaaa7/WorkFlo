@@ -26,8 +26,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -692,10 +691,13 @@ const SVRform = () => {
         </View>
 
         <KeyboardAwareScrollView
-          className="flex-1 px-4 mt-4"
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 40,
+          }}
           keyboardShouldPersistTaps="handled"
-          enableOnAndroid
-          extraScrollHeight={100}
         >
           <View
             className={`rounded-[20px] p-5 ${isDarkMode ? "bg-[#0D0D0D]" : "bg-white shadow-sm"}`}
@@ -764,10 +766,7 @@ const SVRform = () => {
   // --- UI: SVR FORM ---
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+        <View style={{ flex: 1 }}>
         <View
           className={`pt-16 pb-4 px-4 flex-row items-center justify-between ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}
         >
@@ -822,26 +821,24 @@ const SVRform = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Main scroll area — plain ScrollView, no JS-driven drag overhead */}
-        <FlatList
+        {/* Main scroll area */}
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
           ref={scrollRef as any}
-          data={activeTab === "attendees" ? attendees : entries}
-          style={
-            isDarkMode
-              ? { backgroundColor: "#000" }
-              : { backgroundColor: "#FBFCFD" }
-          }
-          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 220, paddingHorizontal: 16 }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          removeClippedSubviews={Platform.OS === "android"}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => {
+          contentContainerStyle={{
+            paddingVertical: 16,
+            paddingBottom: 100,
+            paddingHorizontal: 16,
+            flexGrow: 1,
+            backgroundColor: isDarkMode ? "#000" : "#FBFCFD",
+          }}
+        >
+          {(activeTab === "attendees" ? attendees : entries).map((item, index) => {
             if (activeTab === "attendees") {
               return (
-                <View className="mb-3">
+                <View key={item.id} className="mb-3">
                   <AttendeeItem
-                    key={item.id}
                     item={item}
                     drag={() => {}}
                     isActive={false}
@@ -860,7 +857,7 @@ const SVRform = () => {
               );
             } else {
               return (
-                <View className="mb-3">
+                <View key={item.id} className="mb-3">
                   <SvrMinuteItem
                     item={item}
                     drag={() => {}}
@@ -875,8 +872,11 @@ const SVRform = () => {
                     onOpenDatePicker={onOpenDatePicker}
                     onPickImage={onPickImage}
                     onDeleteImage={onDeleteImage}
-                    getIndex={() => entries.findIndex(e => e.id === item.id)}
-                    showDatePicker={showDatePicker && dateIndex === entries.findIndex(e => e.id === item.id)}
+                    getIndex={() => entries.findIndex((e) => e.id === item.id)}
+                    showDatePicker={
+                      showDatePicker &&
+                      dateIndex === entries.findIndex((e) => e.id === item.id)
+                    }
                     onDatePickerChange={(event, date) => {
                       if (event.type === "set" && date) {
                         onDateConfirm(date);
@@ -889,30 +889,29 @@ const SVRform = () => {
                 </View>
               );
             }
-          }}
-          ListFooterComponent={() => (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={activeTab === "attendees" ? addAttendee : addEntry}
-              className={`py-3.5 rounded-xl flex-row justify-center items-center mt-3 ${
-                isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+          })}
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={activeTab === "attendees" ? addAttendee : addEntry}
+            className={`py-3.5 rounded-xl flex-row justify-center items-center mt-3 ${
+              isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+            }`}
+          >
+            <HugeiconsIcon
+              icon={PlusSignCircleIcon}
+              size={20}
+              color={isDarkMode ? "#E5E7EB" : "#111827"}
+            />
+            <Text
+              className={`text-[14px] font-poppinsMedium ml-2 ${
+                isDarkMode ? "text-gray-200" : "text-gray-900"
               }`}
             >
-              <HugeiconsIcon
-                icon={PlusSignCircleIcon}
-                size={20}
-                color={isDarkMode ? "#E5E7EB" : "#111827"}
-              />
-              <Text
-                className={`text-[14px] font-poppinsMedium ml-2 ${
-                  isDarkMode ? "text-gray-200" : "text-gray-900"
-                }`}
-              >
-                {activeTab === "attendees" ? "Add Attendees" : "Add Discussion"}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+              {activeTab === "attendees" ? "Add Attendees" : "Add Discussion"}
+            </Text>
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
 
         {/* Bottom action bar */}
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
@@ -1007,7 +1006,7 @@ const SVRform = () => {
             </View>
           </View>
         </NativeModal>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 };
