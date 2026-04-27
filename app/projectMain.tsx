@@ -4,6 +4,7 @@ import { Pressable, Modal, Alert } from "react-native";
 import { ProjectInfoModal } from "../components/ProjectInfoModal";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
+import { Skeleton } from "moti/skeleton";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { AnimatePresence, MotiView } from "moti";
 import React, { useContext, useEffect, useState } from "react";
@@ -31,40 +32,45 @@ const PROJECT_IMAGES = [
   require("../assets/images/projectDefaultImage.jpg"),
 ];
 
-const getProjectImageSource = (img: any): any => {
-  if (typeof img === "number") return img; // require(...) fallback
-  
-  let stringUri = "";
-  if (typeof img === "string") {
-    stringUri = img;
-  } else if (img && typeof img === "object") {
-    stringUri = img.uri || img.url || "";
+const sanitizeImages = (data: any): any[] => {
+  if (!data) return [];
+  if (typeof data === "number") return [data];
+
+  if (typeof data === "string") {
+    if (data.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(data);
+        return sanitizeImages(parsed);
+      } catch (e) {
+        return [];
+      }
+    }
+    if (data.startsWith("http") || data.includes("file://") || data.startsWith("data:")) {
+      let uri = data.startsWith("file://") ? data.replace("file://", "") : data;
+      return [{ uri }];
+    }
+    return [];
   }
   
-  if (stringUri) {
-     if (stringUri.startsWith("[")) {
-         try {
-             const parsed = JSON.parse(stringUri);
-             if (Array.isArray(parsed) && parsed.length > 0) {
-                 return getProjectImageSource(parsed[0]);
-             }
-         } catch(e) {}
-     }
-     
-     if (stringUri.includes("file://")) {
-         stringUri = stringUri.replace("file://", "");
-     }
-     
-     if (!stringUri.startsWith("http") && !stringUri.startsWith("data:") && !stringUri.startsWith("content:")) {
-         const baseUrl = api.defaults.baseURL?.replace('/api', '') || "http://192.168.1.118:5000";
-         const prefix = stringUri.startsWith("/") ? "" : "/";
-         return { uri: `${baseUrl}${prefix}${stringUri}` };
-     }
-     
-     return { uri: stringUri };
+  if (Array.isArray(data)) {
+    const flat = data.flatMap(item => sanitizeImages(item));
+    const unique = [];
+    const seen = new Set();
+    for (const item of flat) {
+      const val = typeof item === "number" ? item : item.uri;
+      if (!seen.has(val)) {
+        seen.add(val);
+        unique.push(item);
+      }
+    }
+    return unique;
   }
   
-  return img;
+  if (data && typeof data === "object" && (data.uri || data.url)) {
+    return [{ uri: data.uri || data.url }];
+  }
+  
+  return [];
 };
 
 const ProjectMain = () => {
@@ -421,19 +427,26 @@ const ProjectMain = () => {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onScroll={hScrollHandler}
+            scrollEventThrottle={16}
           >
-            {(project?.projectImages && project.projectImages.length > 0
-              ? project.projectImages
-              : PROJECT_IMAGES
-            ).map((img, index) => (
-              <Image
-                key={index}
-                source={getProjectImageSource(img)}
-                style={{ width: width, height: height * 0.45 }}
-                contentFit="cover"
-                priority={index === 0 ? "high" : "normal"}
-              />
-            ))}
+            {(() => {
+              const sanitized = sanitizeImages(project?.projectImages);
+              const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+              return displayImages.map((img, index) => (
+                <View key={index} style={{ width: width, height: height * 0.45 }}>
+                   <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={width} height={height * 0.45} />
+                   </View>
+                   <Image
+                      key={index}
+                      source={typeof img === "number" ? img : { uri: img.uri }}
+                      style={{ width: width, height: height * 0.45 }}
+                      contentFit="cover"
+                      transition={500}
+                   />
+                </View>
+              ));
+            })()}
           </ScrollView>
 
           {/* Header Overlay Buttons */}
@@ -467,19 +480,20 @@ const ProjectMain = () => {
               zIndex: 60 
             }}
           >
-            {(project?.projectImages && project.projectImages.length > 0
-              ? project.projectImages
-              : PROJECT_IMAGES
-            ).map((_, index) => (
-              <View
-                key={index}
-                className={`h-1.5 w-1.5 rounded-full ${
-                  index === activeImageIndex
-                    ? "bg-white"
-                    : "bg-white/40"
-                }`}
-              />
-            ))}
+            {(() => {
+               const sanitized = sanitizeImages(project?.projectImages);
+               const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+               return displayImages.map((_, index) => (
+                 <View
+                   key={index}
+                   className={`h-1.5 w-1.5 rounded-full ${
+                     index === activeImageIndex
+                       ? "bg-white"
+                       : "bg-white/40"
+                   }`}
+                 />
+               ));
+            })()}
           </View>
         </View>
 

@@ -16,10 +16,11 @@ import { Skeleton } from "moti/skeleton";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useContext, useState } from "react";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
   Dimensions,
-  Image,
+  Image as RNImage,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -58,41 +59,54 @@ const PROJECT_IMAGES = [
   require("../assets/images/projectDefaultImage.jpg"),
 ];
 
-const getProjectImageSource = (img: any): any => {
-  if (typeof img === "number") return img; // require(...) fallback
+const sanitizeImages = (data: any): any[] => {
+  if (!data) return [];
   
-  let stringUri = "";
-  if (typeof img === "string") {
-    stringUri = img;
-  } else if (img && typeof img === "object") {
-    stringUri = img.uri || img.url || "";
+  // If it's a number (require fallback), return as is in an array
+  if (typeof data === "number") return [data];
+
+  // If it's a string, try to parse it
+  if (typeof data === "string") {
+    if (data.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(data);
+        return sanitizeImages(parsed); 
+      } catch (e) {
+        return [];
+      }
+    }
+    // If it's a raw URL string
+    if (data.startsWith("http") || data.includes("file://") || data.startsWith("data:")) {
+      let uri = data.startsWith("file://") ? data.replace("file://", "") : data;
+      return [{ uri }];
+    }
+    return [];
   }
   
-  if (stringUri) {
-     if (stringUri.startsWith("[")) {
-         try {
-             const parsed = JSON.parse(stringUri);
-             if (Array.isArray(parsed) && parsed.length > 0) {
-                 return getProjectImageSource(parsed[0]);
-             }
-         } catch(e) {}
-     }
-     
-     if (stringUri.includes("file://")) {
-         stringUri = stringUri.replace("file://", "");
-     }
-     
-     if (!stringUri.startsWith("http") && !stringUri.startsWith("data:") && !stringUri.startsWith("content:")) {
-         const baseUrl = api.defaults.baseURL?.replace('/api', '') || "http://192.168.1.118:5000";
-         const prefix = stringUri.startsWith("/") ? "" : "/";
-         return { uri: `${baseUrl}${prefix}${stringUri}` };
-     }
-     
-     return { uri: stringUri };
+  // If it's an array, sanitize its elements
+  if (Array.isArray(data)) {
+    const flat = data.flatMap(item => sanitizeImages(item));
+    // Filter out duplicates based on URI or value
+    const unique = [];
+    const seen = new Set();
+    for (const item of flat) {
+      const val = typeof item === "number" ? item : item.uri;
+      if (!seen.has(val)) {
+        seen.add(val);
+        unique.push(item);
+      }
+    }
+    return unique;
   }
   
-  return img;
+  // If it's an object {uri: ...}
+  if (data && typeof data === "object" && (data.uri || data.url)) {
+    return [{ uri: data.uri || data.url }];
+  }
+  
+  return [];
 };
+
 
 const ProjectDetails = () => {
   const { project: projectParam, id } = useLocalSearchParams();
@@ -596,17 +610,23 @@ const ProjectDetails = () => {
             onScroll={hScrollHandler}
             scrollEventThrottle={16}
           >
-            {(project.projectImages && project.projectImages.length > 0
-              ? project.projectImages
-              : PROJECT_IMAGES
-            ).map((img, index) => (
-              <Image
-                key={index}
-                source={getProjectImageSource(img)}
-                style={{ width: SCREEN_WIDTH, height: 340 }}
-                resizeMode="cover"
-              />
-            ))}
+            {(() => {
+              const sanitized = sanitizeImages(project.projectImages);
+              const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+              return displayImages.map((img, index) => (
+                <View key={index} style={{ width: SCREEN_WIDTH, height: 340 }}>
+                   <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={SCREEN_WIDTH} height={340} />
+                   </View>
+                   <Image
+                      source={typeof img === "number" ? img : { uri: img.uri }}
+                      style={{ width: SCREEN_WIDTH, height: 340 }}
+                      contentFit="cover"
+                      transition={500}
+                   />
+                </View>
+              ));
+            })()}
           </ScrollView>
 
           {/* Indicator Dots */}
@@ -617,19 +637,20 @@ const ProjectDetails = () => {
               zIndex: 60 
             }}
           >
-            {(project.projectImages && project.projectImages.length > 0
-              ? project.projectImages
-              : PROJECT_IMAGES
-            ).map((_, index) => (
-              <View
-                key={index}
-                className={`h-1.5 w-1.5 rounded-full ${
-                  index === activeImageIndex
-                    ? "bg-white"
-                    : "bg-white/40"
-                }`}
-              />
-            ))}
+            {(() => {
+               const sanitized = sanitizeImages(project.projectImages);
+               const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+               return displayImages.map((_, index) => (
+                 <View
+                   key={index}
+                   className={`h-1.5 w-1.5 rounded-full ${
+                     index === activeImageIndex
+                       ? "bg-white"
+                       : "bg-white/40"
+                   }`}
+                 />
+               ));
+            })()}
           </View>
 
           {/* Overlay Back Button */}

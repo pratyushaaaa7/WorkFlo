@@ -48,6 +48,7 @@ const CreateProjectScreen = () => {
     if (!projectId || !token) return;
 
     const fetchProject = async () => {
+      setFetching(true);
       try {
         const res = await api.get(`/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -60,8 +61,8 @@ const CreateProjectScreen = () => {
         setProjectCode(p.projectCode || "");
         setProjectLocation(p.location || "");
         setClientName(p.clientName || "");
-        setSiteArea(p.siteArea || "");
-        setDesignedArea(p.designedArea || "");
+        setSiteArea(p.siteArea ? String(p.siteArea) : "");
+        setDesignedArea(p.designedArea ? String(p.designedArea) : "");
         setFileNumber(p.fileNumber || "");
         setWebName(p.webName || "");
         setCompanyName(p.company || null);
@@ -69,8 +70,8 @@ const CreateProjectScreen = () => {
         setSelectedScopes(p.scopes || []);
         setStatus(p.status || "active");
 
-        setSelectedLeaders(p.teamLeaders?.map((u: any) => u._id) || []);
-        setSelectedMembers(p.teamMembers?.map((u: any) => u._id) || []);
+        setSelectedLeaders(p.teamLeaders?.map((u: any) => u._id || u) || []);
+        setSelectedMembers(p.teamMembers?.map((u: any) => u._id || u) || []);
         setStartDate(p.startDate ? new Date(p.startDate) : null);
         setPartnerInCharge(
           p.partnerInCharge?.map((u: any) => u._id || u) || [],
@@ -80,7 +81,40 @@ const CreateProjectScreen = () => {
           p.companySerialNumber?.replace(/^(WP|WALL|WCORP)/i, "") || "",
         );
         setProjectDescription(p.projectDescription || "");
-        setProjectImages(p.projectImages || []);
+        
+        // 🧪 Robust Sanitation for "Project Images"
+        // Handles cases where data might be: "[]", '["url"]', or ["[\"url\"]"]
+        const sanitizeImages = (data: any): string[] => {
+          if (!data) return [];
+          
+          // If it's a string, try to parse it
+          if (typeof data === "string") {
+            try {
+              const parsed = JSON.parse(data);
+              return sanitizeImages(parsed); // Recurse to handle "[\"url\"]"
+            } catch (e) {
+              // If it's a string but NOT JSON (like a raw URL), wrap it in array
+              if (data.startsWith("http")) return [data];
+              return [];
+            }
+          }
+          
+          // If it's an array, sanitize its elements
+          if (Array.isArray(data)) {
+            const flat = data.flatMap(item => {
+              const sanitized = sanitizeImages(item);
+              return sanitized;
+            });
+            // Filter out junk and duplicates
+            return [...new Set(flat)].filter(img => typeof img === "string" && img.startsWith("http"));
+          }
+          
+          return [];
+        };
+
+        const sanitizedImgs = sanitizeImages(p.projectImages);
+        setProjectImages(sanitizedImgs);
+
         setAssociatedProject(
           p.associatedProject?._id || p.associatedProject || null,
         );
@@ -92,6 +126,8 @@ const CreateProjectScreen = () => {
           text2: "Unable to load project details",
           position: "bottom",
         });
+      } finally {
+        setFetching(false);
       }
     };
 
@@ -134,6 +170,7 @@ const CreateProjectScreen = () => {
   >([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
   // Validation errors state
   const [fieldErrors, setFieldErrors] = useState<{
@@ -433,17 +470,17 @@ const CreateProjectScreen = () => {
 
       const newImages = projectImages.filter((img) => !img.startsWith("http"));
       newImages.forEach((imgUri, index) => {
-        const filename = imgUri.split("/").pop() || `image_${index}.jpg`;
+        const filename = imgUri.split("/").pop() || `image_${Date.now()}_${index}.jpg`;
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-        // @ts-ignore
         formData.append("files", {
+          // @ts-ignore
           uri:
             Platform.OS === "android" ? imgUri : imgUri.replace("file://", ""),
           name: filename,
           type,
-        });
+        } as any);
       });
 
       if (isEditing) {
@@ -519,10 +556,16 @@ const CreateProjectScreen = () => {
         </Text>
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "padding"}
-      >
+      {fetching ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#5B4CCC" />
+          <Text className="mt-4 font-poppins text-gray-500 dark:text-gray-400">Loading project details...</Text>
+        </View>
+      ) : (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        >
         <ScrollView
           ref={scrollViewRef}
           className="flex-1 px-4 pt-6"
@@ -1281,14 +1324,18 @@ const CreateProjectScreen = () => {
 
             {/* Selected Images Preview */}
             {projectImages.length > 0 && (
-              <View className="flex-row flex-wrap mt-4 gap-4">
+              <View className="flex-row flex-wrap mt-4" style={{ gap: 12 }}>
                 {projectImages.map((uri, index) => (
                   <View
-                    key={index}
+                    key={`${uri}-${index}`}
                     style={{
-                      width: 90,
-                      height: 90,
+                      width: "30%",
+                      aspectRatio: 1,
                       position: "relative",
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? "#333" : "#E0E0E0",
                     }}
                   >
                     <Image
@@ -1299,17 +1346,18 @@ const CreateProjectScreen = () => {
                         borderRadius: 20,
                         backgroundColor: isDarkMode ? "#1A1A1A" : "#F0F3F7",
                       }}
+                      resizeMode="cover"
                     />
                     <TouchableOpacity
                       onPress={() => removeImage(index)}
                       style={{
                         position: "absolute",
-                        top: 8,
-                        right: 8,
-                        backgroundColor: "rgba(255, 255, 255, 0.7)",
-                        borderRadius: 14,
-                        width: 22,
-                        height: 22,
+                        top: 5,
+                        right: 5,
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        borderRadius: 12,
+                        width: 24,
+                        height: 24,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -1317,9 +1365,8 @@ const CreateProjectScreen = () => {
                     >
                       <HugeiconsIcon
                         icon={Cancel01Icon}
-                        size={16}
-                        strokeWidth={3}
-                        color="#000000"
+                        size={14}
+                        color="#FFFFFF"
                       />
                     </TouchableOpacity>
                   </View>
@@ -1329,6 +1376,7 @@ const CreateProjectScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      )}
 
       {/* Fixed Bottom Buttons */}
       <View
