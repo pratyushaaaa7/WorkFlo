@@ -8,13 +8,13 @@ import Toast from "react-native-toast-message";
 //   // baseURL: "http://localhost:5000/api"
 // });
 
-const api = axios.create({
-  baseURL: "https://api.wprojects.in/api",
-});
-
 // const api = axios.create({
-//   baseURL: 'https://wtechbackend.onrender.com/api',  // Live backend URL
+//   baseURL: "https://api.wprojects.in/api",
 // });
+
+const api = axios.create({
+  baseURL: 'https://wtechbackend.onrender.com/api',  // Live backend URL
+});
 
 api.interceptors.response.use(
   (response) => response,
