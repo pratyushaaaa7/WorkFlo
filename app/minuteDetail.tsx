@@ -29,6 +29,7 @@ import {
   Alert,
   Keyboard,
   LayoutAnimation,
+  Linking,
   Platform,
   RefreshControl,
   ScrollView,
@@ -1249,8 +1250,7 @@ const MinuteDetail = () => {
                                 style={{ width: 140 }}
                                 activeOpacity={0.7}
                                 onPress={() => {
-                                  // In a real app, you might use Linking or a viewer
-                                  Alert.alert("Open Attachment", url);
+                                  if (url) Linking.openURL(url);
                                 }}
                               >
                                 {url.match(/\.(jpeg|jpg|gif|png)$/) ? (
