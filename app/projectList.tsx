@@ -101,7 +101,7 @@ const ProjectList = () => {
   // Export Logic — backend generates xlsx via ExcelJS
   const exportToExcel = async () => {
     try {
-      const response = await api.get("/excel/allProjectsExcel", {
+      const response = await api.get("/export/allProjectsExcel", {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "arraybuffer",
       });

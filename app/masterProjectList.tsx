@@ -178,7 +178,7 @@ const MasterProjectList = () => {
     try {
       setDownloading(true);
 
-      const response = await api.get("/excel/allProjectsExcel", {
+      const response = await api.get("/export/allProjectsExcel", {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "arraybuffer",
       });
