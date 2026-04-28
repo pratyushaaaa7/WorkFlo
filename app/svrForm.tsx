@@ -16,15 +16,15 @@ import React, {
   useState,
 } from "react";
 import {
+  FlatList,
   KeyboardAvoidingView,
   Modal as NativeModal,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
-  View,
+  View
 } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -32,12 +32,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
 import AttendeeItem from "../components/AttendeeItem";
-import MinuteItem from "../components/MinuteItem";
 import SvrMinuteItem from "../components/SvrMinuteItem";
 import { AuthContext } from "../context/AuthContext";
-import { Image as ExpoImage } from "expo-image";
 import api from "../lib/api";
-import { FlatList } from "react-native";
 
 interface Entry {
   id: string;
@@ -284,11 +281,11 @@ const SVRform = () => {
         setValidationErrors((prev: any) => {
           const updatedAttendeeErrors = { ...prev.attendees };
           const attendeeError = { ...updatedAttendeeErrors[index] };
-          
+
           if (typeof field === "string") {
             delete attendeeError[field as keyof typeof attendeeError];
           } else if (typeof field === "object") {
-             Object.keys(field).forEach(k => delete attendeeError[k as keyof typeof attendeeError]);
+            Object.keys(field).forEach(k => delete attendeeError[k as keyof typeof attendeeError]);
           }
 
           if (Object.keys(attendeeError).length === 0) {
@@ -354,11 +351,11 @@ const SVRform = () => {
         setValidationErrors((prev: any) => {
           const updatedEntryErrors = { ...prev.entries };
           const entryError = { ...updatedEntryErrors[index] };
-          
+
           if (typeof field === "string") {
             delete entryError[field as keyof typeof entryError];
           } else if (typeof field === "object") {
-             Object.keys(field).forEach(k => delete entryError[k as keyof typeof entryError]);
+            Object.keys(field).forEach(k => delete entryError[k as keyof typeof entryError]);
           }
 
           if (Object.keys(entryError).length === 0) {
@@ -497,7 +494,7 @@ const SVRform = () => {
     if (mode !== "case-study") {
       entries.forEach((e, idx) => {
         const fieldErrs: any = {};
-        
+
         // Discussion is mandatory ONLY when an image is added
         if (e.images && e.images.length > 0 && !e.issueDescription?.trim()) {
           fieldErrs.issueDescription = true;
@@ -517,7 +514,7 @@ const SVRform = () => {
 
     if (hasError && mode !== "case-study") {
       setValidationErrors(errors);
-      
+
       const targetTab = firstErrorLocation === "attendees" ? "attendees" : "discussion";
       setActiveTab(targetTab);
 
@@ -597,7 +594,7 @@ const SVRform = () => {
         <AttendeeItem
           key={item.id}
           item={item}
-          drag={() => {}}
+          drag={() => { }}
           isActive={false}
           expanded={!!item.isExpanded}
           onToggleExpand={handleToggleAttendee}
@@ -627,7 +624,7 @@ const SVRform = () => {
         <SvrMinuteItem
           key={item.id}
           item={item}
-          drag={() => {}}
+          drag={() => { }}
           isActive={false}
           expanded={!!item.isExpanded}
           onToggleExpand={handleToggleEntry}
@@ -713,11 +710,10 @@ const SVRform = () => {
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
               value={caseStudyRemarks}
               onChangeText={setCaseStudyRemarks}
-              className={`rounded-2xl px-4 py-4 font-poppins min-h-[250px] text-base ${
-                isDarkMode
+              className={`rounded-2xl px-4 py-4 font-poppins min-h-[250px] text-base ${isDarkMode
                   ? "bg-[#1A1A1A] text-white"
                   : "bg-[#F0F3F7] text-gray-900"
-              }`}
+                }`}
               textAlignVertical="top"
             />
           </View>
@@ -726,7 +722,7 @@ const SVRform = () => {
         <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
           <View
             className="pb-4 px-4 flex-row gap-3"
-            style={{ 
+            style={{
               paddingBottom: Math.max(insets.bottom, 16),
               backgroundColor: isDarkMode ? "#000" : "#FBFCFD"
             }}
@@ -793,11 +789,10 @@ const SVRform = () => {
         >
           <TouchableOpacity
             onPress={() => setActiveTab("attendees")}
-            className={`flex-1 py-3 items-center ${
-              activeTab === "attendees"
+            className={`flex-1 py-3 items-center ${activeTab === "attendees"
                 ? "border-b-[1.5px] border-[#5B4CCC]"
                 : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
-            }`}
+              }`}
           >
             <Text
               className={`text-[15px] font-poppinsMedium ${activeTab === "attendees" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
@@ -807,11 +802,10 @@ const SVRform = () => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab("discussion")}
-            className={`flex-1 py-3 items-center ${
-              activeTab === "discussion"
+            className={`flex-1 py-3 items-center ${activeTab === "discussion"
                 ? "border-b-[1.5px] border-[#5B4CCC]"
                 : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
-            }`}
+              }`}
           >
             <Text
               className={`text-[15px] font-poppinsMedium ${activeTab === "discussion" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
@@ -840,7 +834,7 @@ const SVRform = () => {
                 <View key={item.id} className="mb-3">
                   <AttendeeItem
                     item={item}
-                    drag={() => {}}
+                    drag={() => { }}
                     isActive={false}
                     expanded={!!item.isExpanded}
                     onToggleExpand={handleToggleAttendee}
@@ -860,7 +854,7 @@ const SVRform = () => {
                 <View key={item.id} className="mb-3">
                   <SvrMinuteItem
                     item={item}
-                    drag={() => {}}
+                    drag={() => { }}
                     isActive={false}
                     expanded={!!item.isExpanded}
                     onToggleExpand={handleToggleEntry}

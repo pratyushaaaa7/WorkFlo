@@ -10,7 +10,15 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.app.thuhroh"
+      "bundleIdentifier": "com.app.thuhroh",
+      "appleTeamId": "YVPN8754GT",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Allow Thuhroh to connect to the computer to load the app's JavaScript.",
+        "NSBonjourServices": [
+          "_http._tcp",
+          "_mesh._tcp"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
