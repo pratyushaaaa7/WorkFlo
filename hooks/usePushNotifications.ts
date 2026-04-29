@@ -49,24 +49,38 @@ export const usePushNotifications = (
             console.log("📡 Syncing push token to backend...");
             console.log("🎟️ NEW PUSH TOKEN:", pushToken);
             console.log("🔗 Endpoint: /users/notification-preferences");
-            api
-              .patch(
-                "/users/notification-preferences",
-                { preferences: { pushEnabled: true }, pushToken },
-                { headers: { Authorization: authHeader } },
-              )
+
+            // ⚠️ FIX: Fetch existing preferences first to avoid overwriting them
+            api.get("/users/notification-preferences", { headers: { Authorization: authHeader } })
+              .then((res) => {
+                const currentPrefs = res.data?.preferences || { pushEnabled: true };
+                console.log("📦 Current Preferences from Server:", JSON.stringify(currentPrefs, null, 2));
+
+                const payload = { 
+                  preferences: { ...currentPrefs, pushEnabled: true }, 
+                  pushToken 
+                };
+                console.log("📤 Sending Sync Payload:", JSON.stringify(payload, null, 2));
+
+                return api.patch("/users/notification-preferences", payload, { headers: { Authorization: authHeader } });
+              })
               .then((res) => {
                 console.log("✅ Push token synced successfully!");
-                console.log("📦 Server Response Data:", JSON.stringify(res.data, null, 2));
+                console.log("📦 Final Server Response State:", JSON.stringify(res.data?.preferences || res.data, null, 2));
               })
               .catch((err) => {
                 console.error("❌ Push sync failed!");
                 console.log("Status Code:", err.response?.status);
-                console.log("Request Payload:", JSON.stringify({ preferences: { pushEnabled: true }, pushToken }, null, 2));
-                console.log(
-                  "Server Message:",
-                  err.response?.data?.message || err.response?.data,
-                );
+                console.log("Error Detail:", err.response?.data?.message || err.response?.data || err.message);
+                
+                // If it's a 404, maybe the user hasn't initialized preferences yet
+                if (err.response?.status === 404) {
+                   console.log("ℹ️ Preferences not found (404), attempting first-time initialization...");
+                   api.patch("/users/notification-preferences", { preferences: { pushEnabled: true }, pushToken }, { headers: { Authorization: authHeader } })
+                     .then(() => console.log("✅ Initialized push preferences!"))
+                     .catch(e => console.error("❌ Initial initialization failed:", e.message));
+                }
+                
                 hasRegistered.current = false;
               });
           }
