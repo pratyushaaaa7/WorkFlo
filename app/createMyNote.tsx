@@ -44,15 +44,50 @@ const CreateNote = () => {
   // Strict state initialization on focus
   useFocusEffect(
     useCallback(() => {
-      setTitle(initialTitle);
-      setContent(initialContent);
+      const fetchFullNote = async () => {
+        if (!noteId || !token) return;
+        try {
+          setLoading(true);
+          const res = await api.get(`/personal-notes/${noteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setTitle(res.data.title || "");
+          setContent(res.data.content || "");
+        } catch (error) {
+          console.error("Error fetching full note:", error);
+          // Fallback to params if fetch fails
+          setTitle(initialTitle);
+          setContent(initialContent);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (noteId) {
+        fetchFullNote();
+      } else {
+        setTitle(initialTitle);
+        setContent(initialContent);
+      }
+
+      const backAction = () => {
+        if (hasChanges) {
+          handleSave();
+        } else {
+          router.back();
+        }
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
 
       return () => {
-        // Clear state on blur to be defensive
-        setTitle("");
-        setContent("");
+        backHandler.remove();
       };
-    }, [noteId, initialTitle, initialContent]),
+    }, [noteId, token, initialTitle, initialContent, hasChanges]),
   );
 
   useEffect(() => {
@@ -75,25 +110,6 @@ const CreateNote = () => {
     title.trim() !== initialTitle.trim() ||
     content.trim() !== initialContent.trim() ||
     (!noteId && (title.trim().length > 0 || content.trim().length > 0));
-
-  // Handle back button / gesture
-  useEffect(() => {
-    const backAction = () => {
-      if (hasChanges) {
-        handleSave();
-      } else {
-        router.back();
-      }
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction,
-    );
-
-    return () => backHandler.remove();
-  }, [hasChanges, title, content, noteId, initialTitle, initialContent]);
 
   const handleSave = async () => {
     if (!hasChanges) {

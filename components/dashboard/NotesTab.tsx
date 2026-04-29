@@ -60,25 +60,24 @@ const NotesTab = ({
 
   const fetchNotes = useCallback(async () => {
     try {
-      setLoading(true);
+      if (notes.length === 0) setLoading(true);
       const response = await api.get("/personal-notes", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!Array.isArray(response.data)) {
         console.warn("Unexpected response from /notes:", response.data);
-        setNotes([]);
         return;
       }
 
       setNotes(response.data);
     } catch (error) {
       console.error("Error fetching notes:", error);
-      setNotes([]);
+      // Don't clear notes on error, just keep the existing ones
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, notes.length]);
 
   useFocusEffect(
     useCallback(() => {
@@ -342,8 +341,6 @@ const NotesTab = ({
                         pathname: "/createMyNote",
                         params: {
                           noteId: note._id,
-                          title: note.title,
-                          content: note.content,
                         },
                       });
                     }}
@@ -369,8 +366,6 @@ const NotesTab = ({
                         pathname: "/createMyNote",
                         params: {
                           noteId: note._id,
-                          title: note.title,
-                          content: note.content,
                         },
                       });
                     }}
