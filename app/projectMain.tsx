@@ -390,7 +390,7 @@ const ProjectMain = () => {
     },
     {
       key: "runningNotes",
-      label: "Running note",
+      label: "Running Notes",
       image: require("../assets/images/projectTabs/runningNotes.png"),
       onPress: () =>
         router.push({
