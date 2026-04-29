@@ -31,7 +31,9 @@ type AuthContextType = {
   logout: () => Promise<void>;
   getToken: () => Promise<string | null>;
   getUser: () => Promise<User | null>;
-  authLoading: boolean; // 👈 ADD THIS
+  authLoading: boolean;
+  expoPushToken: string | null;
+  setExpoPushToken: (token: string | null) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   // NEW: Loading state so we do not expose wrong auth state
   const [authLoading, setAuthLoading] = useState(true);
@@ -171,6 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         getToken,
         getUser,
         authLoading,
+        expoPushToken,
+        setExpoPushToken,
       }}
     >
       {children}

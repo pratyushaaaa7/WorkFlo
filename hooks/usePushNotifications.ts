@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import api from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
 
 Notifications.setNotificationHandler({
@@ -20,7 +21,7 @@ export const usePushNotifications = (
   isAuthenticated: boolean,
   token: string | null,
 ) => {
-  const [expoPushToken, setExpoPushToken] = useState<string | undefined>("");
+  const { expoPushToken, setExpoPushToken } = useAuth();
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
@@ -61,19 +62,22 @@ export const usePushNotifications = (
             const authHeader = `Bearer ${token}`;
             console.log("📑 Request Header:", authHeader);
             console.log("📡 Syncing push token to backend...");
-            console.log("🎟️ NEW PUSH TOKEN:", pushToken); // <-- Added this
+            console.log("🎟️ NEW PUSH TOKEN:", pushToken);
+            console.log("🔗 Endpoint: /users/notification-preferences");
             api
               .patch(
                 "/users/notification-preferences",
                 { preferences: { pushEnabled: true }, pushToken },
                 { headers: { Authorization: authHeader } },
               )
-              .then(() => {
+              .then((res) => {
                 console.log("✅ Push token synced successfully!");
+                console.log("📦 Server Response Data:", JSON.stringify(res.data, null, 2));
               })
               .catch((err) => {
                 console.error("❌ Push sync failed!");
                 console.log("Status Code:", err.response?.status);
+                console.log("Request Payload:", JSON.stringify({ preferences: { pushEnabled: true }, pushToken }, null, 2));
                 console.log(
                   "Server Message:",
                   err.response?.data?.message || err.response?.data,

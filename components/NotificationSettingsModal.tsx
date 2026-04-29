@@ -23,7 +23,7 @@ const NotificationSettingsModal: React.FC<NotificationSettingsModalProps> = ({
   isVisible,
   onClose,
 }) => {
-  const { token } = useAuth();
+  const { token, expoPushToken } = useAuth();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
@@ -69,7 +69,10 @@ const NotificationSettingsModal: React.FC<NotificationSettingsModalProps> = ({
       setSaving(true);
       await api.patch(
         "/users/notification-preferences",
-        { preferences: newPreferences },
+        { 
+          preferences: newPreferences,
+          pushToken: expoPushToken // Preserve the token
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (error) {
