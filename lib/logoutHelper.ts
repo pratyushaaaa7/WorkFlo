@@ -1,4 +1,4 @@
-import { authRef } from "../context/AuthContext";
+import { authRef } from "./authRef";
 import { router } from "expo-router";
 
 export const logoutUser = () => {

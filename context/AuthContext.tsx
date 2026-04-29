@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { AppState, AppStateStatus } from "react-native";
 import api from "../lib/api";
+import { authRef } from "../lib/authRef";
 // import { router } from "expo-router";
 
 type User = {
@@ -41,7 +42,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(
   undefined,
 );
 
-export const authRef = { current: null as any };
+// export const authRef = { current: null as any };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
