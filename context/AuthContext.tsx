@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { AppState, AppStateStatus } from "react-native";
+import api from "../lib/api";
 // import { router } from "expo-router";
 
 type User = {
@@ -55,12 +56,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // LOGOUT
   const logout = useCallback(async () => {
+    // 🔔 Clear push token from server before wiping local auth
+    if (token && expoPushToken) {
+      console.log("🧹 Removing push token from server...");
+      try {
+        // We use a manual header because the local token might be about to disappear
+        // and we want to ensure this request goes through with the current session.
+        await api.patch(
+          "/users/notification-preferences",
+          { removePushToken: expoPushToken },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        // console.log("✅ Push token removed successfully");
+      } catch (err) {
+        console.error("❌ Failed to remove push token during logout:", err);
+      }
+    }
+
     await AsyncStorage.removeItem("token");
     await AsyncStorage.removeItem("user");
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-  }, []);
+  }, [token, expoPushToken]);
 
   const isTokenExpired = (token: string) => {
     try {

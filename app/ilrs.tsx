@@ -30,9 +30,12 @@ import React, {
   useRef,
   useState,
 } from "react";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   SectionList,
@@ -264,16 +267,21 @@ const ILRs = () => {
       if (!token || !projectId) return;
       try {
         if (!background && pageNum === 1) setLoading(true);
-        const res = await api.get(`/ilrs/${projectId}?page=${pageNum}&limit=15`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get(
+          `/ilrs/${projectId}?page=${pageNum}&limit=15`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         const fetchedData = res.data;
         if (fetchedData.length < 15) {
           setHasMore(false);
         } else {
           setHasMore(true);
         }
-        setIlrs(prev => pageNum === 1 ? fetchedData : [...prev, ...fetchedData]);
+        setIlrs((prev) =>
+          pageNum === 1 ? fetchedData : [...prev, ...fetchedData],
+        );
       } catch (err) {
         console.error("Error fetching ILRs:", err);
       } finally {
@@ -309,35 +317,220 @@ const ILRs = () => {
   };
 
   const handleDownloadExcel = async () => {
+    if (!token) return;
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
       : ilrs;
 
     if (dataToExport.length === 0) {
-      alert("No ILRs selected to export");
+      Toast.show({
+        type: "error",
+        text1: "Export failed",
+        text2: "No ILRs selected to export",
+        position: "bottom",
+      });
       return;
     }
 
-    // await exportILRsToExcel(
-    //   dataToExport as any,
-    //   projectName as string,
-    //   auth?.user?.fullName || auth?.user?.username || "Self",
-    //   auth?.user?.company || "WP",
-    // );
+    try {
+      const response = await api.post(
+        "/ilrs/ilrs-download",
+        {
+          ilrs: dataToExport,
+          projectName: projectName,
+          accountName: auth?.user?.fullName || auth?.user?.username || "Self",
+          company: auth?.user?.company || "WP",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        },
+      );
+
+      const fileName = `ILRs_${projectName}_${new Date().getTime()}.xlsx`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(response.data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Share ILRs Excel",
+          UTI: "com.microsoft.excel.xlsx",
+        });
+      }
+    } catch (err) {
+      console.error("Excel export error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Export failed",
+        text2: "Failed to export Excel",
+        position: "bottom",
+      });
+    }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    if (!token) return;
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
       : ilrs;
 
     if (dataToExport.length === 0) {
-      alert("No ILRs selected to export");
+      Toast.show({
+        type: "error",
+        text1: "Export failed",
+        text2: "No ILRs selected to export",
+        position: "bottom",
+      });
       return;
     }
-    console.log("PDF Export triggered for:", dataToExport.length, "items");
+
+    try {
+      const response = await api.post(
+        "/ilrs/ilrs-download/pdf",
+        {
+          ilrs: dataToExport,
+          projectName: projectName,
+          accountName: auth?.user?.fullName || auth?.user?.username || "Self",
+          company: auth?.user?.company || "WP",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        },
+      );
+
+      const fileName = `ILRs_${projectName}_${new Date().getTime()}.pdf`;
+
+      if (Platform.OS === "web") {
+        const url = window.URL.createObjectURL(response.data);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const blobToBase64 = (blob: Blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+              resolve(reader.result?.toString().split(",")[1] || "");
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+        const base64data = await blobToBase64(response.data);
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Share ILRs PDF",
+          UTI: "com.adobe.pdf",
+        });
+      }
+    } catch (err) {
+      console.error("PDF export error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Export failed",
+        text2: "Failed to export PDF",
+        position: "bottom",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!token) return;
+    setExportMenuVisible(false);
+
+    const idsToShare = selectionMode
+      ? Array.from(selectedIds)
+      : ilrs
+          .filter((ilr: any) => {
+            const pId = String(ilr.projectId?._id || ilr.projectId);
+            return pId === String(projectId);
+          })
+          .map((i) => i._id);
+
+    if (idsToShare.length === 0) {
+      Toast.show({
+        type: "error",
+        text1: "Share failed",
+        text2: "No ILRs to share",
+        position: "bottom",
+      });
+      return;
+    }
+
+    try {
+      for (const id of idsToShare) {
+        try {
+          await api.put(
+            `/ilrs/${id}/share`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+        } catch (err: any) {
+          console.error("Failed to share ILR " + id, err);
+          const errorMessage =
+            err.response?.data?.message ||
+            err.response?.data?.error ||
+            "Failed to share ILR";
+          Toast.show({
+            type: "error",
+            text1: "Share failed",
+            text2: errorMessage,
+            position: "bottom",
+          });
+        }
+      }
+
+      Toast.show({
+        type: "success",
+        text1: selectionMode ? "Shared selected ILRs" : "Shared all ILRs",
+        position: "bottom",
+      });
+
+      if (selectionMode) {
+        setSelectionMode(false);
+        setSelectedIds(new Set());
+      }
+      fetchILRs(true);
+    } catch (err) {
+      console.error("Global share error:", err);
+    }
   };
 
   const sections = useMemo(() => {
@@ -688,38 +881,6 @@ const ILRs = () => {
               </Text>
             </View>
             <View className="flex-row items-center gap-4">
-              {activeTab === "Project" && (
-                <TouchableOpacity
-                  onPress={async () => {
-                    if (selectedIds.size === 0) return;
-                    for (const id of selectedIds) {
-                      try {
-                        await api.put(`/ilrs/${id}/share`, {}, {
-                          headers: { Authorization: `Bearer ${token}` }
-                        });
-                      } catch (err: any) {
-                        console.error("Failed to share ILR " + id, err);
-                        const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to share ILR";
-                        Toast.show({
-                          type: "error",
-                          text1: "Share failed",
-                          text2: errorMessage,
-                          position: "bottom",
-                        });
-                      }
-                    }
-                    setSelectionMode(false);
-                    setSelectedIds(new Set());
-                    fetchILRs(true);
-                  }}
-                >
-                  <HugeiconsIcon
-                    icon={Share08Icon}
-                    size={24}
-                    color={isDarkMode ? "#FFF" : "#2D3436"}
-                  />
-                </TouchableOpacity>
-              )}
               <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
                 <HugeiconsIcon
                   icon={MoreHorizontalIcon}
@@ -807,7 +968,7 @@ const ILRs = () => {
 
       {/* Tabs */}
       <View className="flex-row items-center pt-1 justify-between pb-2 mb-4 border-b border-[#E0E5EE] dark:border-[#63615F] relative">
-        {(["Project", "Shared"]).map((tab) => {
+        {["Project", "Shared"].map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity
@@ -827,7 +988,10 @@ const ILRs = () => {
             </TouchableOpacity>
           );
         })}
-        <AnimatedTabIndicator tabs={["Project", "Shared"]} activeTab={activeTab} />
+        <AnimatedTabIndicator
+          tabs={["Project", "Shared"]}
+          activeTab={activeTab}
+        />
       </View>
 
       {/* Export Menu (Fast Overlay) */}
@@ -891,6 +1055,25 @@ const ILRs = () => {
                   Export Excel
                 </Text>
               </TouchableOpacity>
+
+              {activeTab === "Project" && (
+                <>
+                  <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2" />
+                  <TouchableOpacity
+                    onPress={handleShare}
+                    className="flex-row items-center  p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                  >
+                    <HugeiconsIcon
+                      icon={Share08Icon}
+                      size={24}
+                      color={isDarkMode ? "#D2D2D2" : "#454545"}
+                    />
+                    <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                      Share
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </View>
@@ -1029,30 +1212,57 @@ const ILRs = () => {
             }}
           />
         </View>
-
       </View>
 
       {/* Main List content */}
       <View className="flex-1 px-4">
         {loading ? (
           <View className="flex-1 pt-4">
-             {[1, 2].map((group) => (
-                <View key={group} className="mb-6">
-                  <View className="px-4 py-3 bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-t-[16px]">
-                    <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={100} height={18} radius={4} />
-                  </View>
-                  {[1, 2, 3].map((item) => (
-                    <View key={item} className="p-3 bg-[#F0F3F7] dark:bg-[#0D0D0D] border-b border-[#E0E5EB] dark:border-[#413E47] gap-3">
-                       <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="70%" height={18} radius={4} />
-                       <Skeleton colorMode={isDarkMode ? "dark" : "light"} width="90%" height={14} radius={4} />
-                       <View className="flex-row justify-between items-center mt-2">
-                        <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={60} height={20} radius={6} />
-                        <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={80} height={16} radius={4} />
-                       </View>
-                    </View>
-                  ))}
+            {[1, 2].map((group) => (
+              <View key={group} className="mb-6">
+                <View className="px-4 py-3 bg-[#F6F8FA] dark:bg-[#1A1A1A] rounded-t-[16px]">
+                  <Skeleton
+                    colorMode={isDarkMode ? "dark" : "light"}
+                    width={100}
+                    height={18}
+                    radius={4}
+                  />
                 </View>
-             ))}
+                {[1, 2, 3].map((item) => (
+                  <View
+                    key={item}
+                    className="p-3 bg-[#F0F3F7] dark:bg-[#0D0D0D] border-b border-[#E0E5EB] dark:border-[#413E47] gap-3"
+                  >
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width="70%"
+                      height={18}
+                      radius={4}
+                    />
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width="90%"
+                      height={14}
+                      radius={4}
+                    />
+                    <View className="flex-row justify-between items-center mt-2">
+                      <Skeleton
+                        colorMode={isDarkMode ? "dark" : "light"}
+                        width={60}
+                        height={20}
+                        radius={6}
+                      />
+                      <Skeleton
+                        colorMode={isDarkMode ? "dark" : "light"}
+                        width={80}
+                        height={16}
+                        radius={4}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ))}
           </View>
         ) : (
           <SectionList
@@ -1078,7 +1288,13 @@ const ILRs = () => {
             removeClippedSubviews={true}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
-            ListFooterComponent={hasMore && page > 1 ? <ActivityIndicator className="my-4" color="#5B4CCC"/> : <View className="h-4"/>}
+            ListFooterComponent={
+              hasMore && page > 1 ? (
+                <ActivityIndicator className="my-4" color="#5B4CCC" />
+              ) : (
+                <View className="h-4" />
+              )
+            }
             ListEmptyComponent={() => (
               <View className="flex-1 items-center justify-center pt-20">
                 <Text className="text-gray-500 font-poppinsMedium text-[15px]">

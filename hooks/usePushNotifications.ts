@@ -30,23 +30,8 @@ export const usePushNotifications = (
   const router = useRouter();
 
   useEffect(() => {
-    // ⚠️ FIX 2: Logout Cleanup (Critical Security)
+    // Reset registration flag on logout
     if (!isAuthenticated) {
-      if (hasRegistered.current && expoPushToken) {
-        console.log("🧹 Cleaning up push token on logout...");
-        // We fire and forget here, or handle errors gracefully
-        api
-          .patch(
-            "/users/notification-preferences",
-            { preferences: { pushEnabled: false }, pushToken: null },
-            // Note: We'd need the token here, but if we're logging out,
-            // usually the context token is already gone.
-            // Best practice: The logout function itself should call this before clearing local storage.
-          )
-          .catch((e) =>
-            console.log("Logout cleanup failed (expected if token gone)", e),
-          );
-      }
       hasRegistered.current = false;
       return;
     }
