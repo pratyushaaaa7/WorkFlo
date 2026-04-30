@@ -52,7 +52,7 @@ import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ProjectProvider } from "../context/ProjectContext";
 import "../global.css";
 import { usePushNotifications } from "../hooks/usePushNotifications";
-import { useUsageTracking } from "../hooks/useUsageTracking";
+import { reportUserInteraction, useUsageTracking } from "../hooks/useUsageTracking";
 import SplashScreen from "../components/SplashScreen";
 
 const CustomDrawerContent = (props: any) => {
@@ -189,13 +189,21 @@ export default function RootLayout() {
       <KeyboardProvider>
         <AuthProvider>
           <ProjectProvider>
-            <StatusBar
-              translucent
-              backgroundColor="transparent"
-              barStyle="dark-content"
-            />
-            <AppLayout />
-            <Toast config={toastConfig} position="bottom" />
+            <View
+              style={{ flex: 1 }}
+              onStartShouldSetResponderCapture={() => {
+                reportUserInteraction();
+                return false; // Don't steal touch from children
+              }}
+            >
+              <StatusBar
+                translucent
+                backgroundColor="transparent"
+                barStyle="dark-content"
+              />
+              <AppLayout />
+              <Toast config={toastConfig} position="bottom" />
+            </View>
           </ProjectProvider>
         </AuthProvider>
       </KeyboardProvider>
