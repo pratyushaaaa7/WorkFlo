@@ -41,7 +41,7 @@ const CreateProjectScreen = () => {
   const isDarkMode = colorScheme === "dark";
   const { bottom } = useSafeAreaInsets();
 
-  const { projectId } = useLocalSearchParams();
+  const { projectId, t } = useLocalSearchParams();
   const isEditing = Boolean(projectId);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ const CreateProjectScreen = () => {
     };
 
     fetchProject();
-  }, [projectId, token]);
+  }, [projectId, token, t]);
 
   // States with prefill if editing
   const [projectName, setProjectName] = useState("");
@@ -552,7 +552,7 @@ const CreateProjectScreen = () => {
           />
         </TouchableOpacity>
         <Text className="text-[20px] font-dmSemiBold text-[#000000] dark:text-[#FFFFFF]">
-          Create project
+          {isEditing ? "Edit project" : "Create project"}
         </Text>
       </View>
 

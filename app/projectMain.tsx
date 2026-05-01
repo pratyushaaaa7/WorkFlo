@@ -108,7 +108,7 @@ const ProjectMain = () => {
   };
 
   console.log(projectId);
-  const { token } = useContext(AuthContext) || {};
+  const { token, user } = useContext(AuthContext) || {};
   const [isExpanded, setIsExpanded] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -493,18 +493,25 @@ const ProjectMain = () => {
               <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFFFFF" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setMenuVisible(true)}
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-              activeOpacity={0.7}
-            >
-              <HugeiconsIcon
-                icon={MoreHorizontalIcon}
-                size={24}
-                color="#FFFFFF"
-              />
-            </TouchableOpacity>
+            {(user?.role === "admin" ||
+              project?.teamLeaders?.some((leader: any) => {
+                const leaderId = leader?._id || leader?.id;
+                const userId = user?._id || user?.id;
+                return leaderId && userId && leaderId === userId;
+              })) && (
+              <TouchableOpacity
+                onPress={() => setMenuVisible(true)}
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+                activeOpacity={0.7}
+              >
+                <HugeiconsIcon
+                  icon={MoreHorizontalIcon}
+                  size={24}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Indicator Dots - Matched with projectDetails */}
@@ -776,7 +783,7 @@ const ProjectMain = () => {
                 setMenuVisible(false);
                 router.push({
                   pathname: "/createProject",
-                  params: { projectId: projectId },
+                  params: { projectId: projectId, t: Date.now() },
                 });
               }}
               className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
