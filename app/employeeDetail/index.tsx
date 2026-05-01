@@ -22,6 +22,7 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
+  Image,
 } from "react-native";
 import AnimatedTabIndicator from "../../components/AnimatedTabIndicator";
 import GlobalAvatar from "../../components/GlobalAvatar";
@@ -359,10 +360,15 @@ const EmployeeDetail = () => {
               height={120}
               radius={32}
             />
+          ) : userData?.profileImage ? (
+            <Image
+              source={{ uri: userData.profileImage }}
+              style={{ width: 120, height: 120, borderRadius: 32, marginBottom: 16 }}
+              resizeMode="cover"
+            />
           ) : (
             <GlobalAvatar
               name={userData?.fullName || ""}
-              uri={userData?.profileImage}
               size={120}
               fontSize={40}
               borderRadius={32}

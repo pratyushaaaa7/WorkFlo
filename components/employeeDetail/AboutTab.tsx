@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import moment from "moment";
 import { Skeleton } from "moti/skeleton";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import { Text, TouchableOpacity, View, useColorScheme, Image } from "react-native";
 import Toast from "react-native-toast-message";
 import GlobalAvatar from "../GlobalAvatar";
 import { useAuth } from "../../context/AuthContext";
@@ -124,14 +124,21 @@ const UserRefField = ({
           activeOpacity={0.7}
           className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-3 flex-row items-center"
         >
-          <GlobalAvatar
-            name={displayName || "User"}
-            uri={isObject ? user.profileImage : null}
-            fontSize={18}
-            size={48}
-            borderRadius={12}
-            className="mr-3"
-          />
+          {isObject && user.profileImage ? (
+            <Image
+              source={{ uri: user.profileImage }}
+              style={{ width: 48, height: 48, borderRadius: 12, marginRight: 12 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <GlobalAvatar
+              name={displayName || "User"}
+              fontSize={18}
+              size={48}
+              borderRadius={12}
+              className="mr-3"
+            />
+          )}
 
           <View className="flex-1">
             <Text className="text-black dark:text-white text-base font-dmBold">
@@ -310,14 +317,14 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
         />
 
         <UserRefField
-          label="Reporting to"
+          label="Reporting Manager"
           user={userData?.reportingTo}
           isDarkMode={isDarkMode}
           loading={loading}
           router={router}
         />
         <UserRefField
-          label="Secondary Reporting to"
+          label="Secondary Reporting t00"
           user={userData?.secondaryReportingTo}
           isDarkMode={isDarkMode}
           loading={loading}

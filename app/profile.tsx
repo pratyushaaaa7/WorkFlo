@@ -19,6 +19,7 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
+  Image,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import GlobalAvatar from "../components/GlobalAvatar";
@@ -221,13 +222,21 @@ const ProfileScreen = () => {
           className="items-center px-4 pb-8 bg-white dark:bg-black pt-4"
         >
           <View className="relative">
-            <GlobalAvatar
-              name={userData?.fullName || ""}
-              size={120}
-              fontSize={40}
-              borderRadius={32}
-              className="mb-4"
-            />
+            {userData?.profileImage ? (
+              <Image
+                source={{ uri: userData.profileImage }}
+                style={{ width: 120, height: 120, borderRadius: 32, marginBottom: 16 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <GlobalAvatar
+                name={userData?.fullName || ""}
+                size={120}
+                fontSize={40}
+                borderRadius={32}
+                className="mb-4"
+              />
+            )}
           </View>
 
           <Text className="text-2xl font-dmBold text-black dark:text-white mb-1 text-center">
