@@ -171,6 +171,9 @@ const RegisterUserScreen = () => {
   const [joiningDate, setJoiningDate] = useState<Date | null>(null);
   const [showJoinPicker, setShowJoinPicker] = useState(false);
 
+  const [exitDate, setExitDate] = useState<Date | null>(null);
+  const [showExitPicker, setShowExitPicker] = useState(false);
+
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
@@ -244,6 +247,7 @@ const RegisterUserScreen = () => {
           setEmergencyContact(user.emergencyContact || "");
           setBirthDate(user.birthDate ? new Date(user.birthDate) : null);
           setJoiningDate(user.joiningDate ? new Date(user.joiningDate) : null);
+          setExitDate(user.exitDate ? new Date(user.exitDate) : null);
           setGender(user.gender || "");
           setFatherName(user.fatherName || "");
           setMotherName(user.motherName || "");
@@ -322,6 +326,7 @@ const RegisterUserScreen = () => {
       setEmergencyContact("");
       setBirthDate(null);
       setJoiningDate(null);
+      setExitDate(null);
       setGender("");
       setFatherName("");
       setMotherName("");
@@ -359,6 +364,7 @@ const RegisterUserScreen = () => {
         emergencyContact,
         birthDate: birthDate ? birthDate.toISOString() : null,
         joiningDate: joiningDate ? joiningDate.toISOString() : null,
+        exitDate: exitDate ? exitDate.toISOString() : null,
         gender,
         fatherName,
         motherName,
@@ -436,6 +442,7 @@ const RegisterUserScreen = () => {
         setEmergencyContact("");
         setBirthDate(null);
         setJoiningDate(null);
+        setExitDate(null);
         setGender("");
         setFatherName("");
         setMotherName("");
@@ -482,6 +489,7 @@ const RegisterUserScreen = () => {
     setEmergencyContact("");
     setBirthDate(null);
     setJoiningDate(null);
+    setExitDate(null);
     setGender("");
     setFatherName("");
     setMotherName("");
@@ -696,6 +704,55 @@ const RegisterUserScreen = () => {
             )} */}
           </View>
 
+          {/* Joining Date */}
+          <View className="mb-4">
+            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+              Joining Date
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowJoinPicker(true)}
+              activeOpacity={0.7}
+              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
+            >
+              <Text
+                className="font-poppins text-[14px]"
+                style={{
+                  color: joiningDate
+                    ? isDarkMode
+                      ? "#FFFFFF"
+                      : "#000000"
+                    : isDarkMode
+                      ? "#919191"
+                      : "#454545",
+                }}
+              >
+                {joiningDate
+                  ? joiningDate.toDateString()
+                  : "Select Joining date"}
+              </Text>
+              <HugeiconsIcon
+                icon={Calendar04Icon}
+                size={20}
+                color={isDarkMode ? "#919191" : "#454545"}
+              />
+            </TouchableOpacity>
+            {showJoinPicker && (
+              <DateTimePicker
+                value={joiningDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, date) => {
+                  if (event.type === "set" && date) {
+                    setJoiningDate(date);
+                  } else if (event.type === "dismissed") {
+                    setJoiningDate(null);
+                  }
+                  setShowJoinPicker(false);
+                }}
+              />
+            )}
+          </View>
+
           {/* Status */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
@@ -745,6 +802,57 @@ const RegisterUserScreen = () => {
               )}
             />
           </View>
+
+          {/* Exit Date */}
+          {status === "Exit" && (
+            <View className="mb-4">
+              <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
+                Exit Date
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowExitPicker(true)}
+                activeOpacity={0.7}
+                className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
+              >
+                <Text
+                  className="font-poppins text-[14px]"
+                  style={{
+                    color: exitDate
+                      ? isDarkMode
+                        ? "#FFFFFF"
+                        : "#000000"
+                      : isDarkMode
+                        ? "#919191"
+                        : "#454545",
+                  }}
+                >
+                  {exitDate
+                    ? exitDate.toDateString()
+                    : "Select Exit date"}
+                </Text>
+                <HugeiconsIcon
+                  icon={Calendar04Icon}
+                  size={20}
+                  color={isDarkMode ? "#919191" : "#454545"}
+                />
+              </TouchableOpacity>
+              {showExitPicker && (
+                <DateTimePicker
+                  value={exitDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, date) => {
+                    if (event.type === "set" && date) {
+                      setExitDate(date);
+                    } else if (event.type === "dismissed") {
+                      setExitDate(null);
+                    }
+                    setShowExitPicker(false);
+                  }}
+                />
+              )}
+            </View>
+          )}
 
           {/* Level */}
           <View className="mb-4">
@@ -1066,53 +1174,6 @@ const RegisterUserScreen = () => {
             />
           </View>
 
-          {/* Joining Date */}
-          <View className="mb-4">
-            <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-              Joining Date
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowJoinPicker(true)}
-              activeOpacity={0.7}
-              className="h-[52px] rounded-[16px] px-4 bg-[#F0F3F7] dark:bg-[#1A1A1A] flex-row items-center justify-between"
-            >
-              <Text
-                className="font-poppins text-[14px]"
-                style={{
-                  color: joiningDate
-                    ? isDarkMode
-                      ? "#FFFFFF"
-                      : "#000000"
-                    : isDarkMode
-                      ? "#919191"
-                      : "#454545",
-                }}
-              >
-                {joiningDate
-                  ? joiningDate.toDateString()
-                  : "Select Joining date"}
-              </Text>
-              <HugeiconsIcon
-                icon={Calendar04Icon}
-                size={20}
-                color={isDarkMode ? "#919191" : "#454545"}
-              />
-            </TouchableOpacity>
-            {showJoinPicker && (
-              <DateTimePicker
-                value={joiningDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, date) => {
-                  if (event.type === "set" && date) {
-                    setJoiningDate(date);
-                  }
-                  setShowJoinPicker(false);
-                }}
-              />
-            )}
-          </View>
-
           {/* Birth Date */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
@@ -1152,6 +1213,8 @@ const RegisterUserScreen = () => {
                 onChange={(event, date) => {
                   if (event.type === "set" && date) {
                     setBirthDate(date);
+                  } else if (event.type === "dismissed") {
+                    setBirthDate(null);
                   }
                   setShowBirthPicker(false);
                 }}
