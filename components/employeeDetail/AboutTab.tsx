@@ -324,7 +324,7 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
           router={router}
         />
         <UserRefField
-          label="Secondary Reporting t00"
+          label="Secondary Reporting to"
           user={userData?.secondaryReportingTo}
           isDarkMode={isDarkMode}
           loading={loading}
@@ -333,10 +333,10 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
       </Section>
 
       {/* Direct Reports */}
-      {userData?.directReports && userData.directReports.length > 0 && (
+      {userData?.directReports && userData.directReports.filter((report: any) => !['exit'].includes(report?.status?.toLowerCase())).length > 0 && (
         <Section title="Direct Reports">
           <View className="gap-y-2 mb-2">
-            {userData.directReports.map((report: any) => (
+            {userData.directReports.filter((report: any) => !['exit'].includes(report?.status?.toLowerCase())).map((report: any) => (
               <TouchableOpacity
                 key={report._id}
                 onPress={() => {
