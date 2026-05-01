@@ -223,28 +223,30 @@ const ProjectMain = () => {
             </View>
           )}
         </View>
-        <View className="flex-1 items-end">
-          <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
-            {rightLabel}
-          </Text>
-          {Array.isArray(rightValues) ? (
-            rightValues.map((v, i) => (
-              <Text
-                key={i}
-                className="text-[14px] font-poppinsMedium text-black dark:text-white text-right"
-              >
-                {v}
-              </Text>
-            ))
-          ) : (
-            <Text
-              className={`text-[14px] font-poppinsMedium text-black dark:text-white text-right`}
-              style={rightStyle}
-            >
-              {rightValue || "-"}
+        {rightLabel !== undefined && (
+          <View className="flex-1 items-end">
+            <Text className="text-[14px] font-poppins text-[#454545] dark:text-[#919191]">
+              {rightLabel}
             </Text>
-          )}
-        </View>
+            {Array.isArray(rightValues) ? (
+              rightValues.map((v, i) => (
+                <Text
+                  key={i}
+                  className="text-[14px] font-poppinsMedium text-black dark:text-white text-right"
+                >
+                  {v}
+                </Text>
+              ))
+            ) : (
+              <Text
+                className={`text-[14px] font-poppinsMedium text-black dark:text-white text-right`}
+                style={rightStyle}
+              >
+                {rightValue || "-"}
+              </Text>
+            )}
+          </View>
+        )}
       </View>
       <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#413E47]" />
     </View>
@@ -558,6 +560,28 @@ const ProjectMain = () => {
             </TouchableOpacity>
           </View>
 
+          {/* Associated Project */}
+          {/* {project?.associatedProject && (
+            <Text
+              className="text-sm font-poppinsMedium text-[#454545] dark:text-[#919191] mt-1"
+            >
+              Associated Project:{" "}
+              {typeof project.associatedProject === "object"
+                ? project.associatedProject.projectName || "N/A"
+                : project.associatedProject || "N/A"}
+            </Text>
+          )} */}
+
+          {/* Project Description */}
+          {project?.projectDescription && (
+            <Text
+              className="text-base  leading-6 mt-2 pb-2 border-[#E0E5EB] dark:border-[#413E47]  font-poppins text-[#454545] dark:text-[#919191]"
+              style={{ color: colors.textSecondary }}
+            >
+              {project?.projectDescription}
+            </Text>
+          )}
+
           {/* Collapsible Project Info Section */}
           <AnimatePresence>
             {isExpanded && project && (
@@ -599,6 +623,17 @@ const ProjectMain = () => {
                       rightValue={project.company || "N/A"}
                       isRightBold
                     />
+
+                    {project.associatedProject && (
+                      <ModernDataRow
+                        leftLabel="Associated Project"
+                        leftValue={
+                          typeof project.associatedProject === "object"
+                            ? project.associatedProject.projectName || "N/A"
+                            : project.associatedProject || "N/A"
+                        }
+                      />
+                    )}
 
                     <ModernDataRow
                       leftLabel="Project Code"
@@ -680,16 +715,6 @@ const ProjectMain = () => {
               </MotiView>
             )}
           </AnimatePresence>
-
-          {/* Project Description */}
-          {project?.projectDescription && (
-            <Text
-              className="text-base  leading-6 border-b-[1px] mt-2 pb-2 border-[#E0E5EB] dark:border-[#413E47]  font-poppins text-[#454545] dark:text-[#919191]"
-              style={{ color: colors.textSecondary }}
-            >
-              {project?.projectDescription}
-            </Text>
-          )}
 
           {/* Tabs Grid */}
           <View className="flex-row flex-wrap justify-between   pt-4 pb-10">
