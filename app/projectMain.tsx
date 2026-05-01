@@ -1,4 +1,16 @@
-import { ArrowDown01Icon, ArrowLeft01Icon, ArrowUp01Icon, CheckmarkCircle02Icon, InformationCircleIcon, Progress03Icon, UnavailableIcon, MoreHorizontalIcon, Edit02Icon, Delete03Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowUp01Icon,
+  CheckmarkCircle02Icon,
+  InformationCircleIcon,
+  Progress03Icon,
+  UnavailableIcon,
+  MoreHorizontalIcon,
+  Edit02Icon,
+  Delete03Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Pressable, Modal, Alert } from "react-native";
 import { ProjectInfoModal } from "../components/ProjectInfoModal";
@@ -45,15 +57,19 @@ const sanitizeImages = (data: any): any[] => {
         return [];
       }
     }
-    if (data.startsWith("http") || data.includes("file://") || data.startsWith("data:")) {
+    if (
+      data.startsWith("http") ||
+      data.includes("file://") ||
+      data.startsWith("data:")
+    ) {
       let uri = data.startsWith("file://") ? data.replace("file://", "") : data;
       return [{ uri }];
     }
     return [];
   }
-  
+
   if (Array.isArray(data)) {
-    const flat = data.flatMap(item => sanitizeImages(item));
+    const flat = data.flatMap((item) => sanitizeImages(item));
     const unique = [];
     const seen = new Set();
     for (const item of flat) {
@@ -65,11 +81,11 @@ const sanitizeImages = (data: any): any[] => {
     }
     return unique;
   }
-  
+
   if (data && typeof data === "object" && (data.uri || data.url)) {
     return [{ uri: data.uri || data.url }];
   }
-  
+
   return [];
 };
 
@@ -410,7 +426,6 @@ const ProjectMain = () => {
     },
   ];
 
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <StatusBar barStyle="light-content" translucent />
@@ -431,68 +446,85 @@ const ProjectMain = () => {
           >
             {(() => {
               const sanitized = sanitizeImages(project?.projectImages);
-              const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+              const displayImages =
+                sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
               return displayImages.map((img, index) => (
-                <View key={index} style={{ width: width, height: height * 0.45 }}>
-                   <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-                      <Skeleton colorMode={isDarkMode ? "dark" : "light"} width={width} height={height * 0.45} />
-                   </View>
-                   <Image
-                      key={index}
-                      source={typeof img === "number" ? img : { uri: img.uri }}
-                      style={{ width: width, height: height * 0.45 }}
-                      contentFit="cover"
-                      transition={500}
-                   />
+                <View
+                  key={index}
+                  style={{ width: width, height: height * 0.45 }}
+                >
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <Skeleton
+                      colorMode={isDarkMode ? "dark" : "light"}
+                      width={width}
+                      height={height * 0.45}
+                    />
+                  </View>
+                  <Image
+                    key={index}
+                    source={typeof img === "number" ? img : { uri: img.uri }}
+                    style={{ width: width, height: height * 0.45 }}
+                    contentFit="cover"
+                    transition={500}
+                  />
                 </View>
               ));
             })()}
           </ScrollView>
 
           {/* Header Overlay Buttons */}
-          <View className="absolute top-14 left-6 right-6 flex-row justify-between items-center">
+          <View className="absolute top-14 left-6 right-6 flex-row justify-between items-center z-100" style={{ elevation: 10 }}>
             <TouchableOpacity
               onPress={() => router.back()}
               className="w-10 h-10 rounded-full items-center justify-center shadow-lg"
               style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+              activeOpacity={0.8}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFFFFF" />
             </TouchableOpacity>
 
-            {/* <TouchableOpacity
+            <TouchableOpacity
               onPress={() => setMenuVisible(true)}
               className="w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+              activeOpacity={0.7}
             >
               <HugeiconsIcon
                 icon={MoreHorizontalIcon}
                 size={24}
                 color="#FFFFFF"
               />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Indicator Dots - Matched with projectDetails */}
           <View
             className="absolute bottom-16 self-center flex-row justify-center items-center gap-2 px-3 py-1.5 rounded-full"
-            style={{ 
+            style={{
               backgroundColor: "rgba(0, 0, 0, 0.25)",
-              zIndex: 60 
+              zIndex: 60,
             }}
           >
             {(() => {
-               const sanitized = sanitizeImages(project?.projectImages);
-               const displayImages = sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
-               return displayImages.map((_, index) => (
-                 <View
-                   key={index}
-                   className={`h-1.5 w-1.5 rounded-full ${
-                     index === activeImageIndex
-                       ? "bg-white"
-                       : "bg-white/40"
-                   }`}
-                 />
-               ));
+              const sanitized = sanitizeImages(project?.projectImages);
+              const displayImages =
+                sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
+              return displayImages.map((_, index) => (
+                <View
+                  key={index}
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    index === activeImageIndex ? "bg-white" : "bg-white/40"
+                  }`}
+                />
+              ));
             })()}
           </View>
         </View>
@@ -739,6 +771,28 @@ const ProjectMain = () => {
             <TouchableOpacity
               onPress={() => {
                 setMenuVisible(false);
+                router.push({
+                  pathname: "/projectDetails",
+                  params: { id: projectId, project: JSON.stringify(project) },
+                });
+              }}
+              className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+            >
+              <HugeiconsIcon
+                icon={InformationCircleIcon}
+                size={20}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+              <Text className="ml-3 text-base font-dmMedium text-black dark:text-white">
+                Project Details
+              </Text>
+            </TouchableOpacity>
+
+            {/* <View className="h-[1px] bg-[#F2F2F2] dark:bg-[#2A2A2A] mx-2" />
+
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
                 setShowDeleteModal(true);
               }}
               className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
@@ -747,7 +801,7 @@ const ProjectMain = () => {
               <Text className="ml-3 text-base font-dmBold text-[#DF5B5B]">
                 Delete
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       )}
