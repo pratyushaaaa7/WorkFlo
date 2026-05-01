@@ -849,7 +849,7 @@ const RegisterUserScreen = () => {
           {/* Reporting To */}
           <View className="mb-4">
             <Text className="text-sm font-poppinsMedium text-black dark:text-white mb-2">
-              Reporting To
+              Reporting Manager 
             </Text>
             <Dropdown
               data={userList}
