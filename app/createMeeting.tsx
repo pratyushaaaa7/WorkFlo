@@ -179,9 +179,15 @@ const CreateMinutes = () => {
   const { images, addImageToIssue, removeImageFromIssue, clearAll } =
     useTempImageStore();
 
-  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
-  const mIdStr = Array.isArray(meetingId) ? meetingId[0] : (meetingId as string);
-  const STORAGE_KEY = mIdStr ? `minutes_draft_${mIdStr}` : `minutes_draft_proj_${pIdStr || "new"}`;
+  const pIdStr = Array.isArray(projectId)
+    ? projectId[0]
+    : (projectId as string);
+  const mIdStr = Array.isArray(meetingId)
+    ? meetingId[0]
+    : (meetingId as string);
+  const STORAGE_KEY = mIdStr
+    ? `minutes_draft_${mIdStr}`
+    : `minutes_draft_proj_${pIdStr || "new"}`;
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -693,7 +699,6 @@ const CreateMinutes = () => {
     [addImageToIssue],
   );
 
-
   const handleDeleteImage = useCallback(
     (minuteIndex: number, imageUri: string) => {
       removeImageFromIssue(minuteIndex, imageUri);
@@ -771,8 +776,6 @@ const CreateMinutes = () => {
       validationErrors,
     ],
   );
-
-
 
   const formatAttendees = () => {
     return attendees.map((a) => ({
@@ -1806,7 +1809,8 @@ const CreateMinutes = () => {
                           onChange={(event, time) => {
                             setTimePickerVisibility(false);
                             if (event.type === "set" && time) {
-                              const formattedTime = moment(time).format("hh:mm A");
+                              const formattedTime =
+                                moment(time).format("hh:mm A");
                               setMeetingTime(formattedTime);
                               if (validationErrors.meetingTime)
                                 setValidationErrors((prev) => ({
@@ -1912,11 +1916,17 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={addAttendee}
-                      disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
+                      disabled={
+                        isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                      }
                       className={`py-3.5 rounded-xl flex-row justify-center items-center ${
                         isMomSubmitting || isAgendaSubmitting || isDraftSaving
-                          ? isDarkMode ? "bg-gray-800" : "bg-gray-200"
-                          : isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                          ? isDarkMode
+                            ? "bg-gray-800"
+                            : "bg-gray-200"
+                          : isDarkMode
+                            ? "bg-[#1A1A1A]"
+                            : "bg-[#F0F3F7]"
                       }`}
                     >
                       <HugeiconsIcon
@@ -1972,10 +1982,14 @@ const CreateMinutes = () => {
                   <TouchableOpacity
                     onPress={fetchForwardedMinutes}
                     activeOpacity={0.7}
-                    disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
+                    disabled={
+                      isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                    }
                     className={`px-3 py-1.5 rounded-xl border flex-row items-center ml-2 ${
                       isMomSubmitting || isAgendaSubmitting || isDraftSaving
-                        ? isDarkMode ? "bg-gray-800 border-gray-700" : "bg-gray-200 border-gray-300"
+                        ? isDarkMode
+                          ? "bg-gray-800 border-gray-700"
+                          : "bg-gray-200 border-gray-300"
                         : isDarkMode
                           ? "bg-[#1A1A1A] border-[#333]"
                           : "bg-[#F0F3F7] border-[#E0E5EB]"
@@ -2026,10 +2040,14 @@ const CreateMinutes = () => {
                               onPickImage={handlePickImage}
                               onDeleteImage={handleDeleteImage}
                               getIndex={getIndex}
-                              showDatePicker={showDatePicker && dateIndex === idx}
+                              showDatePicker={
+                                showDatePicker && dateIndex === idx
+                              }
                               onDatePickerChange={onDateChange}
                               fieldErrors={
-                                idx !== undefined ? validationErrors.minutes?.[idx] : undefined
+                                idx !== undefined
+                                  ? validationErrors.minutes?.[idx]
+                                  : undefined
                               }
                               multipleImages={true}
                             />
@@ -2041,11 +2059,17 @@ const CreateMinutes = () => {
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={addMinute}
-                      disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
+                      disabled={
+                        isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                      }
                       className={`py-3.5 rounded-xl flex-row justify-center items-center ${
                         isMomSubmitting || isAgendaSubmitting || isDraftSaving
-                          ? isDarkMode ? "bg-gray-800" : "bg-gray-200"
-                          : isDarkMode ? "bg-[#1A1A1A]" : "bg-[#F0F3F7]"
+                          ? isDarkMode
+                            ? "bg-gray-800"
+                            : "bg-gray-200"
+                          : isDarkMode
+                            ? "bg-[#1A1A1A]"
+                            : "bg-[#F0F3F7]"
                       }`}
                     >
                       <HugeiconsIcon
@@ -2224,7 +2248,9 @@ const CreateMinutes = () => {
             <View className="flex-row gap-2">
               <TouchableOpacity
                 onPress={() => handleSubmit("agenda")}
-                disabled={isAgendaSubmitting || isMomSubmitting || isDraftSaving}
+                disabled={
+                  isAgendaSubmitting || isMomSubmitting || isDraftSaving
+                }
                 className={`flex-1 rounded-2xl ${
                   isAgendaSubmitting || isMomSubmitting || isDraftSaving
                     ? "bg-gray-400"
@@ -2251,7 +2277,9 @@ const CreateMinutes = () => {
 
               <TouchableOpacity
                 onPress={() => handleSubmit("mom")}
-                disabled={isMomSubmitting || isAgendaSubmitting || isDraftSaving}
+                disabled={
+                  isMomSubmitting || isAgendaSubmitting || isDraftSaving
+                }
                 className="flex-1 rounded-2xl overflow-hidden"
               >
                 <LinearGradient
