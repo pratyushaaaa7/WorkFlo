@@ -366,6 +366,7 @@ const CreateMinutes = () => {
       },
     ]);
     setValidationErrors({});
+    setMeeting(null); // Clear the loaded meeting object
     clearAll();
   }, [clearAll]);
 
@@ -1195,7 +1196,6 @@ const CreateMinutes = () => {
         position: "bottom",
       });
       await AsyncStorage.removeItem(STORAGE_KEY); // clear local draft
-      resetForm(); // clear form state
       router.back();
     } catch (err: any) {
       console.error("Submit error:", err?.response?.data || err.message);
@@ -1288,7 +1288,6 @@ const CreateMinutes = () => {
 
       // ✅ Optional: clear local draft storage
       await AsyncStorage.removeItem(STORAGE_KEY);
-      resetForm(); // clear form state
       router.back();
     } catch (err) {
       console.log(err);
