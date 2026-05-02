@@ -12,6 +12,7 @@ import {
   LogBox,
   Modal as NativeModal,
   Platform,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
@@ -35,9 +36,11 @@ import {
   Clock01Icon,
   Download01Icon,
   Note01Icon,
+  MoreHorizontalIcon,
   Pdf01Icon,
   PlusSignCircleIcon,
   Tick02Icon,
+  Xsl01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -191,6 +194,7 @@ const CreateMinutes = () => {
   const [isAgendaDownloading, setIsAgendaDownloading] = useState(false);
 
   const [isDraftSubmitted, setIsDraftSubmitted] = useState(false);
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -1169,7 +1173,7 @@ const CreateMinutes = () => {
       });
 
       // ✅ Call API
-      if (type === "agenda" || !meetingId) {
+      if (!meetingId) {
         await api.post(`/minutes`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1424,7 +1428,6 @@ const CreateMinutes = () => {
               </View>
             )} */}
 
-            {/* Draft Button */}
             {!isEditMOM && (
               <TouchableOpacity
                 onPress={submitDraft}
@@ -1453,6 +1456,19 @@ const CreateMinutes = () => {
                     </Text>
                   </>
                 )}
+              </TouchableOpacity>
+            )}
+
+            {meeting?.agendaSubmitted && (
+              <TouchableOpacity
+                onPress={() => setExportMenuVisible(true)}
+                className="ml-4"
+              >
+                <HugeiconsIcon
+                  icon={MoreHorizontalIcon}
+                  size={24}
+                  color={isDarkMode ? "#fff" : "#000"}
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -1503,6 +1519,120 @@ const CreateMinutes = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Export Menu (Fast Overlay) */}
+        {exportMenuVisible && (
+          <View
+            key="export-menu-overlay"
+            className="absolute top-[-12] left-0 right-0 bottom-0 z-[50]"
+            pointerEvents="box-none"
+          >
+            <Pressable
+              className="absolute inset-0"
+              onPress={() => setExportMenuVisible(false)}
+            />
+            <View className="absolute top-[100px] right-1">
+              {/* Menu Container */}
+              <View
+                className="bg-white dark:bg-[#1A1A1A] border border-[transparent] dark:border-[#2A2A2A] rounded-2xl p-2"
+                style={{
+                  elevation: 25,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 12 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 16,
+                  minWidth: 170,
+                }}
+              >
+                {/* Triangle Pointer */}
+                <View
+                  className="absolute rounded-md right-4 -top-1.5 w-4 h-4 bg-white dark:bg-[#1A1A1A] rotate-45 "
+                  style={{
+                    zIndex: -1,
+                  }}
+                />
+
+                <TouchableOpacity
+                  onPress={async () => {
+                    setExportMenuVisible(false);
+                    setIsAgendaDownloading(true);
+                    try {
+                      const currentMeeting = {
+                        ...meeting,
+                        meetingTitle,
+                        meetingDate,
+                        meetingTime,
+                        meetingVenue,
+                        attendees: formatAttendees(),
+                        minutes: formatMinutes(),
+                      };
+                      await handleDownloadAgenda(
+                        currentMeeting,
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        token,
+                        "pdf",
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                  className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                >
+                  <HugeiconsIcon
+                    icon={Pdf01Icon}
+                    size={24}
+                    color={isDarkMode ? "#D2D2D2" : "#454545"}
+                  />
+                  <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                    Export Agenda PDF
+                  </Text>
+                </TouchableOpacity>
+
+                <View className="h-[1px] bg-gray-100 dark:bg-[#252525] mx-2" />
+
+                <TouchableOpacity
+                  onPress={async () => {
+                    setExportMenuVisible(false);
+                    setIsAgendaDownloading(true);
+                    try {
+                      const currentMeeting = {
+                        ...meeting,
+                        meetingTitle,
+                        meetingDate,
+                        meetingTime,
+                        meetingVenue,
+                        attendees: formatAttendees(),
+                        minutes: formatMinutes(),
+                      };
+                      await handleDownloadAgenda(
+                        currentMeeting,
+                        projectName,
+                        auth?.user?.fullName ?? "Unknown",
+                        company,
+                        token,
+                        "excel",
+                      );
+                    } finally {
+                      setIsAgendaDownloading(false);
+                    }
+                  }}
+                  className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"
+                >
+                  <HugeiconsIcon
+                    icon={Xsl01Icon}
+                    size={24}
+                    color={isDarkMode ? "#D2D2D2" : "#454545"}
+                  />
+                  <Text className="ml-3 text-base font-dmMedium text-[#454545] dark:text-[#D2D2D2]">
+                    Export Agenda Excel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
 
         <NestableScrollContainer
           ref={scrollRef}
