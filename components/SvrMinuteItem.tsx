@@ -17,7 +17,7 @@ import {
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 interface SvrMinuteItemProps {
   item: any;
@@ -35,8 +35,8 @@ interface SvrMinuteItemProps {
   onDeleteImage: (index: number, uri: string) => void;
   getIndex: () => number | undefined;
   fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean; issueDescription?: boolean };
-  showDatePicker?: boolean;
-  onDatePickerChange?: (event: any, date?: Date) => void;
+  onConfirmDate?: (date: Date) => void;
+  onCancelDate?: () => void;
 }
 
 const SvrMinuteItem = memo(
@@ -59,7 +59,8 @@ const SvrMinuteItem = memo(
         getIndex,
         fieldErrors,
         showDatePicker,
-        onDatePickerChange,
+        onConfirmDate,
+        onCancelDate,
       },
       ref,
     ) => {
@@ -351,14 +352,13 @@ const SvrMinuteItem = memo(
                 </Text>
               </TouchableOpacity>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={item.targetDate ? new Date(item.targetDate) : new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={onDatePickerChange}
-                />
-              )}
+              <DateTimePickerModal
+                isVisible={showDatePicker}
+                mode="date"
+                onConfirm={onConfirmDate || (() => {})}
+                onCancel={onCancelDate || (() => {})}
+                date={item.targetDate ? new Date(item.targetDate) : new Date()}
+              />
 
               <TouchableOpacity
                 onPress={() => {

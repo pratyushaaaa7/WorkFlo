@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { List, Card } from "react-native-paper";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -246,17 +246,16 @@ const CreateAgenda = () => {
                 className="border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-900"
               />
             </TouchableOpacity>
-            {showMeetingDatePicker && (
-              <DateTimePicker
-                value={meetingDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(_, selectedDate) => {
-                  setShowMeetingDatePicker(false);
-                  if (selectedDate) setMeetingDate(selectedDate);
-                }}
-              />
-            )}
+            <DateTimePickerModal
+              isVisible={showMeetingDatePicker}
+              mode="date"
+              onConfirm={(selectedDate) => {
+                setShowMeetingDatePicker(false);
+                setMeetingDate(selectedDate);
+              }}
+              onCancel={() => setShowMeetingDatePicker(false)}
+              date={meetingDate || new Date()}
+            />
             {/* Meeting Time */}
             <TextInput
               placeholder="Meeting Time"

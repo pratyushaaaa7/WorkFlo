@@ -53,7 +53,7 @@ import {
   RenderItemParams,
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
@@ -243,9 +243,6 @@ const CreateMinutes = () => {
   const [meetingTime, setMeetingTime] = useState<string>(""); // string for time
   const [meetingVenue, setMeetingVenue] = useState<string>("");
   const [isATReview, setIsATReview] = useState(false); // 👈 new state
-
-  const [showMeetingDatePicker, setShowMeetingDatePicker] = useState(false);
-  const [showMeetingTimePicker, setShowMeetingTimePicker] = useState(false);
 
   // Attendees state
   const [attendees, setAttendees] = useState<any[]>([
@@ -646,17 +643,6 @@ const CreateMinutes = () => {
     [dateIndex, updateMinute],
   );
 
-  const onDateChange = useCallback(
-    (event: any, selectedDate?: Date) => {
-      if (event.type === "set" && selectedDate) {
-        onDateConfirm(selectedDate);
-      } else {
-        setShowDatePicker(false);
-        setDateIndex(null);
-      }
-    },
-    [onDateConfirm],
-  );
 
   const onAttendeeDragEnd = useCallback(({ data }: { data: any[] }) => {
     setAttendees(data.map((item, index) => ({ ...item, sNo: index + 1 })));
@@ -1738,24 +1724,21 @@ const CreateMinutes = () => {
                         />
                       </TouchableOpacity>
 
-                      {isDatePickerVisible && (
-                        <DateTimePicker
-                          value={meetingDate || new Date()}
-                          mode="date"
-                          display="default"
-                          onChange={(event, date) => {
-                            setDatePickerVisibility(false);
-                            if (event.type === "set" && date) {
-                              setMeetingDate(date);
-                              if (validationErrors.meetingDate)
-                                setValidationErrors((prev) => ({
-                                  ...prev,
-                                  meetingDate: false,
-                                }));
-                            }
-                          }}
-                        />
-                      )}
+                      <DateTimePickerModal
+                        isVisible={isDatePickerVisible}
+                        mode="date"
+                        onConfirm={(date) => {
+                          setDatePickerVisibility(false);
+                          setMeetingDate(date);
+                          if (validationErrors.meetingDate)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingDate: false,
+                            }));
+                        }}
+                        onCancel={() => setDatePickerVisibility(false)}
+                        date={meetingDate || new Date()}
+                      />
 
                       <TouchableOpacity
                         onPress={() => {
@@ -1801,26 +1784,22 @@ const CreateMinutes = () => {
                         />
                       </TouchableOpacity>
 
-                      {isTimePickerVisible && (
-                        <DateTimePicker
-                          value={new Date()}
-                          mode="time"
-                          display="default"
-                          onChange={(event, time) => {
-                            setTimePickerVisibility(false);
-                            if (event.type === "set" && time) {
-                              const formattedTime =
-                                moment(time).format("hh:mm A");
-                              setMeetingTime(formattedTime);
-                              if (validationErrors.meetingTime)
-                                setValidationErrors((prev) => ({
-                                  ...prev,
-                                  meetingTime: false,
-                                }));
-                            }
-                          }}
-                        />
-                      )}
+                      <DateTimePickerModal
+                        isVisible={isTimePickerVisible}
+                        mode="time"
+                        onConfirm={(time) => {
+                          setTimePickerVisibility(false);
+                          const formattedTime = moment(time).format("hh:mm A");
+                          setMeetingTime(formattedTime);
+                          if (validationErrors.meetingTime)
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              meetingTime: false,
+                            }));
+                        }}
+                        onCancel={() => setTimePickerVisibility(false)}
+                        date={meetingDate || new Date()}
+                      />
                     </View>
 
                     <TextInput
@@ -2043,7 +2022,11 @@ const CreateMinutes = () => {
                               showDatePicker={
                                 showDatePicker && dateIndex === idx
                               }
-                              onDatePickerChange={onDateChange}
+                              onConfirmDate={onDateConfirm}
+                              onCancelDate={() => {
+                                setShowDatePicker(false);
+                                setDateIndex(null);
+                              }}
                               fieldErrors={
                                 idx !== undefined
                                   ? validationErrors.minutes?.[idx]
