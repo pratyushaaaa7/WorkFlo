@@ -102,7 +102,7 @@ const SVRs = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   // ✅ Receiving params from previous screen
-  const { projectId, projectName, company, teamLeaders, teamMembers, projectCode } =
+  const { projectId, projectName, company, teamLeaders, teamMembers, projectCode, partnerInCharge } =
     useLocalSearchParams();
 
   const auth = useContext(AuthContext);
@@ -213,7 +213,7 @@ const SVRs = () => {
 
   const goToForm = (type: any) => {
     router.push(
-      `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&mode=${type}`,
+      `/svrForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&partnerInCharge=${partnerInCharge}&mode=${type}`,
     );
   };
 

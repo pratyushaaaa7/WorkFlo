@@ -132,6 +132,7 @@ const SVRPhotoReport: React.FC = () => {
     projectId,
     teamLeaders,
     teamMembers,
+    partnerInCharge,
     svrEntries, // JSON string from previous page
     attendees,
     caseStudyRemarks,
@@ -205,6 +206,18 @@ const SVRPhotoReport: React.FC = () => {
   const leaders = (() => {
     try {
       return teamLeadersStr ? JSON.parse(teamLeadersStr) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const partnerInChargeStr = Array.isArray(partnerInCharge)
+    ? partnerInCharge[0]
+    : partnerInCharge;
+
+  const incharge = (() => {
+    try {
+      return partnerInChargeStr ? JSON.parse(partnerInChargeStr) : [];
     } catch {
       return [];
     }
@@ -566,6 +579,7 @@ const SVRPhotoReport: React.FC = () => {
       engine.addCoverPage({
         leaders,
         members,
+        partnerInCharge: incharge,
         mode,
         attendees: attendeeList,
         svrEntries: svr,
@@ -680,10 +694,14 @@ const SVRPhotoReport: React.FC = () => {
             }
 
             setTimeout(() => {
-              router.push(
-                // @ts-ignore
-                `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
-              );
+              router.navigate({
+                pathname: "/svrs",
+                params: {
+                  projectId,
+                  projectName,
+                  company,
+                },
+              });
             }, 500);
           }
         } catch (e: any) {
@@ -706,10 +724,14 @@ const SVRPhotoReport: React.FC = () => {
         });
         
         setTimeout(() => {
-          router.push(
-            // @ts-ignore
-            `/svrs?projectId=${projectId}&projectName=${projectName}&company=${company}`,
-          );
+          router.navigate({
+            pathname: "/svrs",
+            params: {
+              projectId,
+              projectName,
+              company,
+            },
+          });
         }, 500);
       }
     } catch (err: any) {
