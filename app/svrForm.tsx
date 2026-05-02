@@ -27,7 +27,7 @@ import {
   View
 } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
-import DateTimePicker from "@react-native-community/datetimepicker";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
@@ -640,13 +640,8 @@ const SVRform = () => {
           onDeleteImage={onDeleteImage}
           getIndex={() => index}
           showDatePicker={showDatePicker && dateIndex === index}
-          onDatePickerChange={(event, date) => {
-            if (event.type === "set" && date) {
-              onDateConfirm(date);
-            } else {
-              setShowDatePicker(false);
-            }
-          }}
+          onConfirmDate={onDateConfirm}
+          onCancelDate={() => setShowDatePicker(false)}
         />
       )),
     [
@@ -873,13 +868,8 @@ const SVRform = () => {
                       showDatePicker &&
                       dateIndex === entries.findIndex((e) => e.id === item.id)
                     }
-                    onDatePickerChange={(event, date) => {
-                      if (event.type === "set" && date) {
-                        onDateConfirm(date);
-                      } else {
-                        setShowDatePicker(false);
-                      }
-                    }}
+                    onConfirmDate={onDateConfirm}
+                    onCancelDate={() => setShowDatePicker(false)}
                     fieldErrors={validationErrors.entries?.[index]}
                   />
                 </View>

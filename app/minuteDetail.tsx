@@ -19,7 +19,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Skeleton } from "moti/skeleton";
@@ -1618,21 +1618,17 @@ const MinuteDetail = () => {
               />
             </TouchableOpacity>
 
-            {/* Date Picker — inline below the row */}
-            {showPicker && (
-              <DateTimePicker
-                value={tempTargetDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowPicker(false);
-                  if (event.type === "set") {
-                    setTempTargetDate(selectedDate || null);
-                    setTempForInfo(false);
-                  }
-                }}
-              />
-            )}
+            <DateTimePickerModal
+              isVisible={showPicker}
+              mode="date"
+              onConfirm={(date) => {
+                setShowPicker(false);
+                setTempTargetDate(date);
+                setTempForInfo(false);
+              }}
+              onCancel={() => setShowPicker(false)}
+              date={tempTargetDate || new Date()}
+            />
 
             {/* For Information Row */}
             <View

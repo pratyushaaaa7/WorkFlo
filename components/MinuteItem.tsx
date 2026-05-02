@@ -20,7 +20,7 @@ import {
   Upload01Icon,
 } from "@hugeicons/core-free-icons";
 import moment from "moment";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 interface MinuteItemProps {
   item: any;
@@ -39,7 +39,8 @@ interface MinuteItemProps {
   getIndex: () => number | undefined;
   fieldErrors?: { issueSubject?: boolean; raisedBy?: boolean; targetDate?: boolean; responsibility?: boolean };
   showDatePicker?: boolean;
-  onDatePickerChange?: (event: any, date?: Date) => void;
+  onConfirmDate?: (date: Date) => void;
+  onCancelDate?: () => void;
   multipleImages?: boolean;
   showRemarks?: boolean;
 }
@@ -64,7 +65,8 @@ const MinuteItem = memo(
         getIndex,
         fieldErrors,
         showDatePicker,
-        onDatePickerChange,
+        onConfirmDate,
+        onCancelDate,
         multipleImages = true,
         showRemarks = true,
       },
@@ -434,14 +436,13 @@ const MinuteItem = memo(
                 </Text>
               </TouchableOpacity>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={item.targetDate ? new Date(item.targetDate) : new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={onDatePickerChange}
-                />
-              )}
+              <DateTimePickerModal
+                isVisible={showDatePicker}
+                mode="date"
+                onConfirm={onConfirmDate || (() => {})}
+                onCancel={onCancelDate || (() => {})}
+                date={item.targetDate ? new Date(item.targetDate) : new Date()}
+              />
 
               <TouchableOpacity
                 onPress={() => {
