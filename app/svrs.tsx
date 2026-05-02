@@ -102,7 +102,7 @@ const SVRs = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   // ✅ Receiving params from previous screen
-  const { projectId, projectName, company, teamLeaders, teamMembers } =
+  const { projectId, projectName, company, teamLeaders, teamMembers, projectCode } =
     useLocalSearchParams();
 
   const auth = useContext(AuthContext);
@@ -231,8 +231,10 @@ const SVRs = () => {
     }, 10000);
 
     try {
+      const pCode = Array.isArray(projectCode) ? projectCode[0] : projectCode;
+      const prefix = pCode ? `${pCode}_` : "";
       // Sanitize filename: remove special chars like # that break file URIs
-      let safeName = fileName.replace(/[#?&=%]/g, "_");
+      let safeName = (prefix + fileName).replace(/[#?&=%]/g, "_");
       // Ensure the filename ends with .pdf
       if (!safeName.toLowerCase().endsWith(".pdf")) {
         safeName = `${safeName}.pdf`;
