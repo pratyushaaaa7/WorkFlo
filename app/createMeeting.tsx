@@ -866,6 +866,12 @@ const CreateMinutes = () => {
     const fetchMeetingData = async () => {
       try {
         if (!token || !meetingId) return;
+        //BIG GHOSTING PROBLEM HERE FIXED!!!!
+        // 🧹 Clear the form before fetching a new meeting to avoid "ghosting"
+        // (Briefly seeing the old meeting data while the new one loads)
+        // if (meeting && (meeting._id || meeting.id) !== meetingId) {
+        //   resetForm();
+        // }
 
         // Try to fetch draft first, fall back to main record if needed
         let res;
