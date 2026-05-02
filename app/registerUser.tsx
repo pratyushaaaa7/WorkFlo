@@ -11,6 +11,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
+import { useUserFormStore } from "../store/userFormStore";
 import {
   ActivityIndicator,
   Keyboard,
@@ -55,8 +56,16 @@ const RegisterUserScreen = () => {
   const token = authContext?.token;
   const { bottom } = useSafeAreaInsets();
 
-  const { userId, educationData, experienceData } = useLocalSearchParams();
+  const { userId } = useLocalSearchParams();
   const router = useRouter();
+
+  const {
+    education: storeEducation,
+    experience: storeExperience,
+    setEducation: setStoreEducation,
+    setExperience: setStoreExperience,
+    clearStore,
+  } = useUserFormStore();
 
   const [loading, setLoading] = useState(false);
 
@@ -113,11 +122,9 @@ const RegisterUserScreen = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [languageInput, setLanguageInput] = useState("");
 
-  // Education
-  const [education, setEducation] = useState<Education[]>([]);
-
-  // Experience
-  const [experience, setExperience] = useState<Experience[]>([]);
+  // Education & Experience from store
+  const education = storeEducation;
+  const experience = storeExperience;
 
   // Expansion state
   const [expandedEducation, setExpandedEducation] = useState<number | null>(
@@ -176,27 +183,7 @@ const RegisterUserScreen = () => {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  useEffect(() => {
-    if (educationData) {
-      try {
-        const parsed = JSON.parse(educationData as string);
-        setEducation(parsed);
-      } catch (e) {
-        console.error("Failed to parse education data:", e);
-      }
-    }
-  }, [educationData]);
-
-  useEffect(() => {
-    if (experienceData) {
-      try {
-        const parsed = JSON.parse(experienceData as string);
-        setExperience(parsed);
-      } catch (e) {
-        console.error("Failed to parse experience data:", e);
-      }
-    }
-  }, [experienceData]);
+  // Removed param-based useEffects as we now use Zustand store
 
   useEffect(() => {
     if (token) {
@@ -260,36 +247,22 @@ const RegisterUserScreen = () => {
           setKeyStrength(user.keyStrength?.length ? user.keyStrength : []);
           setLanguages(user.languages?.length ? user.languages : []);
 
-          if (!educationData) {
-            if (user.education?.length) {
-              setEducation(
-                user.education.map((edu: any) => ({
-                  college: edu.college || "",
-                  qualification: edu.qualification || "",
-                  specialization: edu.specialization || "",
-                  graduationYear: edu.graduationYear || "",
-                })),
-              );
-            } else {
-              setEducation([]);
-            }
-          }
+          const formattedEducation = (user.education || []).map((edu: any) => ({
+            college: edu.college || "",
+            qualification: edu.qualification || "",
+            specialization: edu.specialization || "",
+            graduationYear: edu.graduationYear || "",
+          }));
+          setStoreEducation(formattedEducation);
 
-          if (!experienceData) {
-            if (user.experience?.length) {
-              setExperience(
-                user.experience.map((exp: any) => ({
-                  company: exp.company || exp.companyName || "",
-                  designation: exp.designation || exp.jobTitle || "",
-                  fromDate: exp.fromDate || null,
-                  toDate: exp.toDate || null,
-                  jobDescription: exp.jobDescription || "",
-                })),
-              );
-            } else {
-              setExperience([]);
-            }
-          }
+          const formattedExperience = (user.experience || []).map((exp: any) => ({
+            company: exp.company || exp.companyName || "",
+            designation: exp.designation || exp.jobTitle || "",
+            fromDate: exp.fromDate || null,
+            toDate: exp.toDate || null,
+            jobDescription: exp.jobDescription || "",
+          }));
+          setStoreExperience(formattedExperience);
 
           setAdditionalInfo(
             user.additionalInfo?.length ? user.additionalInfo : [],
@@ -338,11 +311,10 @@ const RegisterUserScreen = () => {
       setPan("");
       setKeyStrength([]);
       setLanguages([]);
-      if (!educationData) setEducation([]);
-      if (!experienceData) setExperience([]);
+      clearStore();
       setAdditionalInfo([]);
     }
-  }, [userId, token, educationData, experienceData]);
+  }, [userId, token]);
 
   const handleRegister = async () => {
     Keyboard.dismiss();
@@ -1527,11 +1499,10 @@ const RegisterUserScreen = () => {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  router.push({
+                  router.navigate({
                     pathname: "/addEducation",
                     params: {
                       userId: userId as string,
-                      existingEducation: JSON.stringify(education),
                     },
                   });
                 }}
@@ -1632,11 +1603,10 @@ const RegisterUserScreen = () => {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  router.push({
+                  router.navigate({
                     pathname: "/addWorkExperience",
                     params: {
                       userId: userId as string,
-                      existingExperience: JSON.stringify(experience),
                     },
                   });
                 }}

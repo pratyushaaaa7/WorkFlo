@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { useUserFormStore } from "../store/userFormStore";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -30,7 +31,9 @@ const AddEducation = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
-  const { userId, existingEducation } = useLocalSearchParams();
+  const { userId } = useLocalSearchParams();
+  const { education, setEducation } = useUserFormStore();
+  
   const [educations, setEducations] = useState<Education[]>([
     {
       college: "",
@@ -41,17 +44,10 @@ const AddEducation = () => {
   ]);
 
   useEffect(() => {
-    if (existingEducation) {
-      try {
-        const parsed = JSON.parse(existingEducation as string);
-        if (parsed && parsed.length > 0) {
-          setEducations(parsed);
-        }
-      } catch (e) {
-        console.error("Failed to parse existing education:", e);
-      }
+    if (education && education.length > 0) {
+      setEducations(education);
     }
-  }, [existingEducation]);
+  }, [education]);
 
   const handleAddEducation = () => {
     setEducations([
@@ -88,14 +84,9 @@ const AddEducation = () => {
         edu.graduationYear.trim(),
     );
 
-    // Navigate back with data
-    router.push({
-      pathname: "/registerUser",
-      params: {
-        userId: userId as string,
-        educationData: JSON.stringify(validEducations),
-      },
-    });
+    // Save to store and go back
+    setEducation(validEducations);
+    router.back();
   };
 
   return (
@@ -126,7 +117,7 @@ const AddEducation = () => {
             flexGrow: 1,
             paddingHorizontal: 16,
             paddingTop: 20,
-            paddingBottom: 150,
+            paddingBottom: 40,
           }}
           className="bg-white dark:bg-black"
           keyboardShouldPersistTaps="handled"
@@ -225,7 +216,7 @@ const AddEducation = () => {
             </View>
           ))}
 
-          {/* Add Button */}
+        {/* Add Button */}
           <TouchableOpacity
             onPress={handleAddEducation}
             className="flex-row items-center mb-6"
@@ -241,36 +232,36 @@ const AddEducation = () => {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-      </KeyboardAvoidingView>
 
-      {/* Bottom Action Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-black px-4 py-4 pb-12 flex-row gap-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-1 bg-transparent border border-gray-300 dark:border-[#333] rounded-xl py-3 items-center"
-        >
-          <Text className="text-black dark:text-white font-poppinsMedium text-base">
-            Cancel
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleSave} className="flex-1">
-          <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            locations={[0, 0.5183, 1]}
-            style={{
-              borderRadius: 12,
-              paddingVertical: 12,
-              alignItems: "center",
-            }}
+        {/* Bottom Action Buttons - Now inside KeyboardAvoidingView */}
+        <View className="bg-white dark:bg-black px-4 py-4 pb-8 flex-row gap-3 ">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex-1 bg-transparent border border-gray-300 dark:border-[#333] rounded-xl py-3 items-center"
           >
-            <Text className="text-white font-poppinsMedium text-base">
-              Save
+            <Text className="text-black dark:text-white font-poppinsMedium text-base">
+              Cancel
             </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSave} className="flex-1">
+            <LinearGradient
+              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              locations={[0, 0.5183, 1]}
+              style={{
+                borderRadius: 12,
+                paddingVertical: 12,
+                alignItems: "center",
+              }}
+            >
+              <Text className="text-white font-poppinsMedium text-base">
+                Save
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 };
