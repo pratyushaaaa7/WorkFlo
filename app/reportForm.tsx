@@ -131,6 +131,7 @@ const ReportForm: React.FC = () => {
     projectId,
     teamLeaders,
     teamMembers,
+    partnerInCharge,
     // DPR specific:
     vendors: vendorsParam,
     totalLabor: totalLaborParam,
@@ -147,7 +148,9 @@ const ReportForm: React.FC = () => {
     clearPhotos,
   } = useDprStore();
   const insets = useSafeAreaInsets();
-  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const pIdStr = Array.isArray(projectId)
+    ? projectId[0]
+    : (projectId as string);
   const projectIdStr = pIdStr || "default";
   const photos = useMemo(
     () => photosByProject[projectIdStr] || [],
@@ -219,6 +222,18 @@ const ReportForm: React.FC = () => {
   const leaders = (() => {
     try {
       return teamLeadersStr ? JSON.parse(teamLeadersStr) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const partnerInChargeStr = Array.isArray(partnerInCharge)
+    ? partnerInCharge[0]
+    : partnerInCharge;
+
+  const incharge = (() => {
+    try {
+      return partnerInChargeStr ? JSON.parse(partnerInChargeStr) : [];
     } catch {
       return [];
     }
@@ -580,6 +595,7 @@ const ReportForm: React.FC = () => {
       engine.addCoverPage({
         leaders,
         members,
+        partnerInCharge: incharge,
         mode: "dpr",
         vendors,
         totalLabor,
@@ -641,7 +657,7 @@ const ReportForm: React.FC = () => {
           });
 
           console.log("DPR successfully synced with backend");
-          
+
           await FileSystem.deleteAsync(newUri, { idempotent: true });
 
           Toast.show({
@@ -654,7 +670,7 @@ const ReportForm: React.FC = () => {
           // Clear photos and navigate to DPRs page
           clearPhotos(projectIdStr);
           await AsyncStorage.removeItem(`reportData_${projectIdStr}`);
-          router.replace({
+          router.navigate({
             pathname: "/dprs",
             params: {
               projectId,
@@ -664,12 +680,14 @@ const ReportForm: React.FC = () => {
               teamMembers,
             },
           });
-          
         } catch (syncErr: any) {
           console.error("Backend sync failed:", syncErr);
-          
+
           let errText = "Server sync failed. Please try again.";
-          if (syncErr?.code === 'ECONNABORTED' || syncErr?.message?.includes('timeout')) {
+          if (
+            syncErr?.code === "ECONNABORTED" ||
+            syncErr?.message?.includes("timeout")
+          ) {
             errText = "Upload timed out. Please try again.";
           }
 
@@ -1060,7 +1078,9 @@ const ReportForm: React.FC = () => {
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#fff" />
                     <Text className="text-[#fff] font-dmBold text-xs ml-2">
-                      {loadingStep === "Compressing images..." ? `${progress.toFixed(0)}%` : loadingStep}
+                      {loadingStep === "Compressing images..."
+                        ? `${progress.toFixed(0)}%`
+                        : loadingStep}
                     </Text>
                   </View>
                 ) : (

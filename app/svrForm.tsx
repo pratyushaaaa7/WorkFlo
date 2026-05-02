@@ -65,7 +65,7 @@ const SVRform = () => {
   const router = useRouter();
   const auth = useContext(AuthContext);
   const token = auth?.token;
-  const { projectName, company, projectId, teamLeaders, teamMembers, mode } =
+  const { projectName, company, projectId, teamLeaders, teamMembers, partnerInCharge, mode } =
     useLocalSearchParams();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -564,6 +564,7 @@ const SVRform = () => {
         company,
         teamLeaders,
         teamMembers,
+        partnerInCharge,
         svrEntries: JSON.stringify(mappedEntries),
         attendees: mode === "case-study" ? "[]" : JSON.stringify(attendees),
         caseStudyRemarks,
@@ -580,6 +581,7 @@ const SVRform = () => {
         company,
         teamLeaders,
         teamMembers,
+        partnerInCharge,
         svrEntries: "[]",
         attendees: "[]",
         caseStudyRemarks: "",

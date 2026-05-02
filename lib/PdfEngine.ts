@@ -15,6 +15,7 @@ export interface CoverPageData {
   leaders: any[];
   members: any[];
   mode: string;
+  partnerInCharge?: any[];
   attendees?: any[];
   svrEntries?: any[];
   caseStudyRemarks?: string;
@@ -40,19 +41,45 @@ export class PdfEngine {
   private getStyles() {
     return `
       <style>
-        @page { size: A4 portrait; margin: 20px; }
+        @page { size: A4 portrait; margin: 0; }
         * { -webkit-print-color-adjust: exact; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
-        .page { padding: 10px; width: 100%; min-height: 100%; position: relative; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; color: #333; }
+        .page { 
+          padding: 8px 8px 20px 8px; 
+          width: 100%; 
+          height: 100vh; 
+          position: relative; 
+          display: flex;
+          flex-direction: column;
+        }
         
         /* Shared Header Styles */
         .page-header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .page-header-table td { border: none; vertical-align: middle; padding: 5px 0; }
         .header-left { font-size: 12px; line-height: 1.4; color: #555; }
         .header-left strong { color: #000; }
-        .header-right { text-align: right; width: 150px; }
-        .header-right img { width: 120px; max-height: 60px; object-fit: contain; display: block; margin: 0 0 0 auto; }
+        .header-right { text-align: right; width: 250px; }
+        .header-right img { width: 240px; max-height: 120px; object-fit: contain; display: block; margin: 0 0 0 auto; }
         
+        /* Footer Styles */
+        .page-footer {
+          position: absolute;
+          bottom: 10px;
+          left: 8px;
+          right: 8px;
+          text-align: right;
+        }
+        .page-footer hr {
+          border: 0;
+          border-top: 1px solid #ccc;
+          margin-bottom: 5px;
+        }
+        .page-number {
+          font-size: 10px;
+          color: #777;
+        }
+
         /* Standard Tables */
         .content-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
         .content-table th, .content-table td { border: 1px solid #ccc; padding: 8px 10px; font-size: 12px; text-align: left; }
@@ -124,11 +151,18 @@ export class PdfEngine {
             <p><strong>Time:</strong> ${timeStr}</p>
         </div>
         
+        ${
+          data.partnerInCharge && data.partnerInCharge.length > 0
+            ? `<h3>Project Incharge</h3>
+               <ul>${data.partnerInCharge.map((p: any) => `<li>${this.escapeHtml(p.fullName || p)}</li>`).join("")}</ul>`
+            : ""
+        }
+
         <h3>Team Leaders</h3>
-        <ul>${data.leaders.length > 0 ? data.leaders.map((l: any) => `<li>${this.escapeHtml(l.fullName)}</li>`).join("") : "<li>None</li>"}</ul>
+        <ul>${data.leaders.length > 0 ? data.leaders.map((l: any) => `<li>${this.escapeHtml(l.fullName || l)}</li>`).join("") : "<li>None</li>"}</ul>
         
         <h3>Team Members</h3>
-        <ul>${data.members.length > 0 ? data.members.map((m: any) => `<li>${this.escapeHtml(m.fullName)}</li>`).join("") : "<li>None</li>"}</ul>
+        <ul>${data.members.length > 0 ? data.members.map((m: any) => `<li>${this.escapeHtml(m.fullName || m)}</li>`).join("") : "<li>None</li>"}</ul>
       </div>
     `);
 
@@ -286,6 +320,24 @@ export class PdfEngine {
     console.log(`[PdfEngine] Starting single-shot generation for ${this.pages.length} pages...`);
 
     // Combine all pages into one HTML document with page breaks
+    const totalPages = this.pages.length;
+    const pagesWithFooters = this.pages.map((html, index) => {
+      // Inject footer before the closing div of the .page
+      const footerHtml = `
+        <div class="page-footer">
+          <hr />
+          <div class="page-number">Page ${index + 1} of ${totalPages}</div>
+        </div>
+      `;
+      
+      // Find the last </div> and insert before it
+      const lastIndex = html.lastIndexOf("</div>");
+      if (lastIndex !== -1) {
+        return html.slice(0, lastIndex) + footerHtml + html.slice(lastIndex);
+      }
+      return html + footerHtml;
+    });
+
     const fullHtml = `
       <!DOCTYPE html>
       <html>
@@ -307,7 +359,7 @@ export class PdfEngine {
           </style>
         </head>
         <body>
-          ${this.pages.join("")}
+          ${pagesWithFooters.join("")}
         </body>
       </html>
     `;

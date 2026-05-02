@@ -96,7 +96,7 @@ type FocusedDPR = DprItem & {
 
 const DPRs = () => {
   const router = useRouter();
-  const { projectId, projectName, company, teamLeaders, teamMembers, projectCode } =
+  const { projectId, projectName, company, teamLeaders, teamMembers, projectCode, partnerInCharge } =
     useLocalSearchParams();
   const auth = useContext(AuthContext);
   const token = auth?.token;
@@ -621,7 +621,7 @@ const DPRs = () => {
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/dprLaborForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}`,
+            `/dprLaborForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&partnerInCharge=${partnerInCharge}`,
           )
         }
         style={{

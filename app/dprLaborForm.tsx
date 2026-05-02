@@ -125,7 +125,7 @@ const FieldRow = ({
 
 const LaborForm = () => {
   const router = useRouter();
-  const { projectName, company, projectId, teamLeaders, teamMembers } =
+  const { projectName, company, projectId, teamLeaders, teamMembers, partnerInCharge } =
     useLocalSearchParams();
 
   const isDark = useColorScheme() === "dark";
@@ -155,37 +155,34 @@ const LaborForm = () => {
   >([]);
   const [rawProjectVendors, setRawProjectVendors] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchProjectVendors = async () => {
-      if (!projectId || !token) return;
-      try {
-        const res = await api.get(`/projects/${projectId}/project-vendors`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // console.log("Raw project vendors response:", JSON.stringify(res.data));
+  const fetchProjectVendors = React.useCallback(async () => {
+    if (!projectId || !token) return;
+    try {
+      const res = await api.get(`/projects/${projectId}/project-vendors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // console.log("Raw project vendors response:", JSON.stringify(res.data));
 
-        // Robustly find the vendors array
-        let vendorsArr = [];
-        if (Array.isArray(res.data.vendors)) {
-          vendorsArr = res.data.vendors;
-        } else if (Array.isArray(res.data.projectVendors)) {
-          vendorsArr = res.data.projectVendors;
-        } else if (Array.isArray(res.data)) {
-          vendorsArr = res.data;
-        }
-        setRawProjectVendors(vendorsArr);
-
-        const mapped = vendorsArr.map((v: any) => ({
-          label: v.individualName || v.name || "Unknown",
-          value: v.individualName || v.name || "",
-        }));
-        setProjectVendors(mapped);
-        // console.log("Mapped project vendors:", mapped);
-      } catch (err) {
-        console.error("Error fetching project vendors:", err);
+      // Robustly find the vendors array
+      let vendorsArr = [];
+      if (Array.isArray(res.data.vendors)) {
+        vendorsArr = res.data.vendors;
+      } else if (Array.isArray(res.data.projectVendors)) {
+        vendorsArr = res.data.projectVendors;
+      } else if (Array.isArray(res.data)) {
+        vendorsArr = res.data;
       }
-    };
-    fetchProjectVendors();
+      setRawProjectVendors(vendorsArr);
+
+      const mapped = vendorsArr.map((v: any) => ({
+        label: v.individualName || v.name || "Unknown",
+        value: v.individualName || v.name || "",
+      }));
+      setProjectVendors(mapped);
+      // console.log("Mapped project vendors:", mapped);
+    } catch (err) {
+      console.error("Error fetching project vendors:", err);
+    }
   }, [projectId, token]);
 
   useEffect(() => {
@@ -204,6 +201,7 @@ const LaborForm = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      fetchProjectVendors();
       const loadSaved = async () => {
         // 🧱 Reset state immediately when focused to prevent data bleeding
         isInitialLoadDone.current = false;
@@ -238,7 +236,7 @@ const LaborForm = () => {
         useNativeDriver: true,
       }).start();
       
-    }, [projectId, storageKey]) // Re-run when focus happens or ID changes
+    }, [projectId, storageKey, fetchProjectVendors]) // Re-run when focus happens or ID changes
   );
 
   // Auto-save whenever vendors change
@@ -327,6 +325,7 @@ const LaborForm = () => {
         company,
         teamLeaders,
         teamMembers,
+        partnerInCharge,
         vendors: JSON.stringify(vendors),
         totalLabor: totalLabor.toString(),
       },
@@ -340,7 +339,7 @@ const LaborForm = () => {
     );
     router.push({
       pathname: "/reportForm",
-      params: { projectName, projectId, company, teamLeaders, teamMembers },
+      params: { projectName, projectId, company, teamLeaders, teamMembers, partnerInCharge },
     });
   };
 
