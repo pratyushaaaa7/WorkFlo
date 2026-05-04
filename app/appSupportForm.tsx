@@ -346,7 +346,7 @@ const CreateSupport = () => {
                   isDarkMode ? "text-[#919191]" : "text-[#454545]"
                 }`}
               >
-                {images.length >= 3 ? "Limit Reached" : "Choose Image"}
+                {images.length >= 3 ? "Limit Reached" : "You can add upto 3 images"}
               </Text>
             </View>
 
