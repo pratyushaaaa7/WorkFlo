@@ -295,6 +295,14 @@ const AboutTab: React.FC<AboutTabProps> = ({ userData, loading }) => {
           isDarkMode={isDarkMode}
           loading={loading}
         />
+        {userData?.exitDate && (
+          <InfoField
+            label="Exit Date"
+            value={moment(userData.exitDate).format("DD MMM YYYY")}
+            isDarkMode={isDarkMode}
+            loading={loading}
+          />
+        )}
         {userData?.createdBy && (
           <View className="mb-2">
             <Text className="text-[#606060] dark:text-[#919191] text-xs font-poppins mb-1">

@@ -62,8 +62,8 @@ const RegisterUserScreen = () => {
   const {
     education: storeEducation,
     experience: storeExperience,
-    setEducation: setStoreEducation,
-    setExperience: setStoreExperience,
+    setEducation,
+    setExperience,
     clearStore,
   } = useUserFormStore();
 
@@ -253,7 +253,7 @@ const RegisterUserScreen = () => {
             specialization: edu.specialization || "",
             graduationYear: edu.graduationYear || "",
           }));
-          setStoreEducation(formattedEducation);
+          setEducation(formattedEducation);
 
           const formattedExperience = (user.experience || []).map((exp: any) => ({
             company: exp.company || exp.companyName || "",
@@ -262,7 +262,7 @@ const RegisterUserScreen = () => {
             toDate: exp.toDate || null,
             jobDescription: exp.jobDescription || "",
           }));
-          setStoreExperience(formattedExperience);
+          setExperience(formattedExperience);
 
           setAdditionalInfo(
             user.additionalInfo?.length ? user.additionalInfo : [],
