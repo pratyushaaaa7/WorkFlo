@@ -321,7 +321,7 @@ const ILRs = () => {
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
-      : ilrs;
+      : filteredILRs;
 
     if (dataToExport.length === 0) {
       Toast.show({
@@ -339,6 +339,7 @@ const ILRs = () => {
         {
           ilrs: dataToExport,
           projectName: projectName,
+          filterStatus: filter.trim(),
           accountName: auth?.user?.fullName || auth?.user?.username || "Self",
           company: auth?.user?.company || "WP",
         },
@@ -398,7 +399,7 @@ const ILRs = () => {
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
-      : ilrs;
+      : filteredILRs;
 
     if (dataToExport.length === 0) {
       Toast.show({
@@ -416,6 +417,7 @@ const ILRs = () => {
         {
           ilrs: dataToExport,
           projectName: projectName,
+          filterStatus: filter.trim(),
           accountName: auth?.user?.fullName || auth?.user?.username || "Self",
           company: auth?.user?.company || "WP",
         },
@@ -533,8 +535,8 @@ const ILRs = () => {
     }
   };
 
-  const sections = useMemo(() => {
-    const filtered = ilrs.filter((ilr: any) => {
+  const filteredILRs = useMemo(() => {
+    return ilrs.filter((ilr: any) => {
       const pId = String(ilr.projectId?._id || ilr.projectId);
       if (activeTab === "Shared") {
         if (pId === String(projectId)) return false;
@@ -571,8 +573,10 @@ const ILRs = () => {
       }
       return true;
     });
+  }, [ilrs, filter, searchQuery, startDate, endDate, activeTab, projectId]);
 
-    const sorted = [...filtered].sort(
+  const sections = useMemo(() => {
+    const sorted = [...filteredILRs].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
@@ -607,7 +611,7 @@ const ILRs = () => {
       title: date,
       data: groups[date],
     }));
-  }, [ilrs, filter, searchQuery, startDate, endDate, activeTab, projectId]);
+  }, [filteredILRs]);
 
   const getStatusConfig = (status: string) => {
     const s = status?.toLowerCase();
