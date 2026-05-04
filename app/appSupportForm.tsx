@@ -16,8 +16,8 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
+import { Image as ExpoImage } from "expo-image";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
 
@@ -36,7 +36,7 @@ const CreateSupport = () => {
   const [relatedPage, setRelatedPage] = useState("");
   const [description, setDescription] = useState("");
   // const [extraNotes, setExtraNotes] = useState("");
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
 
   const typeOptions = ["Issue", "Suggestion", "Feedback"];
 
@@ -52,27 +52,25 @@ const CreateSupport = () => {
   }, []);
 
   const pickImage = async () => {
-    // Ask for permissions
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission Required",
-        "You need to allow access to your gallery to attach images.",
-      );
+    if (images.length >= 3) {
+      Alert.alert("Limit Reached", "You can only upload up to 3 images.");
       return;
     }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: 3 - images.length,
+        quality: 0.5,
+      });
 
-    // Open Image Picker
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"], // ✅ string-based — works universally
-      // allowsEditing: true,
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+      if (!result.canceled) {
+        const newUris = result.assets.map(asset => asset.uri);
+        setImages(prev => [...prev, ...newUris].slice(0, 3));
+      }
+    } catch (error) {
+      console.error("Image Picker Error:", error);
+      Alert.alert("Error", "Could not open image library");
     }
   };
 
@@ -99,7 +97,15 @@ const CreateSupport = () => {
       return;
     }
     setFieldErrors({});
-    setLoading(true); //  START LOADER
+    setLoading(true);
+
+    const resetForm = () => {
+      setType("Issue");
+      setRelatedPage("");
+      setDescription("");
+      setImages([]);
+      setFieldErrors({});
+    };
     // const formData = {
     //   raisedBy: user,
     //   date,
@@ -115,23 +121,24 @@ const CreateSupport = () => {
     formData.append("description", description);
     formData.append("date", date);
 
-    if (imageUri) {
-      const filename = imageUri.split("/").pop() || "upload.jpg";
-      const match = /\.(\w+)$/.exec(filename);
-      const fileType = match ? `image/${match[1]}` : "image/jpeg";
+    if (images.length > 0) {
+      images.forEach((uri, index) => {
+        const filename = uri.split("/").pop() || `upload_${index}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const fileType = match ? `image/${match[1]}` : "image/jpeg";
 
-      formData.append("file", {
-        uri: imageUri,
-        name: filename,
-        type: fileType,
-      } as any);
+        formData.append("file", {
+          uri: uri,
+          name: filename,
+          type: fileType,
+        } as any);
+      });
     }
 
     try {
       const response = await api.post("/support", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data", // ✅ Important fix
         },
       });
 
@@ -144,7 +151,8 @@ const CreateSupport = () => {
           text2: "Thank you for your input.",
           position: "bottom",
         });
-        setTimeout(() => router.push("/appSupport"));
+        resetForm();
+        setTimeout(() => router.push("/appSupport"), 1500);
       } else {
         Toast.show({
           type: "error",
@@ -196,8 +204,7 @@ const CreateSupport = () => {
       </View>
 
       <KeyboardAwareScrollView
-        enableOnAndroid
-        extraScrollHeight={60}
+        bottomOffset={60}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
@@ -233,18 +240,16 @@ const CreateSupport = () => {
                 <TouchableOpacity
                   key={t}
                   onPress={() => setType(t)}
-                  className={`px-6 py-2 rounded-full border ${
-                    type === t
-                      ? "bg-[#DDE2FB] dark:bg-[#11162F] border-[#5B4CCC]"
-                      : "bg-[#F3F4F6] dark:bg-[#262626] border-[#E5E7EB] dark:border-[#333]"
-                  }`}
+                  className={`px-6 py-2 rounded-full border ${type === t
+                    ? "bg-[#DDE2FB] dark:bg-[#11162F] border-[#5B4CCC]"
+                    : "bg-[#F3F4F6] dark:bg-[#262626] border-[#E5E7EB] dark:border-[#333]"
+                    }`}
                 >
                   <Text
-                    className={`text-sm font-dmMedium ${
-                      type === t
-                        ? "text-[#5B4CCC]"
-                        : "text-black dark:text-white"
-                    }`}
+                    className={`text-sm font-dmMedium ${type === t
+                      ? "text-[#5B4CCC]"
+                      : "text-black dark:text-white"
+                      }`}
                   >
                     {t}
                   </Text>
@@ -264,15 +269,14 @@ const CreateSupport = () => {
                 setRelatedPage(val);
                 if (fieldErrors.relatedPage && val.trim()) setFieldErrors(prev => ({ ...prev, relatedPage: false }));
               }}
-              className={`rounded-xl px-4 py-3 font-poppins text-sm mb-5 ${
-                isDarkMode
-                  ? fieldErrors.relatedPage
-                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
-                    : "bg-[#1A1A1A] text-white border border-[#333]"
-                  : fieldErrors.relatedPage
-                    ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
-                    : "bg-white text-black border border-[#E0E5EB]"
-              }`}
+              className={`rounded-xl px-4 py-3 font-poppins text-sm mb-5 ${isDarkMode
+                ? fieldErrors.relatedPage
+                  ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                  : "bg-[#1A1A1A] text-white border border-[#333]"
+                : fieldErrors.relatedPage
+                  ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                  : "bg-white text-black border border-[#E0E5EB]"
+                }`}
             />
 
             {/* Describe Issue */}
@@ -289,63 +293,93 @@ const CreateSupport = () => {
                 setDescription(val);
                 if (fieldErrors.description && val.trim()) setFieldErrors(prev => ({ ...prev, description: false }));
               }}
-              className={`rounded-xl px-4 py-3 font-poppins text-sm min-h-[120px] ${
-                isDarkMode
-                  ? fieldErrors.description
-                    ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
-                    : "bg-[#1A1A1A] text-white border border-[#333]"
-                  : fieldErrors.description
-                    ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
-                    : "bg-white text-black border border-[#E0E5EB]"
-              }`}
+              className={`rounded-xl px-4 py-3 font-poppins text-sm min-h-[120px] ${isDarkMode
+                ? fieldErrors.description
+                  ? "bg-[#2A1A1A] text-white border border-[#DF5B5B]"
+                  : "bg-[#1A1A1A] text-white border border-[#333]"
+                : fieldErrors.description
+                  ? "bg-[#FFF5F5] text-black border border-[#DF5B5B]"
+                  : "bg-white text-black border border-[#E0E5EB]"
+                }`}
             />
           </View>
 
           {/* 🔹 IMAGES CARD */}
-          <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-[24px] p-5 mb-8">
-            <Text className="text-black dark:text-white text-lg font-dmSemiBold mb-4">
+          <View
+            className={`rounded-2xl p-4 gap-3 ${
+              isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
+            }`}
+          >
+            <Text
+              className={`font-poppinsMedium text-base ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
               Images
             </Text>
 
-            <View className="bg-white dark:bg-[#1A1A1A] rounded-3xl p-6 items-center border border-[#E0E5EB] dark:border-[#333]">
-              {imageUri ? (
-                <View className="w-full relative ">
-                  <Image
-                    source={{ uri: imageUri }}
-                    className="w-full h-[200px] bg-black/20 rounded-2xl"
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setImageUri(null)}
-                    className="absolute top-2 right-2 bg-white/50 w-8 h-8 rounded-full items-center justify-center shadow-lg"
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} size={20} color="black "  strokeWidth={2}/>
-                  </TouchableOpacity>
-                  <Text className="text-center mt-3 text-gray-400 text-xs">
-                    Tap to change image
-                  </Text>
-                </View>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    onPress={pickImage}
-                    className="bg-[#0D0D0D] dark:bg-[#0D0D0D] flex-row items-center px-6 py-3 rounded-xl mb-3 shadow-md"
-                  >
-                    <HugeiconsIcon
-                      icon={Upload01Icon}
-                      size={18}
-                      color="white"
-                    />
-                    <Text className="text-white font-dmMedium ml-2">
-                      Upload
-                    </Text>
-                  </TouchableOpacity>
-                  <Text className="text-[#6B7280] dark:text-[#D2D2D2] font-poppins text-sm">
-                    Choose Image
-                  </Text>
-                </>
-              )}
+            <View
+              className={`rounded-2xl p-5 items-center justify-center ${
+                isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+              }`}
+              style={{ minHeight: 100 }}
+            >
+              <TouchableOpacity
+                onPress={pickImage}
+                disabled={images.length >= 3}
+                className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${
+                  isDarkMode ? "bg-black" : "bg-black"
+                } ${images.length >= 3 ? 'opacity-50' : ''}`}
+                activeOpacity={0.8}
+              >
+                <HugeiconsIcon
+                  icon={Upload01Icon}
+                  size={18}
+                  color="white"
+                />
+                <Text className="text-white font-poppins ml-3">
+                  Upload
+                </Text>
+              </TouchableOpacity>
+              <Text
+                className={`font-poppins text-base ${
+                  isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                }`}
+              >
+                {images.length >= 3 ? "Limit Reached" : "Choose Image"}
+              </Text>
             </View>
+
+            {/* Image Thumbnails */}
+            {images.length > 0 && (
+              <View className="flex-row py-1 flex-wrap gap-2">
+                {images.map((uri, idx) => (
+                  <View key={idx} className="relative">
+                    <ExpoImage
+                      source={{ uri }}
+                      style={{
+                        width: 85,
+                        height: 85,
+                        borderRadius: 20,
+                      }}
+                      contentFit="cover"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setImages(prev => prev.filter((_, i) => i !== idx))}
+                      className="absolute top-2 right-2 rounded-full p-1 bg-white/50"
+                      style={{ zIndex: 10 }}
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={12}
+                        color="black"
+                        strokeWidth={3}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </KeyboardAwareScrollView>
