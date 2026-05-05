@@ -645,6 +645,7 @@ const ILRs = () => {
 
   const getDueIndicator = (item: ILR) => {
     if (item.status === "Closed") return null;
+    if (!item.targetDate) return null;
 
     if (item.overdueDays && item.overdueDays > 0) {
       const target = new Date(item.targetDate);
