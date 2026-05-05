@@ -50,7 +50,14 @@
         }
       ],
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your team.",
+          "cameraPermission": "The app accesses your camera to let you take photos of site progress."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

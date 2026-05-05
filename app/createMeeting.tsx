@@ -654,32 +654,32 @@ const CreateMinutes = () => {
 
   const handlePickImage = useCallback(
     async (index: number) => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsMultipleSelection: true,
+          quality: 0.8,
+        });
+
+        if (!result.canceled) {
+          const newUris = result.assets.map((a: any) => a.uri);
+          newUris.forEach((uri: string) => addImageToIssue(index, uri));
+          setMinutes((prev) =>
+            prev.map((m, i) =>
+              i === index
+                ? { ...m, images: [...(m.images || []), ...newUris] }
+                : m,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error("Image Picker Error:", error);
         Toast.show({
           type: "error",
-          text1: "Permission to access gallery was denied",
+          text1: "Error",
+          text2: "Could not open image library",
+          position: "bottom",
         });
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsMultipleSelection: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled) {
-        const newUris = result.assets.map((a: any) => a.uri);
-        newUris.forEach((uri: string) => addImageToIssue(index, uri));
-        setMinutes((prev) =>
-          prev.map((m, i) =>
-            i === index
-              ? { ...m, images: [...(m.images || []), ...newUris] }
-              : m,
-          ),
-        );
       }
     },
     [addImageToIssue],

@@ -210,44 +210,43 @@ const CreateProjectScreen = () => {
   };
 
   const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        const selectedUris = result.assets.map((asset: any) => asset.uri);
+        const totalImages = projectImages.length + selectedUris.length;
+
+        if (totalImages > 5) {
+          Toast.show({
+            type: "error",
+            text1: "Limit Exceeded",
+            text2: "You can only upload up to 5 images.",
+            position: "bottom",
+          });
+
+          // Optionally add only up to the limit
+          const remainingSlots = 5 - projectImages.length;
+          if (remainingSlots > 0) {
+            const allowedUris = selectedUris.slice(0, remainingSlots);
+            setProjectImages((prev) => [...prev, ...allowedUris]);
+          }
+        } else {
+          setProjectImages((prev) => [...prev, ...selectedUris]);
+        }
+      }
+    } catch (error) {
+      console.error("Image Picker Error:", error);
       Toast.show({
         type: "error",
-        text1: "Permission Denied",
+        text1: "Error",
+        text2: "Could not open image library",
         position: "bottom",
-        text2: "We need access to your gallery to upload images.",
       });
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsMultipleSelection: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const selectedUris = result.assets.map((asset: any) => asset.uri);
-      const totalImages = projectImages.length + selectedUris.length;
-
-      if (totalImages > 5) {
-        Toast.show({
-          type: "error",
-          text1: "Limit Exceeded",
-          text2: "You can only upload up to 5 images.",
-          position: "bottom",
-        });
-
-        // Optionally add only up to the limit
-        const remainingSlots = 5 - projectImages.length;
-        if (remainingSlots > 0) {
-          const allowedUris = selectedUris.slice(0, remainingSlots);
-          setProjectImages((prev) => [...prev, ...allowedUris]);
-        }
-      } else {
-        setProjectImages((prev) => [...prev, ...selectedUris]);
-      }
     }
   };
 

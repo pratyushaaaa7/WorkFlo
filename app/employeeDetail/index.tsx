@@ -119,9 +119,7 @@ const EmployeeDetail = () => {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
+        mediaTypes: ["images"],
         quality: 0.8,
       });
 

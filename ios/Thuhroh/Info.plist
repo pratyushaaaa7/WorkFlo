@@ -82,5 +82,11 @@
       <string>_http._tcp</string>
       <string>_mesh._tcp</string>
     </array>
+    <key>NSCameraUsageDescription</key>
+    <string>Allow Thuhroh to access your camera to take photos of site progress.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Allow Thuhroh to access your photos to share them with your team.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Allow Thuhroh to save photos to your library.</string>
   </dict>
 </plist>

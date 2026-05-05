@@ -43,7 +43,7 @@ const FILTERS = ["All", "Open", "Unpublished", "Published"];
 
 const TicketSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => (
   <View
-    className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-3 py-4 shadow-sm"
+    className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-3 py-4 "
     style={{ opacity: 0.6 }}
   >
     <View className="flex-row justify-between items-center mb-2">
@@ -290,7 +290,7 @@ const AppSupport = () => {
             },
           })
         }
-        className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-3 py-4 shadow-sm"
+        className="mb-4 mx-4 rounded-xl bg-[#F0F3F7] dark:bg-[#1A1A1A] p-3 py-4 "
       >
         {/* Top Section: Info & Badges */}
         <View className="flex-row justify-between items-center mb-2">

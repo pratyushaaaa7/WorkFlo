@@ -416,23 +416,28 @@ const SVRform = () => {
 
   // --- Handlers: Multimedia ---
   const onPickImage = useCallback(async (index: number) => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Toast.show({ type: "error", text1: "Permission denied" });
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: false,
-      quality: 0.8,
-    });
-    if (!result.canceled) {
-      const uris = result.assets.map((a: any) => a.uri);
-      setEntries((prev) =>
-        prev.map((m, i) =>
-          i === index ? { ...m, images: uris } : m,
-        ),
-      );
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: false,
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        const uris = result.assets.map((a: any) => a.uri);
+        setEntries((prev) =>
+          prev.map((m, i) =>
+            i === index ? { ...m, images: uris } : m,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Image Picker Error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Could not open image library",
+        position: "bottom",
+      });
     }
   }, []);
 

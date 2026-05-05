@@ -388,27 +388,16 @@ const SVRPhotoReport: React.FC = () => {
 
   const takePhoto = useCallback(async () => {
     try {
-      // 1️⃣ Ask for camera permission
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-      // 2️⃣ If permission is denied → show alert & stop
       if (status !== "granted") {
         Alert.alert(
-          "Camera Permission Required",
-          "To take photos, please allow camera access in your phone settings.",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Open Settings",
-              onPress: () => Linking.openSettings(),
-            },
-          ],
+          "Permission Required",
+          "Camera access is needed to take photos.",
         );
         return;
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
         quality: 0.3,
       });
 

@@ -19,6 +19,7 @@ import moment from "moment";
 import { useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -228,33 +229,46 @@ const ILRForm = () => {
     useTempImageStore();
 
   const pickImage = async (index: number) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"], // ✅ string-based — works universally
-      allowsMultipleSelection: true,
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      result.assets.forEach((asset) => {
-        addImageToIssue(index, asset.uri);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"], // ✅ string-based — works universally
+        allowsMultipleSelection: true,
+        quality: 0.8,
       });
+
+      if (!result.canceled) {
+        result.assets.forEach((asset) => {
+          addImageToIssue(index, asset.uri);
+        });
+      }
+    } catch (error) {
+      console.error("Image Picker Error:", error);
+      alert("Could not open image library");
     }
   };
 
   const takePhoto = async (index: number) => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access camera was denied");
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Camera access is needed to take photos.",
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      });
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      addImageToIssue(index, asset.uri);
+      if (!result.canceled) {
+        const asset = result.assets[0];
+        addImageToIssue(index, asset.uri);
+      }
+    } catch (error) {
+      console.error("Camera Error:", error);
+      Alert.alert("Error", "Could not take photo.");
     }
   };
 
