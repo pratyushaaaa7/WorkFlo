@@ -116,6 +116,8 @@ const ProjectMain = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isInfoModalVisible, setIsInfoModalVisible] = useState(false);
   const [activeInfoTab, setActiveInfoTab] = useState("directory");
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
 
   const hScrollHandler = (event: any) => {
     const slide = Math.ceil(
@@ -585,12 +587,46 @@ const ProjectMain = () => {
 
           {/* Project Description */}
           {project?.projectDescription && (
-            <Text
-              className="text-base  leading-6 mt-2 pb-2 border-[#E0E5EB] dark:border-[#413E47]  font-poppins text-[#454545] dark:text-[#919191]"
-              style={{ color: colors.textSecondary }}
-            >
-              {project?.projectDescription}
-            </Text>
+            <View className="mb-2">
+              <View>
+                <Text
+                  className="text-base leading-6 font-poppins text-[#454545] dark:text-[#919191]"
+                  style={{ color: colors.textSecondary }}
+                  numberOfLines={isDescExpanded ? undefined : 2}
+                  onTextLayout={(e) => {
+                    if (e.nativeEvent.lines.length > 2 && !isDescExpanded) {
+                      setShowReadMore(true);
+                    }
+                  }}
+                >
+                  {project?.projectDescription}
+                  {isDescExpanded && (
+                    <Text
+                      onPress={() => setIsDescExpanded(false)}
+                      className="text-[#5B4CCC] font-poppinsMedium text-sm"
+                    >
+                      {" "}
+                      Read Less
+                    </Text>
+                  )}
+                </Text>
+                {!isDescExpanded && showReadMore && (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setIsDescExpanded(true)}
+                    className="absolute bottom-0 right-0 flex-row items-center"
+                    style={{
+                      backgroundColor: colors.containerBg,
+                      paddingLeft: 10,
+                    }}
+                  >
+                    <Text className="text-[#5B4CCC] font-poppinsMedium text-sm">
+                      ... Read More
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
           )}
 
           {/* Collapsible Project Info Section */}
