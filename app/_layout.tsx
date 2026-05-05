@@ -369,7 +369,7 @@ function AppLayout() {
           );
 
           const commonOptions = {
-            swipeEnabled: true,
+            swipeEnabled: route.name !== "annotateImage",
             swipeEdgeWidth: 70, // 👈 Controls the swipe trigger width from the edge
             drawerType: "slide" as const,
             overlayColor: "rgba(0,0,0,0.5)",
@@ -431,6 +431,14 @@ function AppLayout() {
           name="employeeDetail"
           options={{
             headerShown: false,
+            drawerItemStyle: { display: "none" },
+          }}
+        />
+        <Drawer.Screen
+          name="annotateImage"
+          options={{
+            headerShown: false,
+            swipeEnabled: false,
             drawerItemStyle: { display: "none" },
           }}
         />
