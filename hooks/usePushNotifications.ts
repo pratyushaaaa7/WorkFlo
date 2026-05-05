@@ -1,7 +1,7 @@
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
+import { Platform, AppState } from "react-native";
 import Constants from "expo-constants";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -22,8 +22,8 @@ export const usePushNotifications = (
   token: string | null,
 ) => {
   const { expoPushToken, setExpoPushToken } = useAuth();
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription>(null);
+  const responseListener = useRef<Notifications.Subscription>(null);
 
   // ⚠️ FIX 1: Prevent multiple registrations
   const hasRegistered = useRef(false);
@@ -91,31 +91,69 @@ export const usePushNotifications = (
     }
   }, [isAuthenticated, token]);
 
+  // 🚀 Function to handle the actual routing
+  const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
+    const data = response.notification.request.content.data;
+    const navigation = data?.navigation as { screen?: string; params?: any } | undefined;
+    console.log("👆 Notification Response Data:", data);
+
+    if (navigation?.screen) {
+      // Small delay to ensure the router and layout are fully ready
+      setTimeout(() => {
+        router.push({
+          pathname: `/${navigation.screen}` as any,
+          params: navigation.params,
+        });
+      }, 500);
+    }
+  };
+
   // ⚠️ FIX 5: Separate listener effect (Run only once)
   useEffect(() => {
+    // 1. Handle notifications that launched the app from a KILLED state
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        handleNotificationResponse(response);
+      }
+    });
+
+    // 2. Handle notifications received/tapped while the app is in the background or foreground
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
-        // ⚠️ FIX 7: Opportunity for in-app banner or state update
         console.log("🔔 Notification Received in Foreground:", notification);
       });
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        // ⚠️ FIX 3: Unsafe Data Access (Crash risk)
-        const data = response.notification.request.content.data;
-        console.log("👆 Notification Tapped:", data);
-
-        if (data?.navigation?.screen) {
-          router.push({
-            pathname: `/${data.navigation.screen}` as any,
-            params: data.navigation.params,
-          });
-        }
+        handleNotificationResponse(response);
       });
 
     return () => {
       notificationListener.current?.remove();
       responseListener.current?.remove();
+    };
+  }, [isAuthenticated]); // Re-run when auth status changes to ensure we can route properly
+
+  // 🚀 Clear Badge on App Start & when coming to Foreground
+  useEffect(() => {
+    const clearBadge = async () => {
+      if (Platform.OS !== "web") {
+        await Notifications.setBadgeCountAsync(0);
+      }
+    };
+
+    // Clear immediately on mount
+    clearBadge();
+
+    // Also clear whenever the app state changes to 'active'
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        clearBadge();
+      }
+    });
+
+    return () => {
+      subscription.remove();
     };
   }, []);
 
@@ -127,10 +165,11 @@ async function registerForPushNotificationsAsync() {
 
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
+      name: "Default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
+      showBadge: true, // 🚀 This is required for Android badges!
     });
   }
 

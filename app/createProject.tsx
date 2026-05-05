@@ -1280,17 +1280,17 @@ const CreateProjectScreen = () => {
               <TextInput
                 className="text-[#000000] dark:text-[#FFFFFF] font-poppins text-[14px]"
                 style={{ textAlignVertical: "top" }}
-                placeholder="Give a brief description of the project"
+                placeholder="Give a description of the project (max 500 characters)"
                 placeholderTextColor={isDarkMode ? "#919191" : "#454545"}
                 value={projectDescription}
                 onChangeText={setProjectDescription}
                 multiline
-                maxLength={200}
+                maxLength={500}
                 numberOfLines={5}
               />
               <View className="absolute bottom-2 right-2">
                 <Text className="text-right text-xs text-gray-400 font-poppins mt-1">
-                  {projectDescription.length}/200
+                  {projectDescription.length}/500
                 </Text>
               </View>
             </View>

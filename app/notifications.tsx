@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
+import * as Notifications from "expo-notifications";
 import {
   ActivityIndicator,
   Alert,
@@ -33,6 +34,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Platform,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
@@ -112,6 +114,12 @@ const NotificationsScreen = () => {
   useEffect(() => {
     if (token) fetchNotifications(true);
   }, [token]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      Notifications.setBadgeCountAsync(0);
+    }
+  }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
