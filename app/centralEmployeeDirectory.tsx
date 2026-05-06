@@ -155,9 +155,12 @@ export default function CentralEmployeeDirectory() {
   const downloadExcelWeb = async () => {
     try {
       setDownloading(true);
-      const response = await fetch(`${api.defaults.baseURL}/users/download`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${api.defaults.baseURL}/users/download?activeFilter=${activeFilter}&searchQuery=${searchQuery}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (!response.ok) throw new Error("Failed to download file");
 
@@ -183,7 +186,7 @@ export default function CentralEmployeeDirectory() {
     }
     try {
       setDownloading(true);
-      const url = `${api.defaults.baseURL}/users/download`;
+      const url = `${api.defaults.baseURL}/users/download?activeFilter=${activeFilter}&searchQuery=${searchQuery}`;
       const fileUri = FileSystem.documentDirectory + "employees.xlsx";
 
       const downloadResumable = FileSystem.createDownloadResumable(
