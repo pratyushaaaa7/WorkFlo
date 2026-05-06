@@ -180,6 +180,7 @@ const MasterProjectList = () => {
 
       const response = await api.get("/export/allProjectsExcel", {
         headers: { Authorization: `Bearer ${token}` },
+        params: { activeTab, selectedStatus, searchQuery },
         responseType: "arraybuffer",
       });
 
