@@ -1,11 +1,11 @@
 import thuhrohLogo from "@/assets/images/thuhrohLogo.png";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Add01Icon,
   Calendar04Icon,
   CheckmarkSquare02Icon,
   Clock01Icon,
   File02Icon,
-  FilterHorizontalIcon,
   Menu02Icon,
   Note03Icon,
   Notification01Icon,
@@ -14,7 +14,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format } from "date-fns";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   BackHandler,
@@ -28,12 +28,11 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import GlassNav from "../components/GlassNav";
 import GlobalAvatar from "../components/GlobalAvatar";
 import { useAuth } from "../context/AuthContext";
-import api from "../lib/api";
 import { useProject } from "../context/ProjectContext";
+import api from "../lib/api";
 
 // Tab Components
 import CalendarTab from "../components/dashboard/CalendarTab";
@@ -59,7 +58,24 @@ const Dashboard = () => {
 
   const [activeTab, setActiveTabState] = useState("Overview");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState(
+    format(new Date(), "yyyy-MM-dd"),
+  );
+
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get("/notifications/unread-count", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.count !== undefined) {
+        setUnreadCount(res.data.count);
+      }
+    } catch (error) {
+      console.error("Unread Count Fetch Error:", error);
+    }
+  };
 
   // Dashboard Data State
   const [dashboardData, setDashboardData] = useState<any>(null);
@@ -76,6 +92,7 @@ const Dashboard = () => {
         setDashboardData(res.data);
       }
       // console.log(res.data);
+      fetchUnreadCount();
     } catch (error) {
       console.error("Dashboard Fetch Error:", error);
     } finally {
@@ -148,7 +165,13 @@ const Dashboard = () => {
           />
         );
       case "Projects":
-        return <ProjectsTab refreshing={refreshing} onRefresh={onRefresh} searchQuery={searchQuery} />;
+        return (
+          <ProjectsTab
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            searchQuery={searchQuery}
+          />
+        );
       case "Tasks":
         return (
           <TasksTab
@@ -171,7 +194,13 @@ const Dashboard = () => {
           />
         );
       case "Notes":
-        return <NotesTab refreshing={refreshing} onRefresh={onRefresh} searchQuery={searchQuery} />;
+        return (
+          <NotesTab
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            searchQuery={searchQuery}
+          />
+        );
       default:
         return (
           <OverviewTab
@@ -280,11 +309,44 @@ const Dashboard = () => {
 
           <View className="flex-row items-center gap-3">
             <TouchableOpacity onPress={() => router.push("/notifications")}>
-              <HugeiconsIcon
-                icon={Notification01Icon}
-                size={24}
-                color={isDarkMode ? "#D2D2D2" : "#454545"}
-              />
+              <View>
+                <HugeiconsIcon
+                  icon={Notification01Icon}
+                  size={24}
+                  color={isDarkMode ? "#D2D2D2" : "#454545"}
+                />
+                {unreadCount > 0 && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      right: -7,
+                      top: -5,
+                      backgroundColor: "#DD5858",
+                      borderRadius: 10,
+                      minWidth: 18,
+                      paddingVertical: 2,
+                      paddingHorizontal: 4,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      borderWidth: 1.5,
+                      borderColor: isDarkMode ? "#000" : "#fff",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontSize: 9,
+                        fontFamily: "Poppins_500Medium",
+                        textAlign: "center",
+                        lineHeight: 12,
+                        includeFontPadding: false,
+                      }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push("/profile")}>
               <GlobalAvatar
