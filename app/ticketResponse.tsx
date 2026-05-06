@@ -137,7 +137,7 @@ export default function TicketDetails() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const { token, user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const canManage = user?.role === "admin" || user?.role === "developer";
   const {
     id,
     ticketId,
@@ -264,7 +264,7 @@ export default function TicketDetails() {
         </View>
 
         {/* Status Section */}
-        {isAdmin && (
+        {canManage && (
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
             <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
               Status
@@ -295,7 +295,7 @@ export default function TicketDetails() {
             Remarks by Developer
           </Text>
           <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
-            {isAdmin ? (
+            {canManage ? (
               <TextInput
                 value={remark}
                 onChangeText={setRemark}
@@ -358,7 +358,7 @@ export default function TicketDetails() {
       </KeyboardAwareScrollView>
 
       {/* Sticky Save Button at the Bottom */}
-      {isAdmin && (
+      {canManage && (
         <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
           <TouchableOpacity
             onPress={handleUpdate}

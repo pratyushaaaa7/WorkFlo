@@ -136,11 +136,20 @@ const CreateSupport = () => {
     }
 
     try {
+      // console.log("🚀 Sending Support Ticket:", {
+      //   url: "/support",
+      //   method: "POST",
+      //   headers: { Authorization: `Bearer ${token}` },
+      //   formDataEntries: Array.from((formData as any).entries())
+      // });
+
       const response = await api.post("/support", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data", // Ensure content type is set
         },
       });
+      // console.log("✅ Server Response:", response.data);
 
       // const result = await response.json();
 
@@ -161,8 +170,16 @@ const CreateSupport = () => {
           position: "bottom",
         });
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("❌ Support Ticket Error:", error);
+      if (error.response) {
+        console.error("🔹 Error Response Data:", error.response.data);
+        console.error("🔹 Error Response Status:", error.response.status);
+      } else if (error.request) {
+        console.error("🔹 Error Request Details:", error.request);
+      } else {
+        console.error("🔹 Error Message:", error.message);
+      }
       Toast.show({
         type: "error",
         text1: "Network error",
