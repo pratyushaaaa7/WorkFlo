@@ -141,6 +141,7 @@ const RegisterUserScreen = () => {
   const roleOptions = [
     { label: "User", value: "user" },
     { label: "Admin", value: "admin" },
+    { label: "Developer", value: "developer" },
   ];
   const levelOptions = [
     ...Array.from({ length: 10 }, (_, i) => ({
