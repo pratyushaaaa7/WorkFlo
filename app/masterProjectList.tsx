@@ -705,7 +705,7 @@ const MasterProjectList = () => {
       {/* Floating Action Button */}
       {isAdmin && (
         <TouchableOpacity
-          onPress={() => router.push("/createProject")}
+          onPress={() => router.push({ pathname: "/createProject", params: { t: Date.now() } })}
           activeOpacity={0.9}
           style={{
             position: "absolute",

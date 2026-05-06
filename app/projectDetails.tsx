@@ -504,7 +504,7 @@ const ProjectDetails = () => {
                 setMenuVisible(false);
                 router.push({
                   pathname: "/createProject",
-                  params: { projectId: id },
+                  params: { projectId: id, t: Date.now() },
                 });
               }}
               className="flex-row items-center p-3 rounded-xl active:bg-gray-100 dark:active:bg-[#252525]"

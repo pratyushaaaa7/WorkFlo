@@ -217,8 +217,7 @@ const ProjectList = () => {
             onPress={() =>
               router.push({
                 pathname: "/createProject",
-                // params: { project: JSON.stringify(item) },
-                params: { projectId: item._id },
+                params: { projectId: item._id, t: Date.now() },
               })
             }
           >

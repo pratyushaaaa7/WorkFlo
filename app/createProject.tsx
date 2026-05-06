@@ -45,7 +45,11 @@ const CreateProjectScreen = () => {
   const isEditing = Boolean(projectId);
 
   useEffect(() => {
-    if (!projectId || !token) return;
+    if (!projectId) {
+      resetForm();
+      return;
+    }
+    if (!token) return;
 
     const fetchProject = async () => {
       setFetching(true);
@@ -508,7 +512,13 @@ const CreateProjectScreen = () => {
       }
 
       resetForm();
-      setTimeout(() => router.push({ pathname: "/masterProjectList" }), 800);
+      setTimeout(() => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/masterProjectList");
+        }
+      }, 800);
     } catch (err) {
       console.error("Error saving project:", err);
       Toast.show({
