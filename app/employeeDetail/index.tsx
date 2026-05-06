@@ -361,7 +361,12 @@ const EmployeeDetail = () => {
           ) : userData?.profileImage ? (
             <Image
               source={{ uri: userData.profileImage }}
-              style={{ width: 120, height: 120, borderRadius: 32, marginBottom: 16 }}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 32,
+                marginBottom: 16,
+              }}
               resizeMode="cover"
             />
           ) : (
@@ -426,7 +431,7 @@ const EmployeeDetail = () => {
                           icon={BubbleChatIcon}
                           size={24}
                           color={"#7122A8"}
-                          stroke={2}
+                          strokeWidth={2}
                         />
                       </TouchableOpacity>
 
@@ -438,7 +443,7 @@ const EmployeeDetail = () => {
                           icon={WhatsappIcon}
                           size={24}
                           color={"#17825A"}
-                          stroke={2}
+                          strokeWidth={2}
                         />
                       </TouchableOpacity>
                     </>
@@ -453,7 +458,7 @@ const EmployeeDetail = () => {
                         icon={Mail01Icon}
                         size={24}
                         color={"#0A8CAD"}
-                        stroke={2}
+                        strokeWidth={2}
                       />
                     </TouchableOpacity>
                   )}
@@ -467,7 +472,7 @@ const EmployeeDetail = () => {
                         icon={Call02Icon}
                         size={24}
                         color={"#0073CB"}
-                        stroke={2}
+                        strokeWidth={2}
                       />
                     </TouchableOpacity>
                   )}
