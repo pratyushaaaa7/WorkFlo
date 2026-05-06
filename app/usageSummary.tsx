@@ -336,6 +336,7 @@ export default function UsageSummaryScreen() {
             <View className="items-center mt-6">
               <GlobalAvatar
                 name={data.user.fullName || "User"}
+                uri={data.user.profileImage}
                 size={100}
                 fontSize={36}
                 borderRadius={24}

@@ -517,6 +517,7 @@ export default function UsageScreen() {
           <View className="flex-row  items-center mb-5">
             <GlobalAvatar
               name={name}
+              uri={item.userId?.profileImage}
               size={44}
               fontSize={18}
               borderRadius={8}
