@@ -93,6 +93,7 @@ const ILRs = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
+  const [isExporting, setIsExporting] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -317,7 +318,8 @@ const ILRs = () => {
   };
 
   const handleDownloadExcel = async () => {
-    if (!token) return;
+    if (!token || isExporting) return;
+    setIsExporting(true);
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
@@ -337,7 +339,7 @@ const ILRs = () => {
       const response = await api.post(
         "/ilrs/ilrs-download",
         {
-          ilrs: dataToExport,
+          ilrs: selectionMode ? dataToExport : [], projectId, startDate, endDate, searchQuery,
           projectName: projectName,
           filterStatus: filter.trim(),
           accountName: auth?.user?.fullName || auth?.user?.username || "Self",
@@ -391,11 +393,14 @@ const ILRs = () => {
         text2: "Failed to export Excel",
         position: "bottom",
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
   const handleDownloadPDF = async () => {
-    if (!token) return;
+    if (!token || isExporting) return;
+    setIsExporting(true);
     setExportMenuVisible(false);
     const dataToExport = selectionMode
       ? ilrs.filter((i) => selectedIds.has(i._id))
@@ -415,7 +420,7 @@ const ILRs = () => {
       const response = await api.post(
         "/ilrs/ilrs-download/pdf",
         {
-          ilrs: dataToExport,
+          ilrs: selectionMode ? dataToExport : [], projectId, startDate, endDate, searchQuery,
           projectName: projectName,
           filterStatus: filter.trim(),
           accountName: auth?.user?.fullName || auth?.user?.username || "Self",
@@ -468,6 +473,8 @@ const ILRs = () => {
         text2: "Failed to export PDF",
         position: "bottom",
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -885,13 +892,23 @@ const ILRs = () => {
                 {selectedIds.size} Selected
               </Text>
             </View>
-            <View className="flex-row items-center gap-4">
-              <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
-                <HugeiconsIcon
-                  icon={MoreHorizontalIcon}
-                  size={24}
-                  color={isDarkMode ? "#FFF" : "#2D3436"}
-                />
+             <View className="flex-row items-center gap-4">
+              <TouchableOpacity
+                onPress={() => setExportMenuVisible(true)}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={isDarkMode ? "#FFF" : "#5B4CCC"}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    icon={MoreHorizontalIcon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#2D3436"}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -926,12 +943,22 @@ const ILRs = () => {
                   color={isDarkMode ? "#FFF" : "#2D3436"}
                 />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
-                <HugeiconsIcon
-                  icon={MoreHorizontalIcon}
-                  size={24}
-                  color={isDarkMode ? "#FFF" : "#2D3436"}
-                />
+              <TouchableOpacity
+                onPress={() => setExportMenuVisible(true)}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={isDarkMode ? "#FFF" : "#5B4CCC"}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    icon={MoreHorizontalIcon}
+                    size={24}
+                    color={isDarkMode ? "#FFF" : "#2D3436"}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>
