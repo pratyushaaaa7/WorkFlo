@@ -40,7 +40,7 @@ type Project = {
   siteArea?: string;
   designedArea?: string;
   status: "active" | "inactive" | "closed" | "BD";
-  associatedProject?: { _id: string; projectName: string };
+  associatedProject?: { _id: string; projectName: string; company?: string };
 
   notes: Note[];
   activities: Activity[];

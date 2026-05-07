@@ -676,7 +676,9 @@ const ProjectMain = () => {
                         leftLabel="Associated Project"
                         leftValue={
                           typeof project.associatedProject === "object"
-                            ? project.associatedProject.projectName || "N/A"
+                            ? project.associatedProject.company
+                              ? `${project.associatedProject.projectName} (${project.associatedProject.company})`
+                              : project.associatedProject.projectName || "N/A"
                             : project.associatedProject || "N/A"
                         }
                       />
