@@ -1201,7 +1201,7 @@ const RunningNotes = () => {
                 <TextInput
                   value={editingNote?.text}
                   multiline
-                  scrollEnabled={false}
+                  scrollEnabled={true}
                   placeholder="Enter your note here..."
                   placeholderTextColor={isDarkMode ? "#666" : "#94A3B8"}
                   onChangeText={(text) =>
