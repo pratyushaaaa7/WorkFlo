@@ -11,6 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "@react-native-community/blur";
 import * as FileSystem from "expo-file-system";
+
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
@@ -39,17 +40,6 @@ const ReportSkeleton = ({ isDark }: { isDark: boolean }) => (
     className="rounded-2xl flex-row items-center px-4 py-4 mb-3"
     style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA", opacity: 0.6 }}
   >
-    <View
-      className="rounded-xl items-center justify-center mr-3"
-      style={{ width: 44, height: 44 }}
-    >
-      <Skeleton
-        colorMode={isDark ? "dark" : "light"}
-        width={44}
-        height={44}
-        radius={12}
-      />
-    </View>
     <View className="flex-1 pr-3">
       <Skeleton
         colorMode={isDark ? "dark" : "light"}
@@ -109,6 +99,12 @@ const DPRs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<{
+    fileName: string;
+    uploadedBy: string;
+    downloadedBytes: number;
+    totalBytes: number;
+  } | null>(null);
   const [focusedDPR, setFocusedDPR] = useState<FocusedDPR | null>(null);
 
   const [activeTab, setActiveTab] = useState<"Project" | "Shared">("Project");
@@ -243,45 +239,52 @@ const DPRs = () => {
 
   // ✅ Open PDF in browser
 
-  const downloadDPR = async (id: string, url: string, fileName: string) => {
-    if (isDownloadingRef.current) return; // Prevent multiple downloads (ref avoids stale closure)
+  const downloadDPR = async (id: string, url: string, fileName: string, uploadedBy?: string) => {
+    if (isDownloadingRef.current) return;
     isDownloadingRef.current = true;
     setDownloadingId(id);
-
-    // Timeout to reset loading state if it takes too long
-    const timeoutId = setTimeout(() => {
-      if (isDownloadingRef.current) {
-        isDownloadingRef.current = false;
-        setDownloadingId(null);
-      }
-    }, 10000);
+    setDownloadProgress({
+      fileName,
+      uploadedBy: uploadedBy || "Unknown",
+      downloadedBytes: 0,
+      totalBytes: 0,
+    });
 
     try {
       const pCode = Array.isArray(projectCode) ? projectCode[0] : projectCode;
       const prefix = (pCode && !fileName.startsWith(pCode)) ? `${pCode}_` : "";
-      // Sanitize filename: remove special chars like # that break file URIs
       let safeName = (prefix + fileName).replace(/[#?&=%]/g, "_");
-      // Ensure the filename ends with .pdf
       if (!safeName.toLowerCase().endsWith(".pdf")) {
         safeName = `${safeName}.pdf`;
       }
       const downloadUri = FileSystem.documentDirectory + safeName;
 
-      const result = await FileSystem.downloadAsync(url, downloadUri);
+      const downloadResumable = FileSystem.createDownloadResumable(
+        url,
+        downloadUri,
+        {},
+        (downloadProgressEvent) => {
+          const { totalBytesWritten, totalBytesExpectedToWrite } = downloadProgressEvent;
+          setDownloadProgress((prev) =>
+            prev
+              ? { ...prev, downloadedBytes: totalBytesWritten, totalBytes: totalBytesExpectedToWrite }
+              : prev,
+          );
+        },
+      );
 
-      if (result.status !== 200) {
-        Alert.alert("Error", `Download failed with status ${result.status}`);
+      const result = await downloadResumable.downloadAsync();
+      if (!result || result.status !== 200) {
+        Alert.alert("Error", `Download failed with status ${result?.status}`);
         return;
       }
 
-      // Verify file exists
       const fileInfo = await FileSystem.getInfoAsync(result.uri);
       if (!fileInfo.exists) {
         Alert.alert("Error", "Downloaded file not found");
         return;
       }
 
-      // Open share sheet (Save to Files / Drive / Downloads)
       if (await Sharing.isAvailableAsync()) {
         Sharing.shareAsync(result.uri, {
           mimeType: "application/pdf",
@@ -295,9 +298,9 @@ const DPRs = () => {
       console.error("Download failed:", error);
       Alert.alert("Error", "Failed to download file");
     } finally {
-      clearTimeout(timeoutId);
       isDownloadingRef.current = false;
       setDownloadingId(null);
+      setDownloadProgress(null);
     }
   };
 
@@ -381,62 +384,104 @@ const DPRs = () => {
   };
 
   // Reusable DPR card UI
-  const DPRCard = ({ item }: { item: DprItem }) => (
-    <View
-      className="rounded-2xl flex-row items-center px-4 py-4"
-      style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA" }}
-    >
-      {/* PDF Icon Badge */}
-      {/* <View
-        className="rounded-xl items-center justify-center mr-3"
-        style={{
-          width: 44,
-          height: 44,
-          backgroundColor: isDark ? "#2F2F2F" : "#F0F3F7",
-        }}
+  const DPRCard = ({ item }: { item: DprItem }) => {
+    const isThis = downloadingId === item._id;
+    return (
+      <View
+        className="rounded-2xl px-4 py-4"
+        style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA" }}
       >
-        <HugeiconsIcon
-          icon={Pdf01Icon}
-          size={22}
-          color={isDark ? "#F5F5F5" : "#454545"}
-        />
-      </View> */}
+        {/* Top row: name + uploader + download icon */}
+        <View className="flex-row items-center">
+          {/* File Info */}
+          <View className="flex-1 pr-3">
+            <Text
+              style={{ color: isDark ? "#FFF" : "#000" }}
+              className="font-poppinsMedium"
+              numberOfLines={1}
+            >
+              {item.fileName}
+            </Text>
+            <Text
+              style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}
+              className="text-xs font-poppins mt-0.5"
+            >
+              Uploaded by : {item.uploadedBy?.fullName || "Unknown"}
+            </Text>
+          </View>
 
-      {/* File Info */}
-      <View className="flex-1 pr-3">
-        <Text
-          style={{ color: isDark ? "#FFF" : "#000" }}
-          className="font-poppinsMedium"
-          numberOfLines={1}
-        >
-          {item.fileName}
-        </Text>
-        <Text
-          style={{ color: isDark ? "#6B7280" : "#9CA3AF" }}
-          className="text-xs font-poppins mt-0.5"
-        >
-          Uploaded by : {item.uploadedBy?.fullName || "Unknown"}
-        </Text>
-      </View>
+          {/* Download Button */}
+          <TouchableOpacity
+            onPress={() => downloadDPR(item._id, item.url, item.fileName, item.uploadedBy?.fullName)}
+            disabled={!!downloadingId}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <HugeiconsIcon
+              icon={Download01Icon}
+              size={22}
+              color={isThis ? "#5B4CCC" : isDark ? "#BBBBBB" : "#454545"}
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* Download Button */}
-      <TouchableOpacity
-        onPress={() => downloadDPR(item._id, item.url, item.fileName)}
-        disabled={downloadingId === item._id}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        {downloadingId === item._id ? (
-          <ActivityIndicator size={20} color="#6366F1" />
-        ) : (
-          <HugeiconsIcon
-            icon={Download01Icon}
-            size={22}
-            color={isDark ? "#BBBBBB" : "#454545"}
-          />
+        {/* Inline progress — only for the card being downloaded */}
+        {isThis && (
+          <>
+            {/* Progress bar */}
+            <View
+              style={{
+                height: 3,
+                backgroundColor: isDark ? "#2A2A2A" : "#E5E7EB",
+                borderRadius: 2,
+                marginTop: 12,
+                marginBottom: 6,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  height: 3,
+                  width:
+                    downloadProgress && downloadProgress.totalBytes > 0
+                      ? `${Math.min((downloadProgress.downloadedBytes / downloadProgress.totalBytes) * 100, 100)}%`
+                      : "5%",
+                  backgroundColor: "#5B4CCC",
+                  borderRadius: 2,
+                }}
+              />
+            </View>
+
+            {/* Status row */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <ActivityIndicator size={11} color="#5B4CCC" />
+                <Text
+                  style={{
+                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    fontFamily: "Poppins-Regular",
+                    fontSize: 11,
+                  }}
+                >
+                  Downloading...
+                </Text>
+              </View>
+              <Text
+                style={{
+                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  fontFamily: "Poppins-Regular",
+                  fontSize: 11,
+                }}
+              >
+                {downloadProgress
+                  ? `${(downloadProgress.downloadedBytes / 1048576).toFixed(1)} MB of ${downloadProgress.totalBytes > 0 ? (downloadProgress.totalBytes / 1048576).toFixed(1) : "--"} MB`
+                  : ""}
+              </Text>
+            </View>
+          </>
         )}
-      </TouchableOpacity>
-    </View>
-  );
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#FBFCFD" }}>
