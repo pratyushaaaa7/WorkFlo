@@ -312,7 +312,7 @@ const Dashboard = () => {
               <View>
                 <HugeiconsIcon
                   icon={Notification01Icon}
-                  size={24}
+                  size={26}
                   color={isDarkMode ? "#D2D2D2" : "#454545"}
                 />
                 {unreadCount > 0 && (
