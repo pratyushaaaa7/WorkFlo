@@ -501,12 +501,22 @@ const UserList = () => {
               color={isDarkMode ? "#FFF" : "#000"}
             />
           </TouchableOpacity> */}
-          <TouchableOpacity onPress={() => setExportMenuVisible(true)}>
-            <HugeiconsIcon
-              icon={MoreHorizontalIcon}
-              size={24}
-              color={isDarkMode ? "#FFF" : "#000"}
-            />
+          <TouchableOpacity
+            onPress={() => setExportMenuVisible(true)}
+            disabled={excelLoading || pdfLoading}
+          >
+            {excelLoading || pdfLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={MoreHorizontalIcon}
+                size={24}
+                color={isDarkMode ? "#FFF" : "#000"}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
