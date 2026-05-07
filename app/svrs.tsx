@@ -232,7 +232,7 @@ const SVRs = () => {
 
     try {
       const pCode = Array.isArray(projectCode) ? projectCode[0] : projectCode;
-      const prefix = pCode ? `${pCode}_` : "";
+      const prefix = (pCode && !fileName.startsWith(pCode)) ? `${pCode}_` : "";
       // Sanitize filename: remove special chars like # that break file URIs
       let safeName = (prefix + fileName).replace(/[#?&=%]/g, "_");
       // Ensure the filename ends with .pdf
@@ -341,7 +341,7 @@ const SVRs = () => {
       style={{ backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA" }}
     >
       {/* PDF Icon Badge */}
-      <View
+      {/* <View
         className="rounded-xl items-center justify-center mr-3"
         style={{
           width: 44,
@@ -354,13 +354,13 @@ const SVRs = () => {
           size={22}
           color={isDark ? "#F5F5F5" : "#454545"}
         />
-      </View>
+      </View> */}
 
       {/* File Info */}
       <View className="flex-1 pr-3">
         <Text
           style={{ color: isDark ? "#FFF" : "#000" }}
-          className="font-poppinsMedium"
+          className="font-poppinsMedium "
           numberOfLines={1}
         >
           {item.fileName}
