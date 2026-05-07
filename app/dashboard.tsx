@@ -323,23 +323,23 @@ const Dashboard = () => {
                       top: -5,
                       backgroundColor: "#DD5858",
                       borderRadius: 10,
-                      minWidth: 18,
-                      paddingVertical: 2,
-                      paddingHorizontal: 4,
+                      minWidth: 20,
+                      height: 20,
                       justifyContent: "center",
                       alignItems: "center",
-                      borderWidth: 1.5,
+                      borderWidth: 2,
                       borderColor: isDarkMode ? "#000" : "#fff",
+                      overflow: "hidden",
                     }}
                   >
                     <Text
                       style={{
                         color: "#fff",
-                        fontSize: 9,
+                        fontSize: 10,
                         fontFamily: "Poppins_500Medium",
                         textAlign: "center",
-                        lineHeight: 12,
                         includeFontPadding: false,
+                        lineHeight: 12,
                       }}
                     >
                       {unreadCount > 9 ? "9+" : unreadCount}
