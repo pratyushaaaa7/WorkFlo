@@ -343,7 +343,7 @@ const Dashboard = () => {
                         lineHeight: 12,
                       }}
                     >
-                      {unreadCount > 9 ? "9+" : unreadCount}
+                      {unreadCount}
                     </Text>
                   </View>
                 )}
