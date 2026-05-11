@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import moment from "moment";
 import { usePathname } from "expo-router";
 import { useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
@@ -110,6 +111,7 @@ export const useUsageTracking = () => {
     );
 
     const isNewSession = isNewSessionRef.current;
+    const todayStr = moment().format("YYYY-MM-DD");
 
     // Skip if no time passed and not a new session
     if (durationSeconds <= 0 && !isNewSession) return;
@@ -122,6 +124,7 @@ export const useUsageTracking = () => {
         {
           duration: durationSeconds,
           isNewSession: isNewSession,
+          date: todayStr,
         },
         { headers: { Authorization: `Bearer ${authRef.current.token}` } },
       );
@@ -168,6 +171,7 @@ export const useUsageTracking = () => {
         {
           screenName: cleanName,
           duration: durationSeconds,
+          date: moment().format("YYYY-MM-DD"),
         },
         { headers: { Authorization: `Bearer ${authRef.current.token}` } },
       );
