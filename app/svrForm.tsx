@@ -17,16 +17,17 @@ import React, {
 } from "react";
 import {
   FlatList,
-  KeyboardAvoidingView,
   Modal as NativeModal,
-  Platform,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
-  View
+  View,
 } from "react-native";
-import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
+import {
+  KeyboardAwareScrollView,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -65,15 +66,24 @@ const SVRform = () => {
   const router = useRouter();
   const auth = useContext(AuthContext);
   const token = auth?.token;
-  const { projectName, company, projectId, teamLeaders, teamMembers, partnerInCharge, mode } =
-    useLocalSearchParams();
+  const {
+    projectName,
+    company,
+    projectId,
+    teamLeaders,
+    teamMembers,
+    partnerInCharge,
+    mode,
+  } = useLocalSearchParams();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<FlatList>(null);
 
   // Use dynamic storage key based on projectId if available
-  const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
+  const pIdStr = Array.isArray(projectId)
+    ? projectId[0]
+    : (projectId as string);
   const storageKey = `SVR_FORM_DATA_${pIdStr || "default"}`;
 
   const resetForm = useCallback(() => {
@@ -258,7 +268,14 @@ const SVRform = () => {
       }
     }, 1500);
     return () => clearTimeout(timer);
-  }, [attendees, entries, caseStudyRemarks, projectId, projectName, storageKey]);
+  }, [
+    attendees,
+    entries,
+    caseStudyRemarks,
+    projectId,
+    projectName,
+    storageKey,
+  ]);
 
   // --- Handlers: Attendees ---
   const updateAttendee = useCallback(
@@ -285,7 +302,9 @@ const SVRform = () => {
           if (typeof field === "string") {
             delete attendeeError[field as keyof typeof attendeeError];
           } else if (typeof field === "object") {
-            Object.keys(field).forEach(k => delete attendeeError[k as keyof typeof attendeeError]);
+            Object.keys(field).forEach(
+              (k) => delete attendeeError[k as keyof typeof attendeeError],
+            );
           }
 
           if (Object.keys(attendeeError).length === 0) {
@@ -355,7 +374,9 @@ const SVRform = () => {
           if (typeof field === "string") {
             delete entryError[field as keyof typeof entryError];
           } else if (typeof field === "object") {
-            Object.keys(field).forEach(k => delete entryError[k as keyof typeof entryError]);
+            Object.keys(field).forEach(
+              (k) => delete entryError[k as keyof typeof entryError],
+            );
           }
 
           if (Object.keys(entryError).length === 0) {
@@ -425,9 +446,7 @@ const SVRform = () => {
       if (!result.canceled) {
         const uris = result.assets.map((a: any) => a.uri);
         setEntries((prev) =>
-          prev.map((m, i) =>
-            i === index ? { ...m, images: uris } : m,
-          ),
+          prev.map((m, i) => (i === index ? { ...m, images: uris } : m)),
         );
       }
     } catch (error) {
@@ -492,7 +511,8 @@ const SVRform = () => {
         }
       });
     }
-    if (Object.keys(attendeeErrors).length > 0) errors.attendees = attendeeErrors;
+    if (Object.keys(attendeeErrors).length > 0)
+      errors.attendees = attendeeErrors;
 
     // Discussion Entry validation
     const entryErrors: any = {};
@@ -520,22 +540,27 @@ const SVRform = () => {
     if (hasError && mode !== "case-study") {
       setValidationErrors(errors);
 
-      const targetTab = firstErrorLocation === "attendees" ? "attendees" : "discussion";
+      const targetTab =
+        firstErrorLocation === "attendees" ? "attendees" : "discussion";
       setActiveTab(targetTab);
 
       // Auto-expand and scroll to first error
       if (firstErrorIndex !== -1) {
         if (firstErrorLocation === "attendees") {
-          setAttendees(prev => prev.map((a, i) => ({ ...a, isExpanded: i === firstErrorIndex })));
+          setAttendees((prev) =>
+            prev.map((a, i) => ({ ...a, isExpanded: i === firstErrorIndex })),
+          );
         } else {
-          setEntries(prev => prev.map((e, i) => ({ ...e, isExpanded: i === firstErrorIndex })));
+          setEntries((prev) =>
+            prev.map((e, i) => ({ ...e, isExpanded: i === firstErrorIndex })),
+          );
         }
 
         setTimeout(() => {
           scrollRef.current?.scrollToIndex?.({
             index: firstErrorIndex,
             animated: true,
-            viewPosition: 0
+            viewPosition: 0,
           });
         }, 300);
       }
@@ -543,22 +568,28 @@ const SVRform = () => {
       Toast.show({
         type: "error",
         text1: "Please fill required fields",
-        text2: firstErrorLocation === "entries" ? "Description is required when an image is added" : "Attendee name is required",
-        position: "bottom"
+        text2:
+          firstErrorLocation === "entries"
+            ? "Description is required when an image is added"
+            : "Attendee name is required",
+        position: "bottom",
       });
       return;
     }
 
     setValidationErrors({});
 
-    const mappedEntries = mode === "case-study" ? [] : entries.map((e) => ({
-      ...e,
-      agenda: e.issueSubject,
-      discussion: e.issueDescription,
-      responsibility: Array.isArray(e.responsibility)
-        ? e.responsibility.map((r: any) => r.label).join(", ")
-        : e.responsibility,
-    }));
+    const mappedEntries =
+      mode === "case-study"
+        ? []
+        : entries.map((e) => ({
+            ...e,
+            agenda: e.issueSubject,
+            discussion: e.issueDescription,
+            responsibility: Array.isArray(e.responsibility)
+              ? e.responsibility.map((r: any) => r.label).join(", ")
+              : e.responsibility,
+          }));
 
     router.push({
       pathname: "/svrPdfForm",
@@ -575,7 +606,19 @@ const SVRform = () => {
         caseStudyRemarks,
       },
     });
-  }, [entries, attendees, caseStudyRemarks, projectName, projectId, mode, company, teamLeaders, teamMembers, router, scrollRef]);
+  }, [
+    entries,
+    attendees,
+    caseStudyRemarks,
+    projectName,
+    projectId,
+    mode,
+    company,
+    teamLeaders,
+    teamMembers,
+    router,
+    scrollRef,
+  ]);
 
   const skipAndNext = useCallback(async () => {
     router.push({
@@ -601,7 +644,7 @@ const SVRform = () => {
         <AttendeeItem
           key={item.id}
           item={item}
-          drag={() => { }}
+          drag={() => {}}
           isActive={false}
           expanded={!!item.isExpanded}
           onToggleExpand={handleToggleAttendee}
@@ -631,7 +674,7 @@ const SVRform = () => {
         <SvrMinuteItem
           key={item.id}
           item={item}
-          drag={() => { }}
+          drag={() => {}}
           isActive={false}
           expanded={!!item.isExpanded}
           onToggleExpand={handleToggleEntry}
@@ -712,10 +755,11 @@ const SVRform = () => {
               placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
               value={caseStudyRemarks}
               onChangeText={setCaseStudyRemarks}
-              className={`rounded-2xl px-4 py-4 font-poppins min-h-[250px] text-base ${isDarkMode
+              className={`rounded-2xl px-4 py-4 font-poppins min-h-[250px] text-base ${
+                isDarkMode
                   ? "bg-[#1A1A1A] text-white"
                   : "bg-[#F0F3F7] text-gray-900"
-                }`}
+              }`}
               textAlignVertical="top"
             />
           </View>
@@ -726,7 +770,7 @@ const SVRform = () => {
             className="pb-4 px-4 flex-row gap-3"
             style={{
               paddingBottom: Math.max(insets.bottom, 16),
-              backgroundColor: isDarkMode ? "#000" : "#FBFCFD"
+              backgroundColor: isDarkMode ? "#000" : "#FBFCFD",
             }}
           >
             <TouchableOpacity
@@ -764,7 +808,7 @@ const SVRform = () => {
   // --- UI: SVR FORM ---
   return (
     <View className="flex-1 bg-[#FBFCFD] dark:bg-[#000]">
-        <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View
           className={`pt-16 pb-4 px-4 flex-row items-center justify-between ${isDarkMode ? "bg-black" : "bg-[#FBFCFD]"}`}
         >
@@ -791,10 +835,11 @@ const SVRform = () => {
         >
           <TouchableOpacity
             onPress={() => setActiveTab("attendees")}
-            className={`flex-1 py-3 items-center ${activeTab === "attendees"
+            className={`flex-1 py-3 items-center ${
+              activeTab === "attendees"
                 ? "border-b-[1.5px] border-[#5B4CCC]"
                 : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
-              }`}
+            }`}
           >
             <Text
               className={`text-[15px] font-poppinsMedium ${activeTab === "attendees" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
@@ -804,10 +849,11 @@ const SVRform = () => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab("discussion")}
-            className={`flex-1 py-3 items-center ${activeTab === "discussion"
+            className={`flex-1 py-3 items-center ${
+              activeTab === "discussion"
                 ? "border-b-[1.5px] border-[#5B4CCC]"
                 : `border-b-[1px] ${isDarkMode ? "border-[#413E47]" : "border-[#E0E5EB]"}`
-              }`}
+            }`}
           >
             <Text
               className={`text-[15px] font-poppinsMedium ${activeTab === "discussion" ? "text-[#5B4CCC]" : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
@@ -830,57 +876,61 @@ const SVRform = () => {
             backgroundColor: isDarkMode ? "#000" : "#FBFCFD",
           }}
         >
-          {(activeTab === "attendees" ? attendees : entries).map((item, index) => {
-            if (activeTab === "attendees") {
-              return (
-                <View key={item.id} className="mb-3">
-                  <AttendeeItem
-                    item={item}
-                    drag={() => { }}
-                    isActive={false}
-                    expanded={!!item.isExpanded}
-                    onToggleExpand={handleToggleAttendee}
-                    onUpdate={updateAttendee}
-                    onDelete={deleteAttendee}
-                    users={directoryUsers}
-                    onSearch={handleSearchDirectory}
-                    showDelete={attendees.length > 1}
-                    isDarkMode={isDarkMode}
-                    getIndex={() => index}
-                    fieldErrors={validationErrors.attendees?.[index]}
-                  />
-                </View>
-              );
-            } else {
-              return (
-                <View key={item.id} className="mb-3">
-                  <SvrMinuteItem
-                    item={item}
-                    drag={() => { }}
-                    isActive={false}
-                    expanded={!!item.isExpanded}
-                    onToggleExpand={handleToggleEntry}
-                    onUpdate={updateEntry}
-                    onDeleteRequest={handleDeleteEntryRequest}
-                    users={internalUsers}
-                    showDelete={entries.length > 1}
-                    isDarkMode={isDarkMode}
-                    onOpenDatePicker={onOpenDatePicker}
-                    onPickImage={onPickImage}
-                    onDeleteImage={onDeleteImage}
-                    getIndex={() => entries.findIndex((e) => e.id === item.id)}
-                    showDatePicker={
-                      showDatePicker &&
-                      dateIndex === entries.findIndex((e) => e.id === item.id)
-                    }
-                    onConfirmDate={onDateConfirm}
-                    onCancelDate={() => setShowDatePicker(false)}
-                    fieldErrors={validationErrors.entries?.[index]}
-                  />
-                </View>
-              );
-            }
-          })}
+          {(activeTab === "attendees" ? attendees : entries).map(
+            (item, index) => {
+              if (activeTab === "attendees") {
+                return (
+                  <View key={item.id} className="mb-3">
+                    <AttendeeItem
+                      item={item}
+                      drag={() => {}}
+                      isActive={false}
+                      expanded={!!item.isExpanded}
+                      onToggleExpand={handleToggleAttendee}
+                      onUpdate={updateAttendee}
+                      onDelete={deleteAttendee}
+                      users={directoryUsers}
+                      onSearch={handleSearchDirectory}
+                      showDelete={attendees.length > 1}
+                      isDarkMode={isDarkMode}
+                      getIndex={() => index}
+                      fieldErrors={validationErrors.attendees?.[index]}
+                    />
+                  </View>
+                );
+              } else {
+                return (
+                  <View key={item.id} className="mb-3">
+                    <SvrMinuteItem
+                      item={item}
+                      drag={() => {}}
+                      isActive={false}
+                      expanded={!!item.isExpanded}
+                      onToggleExpand={handleToggleEntry}
+                      onUpdate={updateEntry}
+                      onDeleteRequest={handleDeleteEntryRequest}
+                      users={internalUsers}
+                      showDelete={entries.length > 1}
+                      isDarkMode={isDarkMode}
+                      onOpenDatePicker={onOpenDatePicker}
+                      onPickImage={onPickImage}
+                      onDeleteImage={onDeleteImage}
+                      getIndex={() =>
+                        entries.findIndex((e) => e.id === item.id)
+                      }
+                      showDatePicker={
+                        showDatePicker &&
+                        dateIndex === entries.findIndex((e) => e.id === item.id)
+                      }
+                      onConfirmDate={onDateConfirm}
+                      onCancelDate={() => setShowDatePicker(false)}
+                      fieldErrors={validationErrors.entries?.[index]}
+                    />
+                  </View>
+                );
+              }
+            },
+          )}
 
           <TouchableOpacity
             activeOpacity={0.8}

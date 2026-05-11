@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from "expo-image";
 import React, {
   useCallback,
   useContext,
@@ -19,7 +20,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { Image as ExpoImage } from "expo-image";
 import Modal from "react-native-modal";
 
 LogBox.ignoreLogs([
@@ -35,7 +35,6 @@ import {
   Cancel01Icon,
   Clock01Icon,
   Download01Icon,
-  Note01Icon,
   MoreHorizontalIcon,
   Pdf01Icon,
   PlusSignCircleIcon,
@@ -309,6 +308,8 @@ const CreateMinutes = () => {
             email: u.email,
             phone: u.phone,
             contactNumbers: u.phones,
+            role: u.role,
+            source: u.source,
           }));
           setDirectoryUsers(formatted);
         }
@@ -642,7 +643,6 @@ const CreateMinutes = () => {
     },
     [dateIndex, updateMinute],
   );
-
 
   const onAttendeeDragEnd = useCallback(({ data }: { data: any[] }) => {
     setAttendees(data.map((item, index) => ({ ...item, sNo: index + 1 })));
