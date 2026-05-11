@@ -89,6 +89,39 @@ const sanitizeImages = (data: any): any[] => {
   return [];
 };
 
+const ProjectImageItem = ({ img, width, height, isDarkMode }: any) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <View style={{ width, height, backgroundColor: isDarkMode ? "black" : "white" }}>
+      {!loaded && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+          }}
+        >
+          <Skeleton
+            colorMode={isDarkMode ? "dark" : "light"}
+            width={width}
+            height={height}
+          />
+        </View>
+      )}
+      <Image
+        source={typeof img === "number" ? img : { uri: img.uri }}
+        style={{ width, height }}
+        contentFit="contain"
+        transition={500}
+        onLoad={() => setLoaded(true)}
+      />
+    </View>
+  );
+};
+
 const ProjectMain = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -457,33 +490,13 @@ const ProjectMain = () => {
               const displayImages =
                 sanitized.length > 0 ? sanitized : PROJECT_IMAGES;
               return displayImages.map((img, index) => (
-                <View
+                <ProjectImageItem
                   key={index}
-                  style={{ width: width, height: height * 0.45 }}
-                >
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  >
-                    <Skeleton
-                      colorMode={isDarkMode ? "dark" : "light"}
-                      width={width}
-                      height={height * 0.45}
-                    />
-                  </View>
-                  <Image
-                    key={index}
-                    source={typeof img === "number" ? img : { uri: img.uri }}
-                    style={{ width: width, height: height * 0.45 }}
-                    contentFit="cover"
-                    transition={500}
-                  />
-                </View>
+                  img={img}
+                  width={width}
+                  height={height * 0.45}
+                  isDarkMode={isDarkMode}
+                />
               ));
             })()}
           </ScrollView>
