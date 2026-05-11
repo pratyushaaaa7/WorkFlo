@@ -45,33 +45,33 @@ export const usePushNotifications = (
 
             // ⚠️ FIX 6 & 8: Safe Sync & No Variable Shadowing
             const authHeader = `Bearer ${token}`;
-            console.log("📑 Request Header:", authHeader);
-            console.log("📡 Syncing push token to backend...");
-            console.log("🎟️ NEW PUSH TOKEN:", pushToken);
-            console.log("🔗 Endpoint: /users/notification-preferences");
+            // console.log("📑 Request Header:", authHeader);
+            // console.log("📡 Syncing push token to backend...");
+            // console.log("🎟️ NEW PUSH TOKEN:", pushToken);
+            // console.log("🔗 Endpoint: /users/notification-preferences");
 
             // ⚠️ FIX: Fetch existing preferences first to avoid overwriting them
             api.get("/users/notification-preferences", { headers: { Authorization: authHeader } })
               .then((res) => {
                 const currentPrefs = res.data?.preferences || { pushEnabled: true };
-                console.log("📦 Current Preferences from Server:", JSON.stringify(currentPrefs, null, 2));
+                // console.log("📦 Current Preferences from Server:", JSON.stringify(currentPrefs, null, 2));
 
                 const payload = { 
                   preferences: { ...currentPrefs, pushEnabled: true }, 
                   pushToken 
                 };
-                console.log("📤 Sending Sync Payload:", JSON.stringify(payload, null, 2));
+                // console.log("📤 Sending Sync Payload:", JSON.stringify(payload, null, 2));
 
                 return api.patch("/users/notification-preferences", payload, { headers: { Authorization: authHeader } });
               })
               .then((res) => {
-                console.log("✅ Push token synced successfully!");
-                console.log("📦 Final Server Response State:", JSON.stringify(res.data?.preferences || res.data, null, 2));
+                // console.log("✅ Push token synced successfully!");
+                // console.log("📦 Final Server Response State:", JSON.stringify(res.data?.preferences || res.data, null, 2));
               })
               .catch((err) => {
-                console.error("❌ Push sync failed!");
-                console.log("Status Code:", err.response?.status);
-                console.log("Error Detail:", err.response?.data?.message || err.response?.data || err.message);
+                // console.error("❌ Push sync failed!");
+                // console.log("Status Code:", err.response?.status);
+                // console.log("Error Detail:", err.response?.data?.message || err.response?.data || err.message);
                 
                 // If it's a 404, maybe the user hasn't initialized preferences yet
                 if (err.response?.status === 404) {
@@ -95,7 +95,7 @@ export const usePushNotifications = (
   const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
     const data = response.notification.request.content.data;
     const navigation = data?.navigation as { screen?: string; params?: any } | undefined;
-    console.log("👆 Notification Response Data:", data);
+    // console.log("👆 Notification Response Data:", data);
 
     if (navigation?.screen) {
       // Small delay to ensure the router and layout are fully ready
@@ -105,6 +105,18 @@ export const usePushNotifications = (
           params: navigation.params,
         });
       }, 500);
+    }
+  };
+
+  // 🚀 Function to update badge count based on presented notifications
+  const updateBadgeCount = async () => {
+    if (Platform.OS === "web") return;
+    try {
+      const presented = await Notifications.getPresentedNotificationsAsync();
+      await Notifications.setBadgeCountAsync(presented.length);
+      // console.log("🔢 Badge Count Updated to:", presented.length);
+    } catch (error) {
+      console.error("❌ Failed to update badge count:", error);
     }
   };
 
@@ -120,7 +132,8 @@ export const usePushNotifications = (
     // 2. Handle notifications received/tapped while the app is in the background or foreground
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
-        console.log("🔔 Notification Received in Foreground:", notification);
+        // console.log("🔔 Notification Received in Foreground:", notification);
+        updateBadgeCount(); // Sync badge when a new notification arrives
       });
 
     responseListener.current =
@@ -134,21 +147,15 @@ export const usePushNotifications = (
     };
   }, [isAuthenticated]); // Re-run when auth status changes to ensure we can route properly
 
-  // 🚀 Clear Badge on App Start & when coming to Foreground
+  // 🚀 Sync Badge when coming to Foreground
   useEffect(() => {
-    const clearBadge = async () => {
-      if (Platform.OS !== "web") {
-        await Notifications.setBadgeCountAsync(0);
-      }
-    };
+    // Sync immediately on mount
+    updateBadgeCount();
 
-    // Clear immediately on mount
-    clearBadge();
-
-    // Also clear whenever the app state changes to 'active'
+    // Also sync whenever the app state changes to 'active'
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
-        clearBadge();
+        updateBadgeCount();
       }
     });
 
@@ -157,7 +164,7 @@ export const usePushNotifications = (
     };
   }, []);
 
-  return { expoPushToken };
+  return { expoPushToken, updateBadgeCount };
 };
 
 async function registerForPushNotificationsAsync() {

@@ -3,17 +3,16 @@ import {
   Briefcase05Icon,
   Calendar03Icon,
   Cancel01Icon,
+  CheckUnread04Icon,
   Delete02Icon,
   File02Icon,
   KeyframesMultipleIcon,
   Note03Icon,
-  CheckUnread04Icon,
   ProfileIcon,
   Search01Icon,
   Settings01Icon,
-  Tick01Icon,
   Tick02Icon,
-  TickDouble02Icon,
+  TickDouble02Icon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
@@ -21,25 +20,24 @@ import { AnimatePresence, MotiView } from "moti";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import * as Notifications from "expo-notifications";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
+  Platform,
   RefreshControl,
   StatusBar,
   Text,
   TouchableOpacity,
   useColorScheme,
-  View,
-  Platform,
+  View
 } from "react-native";
-import { useAuth } from "../context/AuthContext";
-import api from "../lib/api";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import NotificationSettingsModal from "../components/NotificationSettingsModal";
+import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 
 dayjs.extend(relativeTime);
 
@@ -115,11 +113,12 @@ const NotificationsScreen = () => {
     if (token) fetchNotifications(true);
   }, [token]);
 
-  useEffect(() => {
-    if (Platform.OS !== "web") {
-      Notifications.setBadgeCountAsync(0);
-    }
-  }, []);
+  // Remove automatic badge clearing on mount to let it reflect system drawer
+  // useEffect(() => {
+  //   if (Platform.OS !== "web") {
+  //     Notifications.setBadgeCountAsync(0);
+  //   }
+  // }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -129,6 +128,34 @@ const NotificationsScreen = () => {
   const handleLoadMore = () => {
     if (!loading && !loadingMore && hasMore) {
       fetchNotifications(false);
+    }
+  };
+
+  const updateBadgeCount = async () => {
+    if (Platform.OS === "web") return;
+    try {
+      const presented = await Notifications.getPresentedNotificationsAsync();
+      await Notifications.setBadgeCountAsync(presented.length);
+    } catch (error) {
+      console.error("Failed to update badge count:", error);
+    }
+  };
+
+  const dismissMatchingNotification = async (item: NotificationItem) => {
+    if (Platform.OS === "web") return;
+    try {
+      const presented = await Notifications.getPresentedNotificationsAsync();
+      const match = presented.find(
+        (n) =>
+          n.request.content.title === item.title &&
+          n.request.content.body === item.message,
+      );
+      if (match) {
+        await Notifications.dismissNotificationAsync(match.request.identifier);
+        await updateBadgeCount();
+      }
+    } catch (error) {
+      console.error("Error dismissing notification:", error);
     }
   };
 
@@ -150,6 +177,7 @@ const NotificationsScreen = () => {
         setNotifications((prev) =>
           prev.map((n) => (n._id === item._id ? { ...n, isRead: true } : n)),
         );
+        dismissMatchingNotification(item);
       } catch (error) {
         console.error("Error marking as read:", error);
       }
@@ -193,10 +221,19 @@ const NotificationsScreen = () => {
     try {
       setDeleteLoading(true);
       const idsArray = Array.from(selectedIds);
+      const deletedNotifications = notifications.filter((n) =>
+        selectedIds.has(n._id),
+      );
       await api.delete("/notifications", {
         data: { ids: idsArray },
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      // Dismiss from system tray
+      for (const n of deletedNotifications) {
+        await dismissMatchingNotification(n);
+      }
+
       setNotifications((prev) => prev.filter((n) => !selectedIds.has(n._id)));
       setSelectionMode(false);
       setSelectedIds(new Set());
@@ -224,6 +261,13 @@ const NotificationsScreen = () => {
           ),
         ),
       );
+
+      if (markAsRead) {
+        const markedItems = notifications.filter((n) => selectedIds.has(n._id));
+        for (const n of markedItems) {
+          await dismissMatchingNotification(n);
+        }
+      }
 
       setNotifications((prev) =>
         prev.map((n) =>
@@ -433,7 +477,13 @@ const NotificationsScreen = () => {
                       {},
                       { headers: { Authorization: `Bearer ${token}` } },
                     )
-                    .then(() => fetchNotifications(true))
+                    .then(() => {
+                      if (Platform.OS !== "web") {
+                        Notifications.dismissAllNotificationsAsync();
+                        Notifications.setBadgeCountAsync(0);
+                      }
+                      fetchNotifications(true);
+                    })
                 }
                 className="p-1"
               >
