@@ -179,6 +179,7 @@ const Dashboard = () => {
             refreshing={refreshing}
             onRefresh={onRefresh}
             responsibleItems={dashboardData?.myResponsibleItems || []}
+            groupedTasks={dashboardData?.groupedTasks || {}}
             searchQuery={searchQuery}
           />
         );
