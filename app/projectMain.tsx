@@ -131,8 +131,8 @@ const ProjectMain = () => {
   // Theme-based colors
   const colors = {
     background: isDarkMode ? "#000000" : "#F6F8FA",
-    containerBg: isDarkMode ? "#121212" : "#FFFFFF",
-    cardBg: isDarkMode ? "#1A1A1A" : "#FFFFFF",
+    containerBg: isDarkMode ? "#0D0D0D" : "#F6F8FA",
+    cardBg: isDarkMode ? "#0D0D0D" : "#F6F8FA",
     textPrimary: isDarkMode ? "#FFFFFF" : "#000000",
     textSecondary: isDarkMode ? "#9BA1A6" : "#6B7280",
     iconGray: isDarkMode ? "#9BA1A6" : "#6B7280",
@@ -468,7 +468,8 @@ const ProjectMain = () => {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <StatusBar barStyle="light-content" translucent />
 
       <ScrollView
