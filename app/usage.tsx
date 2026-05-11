@@ -212,9 +212,10 @@ export default function UsageScreen() {
 
       const params: any = { type: typeMap[selectedTab] };
       if (selectedTab === "Custom" && startDate && endDate) {
-        params.startDate = moment(startDate).startOf("day").toISOString();
-        params.endDate = moment(endDate).endOf("day").toISOString();
+        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.endDate = moment(endDate).format("YYYY-MM-DD");
       }
+
 
       const res = await api.get("/usage/users/leaderboard", {
         params,
@@ -368,9 +369,10 @@ export default function UsageScreen() {
 
       const params: any = { type: typeMap[selectedTab] };
       if (selectedTab === "Custom" && startDate && endDate) {
-        params.startDate = moment(startDate).startOf("day").toISOString();
-        params.endDate = moment(endDate).endOf("day").toISOString();
+        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.endDate = moment(endDate).format("YYYY-MM-DD");
       }
+
 
       const response = await api.get("/usage/users/leaderboard/export", {
         params,
@@ -469,7 +471,7 @@ export default function UsageScreen() {
           sameDay: "[Today], h:mm A",
           lastDay: "[Yesterday], h:mm A",
           lastWeek: "dddd, h:mm A",
-          sameElse: "DD MMM, h:mm A",
+          sameElse: "DD-MM-YYYY, h:mm A",
         })
       : "Never";
 
@@ -690,7 +692,7 @@ export default function UsageScreen() {
                   }`}
                 >
                   {item === "Custom" && startDate && endDate
-                    ? `${moment(startDate).format("DD MMM")} - ${moment(endDate).format("DD MMM")}`
+                    ? `${moment(startDate).format("DD-MM-YYYY")} - ${moment(endDate).format("DD-MM-YYYY")}`
                     : item}
                 </Text>
               </TouchableOpacity>

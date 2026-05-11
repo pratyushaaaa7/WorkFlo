@@ -128,9 +128,10 @@ export default function UsageSummaryScreen() {
 
       const params: any = { type: selectedFilter };
       if (selectedFilter === "Custom" && startDate && endDate) {
-        params.startDate = moment(startDate).startOf("day").toISOString();
-        params.endDate = moment(endDate).endOf("day").toISOString();
+        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.endDate = moment(endDate).format("YYYY-MM-DD");
       }
+
 
       const res = await api.get(`/usage/users/${userId}/summary`, {
         params,
@@ -433,8 +434,8 @@ export default function UsageSummaryScreen() {
                   <Text className="text-black dark:text-white font-poppins text-xs mr-2">
                     {selectedFilter === "Custom" && startDate && endDate
                       ? moment(startDate).isSame(endDate, "day")
-                        ? moment(startDate).format("DD MMM")
-                        : `${moment(startDate).format("DD MMM")} - ${moment(endDate).format("DD MMM")}`
+                        ? moment(startDate).format("DD-MM-YYYY")
+                        : `${moment(startDate).format("DD-MM-YYYY")} - ${moment(endDate).format("DD-MM-YYYY")}`
                       : selectedFilter === "Month"
                         ? "Last 30 days"
                         : selectedFilter === "Week"
@@ -600,8 +601,8 @@ export default function UsageSummaryScreen() {
                     endDate &&
                     !moment(startDate).isSame(endDate, "day") ? (
                       <Text className="text-[12px] font-poppins text-[#5B4CCC]">
-                        {moment(startDate).format("DD MMM, YYYY")} -{" "}
-                        {moment(endDate).format("DD MMM, YYYY")}
+                        {moment(startDate).format("DD-MM-YYYY")} -{" "}
+                        {moment(endDate).format("DD-MM-YYYY")}
                       </Text>
                     ) : (
                       <Text className="text-[12px] font-poppins text-[#454545] dark:text-[#919191]">
@@ -650,7 +651,7 @@ export default function UsageSummaryScreen() {
                         endDate &&
                         moment(startDate).isSame(endDate, "day"))) ? (
                       <Text className="text-[12px] font-poppins text-[#5B4CCC]">
-                        {moment(startDate).format("DD MMM, YYYY")}
+                        {moment(startDate).format("DD-MM-YYYY")}
                       </Text>
                     ) : null}
                   </View>

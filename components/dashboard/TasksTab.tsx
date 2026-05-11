@@ -7,6 +7,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format, isValid, startOfDay } from "date-fns";
 import { useRouter } from "expo-router";
+import { MotiView } from "moti";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -22,7 +23,6 @@ import {
   View,
 } from "react-native";
 import AnimatedTabIndicator from "../AnimatedTabIndicator";
-import { MotiView } from "moti";
 
 const { width } = Dimensions.get("window");
 
@@ -31,6 +31,7 @@ interface TasksTabProps {
   refreshing: boolean;
   onRefresh: () => void;
   responsibleItems: any[];
+  groupedTasks?: any;
   searchQuery?: string;
 }
 
@@ -54,7 +55,7 @@ const getDateStatus = (dateString: string | null, isDarkMode: boolean) => {
 
 const TaskItem = ({ task }: { task: any }) => {
   const isDarkMode = useColorScheme() === "dark";
-  const dateStatus = getDateStatus(task.date, isDarkMode);
+  const dateStatus = getDateStatus(task.targetDate || task.date, isDarkMode);
   const router = useRouter();
 
   const handlePress = () => {
@@ -67,7 +68,7 @@ const TaskItem = ({ task }: { task: any }) => {
             meetingId: task.meetingId,
             issueSubject: task.title,
             description: task.description,
-            targetDate: task.date,
+            targetDate: task.targetDate || task.date,
             status: task.status,
             remarks: task.remarks,
             responsibility: JSON.stringify(task.responsibility || []),
@@ -92,7 +93,7 @@ const TaskItem = ({ task }: { task: any }) => {
           params: {
             ilrId: task.id,
             description: task.description,
-            targetDate: task.date,
+            targetDate: task.targetDate || task.date,
             remarks: task.remarks,
             status: task.status,
             ilrNumber: task.ilrNumber,
@@ -254,6 +255,7 @@ const TasksTab = ({
   refreshing,
   onRefresh,
   responsibleItems,
+  groupedTasks,
   searchQuery = "",
 }: TasksTabProps) => {
   const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
@@ -272,8 +274,30 @@ const TasksTab = ({
 
     const activeType = typeMap[subTab];
 
-    // Filter by type and searchQuery
-    const q = searchQuery.trim().toLowerCase();
+    // ✅ OPTION 1: Use pre-grouped data from New Backend (Most Efficient)
+    if (groupedTasks && groupedTasks[activeType]) {
+      const dataFromBackend = groupedTasks[activeType];
+
+      // Filter by searchQuery if present
+      const q = searchQuery?.trim().toLowerCase();
+      if (!q) return dataFromBackend;
+
+      return dataFromBackend
+        .map((project: any) => ({
+          ...project,
+          tasks: project.tasks.filter(
+            (task: any) =>
+              task.title?.toLowerCase().includes(q) ||
+              task.description?.toLowerCase().includes(q) ||
+              task.remarks?.toLowerCase().includes(q) ||
+              task.projectName?.toLowerCase().includes(q),
+          ),
+        }))
+        .filter((project: any) => project.tasks.length > 0);
+    }
+
+    // ✅ OPTION 2: Fallback for Old Backend (Prevents app from breaking)
+    const q = searchQuery?.trim().toLowerCase();
     const sourceData = (responsibleItems || [])
       .filter((item) => {
         if (item.type !== activeType) return false;
@@ -286,57 +310,26 @@ const TasksTab = ({
         );
       })
       .map((item) => ({
-        id: item.id,
+        ...item,
+        id: item.id || item._id,
         title: item.title,
-        description:
-          subTab === "Running Notes"
-            ? ""
-            : item.description || item.remarks || "",
         date: item.targetDate,
         location: item.projectName || "No Project",
-        type: item.type,
-        meetingId: item.meetingId,
-        projectId: item.projectId,
-        company: item.company,
-        projectName: item.projectName,
-        status: item.status,
-        remarks: item.remarks,
-        responsibility: item.responsibility,
-        ilrNumber: item.ilrNumber,
-        createdBy: item.createdBy,
-        createdAt: item.createdAt,
-        raisedBy: item.raisedBy,
       }));
 
-    // Group by Project
-    const projectGroups: { [key: string]: any } = {};
-
+    // Manual Grouping (Backend Fallback)
+    const projectGroups: any[] = [];
     sourceData.forEach((task) => {
-      const projKey = task.location; // location holds projectName
-
-      if (!projectGroups[projKey]) {
-        projectGroups[projKey] = {
-          projectName: projKey,
-          tasks: [],
-        };
+      const projKey = task.location;
+      let group = projectGroups.find((g) => g.projectName === projKey);
+      if (!group) {
+        group = { projectName: projKey, tasks: [] };
+        projectGroups.push(group);
       }
-
-      let timeStr = "No Date";
-      if (task.date) {
-        const d = new Date(task.date);
-        timeStr = format(d, "d MMM yyyy");
-      }
-
-      projectGroups[projKey].tasks.push({
-        ...task,
-        time: timeStr,
-      });
+      group.tasks.push(task);
     });
 
-    // Convert map to array and sort by Project Name
-    return Object.values(projectGroups).sort((a: any, b: any) =>
-      a.projectName.localeCompare(b.projectName),
-    );
+    return projectGroups;
   };
 
   const handleTabPress = (index: number) => {
@@ -363,9 +356,7 @@ const TasksTab = ({
   return (
     <View className="flex-1 bg-[#F6F8FA] dark:bg-[#0d0d0d]">
       {/* Sub-Tab Navigation */}
-      <View
-        className="flex-row items-center justify-between border-b border-[#E0E5EE] dark:border-[#63615F] relative"
-      >
+      <View className="flex-row items-center justify-between border-b border-[#E0E5EE] dark:border-[#63615F] relative">
         {subTabs.map((tab, index) => {
           const isActive = activeSubTab === tab;
           return (
@@ -388,7 +379,11 @@ const TasksTab = ({
             </TouchableOpacity>
           );
         })}
-        <AnimatedTabIndicator tabs={subTabs} activeTab={activeSubTab} scrollX={scrollX} />
+        <AnimatedTabIndicator
+          tabs={subTabs}
+          activeTab={activeSubTab}
+          scrollX={scrollX}
+        />
       </View>
 
       <Animated.FlatList
@@ -399,7 +394,7 @@ const TasksTab = ({
         scrollEventThrottle={16}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: false },
         )}
         data={subTabs}
         keyExtractor={(item) => item}
