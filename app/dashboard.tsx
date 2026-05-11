@@ -323,9 +323,10 @@ const Dashboard = () => {
                       right: -7,
                       top: -5,
                       backgroundColor: "#DD5858",
-                      borderRadius: 10,
-                      minWidth: 20,
-                      height: 20,
+                      borderRadius: 12,
+                      minWidth: 22,
+                      height: 22,
+                      paddingHorizontal: 2,
                       justifyContent: "center",
                       alignItems: "center",
                       borderWidth: 2,
@@ -443,9 +444,8 @@ const Dashboard = () => {
                       }
                     />
                     <Text
-                      className={`text-[10px] sm:text-xs font-poppinsMedium mt-1 ${
-                        isActive ? "" : "text-gray-500 dark:text-[#919191]"
-                      }`}
+                      className={`text-[10px] sm:text-xs font-poppinsMedium mt-1 ${isActive ? "" : "text-gray-500 dark:text-[#919191]"
+                        }`}
                       style={isActive ? { color: themeColor } : {}}
                     >
                       {tab}
