@@ -301,11 +301,22 @@ const AppSupport = () => {
           <View className="flex-row gap-2">
             {/* Published Badge */}
             <View className="flex-row items-center gap-1">
-              <Ionicons
-                name={item.published ? "checkmark-circle" : "close-circle"}
-                size={16}
-                color={item.published ? "#16A34A" : "#EF4444"}
-              />
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 9,
+                  backgroundColor: item.published ? "#16A34A" : "#EF4444",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name={item.published ? "checkmark" : "close"}
+                  size={10}
+                  color="#FFFFFF"
+                />
+              </View>
               <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
                 {item.published ? "Published" : "Unpublished"}
               </Text>
@@ -313,11 +324,22 @@ const AppSupport = () => {
 
             {/* Status Badge */}
             <View className="flex-row items-center gap-1">
-              <Ionicons
-                name={item.fixed ? "checkmark-circle" : "close-circle"}
-                size={16}
-                color={item.fixed ? "#16A34A" : "#EF4444"}
-              />
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 9,
+                  backgroundColor: item.fixed ? "#16A34A" : "#EF4444",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name={item.fixed ? "checkmark" : "close"}
+                  size={10}
+                  color="#FFFFFF"
+                />
+              </View>
               <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins">
                 {item.fixed ? "Closed" : "Open"}
               </Text>
@@ -361,7 +383,11 @@ const AppSupport = () => {
         {/* Remark Section */}
         {item.remark && (
           <View className="mt-1">
-            <Text className="text-[#454545] dark:text-[#919191] text-sm  font-poppins">
+            <Text
+              numberOfLines={2}
+              ellipsizeMode="tail"
+              className="text-[#454545] dark:text-[#919191] text-sm font-poppins"
+            >
               Remark by Dev -{" "}
               <Text className="text-black dark:text-white">{item.remark}</Text>
             </Text>

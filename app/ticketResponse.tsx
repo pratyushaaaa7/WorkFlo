@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import { Ionicons } from "@expo/vector-icons";
 import { ArrowLeft01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -157,16 +158,60 @@ export default function TicketDetails() {
       ? String(v[0]) === "true"
       : v === true || String(v) === "true";
 
-  const [isFixed, setIsFixed] = useState<boolean>(parseBool(fixed));
-  const [isPublished, setIsPublished] = useState<boolean>(parseBool(published));
-  const [remark, setRemark] = useState<string>((initialRemark as string) || "");
+  const [isFixed, setIsFixed] = useState<boolean>(false);
+  const [isPublished, setIsPublished] = useState<boolean>(false);
+  const [remark, setRemark] = useState<string>("");
+
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [ticketData, setTicketData] = useState<any>(null);
 
   useEffect(() => {
-    setIsFixed(parseBool(fixed));
-    setIsPublished(parseBool(published));
-    setRemark((initialRemark as string) || "");
-  }, [fixed, published, initialRemark]);
-  const [loading, setLoading] = useState(false);
+    // Always reset stale data from any previous ticket before fetching
+    setTicketData(null);
+    setIsFixed(false);
+    setIsPublished(false);
+    setRemark("");
+
+    const fetchTicketDetails = async () => {
+      if (!id) return;
+      try {
+        setFetching(true);
+        const res = await api.get(`/support/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data.success) {
+          const ticket = res.data.ticket;
+          setTicketData(ticket);
+          setIsFixed(ticket.fixed ?? false);
+          setIsPublished(ticket.published ?? false);
+          setRemark(ticket.remark || "");
+        }
+      } catch (err) {
+        console.error("Error fetching ticket details:", err);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Could not load ticket details.",
+        });
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchTicketDetails();
+  }, [id, token]);
+
+  // Always use freshly fetched data; fall back to route params only while loading
+  const displayData = {
+    ticketId: ticketData?.ticketId ?? ticketId,
+    type: ticketData?.type ?? type,
+    description: ticketData?.description ?? description,
+    imageUrl: ticketData?.imageUrl ?? imageUrl,
+    relatedPage: ticketData?.relatedPage ?? relatedPage,
+    raisedBy: ticketData?.raisedBy?.fullName ?? (raisedBy as string),
+    date: ticketData?.date ?? date,
+  };
 
   const handleUpdate = async () => {
     try {
@@ -219,176 +264,249 @@ export default function TicketDetails() {
         </Text>
       </View>
 
-      <KeyboardAwareScrollView
-        enableOnAndroid
-        extraScrollHeight={Platform.OS === "ios" ? 40 : 60}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 20,
-        }}
-      >
-        {/* Ticket Info Section */}
-        <View className="mt-4">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-[#454545] dark:text-[#919191] font-dmMedium">
-              {type || "Issue"} • Ticket #{ticketId}
-            </Text>
-            <View className="flex-row items-center gap-2">
-              <HugeiconsIcon
-                icon={Calendar03Icon}
-                size={14}
-                strokeWidth={2}
-                color={isDarkMode ? "#A1A1A1" : "#454545"}
-              />
-              <Text className="text-[#454545] dark:text-[#A1A1A1] text-sm font-poppinsMedium">
-                {date ? moment(date as string).format("DD MMM YYYY") : "N/A"}
-              </Text>
-            </View>
-          </View>
-
-          <Text className="text-2xl font-dmBold text-black dark:text-white mb-2">
-            {relatedPage || "Project Space"}
-          </Text>
-
-          <Text className="text-[#454545] dark:text-[#D2D2D2] text-base font-poppins leading-6 mb-4">
-            {description || "No description provided."}
-          </Text>
-
-          <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-6">
-            Raised by -{" "}
-            <Text className="text-black dark:text-white">
-              {raisedBy || "Unknown"}
-            </Text>
-          </Text>
+      {fetching ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#5B4CCC" />
         </View>
-
-        {/* Status Section */}
-        {canManage && (
-          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
-            <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
-              Status
-            </Text>
-
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-base font-dmMedium text-black dark:text-white">
-                Fixed
-              </Text>
-              <CustomToggle value={isFixed} onValueChange={setIsFixed} />
-            </View>
-
-            <View className="flex-row justify-between items-center">
-              <Text className="text-base font-dmMedium text-black dark:text-white">
-                Published
-              </Text>
-              <CustomToggle
-                value={isPublished}
-                onValueChange={setIsPublished}
-              />
-            </View>
-          </View>
-        )}
-
-        {/* Remarks Section */}
-        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-5">
-          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
-            Remarks by Developer
-          </Text>
-          <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-xl p-3 border border-[#E0E5EB] dark:border-[#333]">
-            {canManage ? (
-              <TextInput
-                value={remark}
-                onChangeText={setRemark}
-                placeholder="Add remarks..."
-                placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
-                multiline
-                textAlignVertical="top"
-                className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
-              />
-            ) : (
-              <Text className="text-black dark:text-white text-sm font-poppins min-h-[100px]">
-                {remark || "No remarks added yet."}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Images Section */}
-        <View className="bg-[#F0F3F7] dark:bg-[#1A1A1A] rounded-2xl p-5 mb-6">
-          <Text className="text-lg font-dmSemiBold text-black dark:text-white mb-2">
-            Images
-          </Text>
-          {imageUrl ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-3">
-                {/* Handling multiple images if comma separated, otherwise single */}
-                {typeof imageUrl === "string" && imageUrl.includes(",") ? (
-                  imageUrl.split(",").map((url, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: url.trim() }}
-                      style={{
-                        width: 280,
-                        height: 280,
-                        borderRadius: 16,
-                        marginRight: 12,
-                      }}
-                      resizeMode="cover"
-                    />
-                  ))
-                ) : (
-                  <Image
-                    source={{ uri: imageUrl as string }}
-                    style={{
-                      width: 300,
-                      height: 280,
-                      borderRadius: 16,
-                    }}
-                    resizeMode="contain"
-                  />
-                )}
-              </View>
-            </ScrollView>
-          ) : (
-            <Text className="text-[#8E8E8E] font-dm text-sm">
-              No image attached
-            </Text>
-          )}
-        </View>
-      </KeyboardAwareScrollView>
-
-      {/* Sticky Save Button at the Bottom */}
-      {canManage && (
-        <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
-          <TouchableOpacity
-            onPress={handleUpdate}
-            disabled={loading}
-            activeOpacity={0.8}
+      ) : (
+        <>
+          <KeyboardAwareScrollView
+            enableOnAndroid
+            extraScrollHeight={Platform.OS === "ios" ? 40 : 60}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingBottom: 20,
+            }}
           >
-            <LinearGradient
-              colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 12,
-                paddingVertical: 16,
-                alignItems: "center",
-                justifyContent: "center",
-                shadowColor: "#5B4CCC",
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.3,
-                shadowRadius: 15,
-                elevation: 8,
-              }}
-            >
-              {loading ? (
-                <ActivityIndicator color="white" />
+            {/* Ticket Info Section */}
+            <View className="mt-4">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-[#454545] dark:text-[#919191] font-dmMedium">
+                  {displayData.type || "Issue"} • Ticket #{displayData.ticketId}
+                </Text>
+                <View className="flex-row items-center gap-2">
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={14}
+                    strokeWidth={2}
+                    color={isDarkMode ? "#A1A1A1" : "#454545"}
+                  />
+                  <Text className="text-[#454545] dark:text-[#A1A1A1] text-sm font-poppinsMedium">
+                    {displayData.date
+                      ? moment(displayData.date as string, [
+                          "DD/MM/YYYY",
+                          moment.ISO_8601,
+                        ]).format("DD MMM YYYY")
+                      : "N/A"}
+                  </Text>
+                </View>
+              </View>
+
+              <Text className="text-xl font-dmMedium text-black dark:text-white mb-2">
+                {displayData.relatedPage || "Project Space"}
+              </Text>
+
+              <Text className="text-[#454545] dark:text-[#D2D2D2] text-[14px] font-poppins leading-6 mb-4">
+                {displayData.description || "No description provided."}
+              </Text>
+
+              <Text className="text-[#454545] dark:text-[#919191] text-sm font-poppins mb-6">
+                Raised by -{" "}
+                <Text className="text-black dark:text-white">
+                  {displayData.raisedBy || "Unknown"}
+                </Text>
+              </Text>
+            </View>
+
+            {/* Status Section for Staff */}
+            {canManage && (
+              <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-2xl p-5 mb-5">
+                <Text className="text-lg font-dmMedium text-black dark:text-white mb-2">
+                  Status
+                </Text>
+
+                <View className="flex-row justify-between items-center mb-3">
+                  <Text className="text-base font-dmMedium text-black dark:text-white">
+                    Fixed
+                  </Text>
+                  <CustomToggle value={isFixed} onValueChange={setIsFixed} />
+                </View>
+
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-base font-dmMedium text-black dark:text-white">
+                    Published
+                  </Text>
+                  <CustomToggle
+                    value={isPublished}
+                    onValueChange={setIsPublished}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Status Section for Regular Users */}
+            {!canManage && (
+              <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-2xl p-5 mb-5">
+                <Text className="text-lg font-dmMedium text-black dark:text-white mb-3">
+                  Status
+                </Text>
+
+                {/* Fixed Row */}
+                <View className="flex-row justify-between items-center mb-3.5">
+                  <Text className="text-base font-poppins text-black dark:text-white">
+                    Fixed
+                  </Text>
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 13,
+                      backgroundColor: isFixed ? "#16A34A" : "#EF4444",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name={isFixed ? "checkmark" : "close"}
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </View>
+
+                {/* Published Row */}
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-base font-poppins text-black dark:text-white">
+                    Published
+                  </Text>
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 13,
+                      backgroundColor: isPublished ? "#16A34A" : "#EF4444",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name={isPublished ? "checkmark" : "close"}
+                      size={16}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Remarks Section */}
+            {(canManage || remark.trim().length > 0) && (
+              <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-2xl p-5 mb-5">
+                <Text className="text-lg font-dmMedium text-black dark:text-white mb-2">
+                  Remarks by Developer
+                </Text>
+                <View className="bg-[#FFF] dark:bg-[#1A1A1A] rounded-xl p-3 ">
+                  {canManage ? (
+                    <TextInput
+                      value={remark}
+                      onChangeText={setRemark}
+                      placeholder="Add remarks..."
+                      placeholderTextColor={isDarkMode ? "#606060" : "#9CA3AF"}
+                      multiline
+                      textAlignVertical="top"
+                      className="text-black dark:text-white text-sm font-poppins min-h-[100px]"
+                    />
+                  ) : (
+                    <Text className="text-black dark:text-white text-sm font-poppins min-h-[100px]">
+                      {remark}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Images Section */}
+            <View className="bg-[#F0F3F7] dark:bg-[#0D0D0D] rounded-2xl p-5 mb-6">
+              <Text className="text-lg font-dmMedium text-black dark:text-white mb-2">
+                Images
+              </Text>
+              {displayData.imageUrl ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-3">
+                    {/* Handling multiple images if comma separated, otherwise single */}
+                    {typeof displayData.imageUrl === "string" &&
+                    displayData.imageUrl.includes(",") ? (
+                      displayData.imageUrl.split(",").map((url, index) => (
+                        <Image
+                          key={index}
+                          source={{ uri: url.trim() }}
+                          style={{
+                            width: 280,
+                            height: 280,
+                            borderRadius: 16,
+                            marginRight: 12,
+                          }}
+                          resizeMode="cover"
+                        />
+                      ))
+                    ) : (
+                      <Image
+                        source={{ uri: displayData.imageUrl as string }}
+                        style={{
+                          width: 300,
+                          height: 280,
+                          borderRadius: 16,
+                        }}
+                        resizeMode="contain"
+                      />
+                    )}
+                  </View>
+                </ScrollView>
               ) : (
-                <Text className="text-white text-lg font-dmBold">Submit</Text>
+                <Text className="text-[#8E8E8E] font-dm text-sm">
+                  No image attached
+                </Text>
               )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+            </View>
+          </KeyboardAwareScrollView>
+
+          {/* Sticky Save Button at the Bottom */}
+          {canManage && (
+            <View className="px-5 pb-12 pt-2 bg-[#FBFCFD] dark:bg-black">
+              <TouchableOpacity
+                onPress={handleUpdate}
+                disabled={loading}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    borderRadius: 12,
+                    paddingVertical: 16,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: "#5B4CCC",
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 15,
+                    elevation: 8,
+                  }}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white text-lg font-dmBold">
+                      Submit
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
