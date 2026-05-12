@@ -158,25 +158,28 @@ export default function TicketDetails() {
       ? String(v[0]) === "true"
       : v === true || String(v) === "true";
 
-  const [isFixed, setIsFixed] = useState<boolean>(false);
-  const [isPublished, setIsPublished] = useState<boolean>(false);
-  const [remark, setRemark] = useState<string>("");
+  const [isFixed, setIsFixed] = useState<boolean>(parseBool(fixed));
+  const [isPublished, setIsPublished] = useState<boolean>(parseBool(published));
+  const [remark, setRemark] = useState<string>((initialRemark as string) || "");
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [ticketData, setTicketData] = useState<any>(null);
 
   useEffect(() => {
-    // Always reset stale data from any previous ticket before fetching
-    setTicketData(null);
-    setIsFixed(false);
-    setIsPublished(false);
-    setRemark("");
+    // Sync state with router params whenever id changes
+    setIsFixed(parseBool(fixed));
+    setIsPublished(parseBool(published));
+    setRemark((initialRemark as string) || "");
 
     const fetchTicketDetails = async () => {
       if (!id) return;
       try {
         setFetching(true);
+        // Reset ticket data so we don't show old ticket's specific details (like image)
+        // but we keep the current params-based state for remark/fixed/published
+        setTicketData(null);
+
         const res = await api.get(`/support/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -228,9 +231,7 @@ export default function TicketDetails() {
           text1: "Ticket updated successfully!",
           position: "bottom",
         });
-        setIsFixed(false);
-        setIsPublished(false);
-        setRemark("");
+        // No need to reset state manually, router.back() will handle navigation
         router.back();
       }
     } catch (err) {
