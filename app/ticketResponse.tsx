@@ -190,13 +190,24 @@ export default function TicketDetails() {
           setIsPublished(ticket.published ?? false);
           setRemark(ticket.remark || "");
         }
-      } catch (err) {
-        console.error("Error fetching ticket details:", err);
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Could not load ticket details.",
-        });
+      } catch (err: any) {
+        // If it's a 404, it might be an old backend version that doesn't have this endpoint.
+        // If we already have data from params (displayData), we can suppress the error toast.
+        const is404 = err.response?.status === 404;
+        const hasFallbackData = !!ticketId;
+
+        if (is404 && hasFallbackData) {
+          console.warn(
+            "Ticket detail endpoint not found (404). Falling back to params data.",
+          );
+        } else {
+          console.error("Error fetching ticket details:", err);
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Could not load ticket details.",
+          });
+        }
       } finally {
         setFetching(false);
       }
