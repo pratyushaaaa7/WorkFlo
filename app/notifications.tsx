@@ -323,13 +323,9 @@ const NotificationsScreen = () => {
         ? "bg-[#E6E6E6] dark:bg-[#1A1A1A] border-transparent"
         : "bg-[#F0F3F7] dark:bg-[#1A1A1A] border-[#E0E5EB] dark:border-transparent";
 
-    const iconColor = isSelected
+    const iconColor = isSelected || isDarkMode
       ? "#FFFFFF"
-      : isUnread
-        ? "#566FEC"
-        : isDarkMode
-          ? "#fff"
-          : "#454545";
+      : "#454545";
 
     return (
       <TouchableOpacity
@@ -362,7 +358,7 @@ const NotificationsScreen = () => {
               {item.title}
             </Text>
             {isUnread && (
-              <View className="w-2 h-2 rounded-full bg-[#5B4CCC] ml-1.5 mt-1.5" />
+              <View className="w-2 h-2 rounded-full bg-[#DF5B5B] ml-1.5 mt-1.5" />
             )}
           </View>
           <Text
