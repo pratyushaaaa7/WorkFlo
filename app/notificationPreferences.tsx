@@ -160,6 +160,7 @@ const NotificationPreferencesScreen = () => {
     runningNotes: true,
     ilrAssigned: true,
     supportTicket: true,
+    globalWelcome: true,
     pushEnabled: true,
     readNotificationsCleanupDays: 2,
     unreadNotificationsCleanupDays: 15,
@@ -231,6 +232,7 @@ const NotificationPreferencesScreen = () => {
       runningNotes: true,
       ilrAssigned: true,
       supportTicket: true,
+      globalWelcome: true,
       pushEnabled: true,
       readNotificationsCleanupDays: 2,
       unreadNotificationsCleanupDays: 15,
@@ -250,6 +252,7 @@ const NotificationPreferencesScreen = () => {
       runningNotes: false,
       ilrAssigned: false,
       supportTicket: false,
+      globalWelcome: false,
       pushEnabled: false,
     };
     updatePreferences(offPrefs);
@@ -404,7 +407,7 @@ const NotificationPreferencesScreen = () => {
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
-            size={30}
+            size={24}
             color={isDarkMode ? "#fff" : "#000"}
           />
         </TouchableOpacity>
@@ -494,6 +497,13 @@ const NotificationPreferencesScreen = () => {
             "Get notified when your report is received, updated, or resolved by the support team.",
             !!preferences.supportTicket,
             () => togglePreference("supportTicket"),
+          )}
+          <View className="h-[1px] bg-white dark:bg-black mx-0" />
+          {renderToggleItem(
+            "New team member joins",
+            "Get notified when a new employee joins the company.",
+            !!preferences.globalWelcome,
+            () => togglePreference("globalWelcome"),
           )}
         </View>
 

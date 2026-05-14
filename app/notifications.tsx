@@ -292,7 +292,15 @@ const NotificationsScreen = () => {
       case "NOTES_ASSIGNED":
         return Note03Icon;
       case "ILR_ASSIGNED":
+      case "ILR_PUBLISHED":
         return ProfileIcon;
+      case "GLOBAL_WELCOME":
+        return ProfileIcon;
+      case "SUPPORT_TICKET_RAISED":
+      case "SUPPORT_TICKET_CLOSED":
+        return Note03Icon;
+      case "AGENDA_SUBMITTED":
+        return Calendar03Icon;
       default:
         return Note03Icon;
     }

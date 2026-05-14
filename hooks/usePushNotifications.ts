@@ -57,7 +57,7 @@ export const usePushNotifications = (
                 // console.log("📦 Current Preferences from Server:", JSON.stringify(currentPrefs, null, 2));
 
                 const payload = { 
-                  preferences: { ...currentPrefs, pushEnabled: true }, 
+                  preferences: { ...currentPrefs }, 
                   pushToken 
                 };
                 // console.log("📤 Sending Sync Payload:", JSON.stringify(payload, null, 2));
