@@ -3,7 +3,7 @@ import { ArrowLeft01Icon, Cancel01Icon, Upload01Icon } from "@hugeicons/core-fre
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,15 +28,17 @@ const CreateSupport = () => {
   const { user, token } = useAuth(); // ✅ Get user directly from context
   // console.log(user)
 
+  const { id, type: initialType, description: initialDescription, relatedPage: initialRelatedPage, imageUrl: initialImageUrl, isEdit } = useLocalSearchParams();
+
   // const [user, setUser] = useState("");
   const [date, setDate] = useState("");
-  const [type, setType] = useState("Issue");
+  const [type, setType] = useState((initialType as string) || "Issue");
   const [loading, setLoading] = useState(false); // ✅ ADD THIS
 
-  const [relatedPage, setRelatedPage] = useState("");
-  const [description, setDescription] = useState("");
+  const [relatedPage, setRelatedPage] = useState((initialRelatedPage as string) || "");
+  const [description, setDescription] = useState((initialDescription as string) || "");
   // const [extraNotes, setExtraNotes] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(initialImageUrl ? (initialImageUrl as string).split(",") : []);
 
   const typeOptions = ["Issue", "Suggestion", "Feedback"];
 
@@ -50,6 +52,24 @@ const CreateSupport = () => {
     const today = new Date().toLocaleDateString("en-GB");
     setDate(today);
   }, []);
+
+  useEffect(() => {
+    if (isEdit === "true") {
+      setType((initialType as string) || "Issue");
+      setRelatedPage((initialRelatedPage as string) || "");
+      setDescription((initialDescription as string) || "");
+      if (initialImageUrl) {
+        setImages((initialImageUrl as string).split(","));
+      } else {
+        setImages([]);
+      }
+    } else {
+      setType("Issue");
+      setRelatedPage("");
+      setDescription("");
+      setImages([]);
+    }
+  }, [isEdit, initialType, initialRelatedPage, initialDescription, initialImageUrl]);
 
   const pickImage = async () => {
     if (images.length >= 3) {
@@ -143,7 +163,10 @@ const CreateSupport = () => {
       //   formDataEntries: Array.from((formData as any).entries())
       // });
 
-      const response = await api.post("/support", formData, {
+      const method = isEdit === "true" ? "put" : "post";
+      const url = isEdit === "true" ? `/support/${id}` : "/support";
+
+      const response = await api[method](url, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data", // Ensure content type is set
@@ -156,12 +179,14 @@ const CreateSupport = () => {
       if (response.data.success) {
         Toast.show({
           type: "success",
-          text1: "Response submitted!",
-          text2: "Thank you for your input.",
+          text1: isEdit === "true" ? "Ticket updated!" : "Response submitted!",
+          text2: isEdit === "true" ? "Your ticket has been updated." : "Thank you for your input.",
           position: "bottom",
         });
         resetForm();
-        setTimeout(() => router.push("/appSupport"), 1500);
+        setTimeout(() => {
+          router.navigate("/appSupport");
+        }, 1500);
       } else {
         Toast.show({
           type: "error",
@@ -216,7 +241,7 @@ const CreateSupport = () => {
           />
         </TouchableOpacity>
         <Text className="text-xl font-dmSemiBold text-black dark:text-white">
-          Raise Ticket
+          {isEdit === "true" ? "Edit Ticket" : "Raise Ticket"}
         </Text>
       </View>
 
@@ -429,7 +454,7 @@ const CreateSupport = () => {
                 <ActivityIndicator color="white" />
               ) : (
                 <Text className="text-white text-lg font-poppinsMedium">
-                  Submit
+                  {isEdit === "true" ? "Update" : "Submit"}
                 </Text>
               )}
             </LinearGradient>

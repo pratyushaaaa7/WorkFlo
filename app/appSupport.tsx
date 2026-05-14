@@ -283,6 +283,7 @@ const AppSupport = () => {
               imageUrl: item.imageUrl,
               relatedPage: item.relatedPage,
               raisedBy: item.raisedBy?.fullName,
+              raisedById: item.raisedBy?._id,
               date: item.createdAt,
               fixed: item.fixed,
               published: item.published,

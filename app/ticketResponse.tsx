@@ -1,11 +1,11 @@
 import api from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
-import { ArrowLeft01Icon, Calendar03Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, Calendar03Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import moment from "moment";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -138,7 +138,7 @@ export default function TicketDetails() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const { token, user } = useAuth();
-  const canManage = user?.role === "admin" || user?.role === "developer";
+  
   const {
     id,
     ticketId,
@@ -147,11 +147,17 @@ export default function TicketDetails() {
     imageUrl,
     relatedPage,
     raisedBy,
+    raisedById,
     date,
     fixed,
     published,
     remark: initialRemark,
   } = useLocalSearchParams();
+
+  const [ticketData, setTicketData] = useState<any>(null);
+
+  const isCreator = ticketData?.raisedBy?._id === user?._id || ticketData?.raisedBy?._id === user?.id || raisedById === user?._id || raisedById === user?.id;
+  const canManage = user?.role === "admin" || user?.role === "developer";
 
   const parseBool = (v: any) =>
     Array.isArray(v)
@@ -164,57 +170,59 @@ export default function TicketDetails() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [ticketData, setTicketData] = useState<any>(null);
 
-  useEffect(() => {
-    // Sync state with router params whenever id changes
-    setIsFixed(parseBool(fixed));
-    setIsPublished(parseBool(published));
-    setRemark((initialRemark as string) || "");
 
-    const fetchTicketDetails = async () => {
-      if (!id) return;
-      try {
-        setFetching(true);
-        // Reset ticket data so we don't show old ticket's specific details (like image)
-        // but we keep the current params-based state for remark/fixed/published
-        setTicketData(null);
+  useFocusEffect(
+    useCallback(() => {
+      // Sync state with router params whenever id changes
+      setIsFixed(parseBool(fixed));
+      setIsPublished(parseBool(published));
+      setRemark((initialRemark as string) || "");
 
-        const res = await api.get(`/support/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.data.success) {
-          const ticket = res.data.ticket;
-          setTicketData(ticket);
-          setIsFixed(ticket.fixed ?? false);
-          setIsPublished(ticket.published ?? false);
-          setRemark(ticket.remark || "");
-        }
-      } catch (err: any) {
-        // If it's a 404, it might be an old backend version that doesn't have this endpoint.
-        // If we already have data from params (displayData), we can suppress the error toast.
-        const is404 = err.response?.status === 404;
-        const hasFallbackData = !!ticketId;
+      const fetchTicketDetails = async () => {
+        if (!id) return;
+        try {
+          setFetching(true);
+          // Reset ticket data so we don't show old ticket's specific details (like image)
+          // but we keep the current params-based state for remark/fixed/published
+          // setTicketData(null); // Keep old data while fetching new to prevent flicker
 
-        if (is404 && hasFallbackData) {
-          console.warn(
-            "Ticket detail endpoint not found (404). Falling back to params data.",
-          );
-        } else {
-          console.error("Error fetching ticket details:", err);
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: "Could not load ticket details.",
+          const res = await api.get(`/support/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
           });
-        }
-      } finally {
-        setFetching(false);
-      }
-    };
+          if (res.data.success) {
+            const ticket = res.data.ticket;
+            setTicketData(ticket);
+            setIsFixed(ticket.fixed ?? false);
+            setIsPublished(ticket.published ?? false);
+            setRemark(ticket.remark || "");
+          }
+        } catch (err: any) {
+          // If it's a 404, it might be an old backend version that doesn't have this endpoint.
+          // If we already have data from params (displayData), we can suppress the error toast.
+          const is404 = err.response?.status === 404;
+          const hasFallbackData = !!ticketId;
 
-    fetchTicketDetails();
-  }, [id, token]);
+          if (is404 && hasFallbackData) {
+            console.warn(
+              "Ticket detail endpoint not found (404). Falling back to params data.",
+            );
+          } else {
+            console.error("Error fetching ticket details:", err);
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Could not load ticket details.",
+            });
+          }
+        } finally {
+          setFetching(false);
+        }
+      };
+
+      fetchTicketDetails();
+    }, [id, token])
+  );
 
   // Always use freshly fetched data; fall back to route params only while loading
   const displayData = {
@@ -262,18 +270,42 @@ export default function TicketDetails() {
     <View className="flex-1 bg-[#FBFCFD] dark:bg-black">
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
 
-      {/* 🔹 HEADER */}
-      <View className="flex-row items-center px-4 pb-6 pt-16 bg-[#FBFCFD] dark:bg-black">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <HugeiconsIcon
-            icon={ArrowLeft01Icon}
-            size={24}
-            color={isDarkMode ? "#FFF" : "#000"}
-          />
-        </TouchableOpacity>
-        <Text className="text-xl font-dmBold text-black dark:text-white">
-          Ticket Details
-        </Text>
+      <View className="flex-row items-center justify-between px-4 pb-6 pt-16 bg-[#FBFCFD] dark:bg-black">
+        <View className="flex-row items-center flex-1">
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={24}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+          <Text className="text-xl font-dmBold text-black dark:text-white">
+            Ticket Details
+          </Text>
+        </View>
+        {isCreator && (
+          <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/appSupportForm",
+                params: {
+                  id,
+                  type: displayData.type,
+                  description: displayData.description,
+                  relatedPage: displayData.relatedPage,
+                  imageUrl: displayData.imageUrl,
+                  isEdit: "true",
+                },
+              });
+            }}
+          >
+            <HugeiconsIcon
+              icon={PencilEdit02Icon}
+              size={22}
+              color={isDarkMode ? "#FFF" : "#000"}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {fetching ? (
