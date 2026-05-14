@@ -212,7 +212,10 @@ const NotificationPreferencesScreen = () => {
   ) => {
     const min = 1;
     const max = key === "readNotificationsCleanupDays" ? 7 : 30;
-    const newValue = Math.min(max, Math.max(min, (preferences[key] || 0) + inc));
+    const newValue = Math.min(
+      max,
+      Math.max(min, (preferences[key] || 0) + inc),
+    );
     const newPrefs = { ...preferences, [key]: newValue };
     updatePreferences(newPrefs);
   };
@@ -342,21 +345,31 @@ const NotificationPreferencesScreen = () => {
     description: string,
     buttonLabel: string,
     onPress: () => void,
+    icon: any,
   ) => (
     <View className="flex-row items-center justify-between p-5">
-      <View className="flex-1 mr-4">
-        <Text
-          style={{ lineHeight: 16.8, letterSpacing: -0.028 }}
-          className="text-[14px] font-dmSemiBold text-[#111827] dark:text-white mb-1"
-        >
-          {label}
-        </Text>
-        <Text
-          style={{ lineHeight: 18, letterSpacing: -0.024 }}
-          className="text-[12px] font-poppinsMedium text-[#4B5563] dark:text-[#919191]"
-        >
-          {description}
-        </Text>
+      <View className="flex-row items-center flex-1 mr-4">
+        <View className="flex-1 justify-center">
+          <View className="flex-row items-center mb-1">
+            <HugeiconsIcon
+              icon={icon}
+              size={16}
+              color={isDarkMode ? "#fff" : "#111827"}
+            />
+            <Text
+              style={{ lineHeight: 16.8, letterSpacing: -0.028 }}
+              className="text-[14px] font-dmSemiBold text-[#111827] dark:text-white ml-2"
+            >
+              {label}
+            </Text>
+          </View>
+          <Text
+            style={{ lineHeight: 18, letterSpacing: -0.024 }}
+            className="text-[12px] font-poppinsMedium text-[#4B5563] dark:text-[#919191]"
+          >
+            {description}
+          </Text>
+        </View>
       </View>
       <TouchableOpacity
         onPress={onPress}
@@ -508,7 +521,8 @@ const NotificationPreferencesScreen = () => {
             style={{ color: isDarkMode ? "#FFC366" : "#9E6000" }}
             className="text-[11px] font-poppins"
           >
-            Note 2 → Unread messages delete after 15 days by default (Max 30 days)
+            Note 2 → Unread messages delete after 15 days by default (Max 30
+            days)
           </Text>
         </View>
 
@@ -542,6 +556,7 @@ const NotificationPreferencesScreen = () => {
             "Undo all changes and restore original settings.",
             "Reset",
             resetToDefault,
+            Refresh04Icon,
           )}
           <View className="h-[1px] bg-white dark:bg-black mx-0" />
           {renderActionItem(
@@ -549,6 +564,7 @@ const NotificationPreferencesScreen = () => {
             "Stop all mobile push notifications at once.",
             "Turn off",
             turnOffAll,
+            NotificationOff01Icon,
           )}
         </View>
 
