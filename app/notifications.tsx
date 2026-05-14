@@ -16,7 +16,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
-import { AnimatePresence, MotiView } from "moti";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -35,7 +34,6 @@ import {
   View
 } from "react-native";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import NotificationSettingsModal from "../components/NotificationSettingsModal";
 import { useAuth } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -68,7 +66,6 @@ const NotificationsScreen = () => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
 
   const router = useRouter();
   const { token } = useAuth();
@@ -96,8 +93,12 @@ const NotificationsScreen = () => {
       );
 
       const { notifications: newItems, nextCursor } = response.data;
+      console.log("[DEBUG] Notifications Fetched:", {
+        count: newItems?.length,
+        isNewItemsArray: Array.isArray(newItems),
+      });
 
-      setNotifications((prev) => (isReset ? newItems : [...prev, ...newItems]));
+      setNotifications((prev) => (isReset ? (newItems || []) : [...(prev || []), ...(newItems || [])]));
       setCursor(nextCursor);
       setHasMore(!!nextCursor);
     } catch (error) {
@@ -112,13 +113,6 @@ const NotificationsScreen = () => {
   useEffect(() => {
     if (token) fetchNotifications(true);
   }, [token]);
-
-  // Remove automatic badge clearing on mount to let it reflect system drawer
-  // useEffect(() => {
-  //   if (Platform.OS !== "web") {
-  //     Notifications.setBadgeCountAsync(0);
-  //   }
-  // }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -175,7 +169,7 @@ const NotificationsScreen = () => {
           },
         );
         setNotifications((prev) =>
-          prev.map((n) => (n._id === item._id ? { ...n, isRead: true } : n)),
+          (prev || []).map((n) => (n._id === item._id ? { ...n, isRead: true } : n)),
         );
         dismissMatchingNotification(item);
       } catch (error) {
@@ -234,7 +228,7 @@ const NotificationsScreen = () => {
         await dismissMatchingNotification(n);
       }
 
-      setNotifications((prev) => prev.filter((n) => !selectedIds.has(n._id)));
+      setNotifications((prev) => (prev || []).filter((n) => !selectedIds.has(n._id)));
       setSelectionMode(false);
       setSelectedIds(new Set());
       setIsDeleteModalVisible(false);
@@ -251,7 +245,7 @@ const NotificationsScreen = () => {
       const endpoint = markAsRead ? "read" : "unread";
 
       await Promise.all(
-        idsArray.map((id) =>
+        (idsArray || [])?.map((id) =>
           api.patch(
             `/notifications/${id}/${endpoint}`,
             {},
@@ -270,7 +264,7 @@ const NotificationsScreen = () => {
       }
 
       setNotifications((prev) =>
-        prev.map((n) =>
+        (prev || []).map((n) =>
           selectedIds.has(n._id) ? { ...n, isRead: markAsRead } : n,
         ),
       );
@@ -340,33 +334,15 @@ const NotificationsScreen = () => {
         <View
           className={`w-11 h-11 rounded-[8px] border justify-center items-center mr-3.5 ${iconBgClass}`}
         >
-          <AnimatePresence exitBeforeEnter>
-            {isSelected ? (
-              <MotiView
-                key="selected"
-                from={{ rotateY: "-90deg" }}
-                animate={{ rotateY: "0deg" }}
-                exit={{ rotateY: "90deg" }}
-                transition={{ type: "timing", duration: 200 }}
-              >
-                <HugeiconsIcon icon={Tick02Icon} size={24} color="white" />
-              </MotiView>
-            ) : (
-              <MotiView
-                key="unselected"
-                from={{ rotateY: "90deg" }}
-                animate={{ rotateY: "0deg" }}
-                exit={{ rotateY: "-90deg" }}
-                transition={{ type: "timing", duration: 200 }}
-              >
-                <HugeiconsIcon
-                  icon={IconComponent}
-                  size={24}
-                  color={iconColor}
-                />
-              </MotiView>
-            )}
-          </AnimatePresence>
+          {isSelected ? (
+            <HugeiconsIcon icon={Tick02Icon} size={24} color="white" />
+          ) : (
+            <HugeiconsIcon
+              icon={IconComponent}
+              size={24}
+              color={iconColor}
+            />
+          )}
         </View>
 
         <View className="flex-1 ">
@@ -391,7 +367,6 @@ const NotificationsScreen = () => {
             {dayjs(item.createdAt).fromNow()}
           </Text>
         </View>
-
       </TouchableOpacity>
     );
   };
@@ -494,7 +469,7 @@ const NotificationsScreen = () => {
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setIsSettingsModalVisible(true)}
+                onPress={() => router.push("/notificationPreferences")}
                 className="p-1"
               >
                 <HugeiconsIcon
@@ -509,8 +484,8 @@ const NotificationsScreen = () => {
       </View>
 
       <FlatList
-        data={notifications}
-        keyExtractor={(item) => item._id}
+        data={Array.isArray(notifications) ? notifications : []}
+        keyExtractor={(item) => (item?._id ? item._id : Math.random().toString())}
         renderItem={renderItem}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
@@ -539,11 +514,6 @@ const NotificationsScreen = () => {
         loading={deleteLoading}
         title="Delete Notifications"
         message={`Are you sure you want to delete ${selectedIds.size} notification(s)?\nThis action is final`}
-      />
-
-      <NotificationSettingsModal
-        isVisible={isSettingsModalVisible}
-        onClose={() => setIsSettingsModalVisible(false)}
       />
     </View>
   );
