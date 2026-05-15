@@ -64,25 +64,34 @@ const Dashboard = () => {
     format(new Date(), "yyyy-MM-dd"),
   );
 
-  const [tabs, setTabs] = useState(["Overview", "Projects", "Tasks", "Calendar", "Notes"]);
+  const DEFAULT_DASHBOARD_TABS = ["Overview", "Projects", "Tasks", "Calendar", "Notes"];
+  const [tabs, setTabs] = useState(DEFAULT_DASHBOARD_TABS);
 
   const loadTabOrder = async () => {
     try {
       const savedTabs = await AsyncStorage.getItem("custom_tabs_order");
-      console.log("[Dashboard] Loaded savedTabs:", savedTabs);
+      //  console.log("[Dashboard] Loaded savedTabs:", savedTabs);
       if (savedTabs) {
         const parsed = JSON.parse(savedTabs);
-        console.log("[Dashboard] Parsed tabs:", parsed);
+            // console.log("[Dashboard] Parsed tabs:", parsed);
         if (parsed && Array.isArray(parsed.dashboard)) {
           const orderedTabs = parsed.dashboard.map((t: any) => t.label).filter(Boolean);
-          console.log("[Dashboard] Setting tabs state to:", orderedTabs);
-          setTabs(orderedTabs);
-          
-          // Ensure activeTab is still in the list, otherwise reset to first
-          if (!orderedTabs.includes(activeTab)) {
-            setActiveTabState(orderedTabs[0]);
+          //  console.log("[Dashboard] Setting tabs state to:", orderedTabs);
+          if (orderedTabs.length > 0) {
+            setTabs(orderedTabs);
+            setActiveTabState((current) => {
+              if (!orderedTabs.includes(current)) return orderedTabs[0];
+              return current;
+            });
           }
         }
+      } else {
+        // Key removed (Reset to default) — restore original order
+        setTabs(DEFAULT_DASHBOARD_TABS);
+        setActiveTabState((current) => {
+          if (!DEFAULT_DASHBOARD_TABS.includes(current)) return DEFAULT_DASHBOARD_TABS[0];
+          return current;
+        });
       }
     } catch (error) {
       console.error("[Dashboard] Error loading tab order:", error);
@@ -163,7 +172,7 @@ const Dashboard = () => {
       return () => {
         backHandler.remove();
       };
-    }, [token, activeTab]),
+    }, [token]), // Removed activeTab dependency so it doesn't trigger on tab change
   );
 
   const onRefresh = () => {

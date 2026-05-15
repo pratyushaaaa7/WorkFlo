@@ -295,16 +295,21 @@ const ProjectsTab = ({
   const loadTabOrder = useCallback(async () => {
     try {
       const raw = await AsyncStorage.getItem("custom_tabs_order");
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.project)) {
-        const ordered = parsed.project
-          .map((t: any) => PROJECT_TAB_MAP[t.id])
-          .filter(Boolean) as string[];
-        if (ordered.length > 0) {
-          setSubTabs(ordered);
-          setActiveSubTab(ordered[0]);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.project)) {
+          const ordered = parsed.project
+            .map((t: any) => PROJECT_TAB_MAP[t.id])
+            .filter(Boolean) as string[];
+          if (ordered.length > 0) {
+            setSubTabs(ordered);
+            setActiveSubTab(ordered[0]);
+          }
         }
+      } else {
+        // Key removed (Reset to default) — restore original order
+        setSubTabs(DEFAULT_SUB_TABS);
+        setActiveSubTab(DEFAULT_SUB_TABS[0]);
       }
     } catch (e) {
       console.error("[ProjectsTab] loadTabOrder error:", e);
