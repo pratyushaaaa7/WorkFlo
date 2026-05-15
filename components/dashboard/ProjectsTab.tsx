@@ -303,13 +303,19 @@ const ProjectsTab = ({
             .filter(Boolean) as string[];
           if (ordered.length > 0) {
             setSubTabs(ordered);
-            setActiveSubTab(ordered[0]);
+            setActiveSubTab((current) => {
+              if (!ordered.includes(current)) return ordered[0];
+              return current;
+            });
           }
         }
       } else {
         // Key removed (Reset to default) — restore original order
         setSubTabs(DEFAULT_SUB_TABS);
-        setActiveSubTab(DEFAULT_SUB_TABS[0]);
+        setActiveSubTab((current) => {
+          if (!DEFAULT_SUB_TABS.includes(current)) return DEFAULT_SUB_TABS[0];
+          return current;
+        });
       }
     } catch (e) {
       console.error("[ProjectsTab] loadTabOrder error:", e);
