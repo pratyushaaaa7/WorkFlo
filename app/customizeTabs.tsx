@@ -4,6 +4,7 @@ import {
   SquareLock01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import ResetConfirmationModal from "../components/ResetConfirmationModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -189,6 +190,7 @@ const CustomizeTabs = () => {
   const isDarkMode = colorScheme === "dark";
 
   const [tabs, setTabs] = useState<TabSections>(DEFAULT_TABS);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
 
   useEffect(() => {
     loadTabs();
@@ -234,7 +236,12 @@ const CustomizeTabs = () => {
     saveTabs(updated);
   };
 
-  const handleReset = async () => {
+  const handleReset = () => {
+    setResetModalVisible(true);
+  };
+
+  const confirmReset = async () => {
+    setResetModalVisible(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setTabs(DEFAULT_TABS);
     await AsyncStorage.removeItem("custom_tabs_order");
@@ -304,6 +311,12 @@ const CustomizeTabs = () => {
             onReorder={(items) => updateSection("task", items)}
           />
         </NestableScrollContainer>
+
+        <ResetConfirmationModal
+          isVisible={resetModalVisible}
+          onClose={() => setResetModalVisible(false)}
+          onConfirm={confirmReset}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
