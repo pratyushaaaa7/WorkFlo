@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Delete03Icon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   BackHandler,
   Keyboard,
@@ -13,7 +13,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Toast from "react-native-toast-message";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import { useAuth } from "../context/AuthContext";
@@ -34,11 +34,15 @@ const CreateNote = () => {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(!noteId);
   const [loading, setLoading] = useState(false);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
+
+  const titleInputRef = useRef<TextInput>(null);
+  const contentInputRef = useRef<TextInput>(null);
 
   const hasChanges =
     title.trim() !== initialTitle.trim() ||
@@ -146,6 +150,12 @@ const CreateNote = () => {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
+
+      // Ensure keyboard is dismissed on landing (especially for existing notes)
+      const dismissTimeout = setTimeout(() => {
+        if (isMounted) Keyboard.dismiss();
+      }, 100);
+
       const fetchFullNote = async () => {
         if (!noteId || !token) return;
         try {
@@ -177,6 +187,7 @@ const CreateNote = () => {
 
       return () => {
         isMounted = false;
+        clearTimeout(dismissTimeout);
       };
     }, [noteId, token, initialTitle, initialContent]),
   );
@@ -188,14 +199,20 @@ const CreateNote = () => {
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      () => setKeyboardVisible(false),
+      () => {
+        setKeyboardVisible(false);
+        // If we were editing an existing note, return to viewing mode on dismiss
+        if (noteId) {
+          setIsEditing(false);
+        }
+      },
     );
 
     return () => {
       keyboardDidHideListener.remove();
       keyboardDidShowListener.remove();
     };
-  }, []);
+  }, [noteId]);
 
   const handleDeleteConfirm = async () => {
     try {
@@ -250,7 +267,7 @@ const CreateNote = () => {
         </View>
 
         <View className="flex-row items-center gap-3">
-          {isKeyboardVisible && (
+          {/* {isKeyboardVisible && (
             <TouchableOpacity
               onPress={() => Keyboard.dismiss()}
               activeOpacity={0.7}
@@ -260,7 +277,7 @@ const CreateNote = () => {
                 Done
               </Text>
             </TouchableOpacity>
-          )}
+          )} */}
 
           <View className="flex-row items-center gap-4">
             {noteId ? (
@@ -299,39 +316,72 @@ const CreateNote = () => {
       </View>
 
       <KeyboardAwareScrollView
-        className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-        enableOnAndroid={true}
-        extraScrollHeight={Platform.OS === "ios" ? 100 : 80}
-        keyboardShouldPersistTaps="handled"
+        bottomOffset={100}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 px-4 pt-4">
-          <TextInput
-            placeholder="Page Title"
-            placeholderTextColor="#BDBDBD"
-            value={title}
-            onChangeText={setTitle}
-            className="text-black dark:text-white text-3xl font-poppinsMedium "
-            multiline
-            style={{
-              textAlignVertical: "top",
-              minHeight: 50,
-              paddingTop: Platform.OS === "android" ? 0 : 0,
-            }}
-          />
+          {isEditing ? (
+            <TextInput
+              ref={titleInputRef}
+              placeholder="Page Title"
+              placeholderTextColor="#BDBDBD"
+              value={title}
+              onChangeText={setTitle}
+              className="text-black dark:text-white text-3xl font-poppinsMedium "
+              multiline
+              autoFocus={false}
+              style={{
+                textAlignVertical: "top",
+                minHeight: 50,
+                paddingTop: Platform.OS === "android" ? 0 : 0,
+              }}
+            />
+          ) : (
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                setIsEditing(true);
+                setTimeout(() => titleInputRef.current?.focus(), 100);
+              }}
+            >
+              <Text className="text-black dark:text-white text-3xl font-poppinsMedium min-h-[50px]">
+                {title || "Page Title"}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <View className="h-[1px] bg-[#E0E5EB] dark:bg-[#262626] mb-2" />
 
-          <TextInput
-            value={content}
-            onChangeText={setContent}
-            className="text-black dark:text-white text-lg font-poppins flex-1 min-h-[400px]"
-            multiline
-            textAlignVertical="top"
-            style={{ lineHeight: 30 }}
-            autoFocus={false}
-          />
+          {isEditing ? (
+            <TextInput
+              ref={contentInputRef}
+              value={content}
+              onChangeText={setContent}
+              className="text-black dark:text-white text-lg font-poppins flex-1 min-h-[400px]"
+              multiline
+              textAlignVertical="top"
+              style={{ lineHeight: 30 }}
+              autoFocus={false}
+            />
+          ) : (
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                setIsEditing(true);
+                setTimeout(() => contentInputRef.current?.focus(), 100);
+              }}
+              className="flex-1"
+            >
+              <Text
+                className="text-black dark:text-white text-lg font-poppins min-h-[400px]"
+                style={{ lineHeight: 30 }}
+              >
+                {content || "Tap to add content..."}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAwareScrollView>
 

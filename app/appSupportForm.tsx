@@ -245,7 +245,7 @@ const CreateSupport = () => {
       </View>
 
       <KeyboardAwareScrollView
-        bottomOffset={100}
+        bottomOffset={150}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
