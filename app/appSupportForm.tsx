@@ -1,23 +1,22 @@
 import api from "@/lib/api";
 import { ArrowLeft01Icon, Cancel01Icon, Upload01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  useColorScheme,
+  useColorScheme
 } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
-import { Image as ExpoImage } from "expo-image";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/AuthContext";
 
@@ -246,7 +245,7 @@ const CreateSupport = () => {
       </View>
 
       <KeyboardAwareScrollView
-        bottomOffset={60}
+        bottomOffset={100}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
@@ -348,30 +347,26 @@ const CreateSupport = () => {
 
           {/* 🔹 IMAGES CARD */}
           <View
-            className={`rounded-2xl p-4 gap-3 ${
-              isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
-            }`}
+            className={`rounded-2xl p-4 gap-3 ${isDarkMode ? "bg-black" : "bg-[#F0F3F7]"
+              }`}
           >
             <Text
-              className={`font-poppinsMedium text-base ${
-                isDarkMode ? "text-white" : "text-gray-800"
-              }`}
+              className={`font-poppinsMedium text-base ${isDarkMode ? "text-white" : "text-gray-800"
+                }`}
             >
               Images
             </Text>
 
             <View
-              className={`rounded-2xl p-5 items-center justify-center ${
-                isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
-              }`}
+              className={`rounded-2xl p-5 items-center justify-center ${isDarkMode ? "bg-[#1A1A1A]" : "bg-white"
+                }`}
               style={{ minHeight: 100 }}
             >
               <TouchableOpacity
                 onPress={pickImage}
                 disabled={images.length >= 3}
-                className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${
-                  isDarkMode ? "bg-black" : "bg-black"
-                } ${images.length >= 3 ? 'opacity-50' : ''}`}
+                className={`rounded-xl px-8 py-3 flex-row items-center mb-3 ${isDarkMode ? "bg-black" : "bg-black"
+                  } ${images.length >= 3 ? 'opacity-50' : ''}`}
                 activeOpacity={0.8}
               >
                 <HugeiconsIcon
@@ -384,9 +379,8 @@ const CreateSupport = () => {
                 </Text>
               </TouchableOpacity>
               <Text
-                className={`font-poppins text-base ${
-                  isDarkMode ? "text-[#919191]" : "text-[#454545]"
-                }`}
+                className={`font-poppins text-base ${isDarkMode ? "text-[#919191]" : "text-[#454545]"
+                  }`}
               >
                 {images.length >= 3 ? "Limit Reached" : "You can add upto 3 images"}
               </Text>
