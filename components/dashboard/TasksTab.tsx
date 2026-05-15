@@ -5,10 +5,11 @@ import {
   Progress03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format, isValid, startOfDay } from "date-fns";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { MotiView } from "moti";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -258,11 +259,59 @@ const TasksTab = ({
   groupedTasks,
   searchQuery = "",
 }: TasksTabProps) => {
-  const [activeSubTab, setActiveSubTab] = useState("MOM Tasks");
   const isDarkMode = useColorScheme() === "dark";
-  const subTabs = ["MOM Tasks", "Running Notes", "ILR Tasks"];
   const flatListRef = React.useRef<FlatList>(null);
   const scrollX = React.useRef(new Animated.Value(0)).current;
+
+  // ID → display label for task subtabs
+  const TASK_TAB_MAP: Record<string, string> = {
+    ilr: "ILR Tasks",
+    mom: "MOM Tasks",
+    running_notes: "Running Notes",
+  };
+  const DEFAULT_SUB_TABS = ["MOM Tasks", "Running Notes", "ILR Tasks"];
+  const [subTabs, setSubTabs] = useState<string[]>(DEFAULT_SUB_TABS);
+  const [activeSubTab, setActiveSubTab] = useState(DEFAULT_SUB_TABS[0]);
+
+  const loadTabOrder = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem("custom_tabs_order");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.task)) {
+          const ordered = parsed.task
+            .map((t: any) => TASK_TAB_MAP[t.id])
+            .filter(Boolean) as string[];
+          if (ordered.length > 0) {
+            setSubTabs(ordered);
+            setActiveSubTab((current) => {
+              if (!ordered.includes(current)) return ordered[0];
+              return current;
+            });
+          }
+        }
+      } else {
+        // Key removed (Reset to default) — restore original order
+        setSubTabs(DEFAULT_SUB_TABS);
+        setActiveSubTab((current) => {
+          if (!DEFAULT_SUB_TABS.includes(current)) return DEFAULT_SUB_TABS[0];
+          return current;
+        });
+      }
+    } catch (e) {
+      console.error("[TasksTab] loadTabOrder error:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTabOrder();
+  }, [loadTabOrder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTabOrder();
+    }, [loadTabOrder]),
+  );
 
   const getTransformedData = (subTab: string) => {
     // Map Sub-Tab names to Backend Types

@@ -6,15 +6,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   BackHandler,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import { useAuth } from "../context/AuthContext";
@@ -40,71 +39,6 @@ const CreateNote = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const colorScheme = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#D2D2D2" : "#1A1A1A";
-
-  // Strict state initialization on focus
-  useFocusEffect(
-    useCallback(() => {
-      const fetchFullNote = async () => {
-        if (!noteId || !token) return;
-        try {
-          setLoading(true);
-          const res = await api.get(`/personal-notes/${noteId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setTitle(res.data.title || "");
-          setContent(res.data.content || "");
-        } catch (error) {
-          console.error("Error fetching full note:", error);
-          // Fallback to params if fetch fails
-          setTitle(initialTitle);
-          setContent(initialContent);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      if (noteId) {
-        fetchFullNote();
-      } else {
-        setTitle(initialTitle);
-        setContent(initialContent);
-      }
-
-      const backAction = () => {
-        if (hasChanges) {
-          handleSave();
-        } else {
-          router.back();
-        }
-        return true;
-      };
-
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        backAction,
-      );
-
-      return () => {
-        backHandler.remove();
-      };
-    }, [noteId, token, initialTitle, initialContent, hasChanges]),
-  );
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => setKeyboardVisible(true),
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => setKeyboardVisible(false),
-    );
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
 
   const hasChanges =
     title.trim() !== initialTitle.trim() ||
@@ -133,7 +67,6 @@ const CreateNote = () => {
         );
       } else {
         // Create
-
         await api.post(
           "/personal-notes",
           {
@@ -172,13 +105,97 @@ const CreateNote = () => {
     }
   };
 
-  const handleDeleteOrCancel = () => {
-    if (noteId) {
-      setDeleteModalVisible(true);
+  const handleBackPress = () => {
+    if (hasChanges) {
+      handleSave();
     } else {
       router.back();
     }
   };
+
+  const hasChangesRef = React.useRef(hasChanges);
+  hasChangesRef.current = hasChanges;
+
+  const handleSaveRef = React.useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  // Handle Android hardware back press without re-triggering on every keystroke
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => {
+        if (hasChangesRef.current) {
+          handleSaveRef.current();
+        } else {
+          router.back();
+        }
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction,
+      );
+
+      return () => {
+        backHandler.remove();
+      };
+    }, []),
+  );
+
+  // Strict state initialization on focus
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      const fetchFullNote = async () => {
+        if (!noteId || !token) return;
+        try {
+          setLoading(true);
+          const res = await api.get(`/personal-notes/${noteId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (isMounted) {
+            setTitle(res.data.title || "");
+            setContent(res.data.content || "");
+          }
+        } catch (error) {
+          console.error("Error fetching full note:", error);
+          if (isMounted) {
+            setTitle(initialTitle);
+            setContent(initialContent);
+          }
+        } finally {
+          if (isMounted) setLoading(false);
+        }
+      };
+
+      if (noteId) {
+        fetchFullNote();
+      } else {
+        setTitle(initialTitle);
+        setContent(initialContent);
+      }
+
+      return () => {
+        isMounted = false;
+      };
+    }, [noteId, token, initialTitle, initialContent]),
+  );
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true),
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setKeyboardVisible(false),
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const handleDeleteConfirm = async () => {
     try {
@@ -212,39 +229,38 @@ const CreateNote = () => {
     }
   };
 
-  const handleBackPress = () => {
-    if (hasChanges) {
-      handleSave();
-    } else {
-      router.back();
-    }
-  };
-
-  const showTick = isKeyboardVisible || hasChanges;
-
   return (
     <View className="flex-1 bg-white dark:bg-black">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
-        {/* Header */}
-        <View className="px-4 pt-14 flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1">
-            <TouchableOpacity
-              onPress={handleBackPress}
-              className="w-10 h-10 items-center justify-center rounded-full"
-            >
-              <Ionicons name="chevron-back" size={24} color={iconColor} />
-            </TouchableOpacity>
+      {/* Header */}
+      <View className="px-4 pt-14 pb-2 flex-row items-center justify-between">
+        <View className="flex-row items-center flex-1">
+          <TouchableOpacity
+            onPress={handleBackPress}
+            className="w-10 h-10 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={24} color={iconColor} />
+          </TouchableOpacity>
 
-            <Text
-              numberOfLines={1}
-              className="text-black dark:text-white text-lg font-poppinsMedium flex-1 mr-4"
+          <Text
+            numberOfLines={1}
+            className="text-black dark:text-white text-lg font-poppinsMedium flex-1 mr-4"
+          >
+            {title || "Untitled Page"}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center gap-3">
+          {isKeyboardVisible && (
+            <TouchableOpacity
+              onPress={() => Keyboard.dismiss()}
+              activeOpacity={0.7}
+              className="px-4 py-1.5 bg-[#F5F7FA] dark:bg-[#1A1A1A] rounded-full border border-[#E0E5EB] dark:border-[#262626]"
             >
-              {title || "Untitled Page"}
-            </Text>
-          </View>
+              <Text className="text-black dark:text-white font-poppinsMedium text-xs">
+                Done
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <View className="flex-row items-center gap-4">
             {noteId ? (
@@ -280,14 +296,17 @@ const CreateNote = () => {
             )}
           </View>
         </View>
+      </View>
 
-        {/* Editor Area */}
-        <ScrollView
-          className="flex-1 dark:bg-black bg-white px-4"
-          keyboardDismissMode="interactive"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: 30 }}
-        >
+      <KeyboardAwareScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
+        enableOnAndroid={true}
+        extraScrollHeight={Platform.OS === "ios" ? 100 : 80}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-1 px-4 pt-4">
           <TextInput
             placeholder="Page Title"
             placeholderTextColor="#BDBDBD"
@@ -311,18 +330,19 @@ const CreateNote = () => {
             multiline
             textAlignVertical="top"
             style={{ lineHeight: 30 }}
-            autoFocus={true}
+            autoFocus={false}
           />
-        </ScrollView>
-        <DeleteConfirmationModal
-          isVisible={isDeleteModalVisible}
-          onClose={() => setDeleteModalVisible(false)}
-          onConfirm={handleDeleteConfirm}
-          title="Delete Note"
-          message="Are you sure you want to delete this note? This action cannot be undone."
-          loading={isDeleting}
-        />
-      </KeyboardAvoidingView>
+        </View>
+      </KeyboardAwareScrollView>
+
+      <DeleteConfirmationModal
+        isVisible={isDeleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        loading={isDeleting}
+      />
     </View>
   );
 };
