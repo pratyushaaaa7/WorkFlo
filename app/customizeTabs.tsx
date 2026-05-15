@@ -10,14 +10,15 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
-  ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
-import DraggableFlatList, {
+import {
+  NestableDraggableFlatList,
+  NestableScrollContainer,
   RenderItemParams,
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
@@ -62,7 +63,7 @@ const DEFAULT_TABS: TabSections = {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// Single draggable row
+// Single row — no ScaleDecorator here; it lives in renderItem only
 // ─────────────────────────────────────────────────────────────────
 interface RowProps {
   item: TabItem;
@@ -71,52 +72,48 @@ interface RowProps {
   isDarkMode: boolean;
 }
 
-const DraggableRow = ({ item, drag, isActive, isDarkMode }: RowProps) => {
-  return (
-    <ScaleDecorator activeScale={1.04}>
-      <TouchableOpacity
-        onLongPress={() => {
-          if (!item.locked) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            drag();
-          }
-        }}
-        delayLongPress={180}
-        activeOpacity={item.locked ? 1 : 0.85}
-        className={`flex-row items-center justify-between px-5 py-[18px] border-b ${
-          isDarkMode
-            ? isActive
-              ? "bg-[#2A2A2A] border-b-[#2A2A2A]"
-              : "bg-[#1A1A1A] border-b-[#000]"
-            : isActive
-              ? "bg-[#EEF2FF] border-b-[#F0F2F5]"
-              : "bg-[#F0F3F7] border-b-[#FBFCFD]"
-        }`}
-      >
-        <Text
-          className={`text-base ${isDarkMode ? "text-white" : "text-[#000]"}`}
-          style={{ fontFamily: "DMSans_500Medium" }}
-        >
-          {item.label}
-        </Text>
+const DraggableRow = ({ item, drag, isActive, isDarkMode }: RowProps) => (
+  <TouchableOpacity
+    onLongPress={() => {
+      if (!item.locked) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        drag();
+      }
+    }}
+    delayLongPress={180}
+    activeOpacity={item.locked ? 1 : 0.85}
+    className={`flex-row items-center justify-between px-5 py-[18px] border-b ${
+      isDarkMode
+        ? isActive
+          ? "bg-[#2A2A2A] border-b-[#2A2A2A]"
+          : "bg-[#1A1A1A] border-b-[#000]"
+        : isActive
+          ? "bg-[#EEF2FF] border-b-[#F0F2F5]"
+          : "bg-[#F0F3F7] border-b-[#FBFCFD]"
+    }`}
+  >
+    <Text
+      className={`text-base ${isDarkMode ? "text-white" : "text-[#000]"}`}
+      style={{ fontFamily: "DMSans_500Medium" }}
+    >
+      {item.label}
+    </Text>
 
-        {item.locked ? (
-          <HugeiconsIcon icon={SquareLock01Icon} size={24} color="#DF5B5B" />
-        ) : (
-          <HugeiconsIcon
-            icon={DragDropVerticalIcon}
-            strokeWidth={3}
-            size={24}
-            color={isActive ? "#6C63FF" : isDarkMode ? "#D2D2D2" : "#454545"}
-          />
-        )}
-      </TouchableOpacity>
-    </ScaleDecorator>
-  );
-};
+    {item.locked ? (
+      <HugeiconsIcon icon={SquareLock01Icon} size={24} color="#DF5B5B" />
+    ) : (
+      <HugeiconsIcon
+        icon={DragDropVerticalIcon}
+        strokeWidth={3}
+        size={24}
+        color={isActive ? "#6C63FF" : isDarkMode ? "#D2D2D2" : "#454545"}
+      />
+    )}
+  </TouchableOpacity>
+);
 
 // ─────────────────────────────────────────────────────────────────
-// Section wrapper with DraggableFlatList
+// Section wrapper
 // ─────────────────────────────────────────────────────────────────
 interface SectionProps {
   title: string;
@@ -131,13 +128,19 @@ const ReorderableSection = ({
   isDarkMode,
   onReorder,
 }: SectionProps) => {
+  const lockedItems = items.filter((i) => i.locked);
+  const unlockedItems = items.filter((i) => !i.locked);
+
+  // ScaleDecorator MUST be in renderItem so it has CellProvider context
   const renderItem = ({ item, drag, isActive }: RenderItemParams<TabItem>) => (
-    <DraggableRow
-      item={item}
-      drag={drag}
-      isActive={isActive}
-      isDarkMode={isDarkMode}
-    />
+    <ScaleDecorator activeScale={1.04}>
+      <DraggableRow
+        item={item}
+        drag={drag}
+        isActive={isActive}
+        isDarkMode={isDarkMode}
+      />
+    </ScaleDecorator>
   );
 
   return (
@@ -153,14 +156,24 @@ const ReorderableSection = ({
       </Text>
 
       {/* Card container */}
-      <View className={`mx-4 rounded-[20px] overflow-hidden `}>
-        <DraggableFlatList
-          data={items}
+      <View className="mx-4 rounded-[20px] overflow-hidden">
+        {/* Static locked items at top — no ScaleDecorator, no CellProvider needed */}
+        {lockedItems.map((item) => (
+          <DraggableRow
+            key={item.id}
+            item={item}
+            drag={() => {}}
+            isActive={false}
+            isDarkMode={isDarkMode}
+          />
+        ))}
+
+        {/* Draggable unlocked items */}
+        <NestableDraggableFlatList
+          data={unlockedItems}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          onDragEnd={({ data }) => onReorder(data)}
-          activationDistance={5}
-          scrollEnabled={false}
+          onDragEnd={({ data }) => onReorder([...lockedItems, ...data])}
         />
       </View>
     </View>
@@ -237,7 +250,7 @@ const CustomizeTabs = () => {
         {/* ── Header ── */}
         <View
           className={`flex-row items-center px-4 pt-[52px] pb-5 ${
-            isDarkMode ? "bg-black " : "bg-[#FBFCFD] "
+            isDarkMode ? "bg-black" : "bg-[#FBFCFD]"
           }`}
         >
           <TouchableOpacity onPress={() => router.back()} className="p-1">
@@ -257,16 +270,18 @@ const CustomizeTabs = () => {
               Customize Tabs
             </Text>
             <TouchableOpacity onPress={handleReset}>
-              <Text className={`text-[14px] font-dmMedium text-[#DF5B5B]`}>
+              <Text className="text-[14px] font-dmMedium text-[#DF5B5B]">
                 Reset to default
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── Sections ── */}
-        <ScrollView
-          className="flex-1"
+        {/* ── Sections ──
+            NestableScrollContainer replaces ScrollView.
+            It coordinates gesture priority between the outer scroll
+            and each inner NestableDraggableFlatList. */}
+        <NestableScrollContainer
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}
         >
@@ -288,7 +303,7 @@ const CustomizeTabs = () => {
             isDarkMode={isDarkMode}
             onReorder={(items) => updateSection("task", items)}
           />
-        </ScrollView>
+        </NestableScrollContainer>
       </SafeAreaView>
     </GestureHandlerRootView>
   );

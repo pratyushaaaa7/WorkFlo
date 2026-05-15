@@ -6,10 +6,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
-import React, { memo, useContext, useEffect, useState, useCallback, useRef } from "react";
+import React, { memo, useCallback, useContext, useEffect, useState, useRef } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -277,12 +278,48 @@ const ProjectsTab = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState("WALL");
   const [activeStatusFilter, setActiveStatusFilter] = useState("ALL");
-  
+
   const { projectsMap, fetchProjects } = useProject();
   const isDarkMode = useColorScheme() === "dark";
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  const subTabs = ["WALL", "WP", "WCORP"];
+  // ID → display label for project subtabs
+  const PROJECT_TAB_MAP: Record<string, string> = {
+    wp: "WP",
+    wall: "WALL",
+    wcorp: "WCORP",
+  };
+  const DEFAULT_SUB_TABS = ["WALL", "WP", "WCORP"];
+  const [subTabs, setSubTabs] = useState<string[]>(DEFAULT_SUB_TABS);
+
+  const loadTabOrder = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem("custom_tabs_order");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.project)) {
+        const ordered = parsed.project
+          .map((t: any) => PROJECT_TAB_MAP[t.id])
+          .filter(Boolean) as string[];
+        if (ordered.length > 0) {
+          setSubTabs(ordered);
+          setActiveSubTab(ordered[0]);
+        }
+      }
+    } catch (e) {
+      console.error("[ProjectsTab] loadTabOrder error:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTabOrder();
+  }, [loadTabOrder]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTabOrder();
+    }, [loadTabOrder]),
+  );
 
   // Status filter options with updated styling to match MasterProjectList
   const statusFilters = [
