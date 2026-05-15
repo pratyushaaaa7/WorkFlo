@@ -6,6 +6,7 @@ import {
   CheckmarkSquare02Icon,
   Clock01Icon,
   File02Icon,
+  FilterHorizontalIcon,
   Menu02Icon,
   Note03Icon,
   Notification01Icon,
@@ -13,6 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { format } from "date-fns";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -61,6 +63,31 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(
     format(new Date(), "yyyy-MM-dd"),
   );
+
+  const [tabs, setTabs] = useState(["Overview", "Projects", "Tasks", "Calendar", "Notes"]);
+
+  const loadTabOrder = async () => {
+    try {
+      const savedTabs = await AsyncStorage.getItem("custom_tabs_order");
+      console.log("[Dashboard] Loaded savedTabs:", savedTabs);
+      if (savedTabs) {
+        const parsed = JSON.parse(savedTabs);
+        console.log("[Dashboard] Parsed tabs:", parsed);
+        if (parsed && Array.isArray(parsed.dashboard)) {
+          const orderedTabs = parsed.dashboard.map((t: any) => t.label).filter(Boolean);
+          console.log("[Dashboard] Setting tabs state to:", orderedTabs);
+          setTabs(orderedTabs);
+          
+          // Ensure activeTab is still in the list, otherwise reset to first
+          if (!orderedTabs.includes(activeTab)) {
+            setActiveTabState(orderedTabs[0]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[Dashboard] Error loading tab order:", error);
+    }
+  };
 
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -131,11 +158,12 @@ const Dashboard = () => {
       // Skip the very first load because useEffect handles it
       // or we can just call it silently
       fetchDashboardData(true);
+      loadTabOrder();
 
       return () => {
         backHandler.remove();
       };
-    }, [token]),
+    }, [token, activeTab]),
   );
 
   const onRefresh = () => {
@@ -147,8 +175,6 @@ const Dashboard = () => {
     setActiveTabState(tab);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
-
-  const tabs = ["Overview", "Projects", "Tasks", "Calendar", "Notes"];
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -388,13 +414,16 @@ const Dashboard = () => {
                 </TouchableOpacity>
               )}
             </View>
-            {/* <TouchableOpacity className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]">
+            <TouchableOpacity 
+              onPress={() => router.push("/customizeTabs")}
+              className="ml-2 p-3 rounded-2xl bg-[#F6F8FA] dark:bg-[#121212] border border-[#E0E5EB] dark:border-[#606060]"
+            >
               <HugeiconsIcon
                 icon={FilterHorizontalIcon}
                 size={24}
                 color="#606060"
               />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -411,8 +440,8 @@ const Dashboard = () => {
             pointerEvents="none"
           >
             <GlassNav
-              activeTabIndex={tabs.indexOf(activeTab)}
-              totalTabs={tabs.length}
+              activeTabIndex={Array.isArray(tabs) ? tabs.indexOf(activeTab) : 0}
+              totalTabs={tabs?.length || 5}
               activeTabName={activeTab}
             />
           </View>
@@ -421,7 +450,7 @@ const Dashboard = () => {
             className="flex-1 flex-row items-center justify-between gap-1"
             style={{ paddingHorizontal: 12, paddingTop: 8 }}
           >
-            {tabs.map((tab) => {
+            {(Array.isArray(tabs) ? tabs : []).map((tab) => {
               const isActive = activeTab === tab;
               const themeColor = getTabColor(tab);
               return (
