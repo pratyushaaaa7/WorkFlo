@@ -600,7 +600,7 @@ const ProjectsTab = ({
                 data={filtered}
                 keyExtractor={(p) => p._id}
                 renderItem={({ item }) => <ProjectCard project={item} />}
-                ListHeaderComponent={renderHeader(data.totalProjects)}
+                ListHeaderComponent={renderHeader(filtered.length)}
                 ListEmptyComponent={renderEmpty(data.loading, companyKey)}
                 ListFooterComponent={() => (
                   data.loading && data.projects.length > 0 ? (
