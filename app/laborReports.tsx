@@ -19,6 +19,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 import GlobalAvatar from "../components/GlobalAvatar";
+import LaborAnalyticsChart from "../components/LaborAnalyticsChart";
 
 const { width } = Dimensions.get("window");
 
@@ -84,6 +85,16 @@ const LaborReports = () => {
             <TouchableOpacity
               key={index}
               activeOpacity={0.7}
+              onPress={() => 
+                router.push({
+                  pathname: "/vendorLaborReports",
+                  params: { 
+                    projectId, 
+                    vendorName: vendor.individualName,
+                    expertise: vendor.expertise
+                  }
+                })
+              }
               style={{
                 backgroundColor: colors.cardBg,
                 borderRadius: 20,
@@ -212,11 +223,20 @@ const LaborReports = () => {
         </View>
       )}
       {activeTab === "Graph" && (
-        <View className="flex-1 items-center justify-center">
-          <Text style={{ color: colors.textSecondary }} className="font-poppins">
-            Graph analytics coming soon...
-          </Text>
-        </View>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <LaborAnalyticsChart />
+          
+          <View className="px-6 py-4">
+            <Text style={{ color: colors.textPrimary }} className="text-lg font-dmBold mb-4">
+              Insights
+            </Text>
+            <View style={{ backgroundColor: colors.cardBg, padding: 16, borderRadius: 16 }}>
+              <Text style={{ color: colors.textSecondary }} className="font-poppins text-sm leading-relaxed">
+                Total labor actual count is slightly higher than projected for this week. Saturday saw the peak attendance.
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
       )}
     </View>
   );
