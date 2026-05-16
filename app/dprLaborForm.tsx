@@ -158,7 +158,7 @@ const LaborForm = () => {
   const fetchProjectVendors = React.useCallback(async () => {
     if (!projectId || !token) return;
     try {
-      const res = await api.get(`/projects/${projectId}/project-vendors`, {
+      const res = await api.get(`/labor/project/${projectId}/vendors`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // console.log("Raw project vendors response:", JSON.stringify(res.data));

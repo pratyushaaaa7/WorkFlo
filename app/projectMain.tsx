@@ -465,6 +465,24 @@ const ProjectMain = () => {
           params: { company, projectId, projectName: project?.projectName },
         }),
     },
+    {
+      key: "laborReport",
+      label: "Labor Report",
+      image: require("../assets/images/projectTabs/dpr.png"),
+      onPress: () =>
+        router.push({
+          pathname: "/laborReports",
+          params: {
+            company,
+            projectId,
+            projectName,
+            projectCode: project?.projectCode,
+            teamLeaders: JSON.stringify(project?.teamLeaders || []),
+            teamMembers: JSON.stringify(project?.teamMembers || []),
+            partnerInCharge: JSON.stringify(project?.partnerInCharge || []),
+          },
+        }),
+    },
   ];
 
   return (
