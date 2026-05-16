@@ -1,5 +1,4 @@
 import GlobalAvatar from "@/components/GlobalAvatar";
-import { Skeleton } from "moti/skeleton";
 import Activity from "@/types/ILRActivity";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -20,11 +19,21 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Image as ExpoImage } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Skeleton } from "moti/skeleton";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Keyboard,
   LayoutAnimation,
   Linking,
@@ -32,21 +41,18 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  SectionList,
   Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
-  FlatList,
-  SectionList,
 } from "react-native";
-import { Image as ExpoImage } from "expo-image";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Modal from "react-native-modal";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../context/AuthContext";
@@ -161,6 +167,8 @@ const IlrActivities = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRemarkModal, setShowRemarkModal] = useState(false);
   const [newRemark, setNewRemark] = useState(ilr.remarks || "");
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [newSubject, setNewSubject] = useState(ilr.description || "");
   const [showDateModal, setShowDateModal] = useState(false);
   const [tempDate, setTempDate] = useState<Date | null>(null);
   const [tempDateNote, setTempDateNote] = useState("");
@@ -168,6 +176,7 @@ const IlrActivities = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const remarkInputRef = React.useRef<TextInput>(null);
+  const subjectInputRef = React.useRef<TextInput>(null);
   const dateNoteInputRef = React.useRef<TextInput>(null);
 
   const filteredUsers = useMemo(() => {
@@ -178,9 +187,7 @@ const IlrActivities = () => {
       if (!uId || seen.has(uId)) return false;
       seen.add(uId);
 
-      const isAlreadyIn = tempAssignees.some(
-        (ta) => getSafeId(ta) === uId,
-      );
+      const isAlreadyIn = tempAssignees.some((ta) => getSafeId(ta) === uId);
       return (
         !isAlreadyIn &&
         (u.name.toLowerCase().includes(query) ||
@@ -274,6 +281,7 @@ const IlrActivities = () => {
     const a = action.toLowerCase();
     if (a.includes("status")) return "status";
     if (a.includes("remark") || a.includes("description")) return "remark";
+    if (a.includes("subject") || a.includes("title")) return "subject";
     if (a.includes("assignee") || a.includes("responsibility"))
       return "assignee";
     if (a.includes("date") || a.includes("target date")) return "date";
@@ -434,18 +442,73 @@ const IlrActivities = () => {
     setShowRemarkModal(false);
     setIlr((prev) => ({ ...prev, remarks: newRemark }));
     try {
-      await api.patch(
+      const res = await api.patch(
         `/ilrs/${ilr._id}`,
         { remarks: newRemark },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      fetchILRDetails();
+      if (res.data) {
+        const ilrData = res.data;
+        setIlr({
+          _id: ilrData._id,
+          description: ilrData.description,
+          targetDate: ilrData.targetDate,
+          remarks: ilrData.remarks,
+          responsibility: ilrData.responsibility || [],
+          status: ilrData.status,
+          ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
+          ilrCreatedAt: ilrData.createdAt,
+          ilrNumber: ilrData.ilrNumber,
+          attachments: ilrData.attachments || [],
+          projectId: ilrData.projectId || ilrData.project || "",
+          delayDays: ilrData.delayDays,
+        });
+      }
+      fetchILRDetails(); // Keep this for activities log refresh
     } catch (err) {
       console.error("Failed to update remark:", err);
       Toast.show({
         type: "error",
         text1: "Update Failed",
         text2: "Could not update description.",
+      });
+    }
+  };
+
+  const saveSubject = async () => {
+    Keyboard.dismiss();
+    setShowSubjectModal(false);
+    setIlr((prev) => ({ ...prev, description: newSubject }));
+    try {
+      const res = await api.patch(
+        `/ilrs/${ilr._id}`,
+        { description: newSubject },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (res.data) {
+        const ilrData = res.data;
+        setIlr({
+          _id: ilrData._id,
+          description: ilrData.description,
+          targetDate: ilrData.targetDate,
+          remarks: ilrData.remarks,
+          responsibility: ilrData.responsibility || [],
+          status: ilrData.status,
+          ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
+          ilrCreatedAt: ilrData.createdAt,
+          ilrNumber: ilrData.ilrNumber,
+          attachments: ilrData.attachments || [],
+          projectId: ilrData.projectId || ilrData.project || "",
+          delayDays: ilrData.delayDays,
+        });
+      }
+      fetchILRDetails(); // Refresh activities
+    } catch (err) {
+      console.error("Failed to update subject:", err);
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not update title.",
       });
     }
   };
@@ -462,11 +525,28 @@ const IlrActivities = () => {
     }));
 
     try {
-      await api.patch(
+      const res = await api.patch(
         `/ilrs/${ilr._id}`,
         { responsibility },
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      if (res.data) {
+        const ilrData = res.data;
+        setIlr({
+          _id: ilrData._id,
+          description: ilrData.description,
+          targetDate: ilrData.targetDate,
+          remarks: ilrData.remarks,
+          responsibility: ilrData.responsibility || [],
+          status: ilrData.status,
+          ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
+          ilrCreatedAt: ilrData.createdAt,
+          ilrNumber: ilrData.ilrNumber,
+          attachments: ilrData.attachments || [],
+          projectId: ilrData.projectId || ilrData.project || "",
+          delayDays: ilrData.delayDays,
+        });
+      }
       fetchILRDetails();
     } catch (err) {
       console.error("Failed to update assignee:", err);
@@ -482,11 +562,28 @@ const IlrActivities = () => {
     const newStatus = ilr.status === "Open" ? "Closed" : "Open";
     setIlr((prev) => ({ ...prev, status: newStatus }));
     try {
-      await api.patch(
+      const res = await api.patch(
         `/ilrs/${ilr._id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      if (res.data) {
+        const ilrData = res.data;
+        setIlr({
+          _id: ilrData._id,
+          description: ilrData.description,
+          targetDate: ilrData.targetDate,
+          remarks: ilrData.remarks,
+          responsibility: ilrData.responsibility || [],
+          status: ilrData.status,
+          ilrCreatedBy: ilrData.createdBy?.fullName || "Unknown",
+          ilrCreatedAt: ilrData.createdAt,
+          ilrNumber: ilrData.ilrNumber,
+          attachments: ilrData.attachments || [],
+          projectId: ilrData.projectId || ilrData.project || "",
+          delayDays: ilrData.delayDays,
+        });
+      }
       fetchILRDetails();
     } catch (err) {
       console.error("Failed to update status:", err);
@@ -546,6 +643,14 @@ const IlrActivities = () => {
           iconColor: isDark ? "#F97316" : "#EA580C",
           icon: UserIcon,
           title: "Assignee Updated",
+        };
+      case "subject":
+        return {
+          bg: isDark ? "bg-[#09225A]" : "bg-[#E9F1FF]",
+          text: isDark ? "text-white" : "text-black",
+          iconColor: isDark ? "#6D9EFF" : "#335EB3",
+          icon: Menu05Icon,
+          title: "Subject Updated",
         };
       case "note":
       default:
@@ -611,7 +716,7 @@ const IlrActivities = () => {
           <TouchableOpacity
             onPress={toggleExpand}
             activeOpacity={0.7}
-            className="flex-row justify-between items-start mt-2 border-b border-gray-200 dark:border-gray-800 pb-2 -mx-4 px-4"
+            className="flex-row justify-between items-start mt-2 border-b border-[#E0E5EB] dark:border-[#413E47] pb-2 -mx-4 px-4"
           >
             <Text
               className={`text-sm font-poppins ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
@@ -641,17 +746,31 @@ const IlrActivities = () => {
           {isExpanded && (
             <View>
               {/* Title */}
-              <Text
-                className={`text-xl font-dmMedium mt-4 mb-2 ${isDark ? "text-white" : "text-black"}`}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  setNewSubject(ilr.description);
+                  setShowSubjectModal(true);
+                }}
+                className="flex-row items-center justify-between py-4 border-b border-[#E0E5EB] dark:border-[#413E47] -mx-4 px-4"
               >
-                {ilr.description}
-              </Text>
+                <Text
+                  className={`text-xl font-dmMedium flex-1 ${isDark ? "text-white" : "text-black"}`}
+                >
+                  {ilr.description}
+                </Text>
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={20}
+                  color="#919191"
+                />
+              </TouchableOpacity>
 
               {/* Status Row */}
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={toggleStatus}
-                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
+                className="flex-row items-center py-3 border-b border-[#E0E5EB] dark:border-[#413E47] -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
                   {ilr.status === "Closed" ? (
@@ -698,7 +817,7 @@ const IlrActivities = () => {
                   setShowAssigneeModal(true);
                   setAssigneeSearchQuery("");
                 }}
-                className="flex-row items-center py-3 border-b border-gray-100 dark:border-gray-800 -mx-4 px-4"
+                className="flex-row items-center py-3 border-b border-[#E0E5EB] dark:border-[#413E47] -mx-4 px-4"
               >
                 <View className="p-2 rounded-full mr-3">
                   <HugeiconsIcon
@@ -827,7 +946,7 @@ const IlrActivities = () => {
               </TouchableOpacity>
 
               {/* Description Row */}
-              <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4 " />
+              <View className="h-1 bg-[#E0E5EB] dark:bg-[#413E47] -mx-4 " />
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
@@ -855,7 +974,7 @@ const IlrActivities = () => {
                 </Text>
               </TouchableOpacity>
 
-              <View className="h-1 bg-[#F6F8FA] dark:bg-[#413E47] -mx-4" />
+              <View className="h-1 bg-[#E0E5EB] dark:bg-[#413E47] -mx-4" />
 
               {/* Attachments Section */}
               {ilr.attachments && ilr.attachments.length > 0 && (
@@ -920,10 +1039,25 @@ const IlrActivities = () => {
             <View className="gap-3">
               {[1, 2, 3].map((i) => (
                 <View key={i} className="flex-row items-start gap-3 mb-4">
-                  <Skeleton colorMode={isDark ? "dark" : "light"} width={32} height={32} radius="round" />
+                  <Skeleton
+                    colorMode={isDark ? "dark" : "light"}
+                    width={32}
+                    height={32}
+                    radius="round"
+                  />
                   <View className="flex-1 gap-2">
-                    <Skeleton colorMode={isDark ? "dark" : "light"} width="60%" height={16} radius={4} />
-                    <Skeleton colorMode={isDark ? "dark" : "light"} width="90%" height={14} radius={4} />
+                    <Skeleton
+                      colorMode={isDark ? "dark" : "light"}
+                      width="60%"
+                      height={16}
+                      radius={4}
+                    />
+                    <Skeleton
+                      colorMode={isDark ? "dark" : "light"}
+                      width="90%"
+                      height={14}
+                      radius={4}
+                    />
                   </View>
                 </View>
               ))}
@@ -1069,6 +1203,22 @@ const IlrActivities = () => {
                               </View>
                             )}
 
+                            {/* Details: Subject Update */}
+                            {act.type === "subject" && (
+                              <View className="mt-1 mb-2">
+                                <Text
+                                  className={`text-[12px] font-poppins ${isDark ? "text-[#BFD6FF]" : "text-black"}`}
+                                >
+                                  From : {act.oldValue || "No subject"}
+                                </Text>
+                                <Text
+                                  className={`text-[12px] font-poppins mt-1 ${isDark ? "text-[#BFD6FF]" : "text-[#000]"}`}
+                                >
+                                  To : {act.newValue || "No subject"}
+                                </Text>
+                              </View>
+                            )}
+
                             {/* Details: Assignee Update */}
                             {act.type === "assignee" && (
                               <View className="mt-1 mb-2">
@@ -1121,7 +1271,7 @@ const IlrActivities = () => {
                 initialNumToRender={10}
                 maxToRenderPerBatch={10}
                 windowSize={5}
-                removeClippedSubviews={Platform.OS === 'android'}
+                removeClippedSubviews={Platform.OS === "android"}
               />
             </View>
           )}
@@ -1267,7 +1417,7 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
         <KeyboardAwareScrollView
@@ -1370,6 +1520,139 @@ const IlrActivities = () => {
         </KeyboardAwareScrollView>
       </Modal>
 
+      {/* Change Subject Modal */}
+      <Modal
+        isVisible={showSubjectModal}
+        onBackdropPress={() => {
+          Keyboard.dismiss();
+          setShowSubjectModal(false);
+        }}
+        onSwipeComplete={() => {
+          Keyboard.dismiss();
+          setShowSubjectModal(false);
+        }}
+        swipeDirection="down"
+        propagateSwipe={true}
+        style={{ margin: 0, justifyContent: "flex-end" }}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropOpacity={0.5}
+        onModalShow={() => {
+          setTimeout(() => {
+            subjectInputRef.current?.focus();
+          }, 100);
+        }}
+        onModalHide={() => Keyboard.dismiss()}
+        onBackButtonPress={() => {
+          Keyboard.dismiss();
+          setShowSubjectModal(false);
+        }}
+        useNativeDriver
+        hideModalContentWhileAnimating
+        avoidKeyboard={true}
+        statusBarTranslucent={true}
+      >
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View
+            className={`rounded-t-3xl px-4 pt-6 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+          >
+            {/* Handle Bar Wrapper */}
+            <View className="w-full items-center mb-4">
+              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </View>
+
+            {/* Title */}
+            <Text
+              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
+            >
+              Change Title
+            </Text>
+
+            <View className="border-b border-[#E0E5EB] dark:border-[#413E47]" />
+
+            {/* Text Input */}
+            <TextInput
+              ref={subjectInputRef}
+              value={newSubject}
+              onChangeText={setNewSubject}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              className={` font-poppins text-[15px] mb-4  min-h-[80px] ${isDark ? "text-white " : "text-black "}`}
+              placeholder="Enter title..."
+              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+            />
+
+            {/* Buttons */}
+            <View className="flex-row gap-3 mb-5">
+              <TouchableOpacity
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setShowSubjectModal(false);
+                }}
+                className={`flex-1 py-3 rounded-xl border ${isDark ? "border-white" : "border-black"}`}
+              >
+                <Text
+                  className={`text-center text-[16px] font-poppins ${isDark ? "text-white" : "text-black"}`}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              {(() => {
+                const isSubjectEmpty = !(newSubject || "").trim();
+                const isSubjectSame =
+                  (newSubject || "") === (ilr.description || "");
+                const isSaveDisabled = isSubjectEmpty || isSubjectSame;
+
+                return (
+                  <TouchableOpacity
+                    onPress={saveSubject}
+                    disabled={isSaveDisabled}
+                    className="flex-1"
+                  >
+                    {isSaveDisabled ? (
+                      <View
+                        style={{ backgroundColor: isDark ? "#333" : "#BDBDBD" }}
+                        className="py-3 rounded-xl items-center justify-center"
+                      >
+                        <Text
+                          className={`text-[16px] font-poppins ${
+                            isDark ? "text-[#666]" : "text-[#757575]"
+                          }`}
+                        >
+                          Save
+                        </Text>
+                      </View>
+                    ) : (
+                      <LinearGradient
+                        colors={["#5B4CCC", "#6347C2", "#8056D1"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          borderRadius: 12,
+                          paddingVertical: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text className="text-[16px] font-poppins text-white">
+                          Save
+                        </Text>
+                      </LinearGradient>
+                    )}
+                  </TouchableOpacity>
+                );
+              })()}
+            </View>
+          </View>
+        </KeyboardAwareScrollView>
+      </Modal>
+
       {/* Change Assignee Modal */}
       <Modal
         isVisible={showAssigneeModal}
@@ -1394,78 +1677,82 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
-          <View
-            className={`rounded-t-3xl pt-6 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+        <View
+          className={`rounded-t-3xl pt-6 h-[85%] ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+        >
+          {/* Handle Bar */}
+          <View className="w-full items-center mb-4">
+            <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          </View>
+
+          {/* Title */}
+          <Text
+            className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
           >
-            {/* Handle Bar */}
-            <View className="w-full items-center mb-4">
-              <View className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-            </View>
+            Change Assignees
+          </Text>
 
-            {/* Title */}
-            <Text
-              className={`text-xl font-dmSemiBold text-center mb-4 ${isDark ? "text-white" : "text-black"}`}
-            >
-              Change Assignees
-            </Text>
-
-            {/* Search Bar */}
-            <View
-              className={`flex-row items-center px-4 py-1 rounded-xl mx-4 mb-6 ${isDark ? "bg-[#121212] border border-[#606060]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
-            >
-              <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
-              <TextInput
-                value={assigneeSearchQuery}
-                onChangeText={setAssigneeSearchQuery}
-                placeholder="Search people"
-                placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
-                className={`flex-1 ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
-              />
-            </View>
-
-            <SectionList
-              sections={assigneeSections}
-              keyExtractor={(item) => getSafeId(item)}
-              renderItem={renderAssigneeItem}
-              renderSectionHeader={({ section: { title, data } }) =>
-                data.length > 0 ? (
-                  <Text
-                    className={`text-[12px] font-poppinsMedium mb-3 mt-2 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
-                  >
-                    {title}
-                  </Text>
-                ) : null
-              }
-              stickySectionHeadersEnabled={false}
-              showsVerticalScrollIndicator={false}
-              className="flex-1 px-4"
-              ListEmptyComponent={
-                !loadingProjectUsers ? (
-                  <Text
-                    className={`text-center py-10 font-poppins ${isDark ? "text-gray-500" : "text-gray-400"}`}
-                  >
-                    {assigneeSearchQuery ? "No results found" : "No users available"}
-                  </Text>
-                ) : null
-              }
-              ListFooterComponent={
-                loadingProjectUsers ? (
-                  <ActivityIndicator
-                    size="small"
-                    color="#5B4CCC"
-                    className="py-4"
-                  />
-                ) : null
-              }
+          {/* Search Bar */}
+          <View
+            className={`flex-row items-center px-4 py-1 rounded-xl mx-4 mb-6 ${isDark ? "bg-[#121212] border border-[#413E47]" : "bg-[#F6F8FA] border border-[#E0E5EB]"}`}
+          >
+            <HugeiconsIcon icon={Search01Icon} size={20} color="#919191" />
+            <TextInput
+              value={assigneeSearchQuery}
+              onChangeText={setAssigneeSearchQuery}
+              placeholder="Search people"
+              placeholderTextColor={isDark ? "#6B7280" : "#9CA3AF"}
+              className={`flex-1 ml-3 font-poppins text-[15px] ${isDark ? "text-white" : "text-black"}`}
             />
+          </View>
 
-            {/* Bottom Buttons */}
-            <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
-              <View className={`flex-row gap-3 pt-4 px-4 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}>
-                <TouchableOpacity
+          <SectionList
+            sections={assigneeSections}
+            keyExtractor={(item) => getSafeId(item)}
+            renderItem={renderAssigneeItem}
+            renderSectionHeader={({ section: { title, data } }) =>
+              data.length > 0 ? (
+                <Text
+                  className={`text-[12px] font-poppinsMedium mb-3 mt-2 ${isDark ? "text-[#919191]" : "text-[#454545]"}`}
+                >
+                  {title}
+                </Text>
+              ) : null
+            }
+            stickySectionHeadersEnabled={false}
+            showsVerticalScrollIndicator={false}
+            className="flex-1 px-4"
+            ListEmptyComponent={
+              !loadingProjectUsers ? (
+                <Text
+                  className={`text-center py-10 font-poppins ${isDark ? "text-gray-500" : "text-gray-400"}`}
+                >
+                  {assigneeSearchQuery
+                    ? "No results found"
+                    : "No users available"}
+                </Text>
+              ) : null
+            }
+            ListFooterComponent={
+              loadingProjectUsers ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#5B4CCC"
+                  className="py-4"
+                />
+              ) : null
+            }
+          />
+
+          {/* Bottom Buttons */}
+          <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+            <View
+              className={`flex-row gap-3 pt-4 px-4 pb-8 ${isDark ? "bg-[#1A1A1A]" : "bg-[#FBFCFD]"}`}
+            >
+              <TouchableOpacity
                 onPress={() => {
                   Keyboard.dismiss();
                   setShowAssigneeModal(false);
@@ -1515,9 +1802,9 @@ const IlrActivities = () => {
                   </LinearGradient>
                 )}
               </TouchableOpacity>
-              </View>
-            </KeyboardStickyView>
-          </View>
+            </View>
+          </KeyboardStickyView>
+        </View>
       </Modal>
 
       {/* Change Target Date Modal */}
@@ -1544,7 +1831,7 @@ const IlrActivities = () => {
         }}
         useNativeDriver
         hideModalContentWhileAnimating
-        avoidKeyboard={false}
+        avoidKeyboard={true}
         statusBarTranslucent={true}
       >
         <KeyboardAwareScrollView
@@ -1569,8 +1856,7 @@ const IlrActivities = () => {
 
             <View className="border-b border-[#E0E5EB] dark:border-[#413E47] mb-4" />
 
-            <ScrollView
-              showsVerticalScrollIndicator={false}
+            <View
               className="max-h-[70vh]"
             >
               <Text className="text-[#454545] dark:text-[#919191] font-poppinsMedium text-[12px] mb-2 ">
@@ -1631,7 +1917,7 @@ const IlrActivities = () => {
                 multiline
                 textAlignVertical="top"
               />
-            </ScrollView>
+            </View>
 
             {/* Buttons */}
             <View className="flex-row gap-3 mt-4">

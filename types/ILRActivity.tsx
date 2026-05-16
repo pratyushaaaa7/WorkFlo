@@ -7,7 +7,7 @@ type Activity = {
   oldValue?: any;
   newValue?: any;
   note?: string; // 👈 add this
-  type: "note" | "date" | "remark" | "status" | "assignee"; // <-- add this
+  type: "note" | "date" | "remark" | "status" | "assignee" | "subject"; // <-- add this
 };
 
 export default Activity;
