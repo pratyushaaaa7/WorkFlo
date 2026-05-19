@@ -21,6 +21,7 @@ import {
   ProfileIcon,
   UserGroup03Icon,
   UserMultiple02Icon,
+  Megaphone01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFonts } from "expo-font";
@@ -284,6 +285,13 @@ function AppLayout() {
         ),
       },
       {
+        name: "announcements",
+        label: "Announcements",
+        icon: ({ color, size }: any) => (
+          <HugeiconsIcon icon={Megaphone01Icon} size={size} color={color} />
+        ),
+      },
+      {
         name: "appSupport",
         label: "App Support",
         icon: ({ color, size }: any) => (
@@ -413,6 +421,7 @@ function AppLayout() {
                 "projects",
                 "centralEmployeeDirectory",
                 "masterProjectList",
+                "announcements",
               ].includes(item.name)
                 ? false
                 : true,
