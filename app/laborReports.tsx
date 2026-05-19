@@ -10,10 +10,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { 
-  ArrowLeft01Icon, 
-  Search01Icon, 
-  UserGroupIcon 
+import {
+  ArrowLeft01Icon,
+  Search01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { AuthContext } from "../context/AuthContext";
@@ -64,35 +64,39 @@ const LaborReports = () => {
     }
   };
 
-
-  const filteredVendors = vendors.filter((v) =>
-    v.individualName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.firmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.expertise.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredVendors = vendors.filter(
+    (v) =>
+      v.individualName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.firmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.expertise.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderVendorTab = () => (
-    <ScrollView 
-      className="flex-1 px-4 pt-4" 
+    <ScrollView
+      className="flex-1 px-4 pt-4"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       {loading ? (
-        <ActivityIndicator color={colors.accent} size="large" className="mt-10" />
+        <ActivityIndicator
+          color={colors.accent}
+          size="large"
+          className="mt-10"
+        />
       ) : filteredVendors.length > 0 ? (
         filteredVendors.map((vendor, index) => {
           return (
             <TouchableOpacity
               key={index}
               activeOpacity={0.7}
-              onPress={() => 
+              onPress={() =>
                 router.push({
                   pathname: "/vendorLaborReports",
-                  params: { 
-                    projectId, 
+                  params: {
+                    projectId,
                     vendorName: vendor.individualName,
-                    expertise: vendor.expertise
-                  }
+                    expertise: vendor.expertise,
+                  },
                 })
               }
               style={{
@@ -142,8 +146,15 @@ const LaborReports = () => {
         })
       ) : (
         <View className="items-center justify-center mt-20 opacity-50">
-          <HugeiconsIcon icon={UserGroupIcon} size={60} color={colors.textSecondary} />
-          <Text style={{ color: colors.textSecondary }} className="mt-4 font-poppins text-center">
+          <HugeiconsIcon
+            icon={UserGroupIcon}
+            size={60}
+            color={colors.textSecondary}
+          />
+          <Text
+            style={{ color: colors.textSecondary }}
+            className="mt-4 font-poppins text-center"
+          >
             No vendors found for this project
           </Text>
         </View>
@@ -152,19 +163,33 @@ const LaborReports = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }} className="pt-14">
+    <View
+      style={{ flex: 1, backgroundColor: colors.background }}
+      className="pt-14"
+    >
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 pb-4">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={28} color={colors.textPrimary} />
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={28}
+              color={colors.textPrimary}
+            />
           </TouchableOpacity>
-          <Text style={{ color: colors.textPrimary }} className="text-2xl font-dmBold">
+          <Text
+            style={{ color: colors.textPrimary }}
+            className="text-2xl font-dmBold"
+          >
             Labor Report
           </Text>
         </View>
         <TouchableOpacity>
-          <HugeiconsIcon icon={Search01Icon} size={28} color={colors.textPrimary} />
+          <HugeiconsIcon
+            icon={Search01Icon}
+            size={28}
+            color={colors.textPrimary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -185,7 +210,10 @@ const LaborReports = () => {
             <Text
               style={{
                 color: activeTab === tab ? colors.accent : colors.textSecondary,
-                fontFamily: activeTab === tab ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                fontFamily:
+                  activeTab === tab
+                    ? "Poppins_600SemiBold"
+                    : "Poppins_400Regular",
               }}
               className="text-base"
             >
@@ -217,7 +245,10 @@ const LaborReports = () => {
       {activeTab === "Vendor" && renderVendorTab()}
       {activeTab === "Day" && (
         <View className="flex-1 items-center justify-center">
-          <Text style={{ color: colors.textSecondary }} className="font-poppins">
+          <Text
+            style={{ color: colors.textSecondary }}
+            className="font-poppins"
+          >
             Day analytics coming soon...
           </Text>
         </View>
@@ -225,14 +256,27 @@ const LaborReports = () => {
       {activeTab === "Graph" && (
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <LaborAnalyticsChart />
-          
+
           <View className="px-6 py-4">
-            <Text style={{ color: colors.textPrimary }} className="text-lg font-dmBold mb-4">
+            <Text
+              style={{ color: colors.textPrimary }}
+              className="text-lg font-dmBold mb-4"
+            >
               Insights
             </Text>
-            <View style={{ backgroundColor: colors.cardBg, padding: 16, borderRadius: 16 }}>
-              <Text style={{ color: colors.textSecondary }} className="font-poppins text-sm leading-relaxed">
-                Total labor actual count is slightly higher than projected for this week. Saturday saw the peak attendance.
+            <View
+              style={{
+                backgroundColor: colors.cardBg,
+                padding: 16,
+                borderRadius: 16,
+              }}
+            >
+              <Text
+                style={{ color: colors.textSecondary }}
+                className="font-poppins text-sm leading-relaxed"
+              >
+                Total labor actual count is slightly higher than projected for
+                this week. Saturday saw the peak attendance.
               </Text>
             </View>
           </View>
