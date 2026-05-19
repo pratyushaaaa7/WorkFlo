@@ -4,7 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import {
   Animated,
   FlatList,
@@ -21,6 +21,8 @@ import { Dropdown } from "react-native-element-dropdown";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import uuid from "react-native-uuid";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import moment from "moment";
 import { AuthContext } from "../context/AuthContext";
 import api from "../lib/api";
 
@@ -28,14 +30,14 @@ interface Vendor {
   id: string;
   name: string;
   expertise: string;
+  date?: string;
   skillLabor: number;
   unskillLabor: number;
+  staffLabor: number;
   // keep laborCount for backward compat with downstream
   laborCount: number;
 }
 
-// ── Defined OUTSIDE the component so React never treats it as a new type on re-render.
-// If defined inside, every keystroke (setState) creates a new component → unmount/remount → keyboard closes.
 const FieldRow = ({
   placeholder,
   value,
@@ -60,8 +62,7 @@ const FieldRow = ({
       alignItems: "center",
       justifyContent: "space-between",
       borderRadius: 10,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
+      paddingHorizontal: 12,
       backgroundColor: isDark ? "#1A1A1A" : "#F0F3F7",
       minHeight: 45,
     }}
@@ -73,9 +74,11 @@ const FieldRow = ({
           height: 40,
         }}
         placeholderStyle={{
-          fontSize: 15,
+          fontSize: 12,
           fontFamily: "Poppins_400Regular",
           color: isDark ? "#555" : "#9CA3AF",
+          lineHeight: 12,
+          letterSpacing: -0.18,
         }}
         selectedTextStyle={{
           fontSize: 15,
@@ -104,6 +107,13 @@ const FieldRow = ({
         placeholder={placeholder}
         value={value}
         onChange={(item) => onChangeText(item.value)}
+        renderRightIcon={() => (
+          <Ionicons
+            name="chevron-down"
+            size={18}
+            color={isDark ? "#555" : "#9CA3AF"}
+          />
+        )}
       />
     ) : (
       <TextInput
@@ -115,8 +125,10 @@ const FieldRow = ({
         style={{
           flex: 1,
           color: isDark ? "#FFF" : "#111",
-          fontSize: 15,
           fontFamily: "Poppins_400Regular",
+          fontSize: value ? 15 : 12,
+          lineHeight: value ? undefined : 12,
+          letterSpacing: value ? undefined : -0.18,
         }}
       />
     )}
@@ -130,19 +142,29 @@ const LaborForm = () => {
 
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
+  
   const defaultVendor = (): Vendor => ({
     id: uuid.v4().toString(),
     name: "",
     expertise: "",
+    date: moment().format("YYYY-MM-DD"),
     skillLabor: 0,
     unskillLabor: 0,
+    staffLabor: 0,
     laborCount: 0,
   });
 
-  const [vendors, setVendors] = useState<Vendor[]>([defaultVendor()]);
+  const [projectedVendors, setProjectedVendors] = useState<Vendor[]>([]);
+  const [actualVendors, setActualVendors] = useState<Vendor[]>([defaultVendor()]);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const isInitialLoadDone = React.useRef(false);
+
+  // States for new UI features
+  const [activeTab, setActiveTab] = useState<"Projected" | "Actual">("Projected");
+  const [collapsedVendors, setCollapsedVendors] = useState<string[]>([]);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedVendorIdForDate, setSelectedVendorIdForDate] = useState<string | null>(null);
 
   const pIdStr = Array.isArray(projectId) ? projectId[0] : (projectId as string);
   const storageKey = `reportData_${pIdStr || "default"}`;
@@ -161,9 +183,6 @@ const LaborForm = () => {
       const res = await api.get(`/labor/project/${projectId}/vendors`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log("Raw project vendors response:", JSON.stringify(res.data));
-
-      // Robustly find the vendors array
       let vendorsArr = [];
       if (Array.isArray(res.data.vendors)) {
         vendorsArr = res.data.vendors;
@@ -179,7 +198,6 @@ const LaborForm = () => {
         value: v.individualName || v.name || "",
       }));
       setProjectVendors(mapped);
-      // console.log("Mapped project vendors:", mapped);
     } catch (err) {
       console.error("Error fetching project vendors:", err);
     }
@@ -203,24 +221,47 @@ const LaborForm = () => {
     React.useCallback(() => {
       fetchProjectVendors();
       const loadSaved = async () => {
-        // 🧱 Reset state immediately when focused to prevent data bleeding
         isInitialLoadDone.current = false;
-        
         try {
           const saved = await AsyncStorage.getItem(storageKey);
           if (saved) {
             const parsed = JSON.parse(saved);
-            if (parsed.vendors && parsed.vendors.length > 0) {
-              setVendors(parsed.vendors);
+            if (parsed.actualVendors) {
+              const formattedActual = parsed.actualVendors.map((v: any) => ({
+                ...v,
+                date: v.date || moment().format("YYYY-MM-DD"),
+                staffLabor: v.staffLabor || 0,
+              }));
+              setActualVendors(formattedActual);
+            } else if (parsed.vendors && parsed.vendors.length > 0) {
+              const formattedActual = parsed.vendors.map((v: any) => ({
+                ...v,
+                date: v.date || moment().format("YYYY-MM-DD"),
+                staffLabor: v.staffLabor || 0,
+              }));
+              setActualVendors(formattedActual);
             } else {
-              setVendors([defaultVendor()]);
+              setActualVendors([defaultVendor()]);
+            }
+
+            if (parsed.projectedVendors) {
+              const formattedProjected = parsed.projectedVendors.map((v: any) => ({
+                ...v,
+                date: v.date || moment().format("YYYY-MM-DD"),
+                staffLabor: v.staffLabor || 0,
+              }));
+              setProjectedVendors(formattedProjected);
+            } else {
+              setProjectedVendors([]);
             }
           } else {
-            setVendors([defaultVendor()]);
+            setProjectedVendors([]);
+            setActualVendors([defaultVendor()]);
           }
         } catch (err) {
           console.log("Error loading saved vendors:", err);
-          setVendors([defaultVendor()]);
+          setProjectedVendors([]);
+          setActualVendors([defaultVendor()]);
         } finally {
           isInitialLoadDone.current = true;
         }
@@ -228,7 +269,6 @@ const LaborForm = () => {
       
       loadSaved();
 
-      // Fade-in animation for screen
       fadeAnim.setValue(0);
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -236,17 +276,16 @@ const LaborForm = () => {
         useNativeDriver: true,
       }).start();
       
-    }, [projectId, storageKey, fetchProjectVendors]) // Re-run when focus happens or ID changes
+    }, [projectId, storageKey, fetchProjectVendors])
   );
 
-  // Auto-save whenever vendors change
   useEffect(() => {
     const autoSave = async () => {
-      if (isInitialLoadDone.current && vendors.length > 0) {
+      if (isInitialLoadDone.current) {
         try {
           await AsyncStorage.setItem(
             storageKey,
-            JSON.stringify({ vendors, projectName }),
+            JSON.stringify({ projectedVendors, actualVendors, projectName }),
           );
         } catch (err) {
           console.error("Auto-save failed:", err);
@@ -254,27 +293,21 @@ const LaborForm = () => {
       }
     };
     autoSave();
-  }, [vendors, projectId]);
+  }, [projectedVendors, actualVendors, projectId]);
 
   const addVendor = () => {
-    setVendors((prev) => [
-      ...prev,
-      {
-        id: uuid.v4().toString(),
-        name: "",
-        expertise: "",
-        skillLabor: 0,
-        unskillLabor: 0,
-        laborCount: 0,
-      },
-    ]);
+    if (activeTab === "Projected") {
+      setProjectedVendors((prev) => [...prev, defaultVendor()]);
+    } else {
+      setActualVendors((prev) => [...prev, defaultVendor()]);
+    }
   };
 
   const updateVendor = (id: string, field: string, value: string) => {
-    setVendors((prev) =>
+    const updateFn = (prev: Vendor[]) =>
       prev.map((v) => {
         if (v.id !== id) return v;
-        const isNumeric = ["skillLabor", "unskillLabor", "laborCount"].includes(
+        const isNumeric = ["skillLabor", "unskillLabor", "staffLabor", "laborCount"].includes(
           field,
         );
         const updated = {
@@ -283,31 +316,94 @@ const LaborForm = () => {
         };
         // keep laborCount in sync
         updated.laborCount =
-          (updated.skillLabor || 0) + (updated.unskillLabor || 0);
+          (updated.skillLabor || 0) + (updated.unskillLabor || 0) + (updated.staffLabor || 0);
         return updated;
-      }),
-    );
+      });
+
+    if (activeTab === "Projected") {
+      setProjectedVendors(updateFn);
+    } else {
+      setActualVendors(updateFn);
+    }
   };
 
   const removeVendor = (id: string) => {
-    setVendors((prev) => prev.filter((v) => v.id !== id));
+    if (activeTab === "Projected") {
+      setProjectedVendors((prev) => prev.filter((v) => v.id !== id));
+    } else {
+      setActualVendors((prev) => prev.filter((v) => v.id !== id));
+    }
   };
 
-  const totalSkilled = vendors.reduce((sum, v) => sum + (v.skillLabor || 0), 0);
-  const totalUnskilled = vendors.reduce(
+  const toggleCollapse = (id: string) => {
+    setCollapsedVendors((prev) =>
+      prev.includes(id) ? prev.filter((vId) => vId !== id) : [...prev, id]
+    );
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setDatePickerVisible(false);
+    if (selectedDate && selectedVendorIdForDate) {
+      const formattedDate = moment(selectedDate).format("YYYY-MM-DD");
+      updateVendor(selectedVendorIdForDate, "date", formattedDate);
+    }
+    setSelectedVendorIdForDate(null);
+  };
+
+  const defaultExpertises = [
+    "Civil Work",
+    "Electrical",
+    "Plumbing",
+    "Masonry",
+    "Carpentry",
+    "Painting",
+    "Site Supervision"
+  ];
+
+  const expertiseOptions = useMemo(() => {
+    const list = new Set<string>();
+    rawProjectVendors.forEach((v) => {
+      if (v.expertise) {
+        if (Array.isArray(v.expertise)) {
+          v.expertise.forEach((e: string) => {
+            if (e && e !== "-") list.add(e);
+          });
+        } else if (typeof v.expertise === "string" && v.expertise !== "-") {
+          list.add(v.expertise);
+        }
+      }
+    });
+    defaultExpertises.forEach((e) => list.add(e));
+    return Array.from(list).map((exp) => ({ label: exp, value: exp }));
+  }, [rawProjectVendors]);
+
+  const currentVendorsList = activeTab === "Projected" ? projectedVendors : actualVendors;
+  const totalSkilled = currentVendorsList.reduce((sum, v) => sum + (v.skillLabor || 0), 0);
+  const totalUnskilled = currentVendorsList.reduce(
     (sum, v) => sum + (v.unskillLabor || 0),
     0,
   );
-  const totalLabor = totalSkilled + totalUnskilled;
+  const totalStaff = currentVendorsList.reduce((sum, v) => sum + (v.staffLabor || 0), 0);
+  const totalLabor = totalSkilled + totalUnskilled + totalStaff;
 
   const saveAndNext = async () => {
-    // 🧱 Validation: If vendors exist, each must have a name
-    const invalidVendor = vendors.find((v) => !v.name || v.name.trim() === "");
-    if (invalidVendor) {
+    const invalidActualVendor = actualVendors.find((v) => !v.name || v.name.trim() === "");
+    if (actualVendors.length === 0 || invalidActualVendor) {
       Toast.show({
         type: "error",
         text1: "Validation",
-        text2: "Please select a vendor or skip",
+        text2: "Please select a vendor for all actual entries",
+        position: "bottom",
+      });
+      return;
+    }
+
+    const invalidProjectedVendor = projectedVendors.find((v) => !v.name || v.name.trim() === "");
+    if (invalidProjectedVendor) {
+      Toast.show({
+        type: "error",
+        text1: "Validation",
+        text2: "Please select a vendor for all projected entries",
         position: "bottom",
       });
       return;
@@ -315,8 +411,14 @@ const LaborForm = () => {
 
     await AsyncStorage.setItem(
       storageKey,
-      JSON.stringify({ vendors, projectName }),
+      JSON.stringify({ projectedVendors, actualVendors, projectName }),
     );
+
+    const actualSkilled = actualVendors.reduce((sum, v) => sum + (v.skillLabor || 0), 0);
+    const actualUnskilled = actualVendors.reduce((sum, v) => sum + (v.unskillLabor || 0), 0);
+    const actualStaff = actualVendors.reduce((sum, v) => sum + (v.staffLabor || 0), 0);
+    const actualTotalLabor = actualSkilled + actualUnskilled + actualStaff;
+
     router.push({
       pathname: "/reportForm",
       params: {
@@ -326,24 +428,17 @@ const LaborForm = () => {
         teamLeaders,
         teamMembers,
         partnerInCharge,
-        vendors: JSON.stringify(vendors),
-        totalLabor: totalLabor.toString(),
+        vendors: JSON.stringify(actualVendors),
+        projectedVendors: JSON.stringify(projectedVendors),
+        totalLabor: actualTotalLabor.toString(),
       },
     });
   };
 
-  const skipAndNext = async () => {
-    await AsyncStorage.setItem(
-      storageKey,
-      JSON.stringify({ vendors: [], projectName }),
-    );
-    router.push({
-      pathname: "/reportForm",
-      params: { projectName, projectId, company, teamLeaders, teamMembers, partnerInCharge },
-    });
-  };
-
-  // (FieldRow is defined at module level — see above)
+  const isFormInvalid =
+    actualVendors.length === 0 ||
+    actualVendors.some((v) => !v.name || v.name.trim() === "") ||
+    projectedVendors.some((v) => !v.name || v.name.trim() === "");
 
   return (
     <KeyboardAvoidingView
@@ -357,7 +452,6 @@ const LaborForm = () => {
       <View
         style={{
           backgroundColor: isDark ? "#000" : "#FBFCFD",
-          // paddingTop: Math.max(insets.top, 16),
           paddingBottom: 6,
           paddingHorizontal: 20,
         }}
@@ -377,51 +471,96 @@ const LaborForm = () => {
             style={{ color: isDark ? "#fff" : "#000" }}
             className="text-xl font-dmSemiBold ml-3"
           >
-            Labor Report
+            Create Labor Report
           </Text>
         </TouchableOpacity>
+      </View>
 
-        {/* Labor Statistics Row */}
-        <View
-          className="my-4 mt-6"
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            // marginTop: 12,
-            // paddingLeft: 38, // Align with title text
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text
-              style={{ color: isDark ? "#E5E7EB" : "#111" }}
-              className="text-sm font-poppinsMedium"
-            >
-              Skilled :{" "}
-              <Text className="font-poppinsMedium">{totalSkilled}</Text>
-            </Text>
-
-            <View
+      {/* Tabs */}
+      <View
+        style={{
+          flexDirection: "row",
+          borderBottomWidth: 1,
+          borderBottomColor: isDark ? "#111" : "#F0F3F7",
+        }}
+      >
+        {["Projected", "Actual"].map((tab) => {
+          const isActive = activeTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab as "Projected" | "Actual")}
               style={{
-                width: 1,
-                height: 14,
-                backgroundColor: isDark ? "#413E47" : "#E0E5EB",
-                marginHorizontal: 12,
+                flex: 1,
+                paddingVertical: 12,
+                alignItems: "center",
+                borderBottomWidth: isActive ? 2 : 0,
+                borderBottomColor: "#5B4CCC",
               }}
-            />
-
-            <Text
-              style={{ color: isDark ? "#E5E7EB" : "#111" }}
-              className="text-sm font-poppinsMedium"
+              activeOpacity={0.8}
             >
-              Unskilled :{" "}
-              <Text className="font-poppinsMedium">{totalUnskilled}</Text>
-            </Text>
-          </View>
+              <Text
+                style={{
+                  color: isActive ? "#5B4CCC" : (isDark ? "#555" : "#9CA3AF"),
+                  fontFamily: isActive ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                  fontSize: 16,
+                }}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Labor Statistics Row */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingVertical: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text
+            style={{ color: isDark ? "#E5E7EB" : "#111" }}
+            className="text-sm font-poppinsMedium"
+          >
+            Skilled :{" "}
+            <Text className="font-poppinsMedium">{totalSkilled}</Text>
+          </Text>
+
+          <View
+            style={{
+              width: 1,
+              height: 14,
+              backgroundColor: isDark ? "#413E47" : "#E0E5EB",
+              marginHorizontal: 12,
+            }}
+          />
 
           <Text
             style={{ color: isDark ? "#E5E7EB" : "#111" }}
             className="text-sm font-poppinsMedium"
+          >
+            Unskilled :{" "}
+            <Text className="font-poppinsMedium">{totalUnskilled}</Text>
+          </Text>
+        </View>
+
+        <View
+          style={{
+            backgroundColor: isDark ? "#121212" : "#F0F3F7",
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+          }}
+        >
+          <Text
+            style={{ color: isDark ? "#E5E7EB" : "#111" }}
+            className="text-xs font-poppinsMedium"
           >
             Total : <Text className="font-poppinsMedium">{totalLabor}</Text>
           </Text>
@@ -431,7 +570,7 @@ const LaborForm = () => {
       {/* Vendor List */}
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <FlatList
-          data={vendors}
+          data={activeTab === "Projected" ? projectedVendors : actualVendors}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{
             paddingHorizontal: 12,
@@ -449,113 +588,186 @@ const LaborForm = () => {
               </Text>
             </View>
           }
-          renderItem={({ item, index }) => (
-            <View
-              style={{
-                backgroundColor: isDark ? "#0D0D0D" : "#F6F8FA",
-                borderRadius: 16,
-                marginBottom: 12,
-                overflow: "hidden",
-              }}
-            >
-              {/* Card header — vendor label + remove */}
+          renderItem={({ item, index }) => {
+            const isCollapsed = collapsedVendors.includes(item.id);
+            return (
               <View
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  paddingHorizontal: 16,
-                  paddingTop: 14,
-                  paddingBottom: 10,
-                  borderBottomWidth: 1,
-                  borderBottomColor: isDark ? "#1C1C1C" : "#EBEBEB",
+                  backgroundColor: isDark ? "#000000" : "#FFFFFF",
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: isDark ? "#1C1C1C" : "#EBEBEB",
+                  marginBottom: 12,
+                  overflow: "hidden",
                 }}
               >
-                <Text
-                  style={{ color: isDark ? "#BBBBBB" : "#454545" }}
-                  className="font-poppinsMedium text-[14px]"
+                {/* Card header — vendor label + remove + collapse */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 16,
+                    paddingTop: 14,
+                    paddingBottom: 10,
+                    borderBottomWidth: isCollapsed ? 0 : 1,
+                    borderBottomColor: isDark ? "#1C1C1C" : "#EBEBEB",
+                  }}
                 >
-                  Vendor {index + 1}
-                </Text>
-                {vendors.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => removeVendor(item.id)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  <Text
+                    style={{ color: isDark ? "#BBBBBB" : "#454545" }}
+                    className="font-poppinsMedium text-[14px]"
                   >
-                    <Ionicons
-                      name="close-circle"
-                      size={20}
-                      color={isDark ? "#555" : "#D1D5DB"}
+                    Vendor {item.name ? `: ${item.name}` : ""}
+                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <TouchableOpacity
+                      onPress={() => removeVendor(item.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color={isDark ? "#888" : "#888"}
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        width: 1,
+                        height: 14,
+                        backgroundColor: isDark ? "#1C1C1C" : "#EBEBEB",
+                      }}
                     />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => toggleCollapse(item.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={isCollapsed ? "chevron-down" : "chevron-up"}
+                        size={18}
+                        color={isDark ? "#888" : "#888"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Fields */}
+                {!isCollapsed && (
+                  <View style={{ padding: 12, gap: 10 }}>
+                    {/* Date Picker Trigger */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedVendorIdForDate(item.id);
+                        setDatePickerVisible(true);
+                      }}
+                      activeOpacity={0.7}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        backgroundColor: isDark ? "#1A1A1A" : "#F0F3F7",
+                        height: 45,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: "Poppins_400Regular",
+                          fontSize: item.date ? 15 : 12,
+                          color: item.date 
+                            ? (isDark ? "#FFF" : "#111") 
+                            : (isDark ? "#555" : "#9CA3AF"),
+                          lineHeight: item.date ? undefined : 12,
+                          letterSpacing: item.date ? undefined : -0.18,
+                        }}
+                      >
+                        {item.date ? moment(item.date).format("DD-MM-YYYY") : "Select date"}
+                      </Text>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={18}
+                        color={isDark ? "#555" : "#9CA3AF"}
+                      />
+                    </TouchableOpacity>
+
+                    {/* Vendor name */}
+                    <FieldRow
+                      placeholder="Select vendor"
+                      value={item.name}
+                      onChangeText={(t) => {
+                        updateVendor(item.id, "name", t);
+                        const found = rawProjectVendors.find(
+                          (v) => (v.individualName || v.name) === t,
+                        );
+                        if (found && found.expertise) {
+                          let expertiseValue = "";
+                          if (Array.isArray(found.expertise)) {
+                            expertiseValue = found.expertise
+                              .filter((e: string) => e && e !== "-")
+                              .join(", ");
+                          } else if (
+                            typeof found.expertise === "string" &&
+                            found.expertise !== "-"
+                          ) {
+                            expertiseValue = found.expertise;
+                          }
+
+                          if (expertiseValue) {
+                            updateVendor(item.id, "expertise", expertiseValue);
+                          }
+                        }
+                      }}
+                      isDark={isDark}
+                      isDropdown={true}
+                      dropdownData={projectVendors}
+                    />
+
+                    {/* Expertise dropdown */}
+                    <FieldRow
+                      placeholder="Select expertise"
+                      value={item.expertise}
+                      onChangeText={(t) => updateVendor(item.id, "expertise", t)}
+                      isDark={isDark}
+                      isDropdown={true}
+                      dropdownData={expertiseOptions}
+                    />
+
+                    {/* Skilled + Unskilled + Staff side by side */}
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <FieldRow
+                        placeholder="e.g. 5 Skilled"
+                        value={item.skillLabor ? item.skillLabor.toString() : ""}
+                        onChangeText={(t) => updateVendor(item.id, "skillLabor", t)}
+                        keyboardType="number-pad"
+                        isDark={isDark}
+                      />
+                      <FieldRow
+                        placeholder="e.g. 5 Unskilled"
+                        value={item.unskillLabor ? item.unskillLabor.toString() : ""}
+                        onChangeText={(t) =>
+                          updateVendor(item.id, "unskillLabor", t)
+                        }
+                        keyboardType="number-pad"
+                        isDark={isDark}
+                      />
+                      <FieldRow
+                        placeholder="e.g. 5 Staff"
+                        value={item.staffLabor ? item.staffLabor.toString() : ""}
+                        onChangeText={(t) =>
+                          updateVendor(item.id, "staffLabor", t)
+                        }
+                        keyboardType="number-pad"
+                        isDark={isDark}
+                      />
+                    </View>
+                  </View>
                 )}
               </View>
-
-              {/* Fields */}
-              <View style={{ padding: 12, gap: 10 }}>
-                {/* Vendor name */}
-                <FieldRow
-                  placeholder="Select vendor"
-                  value={item.name}
-                  onChangeText={(t) => {
-                    updateVendor(item.id, "name", t);
-                    // Find vendor in rawProjectVendors to auto-fill expertise
-                    const found = rawProjectVendors.find(
-                      (v) => (v.individualName || v.name) === t,
-                    );
-                    if (found && found.expertise) {
-                      let expertiseValue = "";
-                      if (Array.isArray(found.expertise)) {
-                        expertiseValue = found.expertise
-                          .filter((e: string) => e && e !== "-")
-                          .join(", ");
-                      } else if (
-                        typeof found.expertise === "string" &&
-                        found.expertise !== "-"
-                      ) {
-                        expertiseValue = found.expertise;
-                      }
-
-                      if (expertiseValue) {
-                        updateVendor(item.id, "expertise", expertiseValue);
-                      }
-                    }
-                  }}
-                  isDark={isDark}
-                  isDropdown={true}
-                  dropdownData={projectVendors}
-                />
-
-                {/* Expertise */}
-                <FieldRow
-                  placeholder="Enter expertise"
-                  value={item.expertise}
-                  onChangeText={(t) => updateVendor(item.id, "expertise", t)}
-                  isDark={isDark}
-                />
-
-                {/* Skilled + Unskilled side by side */}
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <FieldRow
-                    placeholder="Skilled labor"
-                    value={item.skillLabor.toString()}
-                    onChangeText={(t) => updateVendor(item.id, "skillLabor", t)}
-                    keyboardType="number-pad"
-                    isDark={isDark}
-                  />
-                  <FieldRow
-                    placeholder="Unskilled labor"
-                    value={item.unskillLabor.toString()}
-                    onChangeText={(t) =>
-                      updateVendor(item.id, "unskillLabor", t)
-                    }
-                    keyboardType="number-pad"
-                    isDark={isDark}
-                  />
-                </View>
-              </View>
-            </View>
-          )}
+            );
+          }}
           ListFooterComponent={
             <View style={{ marginTop: 12 }}>
               {/* Add Vendor button */}
@@ -588,7 +800,7 @@ const LaborForm = () => {
         />
       </Animated.View>
 
-      {/* Footer — Skip + Next */}
+      {/* Footer — Cancel + Create */}
       <View
         style={{
           flexDirection: "row",
@@ -602,57 +814,77 @@ const LaborForm = () => {
         }}
       >
         <TouchableOpacity
-          onPress={skipAndNext}
+          onPress={() => router.back()}
           activeOpacity={0.8}
           style={{
             flex: 1,
             borderWidth: 1.5,
-            borderColor: isDark ? "#FFF" : "#000",
+            borderColor: isDark ? "#454545" : "#EBEBEB",
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: "center",
             backgroundColor: "transparent",
-            marginBottom: 4, // Align with Next button's shadow space
           }}
         >
           <Text
-            style={{ color: isDark ? "#FFF" : "#111" }}
+            style={{ color: isDark ? "#FFF" : "#454545" }}
             className="font-poppins text-lg"
           >
-            Skip
+            Cancel
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={saveAndNext}
+          disabled={isFormInvalid}
           activeOpacity={0.8}
           style={{
             flex: 1,
             borderRadius: 14,
-            // shadowColor: "#5B4CCC",
-            // shadowOffset: { width: 0, height: 4 },
-            // shadowOpacity: 0.3,
-            // shadowRadius: 8,
-            // elevation: 8,
-            // marginBottom: 4,
+            overflow: "hidden",
           }}
         >
           <LinearGradient
-            colors={["#5B4CCC", "#6347C2", "#8056D1"]}
-            locations={[0, 0.5183, 1]}
+            colors={
+              isFormInvalid
+                ? (isDark ? ["#1A1A1A", "#1A1A1A"] : ["#E5E7EB", "#E5E7EB"])
+                : ["#5B4CCC", "#6347C2", "#8056D1"]
+            }
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={{
               paddingVertical: 14,
               alignItems: "center",
               width: "100%",
-              borderRadius: 14, // Apply radius here instead
             }}
           >
-            <Text className="text-white font-poppins text-lg">Next</Text>
+            <Text
+              style={{
+                color: isFormInvalid
+                  ? (isDark ? "#555" : "#9CA3AF")
+                  : "#FFFFFF",
+              }}
+              className="font-poppins text-lg"
+            >
+              Create
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* DateTimePicker Modals */}
+      {datePickerVisible && (
+        <DateTimePicker
+          value={
+            selectedVendorIdForDate !== null
+              ? new Date((activeTab === "Projected" ? projectedVendors : actualVendors).find((v) => v.id === selectedVendorIdForDate)?.date || new Date())
+              : new Date()
+          }
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 };

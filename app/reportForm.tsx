@@ -581,6 +581,10 @@ const ReportForm: React.FC = () => {
         (sum, v) => sum + (Number(v.unskillLabor) || 0),
         0,
       );
+      const totalStaff = vendors.reduce(
+        (sum, v) => sum + (Number(v.staffLabor) || 0),
+        0,
+      );
 
       engine.addCoverPage({
         leaders,
@@ -591,6 +595,7 @@ const ReportForm: React.FC = () => {
         totalLabor,
         totalSkilled,
         totalUnskilled,
+        totalStaff,
       });
 
       if (photosWithBase64) {

@@ -23,6 +23,7 @@ export interface CoverPageData {
   totalLabor?: number;
   totalSkilled?: number;
   totalUnskilled?: number;
+  totalStaff?: number;
 }
 
 export interface PhotoData {
@@ -239,7 +240,7 @@ export class PdfEngine {
           <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.6; margin: 0; padding: 10px 0; font-family: Arial, sans-serif;">${this.escapeHtml(data.caseStudyRemarks)}</pre>
         </div>
       `);
-    } else if (data.mode === "dpr") {
+    } /* else if (data.mode === "dpr") {
       this.pages.push(`
         <div class="page">
           ${this.renderHeader()}
@@ -252,6 +253,7 @@ export class PdfEngine {
                 <th>Expertise</th>
                 <th>Skilled</th>
                 <th>Unskilled</th>
+                <th>Staff</th>
                 <th>Total</th>
               </tr>
             </thead>
@@ -267,24 +269,26 @@ export class PdfEngine {
                   <td>${this.escapeHtml(v.expertise)}</td>
                   <td>${v.skillLabor || 0}</td>
                   <td>${v.unskillLabor || 0}</td>
-                  <td>${(Number(v.skillLabor) || 0) + (Number(v.unskillLabor) || 0)}</td>
+                  <td>${v.staffLabor || 0}</td>
+                  <td>${(Number(v.skillLabor) || 0) + (Number(v.unskillLabor) || 0) + (Number(v.staffLabor) || 0)}</td>
                 </tr>
               `,
                       )
                       .join("")
-                  : "<tr><td colspan='6' style='text-align:center;'>No labor recorded</td></tr>"
+                  : "<tr><td colspan='7' style='text-align:center;'>No labor recorded</td></tr>"
               }
               <tr style="font-weight:bold; background-color: #f0f0f0;">
                 <td colspan="3" style="text-align:right;">Grand Totals</td>
                 <td>${data.totalSkilled || 0}</td>
                 <td>${data.totalUnskilled || 0}</td>
+                <td>${data.totalStaff || 0}</td>
                 <td>${data.totalLabor || 0}</td>
               </tr>
             </tbody>
           </table>
         </div>
       `);
-    }
+    } */
   }
 
   addPhotoPage(photo: PhotoData) {
@@ -302,7 +306,7 @@ export class PdfEngine {
     `);
   }
 
-  private escapeHtml(text: string): string {
+  private escapeHtml(text?: string): string {
     if (!text) return "";
     return text
       .replace(/&/g, "&amp;")

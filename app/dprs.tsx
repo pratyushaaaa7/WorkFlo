@@ -666,7 +666,7 @@ const DPRs = () => {
       <TouchableOpacity
         onPress={() =>
           router.push(
-            `/dprLaborForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&partnerInCharge=${partnerInCharge}`,
+            `/reportForm?projectId=${projectId}&projectName=${projectName}&company=${company}&teamLeaders=${teamLeaders}&teamMembers=${teamMembers}&partnerInCharge=${partnerInCharge}`,
           )
         }
         style={{
