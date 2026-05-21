@@ -601,7 +601,7 @@ const LaborReports = () => {
             justifyContent: "flex-end",
           }}
         >
-          
+      
           <TouchableOpacity
             activeOpacity={1}
             style={{
