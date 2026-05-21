@@ -560,28 +560,30 @@ const LaborReports = () => {
       )}
 
       {/* Floating + Button */}
-      <TouchableOpacity
-        onPress={() => setFormSelectModalVisible(true)}
-        style={{
-          position: "absolute",
-          bottom: 30,
-          right: 20,
-          width: 54,
-          height: 54,
-          borderRadius: 28,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.accent,
-          shadowColor: colors.accent,
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.4,
-          shadowRadius: 12,
-          elevation: 10,
-        }}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      {activeTab !== "Graph" && (
+        <TouchableOpacity
+          onPress={() => setFormSelectModalVisible(true)}
+          style={{
+            position: "absolute",
+            bottom: 30,
+            right: 20,
+            width: 54,
+            height: 54,
+            borderRadius: 28,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.accent,
+            shadowColor: colors.accent,
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            elevation: 10,
+          }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
+      )}
 
       {/* Form Selection Modal */}
       <Modal
